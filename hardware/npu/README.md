@@ -62,3 +62,17 @@ The script compiles with `iverilog -g2012 -Wall`, runs with `vvp`, and returns
 nonzero on any failure. It runs the PE test and 4x4, 4x8, and 8x8 matrix
 regressions. Define `DUMP_VCD` when compiling the matrix testbench manually
 to emit `matrix_unit.vcd` for debugging.
+
+## Vector Unit
+
+The independent INT8 SIMD `vector_unit` supports saturating ADD/SUB,
+MAX/MIN/MOV, scalar broadcast, lane masks, and a vector accumulator for
+per-channel pooling. See [Vector Unit interface and verification](VECTOR_UNIT.md)
+for opcode encodings, ready/valid timing, VACC semantics, and pooling sequences.
+Requantization remains a separate module.
+
+Run its Icarus regression from the repository root:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_vector_unit_test.ps1
+```
