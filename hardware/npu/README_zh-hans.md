@@ -124,3 +124,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_mat
 `matrix_unit.vcd`
 
 用于波形调试。
+
+## Vector Unit
+
+独立的 INT8 SIMD `vector_unit` 支持饱和 ADD/SUB、MAX/MIN/MOV、scalar broadcast、
+lane mask，以及用于逐 channel pooling 的 VACC。接口、opcode 编码、ready/valid
+时序、VACC 行为与 pooling 操作序列见 [Vector Unit 设计与验证说明](VECTOR_UNIT.md)。
+Requantization 由其他独立模块负责。
+
+在仓库根目录执行 Icarus 回归：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_vector_unit_test.ps1
+```
