@@ -1,5 +1,8 @@
 # 权重驻留（Weight-Stationary）Matrix Unit
 
+KWS-TinyCNN-8 NPU 已确认的模型边界、整数语义、存储和验证基线见
+[TINYCNN8_ARCHITECTURE.md](TINYCNN8_ARCHITECTURE.md)。
+
 `matrix_unit` 每接受一个计算事务（transaction），计算一个输出向量：
 
 `P_out[c] = P_in[c] + sum(r=0..ARRAY_ROWS-1) A[r] * W[r][c]`。
@@ -136,4 +139,94 @@ Requantization 由其他独立模块负责。
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_vector_unit_test.ps1
+```
+
+## Requantization Unit
+
+`rtl/requant_unit.sv` 对每个输出通道执行 INT32 bias、Q0.31 multiplier、
+TFLite/gemmlowp 双重舍入、output offset 和可配置激活钳位，输出 signed INT8。
+回归测试命令：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_requant_unit_test.ps1
+```
+
+## Global Pool Reduction
+
+`rtl/reduction_sum_unit.sv` 将一串 signed INT8 通道向量归约为每通道 INT32
+累加和，用于 TinyCNN-8 的 `5×4` 全局池化。模型导出阶段把固定的 `1/20`
+比例折叠进后续 FC 量化尺度。回归测试命令：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_reduction_sum_test.ps1
+```
+
+## Conv Window Address Generator
+
+`rtl/conv_window_addr_gen.sv` 按 NHWC 顺序生成完整卷积层的输入地址流，支持
+kernel、stride、padding、通道遍历和 ready/valid backpressure。越界位置通过
+`is_padding` 标记，由调用者提供量化实数零。TinyCNN-8 两个 `3×3 SAME`
+卷积层以及额外的 strided VALID 配置均有自检回归：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_conv_window_test.ps1
+```
+
+## Conv2D Engine
+
+`rtl/conv2d_engine.sv` 将窗口地址生成器、Matrix Unit 和 Requant Unit 连接成
+描述符驱动的普通卷积引擎。首版采用单空间位置保留 INT32 PSUM 的保守调度，
+先保证逐位正确；空间 tile 和权重跨位置复用将在此基线上优化。TinyCNN Conv1
+分别映射到 4×8 和 4×4 阵列进行完整层回归：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_conv2d_engine_test.ps1
+```
+
+`rtl/maxpool2x2_engine.sv` 复用 Vector Unit 的 VACC/MAX 数据通路执行 NHWC
+`2×2 stride 2` MaxPool。两个 TinyCNN 池化层均在 8-lane 和 4-lane 配置下验证：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_maxpool_test.ps1
+```
+
+`rtl/global_sum_pool_engine.sv` 复用 INT32 reduction sum 单元完成 `5×4×8`
+全局空间归约；`1/20` 在模型导出时折叠进 FC 尺度。测试覆盖 8/4/3 lanes：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_global_sum_pool_test.ps1
+```
+
+`rtl/global_avg_pool_engine.sv` 在上述 INT32 sum 后复用 Requant Unit，将固定
+`1/20` 和 FC 输入尺度合并成逐通道 multiplier/shift，再输出 signed INT8：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_global_avg_pool_test.ps1
+```
+
+`rtl/fc_engine.sv` 复用 Matrix Unit 完成 INT8 输入和权重到 INT32 logits 的
+全连接层。4类/6类输出均在 4×8 和 4×4 阵列配置下验证：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_fc_engine_test.ps1
+```
+
+## TinyCNN-8 NPU Top
+
+`rtl/tinycnn8_npu_top.sv` 串联 Conv1、Pool1、Conv2、Pool2、GAP requant 和
+FC；Conv1/Conv2/FC 共享同一个 Matrix Unit。权重和量化参数可在空闲时加载，
+顶层使用两块行为级激活 SRAM 做 ping-pong。运行过程中输入所在的 A bank
+会被后续层复用，因此每次推理开始前，主机必须重新加载完整输入特征；权重和
+量化参数可以跨同一模型的推理保留。FC 权重按当前模型类别数对应的
+`ceil(class_count / ARRAY_COLS)` 个输出 tile 紧密排列；切换 4 类/6 类模型时
+必须同时重装匹配布局的 FC 权重和参数。端到端合成测试参数回归命令：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_tinycnn8_top_test.ps1
+```
+
+运行全部 NPU RTL 回归：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all_tests.ps1
 ```
