@@ -1,0 +1,245 @@
+
+lab3_test1.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+80000000 <_start>:
+.global _start
+.extern main
+
+_start:
+    # Stack pointer at top of SRAM (grows downward, magic region above)
+    la   sp, __stack_top
+80000000:	00002117          	auipc	sp,0x2
+80000004:	fe010113          	add	sp,sp,-32 # 80001fe0 <__stack_top>
+    # Return address points to halt loop in case main returns
+    la   ra, loop
+80000008:	00000097          	auipc	ra,0x0
+8000000c:	02608093          	add	ra,ra,38 # 8000002e <loop>
+
+    # Zero .bss
+    la   t0, _bss_start
+80000010:	00000297          	auipc	t0,0x0
+80000014:	18428293          	add	t0,t0,388 # 80000194 <_bss_end>
+    la   t1, _bss_end
+80000018:	00000317          	auipc	t1,0x0
+8000001c:	17c30313          	add	t1,t1,380 # 80000194 <_bss_end>
+
+80000020 <bss_loop>:
+bss_loop:
+    bgeu t0, t1, bss_done
+80000020:	0062f663          	bgeu	t0,t1,8000002c <bss_done>
+    sw   zero, 0(t0)
+80000024:	0002a023          	sw	zero,0(t0)
+    addi t0, t0, 4
+80000028:	0291                	add	t0,t0,4
+    j    bss_loop
+8000002a:	bfdd                	j	80000020 <bss_loop>
+
+8000002c <bss_done>:
+bss_done:
+
+    call main
+8000002c:	2011                	jal	80000030 <main>
+
+8000002e <loop>:
+
+loop:
+    j loop
+8000002e:	a001                	j	8000002e <loop>
+
+80000030 <main>:
+#define STATUS_PASS       0xC0DEC0DEu
+#define STATUS_FAIL       0xDEADBEEFu
+
+#define N 4
+
+int main(void) {
+80000030:	1101                	add	sp,sp,-32
+    MAGIC_STATUS = STATUS_RUNNING;
+80000032:	800027b7          	lui	a5,0x80002
+80000036:	12345737          	lui	a4,0x12345
+8000003a:	67870713          	add	a4,a4,1656 # 12345678 <_start-0x6dcba988>
+8000003e:	fee7a023          	sw	a4,-32(a5) # 80001fe0 <__stack_top>
+
+    // Deterministic dense 4-bit inputs. Max element = 0xF, max product = 0xE1,
+    // max accumulated cell = 4 * 0xE1 = 0x384 (10 bits), fits the OUT[9:0] slot.
+    uint8_t A[N][N];
+    uint8_t B[N][N];
+    for (int i = 0; i < N; i++) {
+80000042:	01010e13          	add	t3,sp,16
+    MAGIC_STATUS = STATUS_RUNNING;
+80000046:	830a                	mv	t1,sp
+80000048:	88f2                	mv	a7,t3
+8000004a:	45d1                	li	a1,20
+8000004c:	4801                	li	a6,0
+    for (int i = 0; i < N; i++) {
+8000004e:	02000e93          	li	t4,32
+        for (int j = 0; j < N; j++) {
+80000052:	fec58793          	add	a5,a1,-20
+80000056:	0ff7f793          	zext.b	a5,a5
+int main(void) {
+8000005a:	861a                	mv	a2,t1
+8000005c:	8742                	mv	a4,a6
+8000005e:	86c6                	mv	a3,a7
+            A[i][j] = (uint8_t)((i * 3u + j * 5u) & 0xFu);
+80000060:	00f7f513          	and	a0,a5,15
+80000064:	00a68023          	sb	a0,0(a3)
+            B[i][j] = (uint8_t)((i * 7u + j * 2u) & 0xFu);
+80000068:	00f77513          	and	a0,a4,15
+8000006c:	00a60023          	sb	a0,0(a2)
+        for (int j = 0; j < N; j++) {
+80000070:	0795                	add	a5,a5,5
+80000072:	0ff7f793          	zext.b	a5,a5
+80000076:	0685                	add	a3,a3,1
+80000078:	0709                	add	a4,a4,2
+8000007a:	0ff77713          	zext.b	a4,a4
+8000007e:	0605                	add	a2,a2,1
+80000080:	feb790e3          	bne	a5,a1,80000060 <main+0x30>
+    for (int i = 0; i < N; i++) {
+80000084:	0891                	add	a7,a7,4
+80000086:	081d                	add	a6,a6,7
+80000088:	0ff87813          	zext.b	a6,a6
+8000008c:	0311                	add	t1,t1,4
+8000008e:	058d                	add	a1,a1,3
+80000090:	0ff5f593          	zext.b	a1,a1
+80000094:	fbd59fe3          	bne	a1,t4,80000052 <main+0x22>
+80000098:	8e8a                	mv	t4,sp
+8000009a:	8372                	mv	t1,t3
+8000009c:	70000537          	lui	a0,0x70000
+800000a0:	05050513          	add	a0,a0,80 # 70000050 <_start-0xfffffb0>
+800000a4:	4881                	li	a7,0
+
+    // Stream into ACT/WGT in column-major order. dina[3:0] carries the element.
+    for (int j = 0; j < N; j++) {
+        for (int i = 0; i < N; i++) {
+            NPU_ACT(j * N + i) = A[i][j];
+            NPU_WGT(j * N + i) = B[i][j];
+800000a6:	6805                	lui	a6,0x1
+800000a8:	fc080813          	add	a6,a6,-64 # fc0 <_start-0x7ffff040>
+    for (int j = 0; j < N; j++) {
+800000ac:	4f41                	li	t5,16
+        for (int i = 0; i < N; i++) {
+800000ae:	ff050793          	add	a5,a0,-16
+    MAGIC_STATUS = STATUS_RUNNING;
+800000b2:	86f6                	mv	a3,t4
+800000b4:	871a                	mv	a4,t1
+            NPU_ACT(j * N + i) = A[i][j];
+800000b6:	00074603          	lbu	a2,0(a4)
+800000ba:	c390                	sw	a2,0(a5)
+            NPU_WGT(j * N + i) = B[i][j];
+800000bc:	01078633          	add	a2,a5,a6
+800000c0:	0006c583          	lbu	a1,0(a3)
+800000c4:	c20c                	sw	a1,0(a2)
+        for (int i = 0; i < N; i++) {
+800000c6:	0711                	add	a4,a4,4
+800000c8:	0791                	add	a5,a5,4
+800000ca:	0691                	add	a3,a3,4
+800000cc:	fea795e3          	bne	a5,a0,800000b6 <main+0x86>
+    for (int j = 0; j < N; j++) {
+800000d0:	0305                	add	t1,t1,1
+800000d2:	0e85                	add	t4,t4,1
+800000d4:	0891                	add	a7,a7,4
+800000d6:	0541                	add	a0,a0,16
+800000d8:	fde89be3          	bne	a7,t5,800000ae <main+0x7e>
+        }
+    }
+
+    NPU_CONTROL = NPU_CTRL_START;
+800000dc:	700007b7          	lui	a5,0x70000
+800000e0:	4705                	li	a4,1
+800000e2:	c398                	sw	a4,0(a5)
+    while ((NPU_STATUS & NPU_STATUS_DONE) == 0u) { }
+800000e4:	70000737          	lui	a4,0x70000
+800000e8:	0711                	add	a4,a4,4 # 70000004 <_start-0xffffffc>
+800000ea:	431c                	lw	a5,0(a4)
+800000ec:	8b85                	and	a5,a5,1
+800000ee:	dff5                	beqz	a5,800000ea <main+0xba>
+800000f0:	8372                	mv	t1,t3
+
+    // OUT slot holds the 10-bit accumulator; mask off upper bits before compare.
+    for (int i = 0; i < N; i++) {
+800000f2:	4e81                	li	t4,0
+800000f4:	70002f37          	lui	t5,0x70002
+800000f8:	41cf0f33          	sub	t5,t5,t3
+        for (int j = 0; j < N; j++) {
+800000fc:	4e11                	li	t3,4
+800000fe:	a081                	j	8000013e <main+0x10e>
+            for (int k = 0; k < N; k++) {
+                ref += (uint32_t)A[i][k] * (uint32_t)B[k][j];
+            }
+            uint32_t hw = NPU_OUT(j * N + i) & 0x3FFu;
+            if (hw != ref) {
+                MAGIC_FAIL_I  = (uint32_t)i;
+80000100:	80002737          	lui	a4,0x80002
+80000104:	1711                	add	a4,a4,-28 # 80001fe4 <__stack_top+0x4>
+80000106:	01d72023          	sw	t4,0(a4)
+                MAGIC_FAIL_J  = (uint32_t)j;
+8000010a:	80002737          	lui	a4,0x80002
+8000010e:	1721                	add	a4,a4,-24 # 80001fe8 <__stack_top+0x8>
+80000110:	01072023          	sw	a6,0(a4)
+                MAGIC_HW_VAL  = hw;
+80000114:	80002737          	lui	a4,0x80002
+80000118:	1731                	add	a4,a4,-20 # 80001fec <__stack_top+0xc>
+8000011a:	c31c                	sw	a5,0(a4)
+                MAGIC_REF_VAL = ref;
+8000011c:	800027b7          	lui	a5,0x80002
+80000120:	17c1                	add	a5,a5,-16 # 80001ff0 <__stack_top+0x10>
+80000122:	c390                	sw	a2,0(a5)
+                MAGIC_STATUS  = STATUS_FAIL;
+80000124:	800027b7          	lui	a5,0x80002
+80000128:	1781                	add	a5,a5,-32 # 80001fe0 <__stack_top>
+8000012a:	deadc737          	lui	a4,0xdeadc
+8000012e:	eef70713          	add	a4,a4,-273 # deadbeef <__stack_top+0x5ead9f0f>
+80000132:	c398                	sw	a4,0(a5)
+                return 0;
+80000134:	a8a1                	j	8000018c <main+0x15c>
+    for (int i = 0; i < N; i++) {
+80000136:	0e85                	add	t4,t4,1
+80000138:	0311                	add	t1,t1,4
+8000013a:	05ce8163          	beq	t4,t3,8000017c <main+0x14c>
+        for (int j = 0; j < N; j++) {
+8000013e:	006f08b3          	add	a7,t5,t1
+80000142:	0808                	add	a0,sp,16
+80000144:	4801                	li	a6,0
+            for (int k = 0; k < N; k++) {
+80000146:	ff050793          	add	a5,a0,-16
+8000014a:	869a                	mv	a3,t1
+            uint32_t ref = 0;
+8000014c:	4601                	li	a2,0
+                ref += (uint32_t)A[i][k] * (uint32_t)B[k][j];
+8000014e:	0006c703          	lbu	a4,0(a3)
+80000152:	0007c583          	lbu	a1,0(a5)
+80000156:	02b70733          	mul	a4,a4,a1
+8000015a:	963a                	add	a2,a2,a4
+            for (int k = 0; k < N; k++) {
+8000015c:	0685                	add	a3,a3,1
+8000015e:	0791                	add	a5,a5,4
+80000160:	fea797e3          	bne	a5,a0,8000014e <main+0x11e>
+            uint32_t hw = NPU_OUT(j * N + i) & 0x3FFu;
+80000164:	0008a783          	lw	a5,0(a7)
+80000168:	3ff7f793          	and	a5,a5,1023
+            if (hw != ref) {
+8000016c:	f8c79ae3          	bne	a5,a2,80000100 <main+0xd0>
+        for (int j = 0; j < N; j++) {
+80000170:	0805                	add	a6,a6,1
+80000172:	08c1                	add	a7,a7,16
+80000174:	0505                	add	a0,a0,1
+80000176:	fdc818e3          	bne	a6,t3,80000146 <main+0x116>
+8000017a:	bf75                	j	80000136 <main+0x106>
+            }
+        }
+    }
+
+    MAGIC_STATUS = STATUS_PASS;
+8000017c:	800027b7          	lui	a5,0x80002
+80000180:	1781                	add	a5,a5,-32 # 80001fe0 <__stack_top>
+80000182:	c0dec737          	lui	a4,0xc0dec
+80000186:	0de70713          	add	a4,a4,222 # c0dec0de <__stack_top+0x40dea0fe>
+8000018a:	c398                	sw	a4,0(a5)
+    return 0;
+}
+8000018c:	4501                	li	a0,0
+8000018e:	6105                	add	sp,sp,32
+80000190:	8082                	ret

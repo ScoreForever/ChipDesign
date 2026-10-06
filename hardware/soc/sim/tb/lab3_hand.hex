@@ -1,0 +1,29 @@
+// lab3_hand.hex —— 手写汇编访问 NPU 的示例镜像（Lab 3 Task 5）
+// 一行一条 32-bit 指令，第 N 行放在 0x8000_0000 + 4*(N-1)。
+// $readmemh 会忽略 // 之后的内容，所以右边的汇编只是给人看的注释。
+// 源码见 lab3_hand.S；机器码可以用 https://riscvasm.lucasteske.dev 核对。
+700002b7  // 80000000: lui  t0, 0x70000      t0 = 0x7000_0000 (NPU_BASE)
+00300313  // 80000004: addi t1, zero, 3
+0462a023  // 80000008: sw   t1, 0x40(t0)     ACT[0] = A[0][0] = 3
+700013b7  // 8000000c: lui  t2, 0x70001      t2 = 0x7000_1000 (WGT_BASE)
+00500313  // 80000010: addi t1, zero, 5
+0063a023  // 80000014: sw   t1, 0(t2)        WGT[0] = B[0][0] = 5
+0402ae03  // 80000018: lw   t3, 0x40(t0)     读回 ACT[0]，t3 应为 3
+00100313  // 8000001c: addi t1, zero, 1
+0062a023  // 80000020: sw   t1, 0(t0)        CONTROL = 1 (START)
+0042a303  // 80000024: lw   t1, 4(t0)        poll: 读 STATUS
+00137313  // 80000028: andi t1, t1, 1
+fe030ce3  // 8000002c: beq  t1, zero, poll   DONE 还没到就回去再读
+700023b7  // 80000030: lui  t2, 0x70002      t2 = 0x7000_2000 (OUT_BASE)
+0003ae83  // 80000034: lw   t4, 0(t2)        t4 = OUT[0] = C[0][0]，应为 3*5 = 15
+80002fb7  // 80000038: lui  t6, 0x80002      t6 = 0x8000_2000
+00f00f13  // 8000003c: addi t5, zero, 15
+01ee9a63  // 80000040: bne  t4, t5, fail
+c0dec337  // 80000044: lui  t1, 0xC0DEC
+0de30313  // 80000048: addi t1, t1, 0x0DE    t1 = 0xC0DE_C0DE (PASS)
+fe6fa023  // 8000004c: sw   t1, -32(t6)      写 magic_status @ 0x8000_1FE0
+0000006f  // 80000050: done: j done
+deadc337  // 80000054: fail: lui t1, 0xDEADC
+eef30313  // 80000058: addi t1, t1, -0x111   t1 = 0xDEAD_BEEF (FAIL)
+fe6fa023  // 8000005c: sw   t1, -32(t6)
+ff1ff06f  // 80000060: j    done

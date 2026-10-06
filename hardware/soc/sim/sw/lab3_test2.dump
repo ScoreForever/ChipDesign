@@ -1,0 +1,329 @@
+
+lab3_test2.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+80000000 <_start>:
+.global _start
+.extern main
+
+_start:
+    # Stack pointer at top of SRAM (grows downward, magic region above)
+    la   sp, __stack_top
+80000000:	00002117          	auipc	sp,0x2
+80000004:	fe010113          	add	sp,sp,-32 # 80001fe0 <__stack_top>
+    # Return address points to halt loop in case main returns
+    la   ra, loop
+80000008:	00000097          	auipc	ra,0x0
+8000000c:	02608093          	add	ra,ra,38 # 8000002e <loop>
+
+    # Zero .bss
+    la   t0, _bss_start
+80000010:	00000297          	auipc	t0,0x0
+80000014:	21428293          	add	t0,t0,532 # 80000224 <_bss_end>
+    la   t1, _bss_end
+80000018:	00000317          	auipc	t1,0x0
+8000001c:	20c30313          	add	t1,t1,524 # 80000224 <_bss_end>
+
+80000020 <bss_loop>:
+bss_loop:
+    bgeu t0, t1, bss_done
+80000020:	0062f663          	bgeu	t0,t1,8000002c <bss_done>
+    sw   zero, 0(t0)
+80000024:	0002a023          	sw	zero,0(t0)
+    addi t0, t0, 4
+80000028:	0291                	add	t0,t0,4
+    j    bss_loop
+8000002a:	bfdd                	j	80000020 <bss_loop>
+
+8000002c <bss_done>:
+bss_done:
+
+    call main
+8000002c:	2a51                	jal	800001c0 <main>
+
+8000002e <loop>:
+
+loop:
+    j loop
+8000002e:	a001                	j	8000002e <loop>
+
+80000030 <run_case>:
+#define STATUS_PASS       0xC0DEC0DEu
+#define STATUS_FAIL       0xDEADBEEFu
+
+#define N 4
+
+static int run_case(uint32_t case_id) {
+80000030:	1101                	add	sp,sp,-32
+    uint8_t A[N][N];
+    uint8_t B[N][N];
+
+    if (case_id == 0u) {
+80000032:	c909                	beqz	a0,80000044 <run_case+0x14>
+80000034:	01010e13          	add	t3,sp,16
+80000038:	830a                	mv	t1,sp
+8000003a:	45d1                	li	a1,20
+8000003c:	4881                	li	a7,0
+            for (int j = 0; j < N; j++) {
+                A[i][j] = (i == j) ? 1u : 0u;
+                B[i][j] = (uint8_t)((i * 7u + j * 2u) & 0xFu);
+            }
+    } else {
+        for (int i = 0; i < N; i++)
+8000003e:	02c00e93          	li	t4,44
+80000042:	a0f1                	j	8000010e <run_case+0xde>
+80000044:	01010893          	add	a7,sp,16
+80000048:	880a                	mv	a6,sp
+    if (case_id == 0u) {
+8000004a:	4301                	li	t1,0
+        for (int i = 0; i < N; i++)
+8000004c:	4581                	li	a1,0
+            for (int j = 0; j < N; j++) {
+8000004e:	4e11                	li	t3,4
+        for (int i = 0; i < N; i++)
+80000050:	4ef1                	li	t4,28
+static int run_case(uint32_t case_id) {
+80000052:	871a                	mv	a4,t1
+            for (int j = 0; j < N; j++) {
+80000054:	4781                	li	a5,0
+                A[i][j] = (i == j) ? 1u : 0u;
+80000056:	00f88633          	add	a2,a7,a5
+8000005a:	40f586b3          	sub	a3,a1,a5
+8000005e:	0016b693          	seqz	a3,a3
+80000062:	00d60023          	sb	a3,0(a2)
+                B[i][j] = (uint8_t)((i * 7u + j * 2u) & 0xFu);
+80000066:	00f806b3          	add	a3,a6,a5
+8000006a:	00f77613          	and	a2,a4,15
+8000006e:	00c68023          	sb	a2,0(a3)
+            for (int j = 0; j < N; j++) {
+80000072:	0785                	add	a5,a5,1
+80000074:	0709                	add	a4,a4,2
+80000076:	0ff77713          	zext.b	a4,a4
+8000007a:	fdc79ee3          	bne	a5,t3,80000056 <run_case+0x26>
+        for (int i = 0; i < N; i++)
+8000007e:	0585                	add	a1,a1,1
+80000080:	031d                	add	t1,t1,7
+80000082:	0ff37313          	zext.b	t1,t1
+80000086:	0891                	add	a7,a7,4
+80000088:	0811                	add	a6,a6,4
+8000008a:	fdd314e3          	bne	t1,t4,80000052 <run_case+0x22>
+                A[i][j] = (uint8_t)((i * 3u + j * 5u) & 0xFu);
+                B[i][j] = (uint8_t)((i * 11u + j * 13u) & 0xFu);
+            }
+    }
+
+    for (int j = 0; j < N; j++) {
+8000008e:	01010293          	add	t0,sp,16
+    if (case_id == 0u) {
+80000092:	8e8a                	mv	t4,sp
+80000094:	8e16                	mv	t3,t0
+80000096:	70000837          	lui	a6,0x70000
+8000009a:	05080813          	add	a6,a6,80 # 70000050 <_start-0xfffffb0>
+8000009e:	4301                	li	t1,0
+        for (int i = 0; i < N; i++) {
+            NPU_ACT(j * N + i) = A[i][j];
+            NPU_WGT(j * N + i) = B[i][j];
+800000a0:	6885                	lui	a7,0x1
+800000a2:	fc088893          	add	a7,a7,-64 # fc0 <_start-0x7ffff040>
+    for (int j = 0; j < N; j++) {
+800000a6:	4f41                	li	t5,16
+        for (int i = 0; i < N; i++) {
+800000a8:	ff080793          	add	a5,a6,-16
+    if (case_id == 0u) {
+800000ac:	86f6                	mv	a3,t4
+800000ae:	8772                	mv	a4,t3
+            NPU_ACT(j * N + i) = A[i][j];
+800000b0:	00074603          	lbu	a2,0(a4)
+800000b4:	c390                	sw	a2,0(a5)
+            NPU_WGT(j * N + i) = B[i][j];
+800000b6:	01178633          	add	a2,a5,a7
+800000ba:	0006c583          	lbu	a1,0(a3)
+800000be:	c20c                	sw	a1,0(a2)
+        for (int i = 0; i < N; i++) {
+800000c0:	0711                	add	a4,a4,4
+800000c2:	0791                	add	a5,a5,4
+800000c4:	0691                	add	a3,a3,4
+800000c6:	ff0795e3          	bne	a5,a6,800000b0 <run_case+0x80>
+    for (int j = 0; j < N; j++) {
+800000ca:	0e05                	add	t3,t3,1
+800000cc:	0e85                	add	t4,t4,1
+800000ce:	0311                	add	t1,t1,4
+800000d0:	0841                	add	a6,a6,16
+800000d2:	fde31be3          	bne	t1,t5,800000a8 <run_case+0x78>
+        }
+    }
+
+    NPU_CONTROL = NPU_CTRL_START;
+800000d6:	700007b7          	lui	a5,0x70000
+800000da:	4705                	li	a4,1
+800000dc:	c398                	sw	a4,0(a5)
+    while ((NPU_STATUS & NPU_STATUS_DONE) == 0u) { }
+800000de:	70000737          	lui	a4,0x70000
+800000e2:	0711                	add	a4,a4,4 # 70000004 <_start-0xffffffc>
+800000e4:	431c                	lw	a5,0(a4)
+800000e6:	8b85                	and	a5,a5,1
+800000e8:	dff5                	beqz	a5,800000e4 <run_case+0xb4>
+800000ea:	8e16                	mv	t3,t0
+
+    for (int i = 0; i < N; i++) {
+800000ec:	4f01                	li	t5,0
+800000ee:	70002fb7          	lui	t6,0x70002
+800000f2:	405f8fb3          	sub	t6,t6,t0
+        for (int j = 0; j < N; j++) {
+800000f6:	4e91                	li	t4,4
+800000f8:	a051                	j	8000017c <run_case+0x14c>
+        for (int i = 0; i < N; i++)
+800000fa:	0e11                	add	t3,t3,4
+800000fc:	08ad                	add	a7,a7,11
+800000fe:	0ff8f893          	zext.b	a7,a7
+80000102:	0311                	add	t1,t1,4
+80000104:	058d                	add	a1,a1,3
+80000106:	0ff5f593          	zext.b	a1,a1
+8000010a:	f9d882e3          	beq	a7,t4,8000008e <run_case+0x5e>
+            for (int j = 0; j < N; j++) {
+8000010e:	fec58793          	add	a5,a1,-20
+80000112:	0ff7f793          	zext.b	a5,a5
+        for (int i = 0; i < N; i++)
+80000116:	861a                	mv	a2,t1
+80000118:	8746                	mv	a4,a7
+8000011a:	86f2                	mv	a3,t3
+                A[i][j] = (uint8_t)((i * 3u + j * 5u) & 0xFu);
+8000011c:	00f7f813          	and	a6,a5,15
+80000120:	01068023          	sb	a6,0(a3)
+                B[i][j] = (uint8_t)((i * 11u + j * 13u) & 0xFu);
+80000124:	00f77813          	and	a6,a4,15
+80000128:	01060023          	sb	a6,0(a2)
+            for (int j = 0; j < N; j++) {
+8000012c:	0795                	add	a5,a5,5 # 70000005 <_start-0xffffffb>
+8000012e:	0ff7f793          	zext.b	a5,a5
+80000132:	0685                	add	a3,a3,1
+80000134:	0735                	add	a4,a4,13
+80000136:	0ff77713          	zext.b	a4,a4
+8000013a:	0605                	add	a2,a2,1
+8000013c:	feb790e3          	bne	a5,a1,8000011c <run_case+0xec>
+80000140:	bf6d                	j	800000fa <run_case+0xca>
+            for (int k = 0; k < N; k++) {
+                ref += (uint32_t)A[i][k] * (uint32_t)B[k][j];
+            }
+            uint32_t hw = NPU_OUT(j * N + i) & 0x3FFu;
+            if (hw != ref) {
+                MAGIC_CASE    = case_id;
+80000142:	80002737          	lui	a4,0x80002
+80000146:	1751                	add	a4,a4,-12 # 80001ff4 <__stack_top+0x14>
+80000148:	c308                	sw	a0,0(a4)
+                MAGIC_FAIL_I  = (uint32_t)i;
+8000014a:	80002737          	lui	a4,0x80002
+8000014e:	1711                	add	a4,a4,-28 # 80001fe4 <__stack_top+0x4>
+80000150:	01e72023          	sw	t5,0(a4)
+                MAGIC_FAIL_J  = (uint32_t)j;
+80000154:	80002737          	lui	a4,0x80002
+80000158:	1721                	add	a4,a4,-24 # 80001fe8 <__stack_top+0x8>
+8000015a:	01172023          	sw	a7,0(a4)
+                MAGIC_HW_VAL  = hw;
+8000015e:	80002737          	lui	a4,0x80002
+80000162:	1731                	add	a4,a4,-20 # 80001fec <__stack_top+0xc>
+80000164:	c31c                	sw	a5,0(a4)
+                MAGIC_REF_VAL = ref;
+80000166:	800027b7          	lui	a5,0x80002
+8000016a:	17c1                	add	a5,a5,-16 # 80001ff0 <__stack_top+0x10>
+8000016c:	c390                	sw	a2,0(a5)
+                return 1;
+8000016e:	4505                	li	a0,1
+            }
+        }
+    }
+    return 0;
+}
+80000170:	6105                	add	sp,sp,32
+80000172:	8082                	ret
+    for (int i = 0; i < N; i++) {
+80000174:	0f05                	add	t5,t5,1
+80000176:	0e11                	add	t3,t3,4
+80000178:	05df0263          	beq	t5,t4,800001bc <run_case+0x18c>
+        for (int j = 0; j < N; j++) {
+8000017c:	01cf8333          	add	t1,t6,t3
+80000180:	01010813          	add	a6,sp,16
+80000184:	4881                	li	a7,0
+            for (int k = 0; k < N; k++) {
+80000186:	ff080793          	add	a5,a6,-16
+    if (case_id == 0u) {
+8000018a:	86f2                	mv	a3,t3
+            uint32_t ref = 0;
+8000018c:	4601                	li	a2,0
+                ref += (uint32_t)A[i][k] * (uint32_t)B[k][j];
+8000018e:	0006c703          	lbu	a4,0(a3)
+80000192:	0007c583          	lbu	a1,0(a5)
+80000196:	02b70733          	mul	a4,a4,a1
+8000019a:	963a                	add	a2,a2,a4
+            for (int k = 0; k < N; k++) {
+8000019c:	0685                	add	a3,a3,1
+8000019e:	0791                	add	a5,a5,4
+800001a0:	ff0797e3          	bne	a5,a6,8000018e <run_case+0x15e>
+            uint32_t hw = NPU_OUT(j * N + i) & 0x3FFu;
+800001a4:	00032783          	lw	a5,0(t1)
+800001a8:	3ff7f793          	and	a5,a5,1023
+            if (hw != ref) {
+800001ac:	f8c79be3          	bne	a5,a2,80000142 <run_case+0x112>
+        for (int j = 0; j < N; j++) {
+800001b0:	0885                	add	a7,a7,1
+800001b2:	0341                	add	t1,t1,16
+800001b4:	0805                	add	a6,a6,1
+800001b6:	fdd898e3          	bne	a7,t4,80000186 <run_case+0x156>
+800001ba:	bf6d                	j	80000174 <run_case+0x144>
+    return 0;
+800001bc:	4501                	li	a0,0
+800001be:	bf4d                	j	80000170 <run_case+0x140>
+
+800001c0 <main>:
+
+int main(void) {
+800001c0:	1141                	add	sp,sp,-16
+800001c2:	c606                	sw	ra,12(sp)
+    MAGIC_STATUS = STATUS_RUNNING;
+800001c4:	800027b7          	lui	a5,0x80002
+800001c8:	12345737          	lui	a4,0x12345
+800001cc:	67870713          	add	a4,a4,1656 # 12345678 <_start-0x6dcba988>
+800001d0:	fee7a023          	sw	a4,-32(a5) # 80001fe0 <__stack_top>
+    MAGIC_CASE   = 0;
+800001d4:	800027b7          	lui	a5,0x80002
+800001d8:	fe07aa23          	sw	zero,-12(a5) # 80001ff4 <__stack_top+0x14>
+
+    if (run_case(0u)) { MAGIC_STATUS = STATUS_FAIL; return 0; }
+800001dc:	4501                	li	a0,0
+800001de:	3d89                	jal	80000030 <run_case>
+800001e0:	cd09                	beqz	a0,800001fa <main+0x3a>
+800001e2:	800027b7          	lui	a5,0x80002
+800001e6:	1781                	add	a5,a5,-32 # 80001fe0 <__stack_top>
+800001e8:	deadc737          	lui	a4,0xdeadc
+800001ec:	eef70713          	add	a4,a4,-273 # deadbeef <__stack_top+0x5ead9f0f>
+800001f0:	c398                	sw	a4,0(a5)
+    if (run_case(1u)) { MAGIC_STATUS = STATUS_FAIL; return 0; }
+
+    MAGIC_STATUS = STATUS_PASS;
+    return 0;
+}
+800001f2:	4501                	li	a0,0
+800001f4:	40b2                	lw	ra,12(sp)
+800001f6:	0141                	add	sp,sp,16
+800001f8:	8082                	ret
+    if (run_case(1u)) { MAGIC_STATUS = STATUS_FAIL; return 0; }
+800001fa:	4505                	li	a0,1
+800001fc:	3d15                	jal	80000030 <run_case>
+800001fe:	e911                	bnez	a0,80000212 <main+0x52>
+    MAGIC_STATUS = STATUS_PASS;
+80000200:	800027b7          	lui	a5,0x80002
+80000204:	1781                	add	a5,a5,-32 # 80001fe0 <__stack_top>
+80000206:	c0dec737          	lui	a4,0xc0dec
+8000020a:	0de70713          	add	a4,a4,222 # c0dec0de <__stack_top+0x40dea0fe>
+8000020e:	c398                	sw	a4,0(a5)
+    return 0;
+80000210:	b7cd                	j	800001f2 <main+0x32>
+    if (run_case(1u)) { MAGIC_STATUS = STATUS_FAIL; return 0; }
+80000212:	800027b7          	lui	a5,0x80002
+80000216:	1781                	add	a5,a5,-32 # 80001fe0 <__stack_top>
+80000218:	deadc737          	lui	a4,0xdeadc
+8000021c:	eef70713          	add	a4,a4,-273 # deadbeef <__stack_top+0x5ead9f0f>
+80000220:	c398                	sw	a4,0(a5)
+80000222:	bfc1                	j	800001f2 <main+0x32>

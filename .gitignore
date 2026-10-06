@@ -1,0 +1,16 @@
+# ModelSim / build artifacts
+work/
+transcript
+*.vcd
+*.wlf
+vsim.wlf
+
+# Python / OS
+__pycache__/
+*.pyc
+.DS_Store
+
+# Editor backups
+*~
+*.swp
+*.swo
