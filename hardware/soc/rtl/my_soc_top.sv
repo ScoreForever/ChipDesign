@@ -30,7 +30,7 @@ module my_soc_top #(
       .AXI_DATA_WIDTH (32),
       .AXI_ID_WIDTH   (2),
       .AXI_USER_WIDTH (1)
-  ) slave[2:0]();
+  ) slave[3:0]();
 
   AXI_BUS #(
       .AXI_ADDR_WIDTH (32),
@@ -40,7 +40,7 @@ module my_soc_top #(
   ) master[3:0]();
 
   localparam axi_pkg::xbar_cfg_t AXI_XBAR_CFG = '{
-      NoSlvPorts:         3,
+      NoSlvPorts:         4,
       NoMstPorts:         4,
       MaxMstTrans:        1,
       MaxSlvTrans:        1,
@@ -105,6 +105,7 @@ module my_soc_top #(
   dm::dmi_resp_t  debug_resp;
   logic           debug_req_irq;
   logic           npu_irq;
+  logic           dma_irq;
   localparam logic [31:0] DM_HALT_ADDR      = dm::HaltAddress[31:0];
   localparam logic [31:0] DM_EXCEPTION_ADDR = dm::ExceptionAddress[31:0];
 
@@ -139,7 +140,7 @@ module my_soc_top #(
       .data_addr_o         (data_addr),
       .data_wdata_o        (data_wdata),
       .data_rdata_i        (data_rdata),
-      .irq_i               ({15'b0, npu_irq, 16'b0}),
+      .irq_i               ({14'b0, dma_irq, npu_irq, 16'b0}),
       .irq_ack_o           (),
       .irq_id_o            (),
       .debug_req_i         (debug_req_irq),
@@ -163,6 +164,8 @@ module my_soc_top #(
   axi_resp_t data_axi_resp;
   axi_req_t  dm_axi_m_req;
   axi_resp_t dm_axi_m_resp;
+  axi_req_t  dma_axi_req;
+  axi_resp_t dma_axi_resp;
 
   `AXI_ASSIGN_FROM_REQ(slave[0], instr_axi_req)
   `AXI_ASSIGN_TO_RESP(instr_axi_resp, slave[0])
@@ -170,6 +173,8 @@ module my_soc_top #(
   `AXI_ASSIGN_TO_RESP(data_axi_resp, slave[1])
   `AXI_ASSIGN_FROM_REQ(slave[2], dm_axi_m_req)
   `AXI_ASSIGN_TO_RESP(dm_axi_m_resp, slave[2])
+  `AXI_ASSIGN_FROM_REQ(slave[3], dma_axi_req)
+  `AXI_ASSIGN_TO_RESP(dma_axi_resp, slave[3])
 
   assign data_valid = data_rvalid | data_axi_resp.b_valid;
 
@@ -438,10 +443,28 @@ module my_soc_top #(
   logic [31:0] npu_wdata;
   logic [31:0] npu_rdata;
 
+  // NPU DMA config signals
+  logic [31:0] dma_src;
+  logic [31:0] dma_dst;
+  logic [31:0] dma_len;
+  logic        dma_start;
+  logic        dma_irq_en;
+  logic        dma_clear_done;
+  logic        dma_busy;
+  logic        dma_done;
+
   my_npu_subsystem i_npu_subsystem (
       .clk_i(clk_i), .rst_ni(ndmreset_n), .req_i(npu_req), .we_i(npu_we),
       .addr_i(npu_addr), .wdata_i(npu_wdata), .rdata_o(npu_rdata),
-      .irq_o(npu_irq)
+      .irq_o(npu_irq),
+      .dma_src_o        (dma_src),
+      .dma_dst_o        (dma_dst),
+      .dma_len_o        (dma_len),
+      .dma_start_o      (dma_start),
+      .dma_irq_en_o     (dma_irq_en),
+      .dma_clear_done_o (dma_clear_done),
+      .dma_busy_i       (dma_busy),
+      .dma_done_i       (dma_done)
   );
 
   axi2mem #(
@@ -450,6 +473,70 @@ module my_soc_top #(
       .clk_i(clk_i), .rst_ni(ndmreset_n), .slave(master[IDX_NPU]),
       .req_o(npu_req), .we_o(npu_we), .addr_o(npu_addr), .be_o(),
       .data_o(npu_wdata), .data_i(npu_rdata)
+  );
+
+  // -------------------------------------------------------------------------
+  // NPU DMA engine + AXI adapter
+  // -------------------------------------------------------------------------
+  logic        dma_m_req;
+  logic        dma_m_gnt;
+  logic [31:0] dma_m_addr;
+  logic        dma_m_we;
+  logic [3:0]  dma_m_be;
+  logic [31:0] dma_m_wdata;
+  logic        dma_m_valid;
+  logic [31:0] dma_m_rdata;
+
+  npu_dma i_npu_dma (
+      .clk_i          (clk_i),
+      .rst_ni         (ndmreset_n),
+      .src_i          (dma_src),
+      .dst_i          (dma_dst),
+      .len_i          (dma_len),
+      .start_i        (dma_start),
+      .irq_en_i       (dma_irq_en),
+      .clear_done_i   (dma_clear_done),
+      .busy_o         (dma_busy),
+      .done_o         (dma_done),
+      .irq_o          (dma_irq),
+      .req_o          (dma_m_req),
+      .addr_o         (dma_m_addr),
+      .we_o           (dma_m_we),
+      .be_o           (dma_m_be),
+      .wdata_o        (dma_m_wdata),
+      .gnt_i          (dma_m_gnt),
+      .valid_i        (dma_m_valid),
+      .rdata_i        (dma_m_rdata)
+  );
+
+  axi_adapter #(
+      .ADDR_WIDTH         (32),
+      .DATA_WIDTH         (32),
+      .AXI_DATA_WIDTH     (32),
+      .AXI_ID_WIDTH       (4),
+      .MAX_OUTSTANDING_AW (7),
+      .axi_req_t          (axi_req_t),
+      .axi_rsp_t          (axi_resp_t)
+  ) i_axi_adapter_dma (
+      .clk_i                 (clk_i),
+      .rst_ni                (ndmreset_n),
+      .req_i                 (dma_m_req),
+      .type_i                (1'b0),
+      .amo_i                 (4'b0000),
+      .gnt_o                 (dma_m_gnt),
+      .addr_i                (dma_m_addr),
+      .we_i                  (dma_m_we),
+      .wdata_i               (dma_m_wdata),
+      .be_i                  (dma_m_be),
+      .size_i                (2'b10),
+      .id_i                  (4'b0011),
+      .valid_o               (dma_m_valid),
+      .rdata_o               (dma_m_rdata),
+      .id_o                  (),
+      .critical_word_o       (),
+      .critical_word_valid_o (),
+      .axi_req_o             (dma_axi_req),
+      .axi_resp_i            (dma_axi_resp)
   );
 
 endmodule

@@ -72,6 +72,7 @@ hardware/cpu/cpu_cv32e40p/rtl/cv32e40p_cs_registers.sv
 hardware/cpu/cpu_cv32e40p/rtl/cv32e40p_core.sv
 hardware/cpu/cpu_cv32e40p/rtl/cv32e40p_top.sv
 hardware/soc/rtl/mem/my_mainmem.sv
+hardware/soc/rtl/dma/npu_dma.sv
 hardware/npu/rtl/ws_pe.sv
 hardware/npu/rtl/ws_systolic_array.sv
 hardware/npu/rtl/matrix_unit.sv
@@ -83,3 +84,4 @@ hardware/soc/rtl/my_soc_top.sv
 hardware/soc/sim/tb/chipdesign_soc_tb.sv
 hardware/soc/sim/tb/chipdesign_npu_irq_tb.sv
 hardware/soc/sim/tb/chipdesign_requant_tb.sv
+hardware/soc/sim/tb/chipdesign_dma_tb.sv

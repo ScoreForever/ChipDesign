@@ -31,6 +31,11 @@
 //   0x0334  REQUANT_ZERO_POINT [W] signed INT8 zero point
 //   0x0340  REQUANT_OUT_LO    [R] lanes 0..3 INT8
 //   0x0344  REQUANT_OUT_HI    [R] lanes 4..7 INT8
+//   0x0400  DMA_SRC           [W] source address (byte)
+//   0x0404  DMA_DST           [W] destination address (byte)
+//   0x0408  DMA_LEN           [W] number of 32-bit words to copy
+//   0x040C  DMA_CTRL          [W] bit0=start, bit1=irq_en
+//   0x0410  DMA_STATUS        [R] bit0=busy, bit1=done
 
 module npu_mmio_wrapper #(
     parameter ACT_WIDTH  = 8,
@@ -48,7 +53,17 @@ module npu_mmio_wrapper #(
     input  logic [31:0] addr_i,
     input  logic [31:0] wdata_i,
     output logic [31:0] rdata_o,
-    output logic        irq_o
+    output logic        irq_o,
+
+    // DMA config slave (decoded from NPU MMIO 0x0400..0x041F)
+    output logic [31:0] dma_src_o,
+    output logic [31:0] dma_dst_o,
+    output logic [31:0] dma_len_o,
+    output logic        dma_start_o,
+    output logic        dma_irq_en_o,
+    output logic        dma_clear_done_o,
+    input  logic        dma_busy_i,
+    input  logic        dma_done_i
 );
 
     localparam int WEIGHT_WORDS = ((ARRAY_COLS * WGT_WIDTH + 31) / 32) * ARRAY_ROWS;
@@ -161,6 +176,22 @@ module npu_mmio_wrapper #(
     logic [4:0]  requant_shift_reg;
     logic [DATA_WIDTH-1:0] requant_zp_reg;
     logic [31:0] requant_out_regs [0:VEC_WORDS-1];
+
+    // DMA config registers
+    logic [31:0] dma_src_reg;
+    logic [31:0] dma_dst_reg;
+    logic [31:0] dma_len_reg;
+    logic        dma_irq_en_reg;
+    logic        dma_start_pulse;
+    logic        dma_clear_done_pulse;
+
+    // DMA output assignments
+    assign dma_src_o         = dma_src_reg;
+    assign dma_dst_o         = dma_dst_reg;
+    assign dma_len_o         = dma_len_reg;
+    assign dma_start_o       = dma_start_pulse;
+    assign dma_irq_en_o      = dma_irq_en_reg;
+    assign dma_clear_done_o  = dma_clear_done_pulse;
 
     // Assign vector unit control from registers
     assign vu_opcode    = vec_ctrl_reg[2:0];
@@ -468,13 +499,21 @@ module npu_mmio_wrapper #(
             for (int i = 0; i < ARRAY_COLS; i = i + 1) requant_scale_regs[i] <= '0;
             requant_shift_reg  <= '0;
             requant_zp_reg     <= '0;
+            dma_src_reg        <= '0;
+            dma_dst_reg        <= '0;
+            dma_len_reg        <= '0;
+            dma_irq_en_reg     <= 1'b0;
+            dma_start_pulse    <= 1'b0;
+            dma_clear_done_pulse <= 1'b0;
             mu_start_load_d    <= 1'b0;
             mu_start_compute_d <= 1'b0;
             vu_start_op_d      <= 1'b0;
         end else begin
-            mu_start_load_d    <= 1'b0;
-            mu_start_compute_d <= 1'b0;
-            vu_start_op_d      <= 1'b0;
+            mu_start_load_d       <= 1'b0;
+            mu_start_compute_d    <= 1'b0;
+            vu_start_op_d         <= 1'b0;
+            dma_start_pulse       <= 1'b0;
+            dma_clear_done_pulse  <= 1'b0;
 
             if (req_i && we_i) begin
                 casez (addr_off)
@@ -494,6 +533,14 @@ module npu_mmio_wrapper #(
                     16'h0300: requant_ctrl_reg <= wdata_i[2:0];
                     16'h0330: requant_shift_reg <= wdata_i[4:0];
                     16'h0334: requant_zp_reg    <= wdata_i[DATA_WIDTH-1:0];
+                    16'h0400: dma_src_reg   <= wdata_i;
+                    16'h0404: dma_dst_reg   <= wdata_i;
+                    16'h0408: dma_len_reg   <= wdata_i;
+                    16'h040C: begin
+                        dma_start_pulse  <= wdata_i[0];
+                        dma_irq_en_reg   <= wdata_i[1];
+                    end
+                    16'h0410: dma_clear_done_pulse <= wdata_i[1];
                     default: begin
                         if (addr_in_psum)     matrix_psum_regs[psum_idx]   <= wdata_i;
                         if (addr_in_weight)   matrix_weight_regs[weight_idx] <= wdata_i;
@@ -552,6 +599,11 @@ module npu_mmio_wrapper #(
         else if (addr_off == 16'h0334) rdata_next = {{(32-DATA_WIDTH){requant_zp_reg[DATA_WIDTH-1]}}, requant_zp_reg};
         else if (addr_off == 16'h0340) rdata_next = requant_out_regs[0];
         else if (addr_off == 16'h0344) rdata_next = (VEC_WORDS > 1) ? requant_out_regs[1] : 32'b0;
+        else if (addr_off == 16'h0400) rdata_next = dma_src_reg;
+        else if (addr_off == 16'h0404) rdata_next = dma_dst_reg;
+        else if (addr_off == 16'h0408) rdata_next = dma_len_reg;
+        else if (addr_off == 16'h040C) rdata_next = {30'b0, dma_irq_en_reg, 1'b0};
+        else if (addr_off == 16'h0410) rdata_next = {30'b0, dma_done_i, dma_busy_i};
     end
 
     always_ff @(posedge clk_i or negedge rst_ni) begin

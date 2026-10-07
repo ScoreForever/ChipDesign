@@ -113,6 +113,11 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 | 0x0334 | REQUANT_ZERO_POINT | 32 | W | signed INT8 zero point |
 | 0x0340 | REQUANT_OUT_LO | 32 | R | 量化后 `out[31:0]`（lanes 0..3） |
 | 0x0344 | REQUANT_OUT_HI | 32 | R | 量化后 `out[63:32]`（lanes 4..7） |
+| 0x0400 | DMA_SRC | 32 | W | DMA 源地址（字节对齐） |
+| 0x0404 | DMA_DST | 32 | W | DMA 目的地址（字节对齐） |
+| 0x0408 | DMA_LEN | 32 | W | 待拷贝 32-bit word 数 |
+| 0x040C | DMA_CTRL | 32 | W | bit0=start；bit1=irq_en |
+| 0x0410 | DMA_STATUS | 32 | R | bit0=busy；bit1=done |
 
 ## 4. 子系统规格
 
@@ -124,7 +129,7 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 - **时钟**：与 SoC 同频单时钟
 - **复位**：低电平有效同步复位，受 `rstgen` 和 debug `ndmreset` 共同控制
 - **启动地址**：`BOOT_BASE = 0x0001_0000`
-- **中断**：NPU 完成中断已连接到 `cv32e40p_top.irq_i[16]`（cv32e40p 的 IRQ_MASK 开放了 16..31 自定义中断线，12..15 被屏蔽），用于唤醒 CPU
+- **中断**：NPU 完成中断连接到 `irq_i[16]`，NPU DMA 完成中断连接到 `irq_i[17]`（cv32e40p 的 IRQ_MASK 开放了 16..31 自定义中断线，12..15 被屏蔽）
 - **调试**：通过 RISC-V Debug Module + JTAG DMI 支持 halt/resume
 
 ### 4.2 总线子系统
@@ -204,6 +209,7 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 - 读延迟：1 个时钟周期（寄存器读，与 `axi2mem` 期望的 memory latency 匹配）
 - 完成中断：`irq_o = matrix_out_valid_latch | vec_out_valid_latch`，电平敏感、sticky；CPU 启动下一次 Matrix/Vector 操作时会自动清除对应 latch
 - Requantization：Matrix Unit 输出被接受时，可同步触发 `requant_unit` 做 INT32→INT8 量化；结果写入 `REQUANT_OUT_LO/HI`，并可自动拷贝到 Vector Unit 的 `src_a` / `src_b`
+- DMA 配置透传：wrapper 解码 `0x0400..0x041F` 的 DMA 配置寄存器，通过端口送给 `hardware/soc/rtl/dma/npu_dma.sv`；DMA 完成中断经 `irq_i[17]` 上报
 - 内部状态机：
   - Matrix：IDLE → LOAD_WEIGHT_START → LOAD_WEIGHT_STREAM → IDLE → COMPUTE → WAIT_OUT
   - Vector：IDLE → ISSUE → WAIT_OUT
@@ -395,6 +401,35 @@ NPU_VECTOR_OP = 1;        // 例如执行后续 Vector ADD
 out[c] = clamp((INT32_ACC[c] * SCALE[c]) >>> SHIFT + ZERO_POINT, -128, 127)
 ```
 
+### 8.6 NPU DMA 操作流程
+
+`npu_dma` 是一个单 outstanding、word-by-word 的 AXI copy engine，用于在 SRAM 与 NPU MMIO（或 SRAM 内部）之间自动搬运数据，减少 CPU 轮询搬运：
+
+```c
+// 1. 准备源数据（例如把权重写入 SRAM）
+for (int i = 0; i < 8; i++)
+    *(volatile uint32_t*)(0x80001000 + i*4) = weight_words[i];
+
+// 2. 配置 DMA 并启动
+NPU_DMA_SRC = 0x80001000;
+NPU_DMA_DST = 0x70000040;        // MATRIX_WEIGHT[0]
+NPU_DMA_LEN = 8;
+NPU_DMA_CTRL = 0x1;              // start
+
+// 3. 等待完成（轮询或 irq_i[17] 中断）
+while ((NPU_DMA_STATUS & 0x2) == 0);
+
+// 4. 触发 NPU 权重加载、计算...
+NPU_MATRIX_CTRL = 0x2;
+while ((NPU_MATRIX_STATUS & 0x2) == 0);
+```
+
+当前限制：
+
+- 仅支持 32-bit word 对齐的源/目的地址。
+- 单 outstanding，读→写顺序执行，吞吐不是最优。
+- 无链式描述符，每次只能配置一段连续传输。
+
 ## 9. 调试与测试
 
 ### 9.1 仿真测试
@@ -406,6 +441,7 @@ out[c] = clamp((INT32_ACC[c] * SCALE[c]) >>> SHIFT + ZERO_POINT, -128, 127)
 | Integrated SoC (polling) | ModelSim | `hardware/soc/sim/scripts/run_soc.ps1` | PASS |
 | Integrated SoC (NPU IRQ) | ModelSim | `vsim -c chipdesign_npu_irq_tb -do "run -all; exit"` | PASS |
 | Integrated SoC (Matrix→Requant→Vector) | ModelSim | `vsim -c chipdesign_requant_tb -do "run -all; exit"` | PASS |
+| Integrated SoC (NPU DMA) | ModelSim | `vsim -c chipdesign_dma_tb -do "run -all; exit"` | PASS |
 
 ### 9.2 调试手段
 
@@ -417,9 +453,9 @@ out[c] = clamp((INT32_ACC[c] * SCALE[c]) >>> SHIFT + ZERO_POINT, -128, 127)
 
 ### 10.1 当前限制
 
-1. **无 LSU/AGU/DMA**：CPU 必须逐字搬运数据到 NPU MMIO，效率低。
+1. **DMA 较简陋**：已实现单 outstanding word-by-word AXI copy，但无 burst/链式描述符/ outstanding 并行，吞吐受限。
 2. **SRAM 是行为模型**：未替换为可综合存储器。
-3. **NPU 中断较简陋**：已完成 Matrix/Vector 完成通知中断，但无独立中断清除寄存器，必须通过启动下一次操作来清除 sticky latch。
+3. **NPU 中断较简陋**：已完成 Matrix/Vector/DMA 完成通知中断，但无独立中断清除寄存器，必须通过启动下一次操作或写 STATUS 来清除 sticky latch。
 4. **单时钟域**：未做低功耗时钟门控（除 CPU 内部）。
 5. **未做综合/时序**：仅功能仿真通过。
 
@@ -427,10 +463,10 @@ out[c] = clamp((INT32_ACC[c] * SCALE[c]) >>> SHIFT + ZERO_POINT, -128, 127)
 
 按流片推进顺序：
 
-1. **添加 LSU/AGU + DMA**：让 NPU 能自动从 SRAM 取数（当前 CPU 仍需逐字搬运）。
-2. **FPGA 原型验证**：把当前 RTL 用 Vivado 综合并上板。
-3. **可综合 SRAM/BRAM**：替换行为模型。
+1. **FPGA 原型验证**：把当前 RTL 用 Vivado 综合并上板。
+2. **可综合 SRAM/BRAM**：替换行为模型。
+3. **优化 DMA/增加 LSU/AGU**：支持 burst、outstanding、链式描述符，进一步减少 CPU 参与。
 4. **逻辑综合 + STA**：确认时序。
 5. **后端物理实现**：P&R、DRC/LVS。
 
-> 注：NPU 中断（阶段 1）与 Requantization Unit（阶段 2）已实现并通过 ModelSim 验证。
+> 注：NPU 中断（阶段 1）、Requantization Unit（阶段 2）与简单 AXI DMA（阶段 3）均已实现并通过 ModelSim 验证。
