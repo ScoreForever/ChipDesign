@@ -76,8 +76,10 @@ hardware/npu/rtl/ws_pe.sv
 hardware/npu/rtl/ws_systolic_array.sv
 hardware/npu/rtl/matrix_unit.sv
 hardware/npu/rtl/vector_unit.sv
+hardware/npu/rtl/requant_unit.sv
 hardware/soc/rtl/npu/npu_mmio_wrapper.sv
 hardware/soc/rtl/my_npu_subsystem.sv
 hardware/soc/rtl/my_soc_top.sv
 hardware/soc/sim/tb/chipdesign_soc_tb.sv
 hardware/soc/sim/tb/chipdesign_npu_irq_tb.sv
+hardware/soc/sim/tb/chipdesign_requant_tb.sv

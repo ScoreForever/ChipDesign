@@ -104,6 +104,15 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 | 0x0200 | MATRIX_OUT[0] | 32 | R | 8 个 INT32 输出 |
 | ... | ... | 32 | R | ... |
 | 0x021C | MATRIX_OUT[7] | 32 | R | |
+| 0x0300 | REQUANT_CTRL | 32 | W | bit0=enable；bit1=copy_to_vec_src_a；bit2=copy_to_vec_src_b |
+| 0x0304 | REQUANT_STATUS | 32 | R | bit0=done |
+| 0x0310 | REQUANT_SCALE[0] | 32 | W | 通道 0 的 signed INT16 scale |
+| ... | ... | 32 | W | ... |
+| 0x032C | REQUANT_SCALE[7] | 32 | W | 通道 7 的 signed INT16 scale |
+| 0x0330 | REQUANT_SHIFT | 32 | W | 0..31 的算术右移位数 |
+| 0x0334 | REQUANT_ZERO_POINT | 32 | W | signed INT8 zero point |
+| 0x0340 | REQUANT_OUT_LO | 32 | R | 量化后 `out[31:0]`（lanes 0..3） |
+| 0x0344 | REQUANT_OUT_HI | 32 | R | 量化后 `out[63:32]`（lanes 4..7） |
 
 ## 4. 子系统规格
 
@@ -194,6 +203,7 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 - 作用：把 `axi2mem` 给出的 32-bit 内存访问转换为 Matrix/Vector Unit 的流式控制
 - 读延迟：1 个时钟周期（寄存器读，与 `axi2mem` 期望的 memory latency 匹配）
 - 完成中断：`irq_o = matrix_out_valid_latch | vec_out_valid_latch`，电平敏感、sticky；CPU 启动下一次 Matrix/Vector 操作时会自动清除对应 latch
+- Requantization：Matrix Unit 输出被接受时，可同步触发 `requant_unit` 做 INT32→INT8 量化；结果写入 `REQUANT_OUT_LO/HI`，并可自动拷贝到 Vector Unit 的 `src_a` / `src_b`
 - 内部状态机：
   - Matrix：IDLE → LOAD_WEIGHT_START → LOAD_WEIGHT_STREAM → IDLE → COMPUTE → WAIT_OUT
   - Vector：IDLE → ISSUE → WAIT_OUT
@@ -349,12 +359,41 @@ asm volatile("wfi");
 
 | 网络层操作 | Matrix Unit | Vector Unit |
 | --- | --- | --- |
-| Conv / FC | 负责 MAC 累加 | 后续 bias/requantization（待实现） |
+| Conv / FC | 负责 MAC 累加 | 后续 bias + requantization（REQUANT_OUT 已可直送 Vector Unit） |
 | ReLU | — | `MAX(x, zero_point)` |
 | Clamp | — | `MAX(x, lower)` + `MIN(VACC, upper)` |
 | MaxPool 2×2 | — | VACC + MAX 序列 |
 | MinPool 2×2 | — | VACC + MIN 序列 |
 | Eltwise ADD | — | `vec_a + vec_b` |
+
+### 8.5 Requantization 操作流程
+
+Matrix Unit 输出为 INT32，`requant_unit` 按通道做 INT32→INT8 量化后写入 `REQUANT_OUT`，并可直接拷贝到 Vector Unit 输入：
+
+```c
+// 1. 配置量化参数（8 通道独立 scale、共享 shift/zp）
+for (int c = 0; c < 8; c++)
+    NPU_REQUANT_SCALE(c) = scale[c];
+NPU_REQUANT_SHIFT      = shift;
+NPU_REQUANT_ZERO_POINT = zero_point;
+
+// 2. 启动 Matrix 计算，并设置 REQUANT_CTRL 为 0x7：
+//    bit0=1 enable；bit1=1 copy to vec_src_a；bit2=1 copy to vec_src_b
+NPU_REQUANT_CTRL = 0x7;
+NPU_MATRIX_CTRL  = 0x1;   // start compute
+
+// 3. 轮询 REQUANT_STATUS 或等待 NPU 中断
+while ((NPU_REQUANT_STATUS & 0x1) == 0);
+
+// 4. 读取 REQUANT_OUT 或直接使用已写入 Vector Unit 的 src_a/src_b
+NPU_VECTOR_OP = 1;        // 例如执行后续 Vector ADD
+```
+
+量化公式（每通道）：
+
+```
+out[c] = clamp((INT32_ACC[c] * SCALE[c]) >>> SHIFT + ZERO_POINT, -128, 127)
+```
 
 ## 9. 调试与测试
 
@@ -366,6 +405,7 @@ asm volatile("wfi");
 | Vector Unit | Icarus | `hardware/npu/scripts/run_vector_unit_test.ps1` | PASS |
 | Integrated SoC (polling) | ModelSim | `hardware/soc/sim/scripts/run_soc.ps1` | PASS |
 | Integrated SoC (NPU IRQ) | ModelSim | `vsim -c chipdesign_npu_irq_tb -do "run -all; exit"` | PASS |
+| Integrated SoC (Matrix→Requant→Vector) | ModelSim | `vsim -c chipdesign_requant_tb -do "run -all; exit"` | PASS |
 
 ### 9.2 调试手段
 
@@ -378,19 +418,19 @@ asm volatile("wfi");
 ### 10.1 当前限制
 
 1. **无 LSU/AGU/DMA**：CPU 必须逐字搬运数据到 NPU MMIO，效率低。
-2. **无 requantization 模块**：Matrix Unit 输出是 INT32，需要额外硬件转成 INT8。
-3. **SRAM 是行为模型**：未替换为可综合存储器。
-4. **NPU 中断较简陋**：已完成 Matrix/Vector 完成通知中断，但无独立中断清除寄存器，必须通过启动下一次操作来清除 sticky latch。
-5. **单时钟域**：未做低功耗时钟门控（除 CPU 内部）。
-6. **未做综合/时序**：仅功能仿真通过。
+2. **SRAM 是行为模型**：未替换为可综合存储器。
+3. **NPU 中断较简陋**：已完成 Matrix/Vector 完成通知中断，但无独立中断清除寄存器，必须通过启动下一次操作来清除 sticky latch。
+4. **单时钟域**：未做低功耗时钟门控（除 CPU 内部）。
+5. **未做综合/时序**：仅功能仿真通过。
 
 ### 10.2 下一阶段建议
 
 按流片推进顺序：
 
-1. **FPGA 原型验证**：把当前 RTL 用 Vivado 综合并上板。
-2. **添加 LSU/AGU + DMA**：让 NPU 能自动从 SRAM 取数。
-3. **添加 Requantization Unit**：完成 INT32→INT8 转换。
-4. **可综合 SRAM/BRAM**：替换行为模型。
-5. **逻辑综合 + STA**：确认时序。
-6. **后端物理实现**：P&R、DRC/LVS。
+1. **添加 LSU/AGU + DMA**：让 NPU 能自动从 SRAM 取数（当前 CPU 仍需逐字搬运）。
+2. **FPGA 原型验证**：把当前 RTL 用 Vivado 综合并上板。
+3. **可综合 SRAM/BRAM**：替换行为模型。
+4. **逻辑综合 + STA**：确认时序。
+5. **后端物理实现**：P&R、DRC/LVS。
+
+> 注：NPU 中断（阶段 1）与 Requantization Unit（阶段 2）已实现并通过 ModelSim 验证。
