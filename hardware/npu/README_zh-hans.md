@@ -2,6 +2,8 @@
 
 KWS-TinyCNN-8 NPU 已确认的模型边界、整数语义、存储和验证基线见
 [TINYCNN8_ARCHITECTURE.md](TINYCNN8_ARCHITECTURE.md)。
+当前生产SoC的完整接入方式、MMIO寄存器和软硬件职责边界以
+[系统架构说明](../../docs/ARCHITECTURE.md)为准。
 
 `matrix_unit` 每接受一个计算事务（transaction），计算一个输出向量：
 

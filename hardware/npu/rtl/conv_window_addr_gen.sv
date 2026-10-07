@@ -77,6 +77,7 @@ module conv_window_addr_gen #(
                            (out_x_count == cfg_output_width-1);
 
     always @* begin
+        address_calc = 0;
         input_y_calc = $unsigned(out_y_count) * $unsigned(cfg_stride_height) +
                        $unsigned(kernel_y_count) - $unsigned(cfg_pad_top);
         input_x_calc = $unsigned(out_x_count) * $unsigned(cfg_stride_width) +

@@ -68,6 +68,12 @@ module requant_unit #(
         begin
             if (exponent <= 0) begin
                 rounding_divide_by_pot = value;
+            end else if (exponent >= 32) begin
+                // shift=-32 is reserved by the programming contract.  Return
+                // the underflow value deterministically if malformed direct
+                // users bypass the MMIO validation instead of relying on an
+                // undefined 32-bit mask shift.
+                rounding_divide_by_pot = 32'sd0;
             end else begin
                 mask = (32'h00000001 << exponent) - 1;
                 remainder = $unsigned(value) & mask;

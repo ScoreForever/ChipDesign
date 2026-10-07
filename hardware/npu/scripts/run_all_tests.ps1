@@ -10,7 +10,8 @@ $scripts=@(
     'run_global_sum_pool_test.ps1',
     'run_global_avg_pool_test.ps1',
     'run_fc_engine_test.ps1',
-    'run_tinycnn8_top_test.ps1'
+    'run_tinycnn8_top_test.ps1',
+    'run_tinycnn8_mmio_test.ps1'
 )
 foreach($script in $scripts){
     Write-Output "=== $script ==="

@@ -21,14 +21,10 @@ module my_npu_subsystem (
     input  logic        dma_done_i
 );
 
-  npu_mmio_wrapper #(
-      .ACT_WIDTH  (8),
-      .WGT_WIDTH  (8),
-      .ACC_WIDTH  (32),
+  tinycnn8_npu_mmio_wrapper #(
       .ARRAY_ROWS (4),
       .ARRAY_COLS (8),
-      .LANES      (8),
-      .DATA_WIDTH (8)
+      .SHIFT_WIDTH(6)
   ) i_npu_core (
       .clk_i   (clk_i),
       .rst_ni  (rst_ni),

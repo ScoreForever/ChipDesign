@@ -1,482 +1,397 @@
-# ChipDesign 系统架构与规格
+# KWS-TinyCNN-8 芯片系统架构与软硬件边界
 
-## 1. 概述
+本文是当前实现的权威说明，覆盖模型计算、量化规则、NPU RTL 模块分工、
+SoC 接口、软件职责以及验证边界。代码或模型导出工具发生变化时，应同步更新
+本文，避免软件、RTL 和测试平台使用不同的解释。
 
-ChipDesign 是一个面向边缘 AI 推理的教学/原型 SoC，核心目标是把一个可配置的 INT8 NPU（Matrix Unit + Vector Unit）与一个 RISC-V CPU 集成在一起，形成“CPU 控制 + NPU 加速”的完整计算系统。
+## 1. 系统目标与范围
 
-### 1.1 设计目标
+本项目实现面向关键词识别（KWS）的固定功能 TinyCNN-8 INT8 推理加速器。
+完整芯片是一个 SoC（片上系统），包含 CV32E40P RISC-V CPU、SRAM、AXI
+互连、DMA、调试模块和 NPU。NPU 是 SoC 中负责神经网络计算的专用部件。
 
-- **可配置性**：NPU 阵列尺寸、数据位宽、lane 数均可参数化。
-- **模块化**：计算单元、总线、存储、调试各子系统独立，便于替换或扩展。
-- **可仿真**：前端功能仿真完整，支持 Icarus（NPU 单元）和 ModelSim（完整 SoC）。
-- **可扩展**：为后续添加 SRAM/LSU/AGU、DMA、requantization 等留下接口。
+第一版系统边界如下：
 
-### 1.2 当前范围
-
-本阶段已完成：
-
-- `cv32e40p` RISC-V CPU（RV32IMC，无 FPU）
-- AXI4 交叉开关 + OBI→AXI adapter
-- BootRAM（64 B，上电跳转 SRAM）
-- SRAM（8 KiB 行为模型，用于加载测试程序）
-- RISC-V Debug Module + JTAG DMI
-- Weight-Stationary Matrix Unit（默认 4×8，INT8×INT8→INT32）
-- INT8 SIMD Vector Unit（默认 8 lanes，ADD/SUB/MAX/MIN/MOV + VACC）
-- NPU MMIO 桥接器（把 CPU 的 32-bit 内存访问转成 NPU 流式接口）
-
-## 2. 顶层架构
-
-```
-                              +------------------+
-clk / rst_ni / tck / tms / td |   my_soc_top     |
-                              +--------+---------+
-                                       |
-        +------------------------------+------------------------------+
-        |                              |                              |
-   +----v-----+                  +-----v-----+                  +-----v-----+
-   | cv32e40p |                  |  bootram  |                  |   SRAM    |
-   |   CPU    |                  |  (64 B)   |                  |  (8 KiB)  |
-   +----+-----+                  +-----------+                  +-----------+
-        |                                                              |
-        |  OBI                                                         |
-        |                                                              |
-        +---------------------> AXI xbar <-----------------------------+
-                                       |
-              +------------------------+------------------------+
-              |                                                 |
-        +-----v------+                                  +-------v-------+
-        |    Debug   |                                  | NPU MMIO      |
-        | JTAG + DM  |                                  | Wrapper       |
-        +------------+                                  +---------------+
-                                                               |
-                                          +--------------------+--------------------+
-                                          |                    |                    |
-                                     +----v----+          +----v----+          +----v----+
-                                     | Matrix  |          | Vector  |          | (reserved|
-                                     |  Unit   |          |  Unit   |          |  LSU/DMA)
-                                     +---------+          +---------+          +---------+
+```text
+麦克风/音频文件
+      |
+      v
+CPU 软件：采样、分帧、MFCC 或 log-mel、INT8 输入量化
+      |
+      v
+NPU 硬件：Conv1 -> Pool1 -> Conv2 -> Pool2 -> GAP -> FC
+      |
+      v
+CPU 软件：统一各类别 logit 尺度、argmax、阈值与业务逻辑
 ```
 
-### 2.1 主数据流
+NPU 不负责音频采样、FFT、MFCC、模型训练、Softmax 或最终业务判断。
 
-1. CPU 从 BootRAM 启动，跳转到 SRAM 执行程序。
-2. 程序通过 AXI 总线访问 NPU MMIO 寄存器，配置并启动 NPU。
-3. CPU 把权重、激活、部分和写入 NPU MMIO 区域。
-4. NPU wrapper 把 32-bit 写入组装成 Matrix/Vector Unit 需要的流式数据。
-5. NPU 完成计算后，CPU 读取输出结果。
-6. 对于大型网络，后续会加入 LSU/AGU + SRAM/DMA 来自动搬运数据（本阶段未实现）。
+## 2. TinyCNN-8 模型架构
 
-## 3. 地址映射
+### 2.1 输入
 
-| 区域 | 基址 | 长度 | 说明 |
+- 逻辑形状：`20 x 16 x 1`
+- 数据类型：signed INT8
+- 存储顺序：NHWC，通道维变化最快
+- 输入含义：由 CPU 软件预先计算的 MFCC 或 log-mel 特征
+- 对称量化零点：0
+
+输入总大小为 `20 * 16 = 320` 字节。
+
+### 2.2 网络逐层计算
+
+| 阶段 | 运算 | 输出形状 | 输出类型 |
 | --- | --- | --- | --- |
-| Debug | 0x0000_0000 | 0x0000_1000 | RISC-V Debug Module 寄存器 |
-| BootRAM | 0x0001_0000 | 0x0001_0000 | 启动代码，复位后 PC 指向此处 |
-| NPU | 0x7000_0000 | 0x0000_4000 | NPU MMIO 寄存器（16 KiB） |
-| SRAM | 0x8000_0000 | 0x1000_0000 | 主存（模型 8 KiB） |
+| 输入 | MFCC/log-mel 特征 | `20x16x1` | INT8 |
+| Conv1 | `3x3`，stride 1，SAME，`1->8` | `20x16x8` | INT32 累加 |
+| Conv1 后处理 | bias + requant + ReLU | `20x16x8` | INT8 `[0,127]` |
+| Pool1 | `2x2` MaxPool，stride 2 | `10x8x8` | INT8 |
+| Conv2 | `3x3`，stride 1，SAME，`8->8` | `10x8x8` | INT32 累加 |
+| Conv2 后处理 | bias + requant + ReLU | `10x8x8` | INT8 `[0,127]` |
+| Pool2 | `2x2` MaxPool，stride 2 | `5x4x8` | INT8 |
+| GAP | 对 20 个空间位置求和并量化 | `1x1x8` | INT8 |
+| FC | `8 -> class_count`，`class_count=1..8` | `class_count` | INT32 |
 
-### 3.1 NPU MMIO 寄存器表
+四分类模型共有 700 个参数，六分类模型共有 718 个参数。BatchNorm 在模型
+导出时折叠进卷积权重和 bias，硬件中没有独立 BatchNorm 单元。
 
-偏移相对于 `NPU_BASE = 0x7000_0000`。
+### 2.3 卷积数学定义
 
-| 偏移 | 名称 | 宽度 | 访问 | 说明 |
-| --- | --- | --- | --- | --- |
-| 0x0000 | MATRIX_CTRL | 32 | W | bit0=start compute；bit1=load weights |
-| 0x0004 | MATRIX_STATUS | 32 | R | bit0=idle；bit1=weights_loaded；bit2=out_valid |
-| 0x0008 | VECTOR_CTRL | 32 | W | `{dst_sel, src_b_sel, src_a_sel, opcode}` |
-| 0x000C | VECTOR_LANE_MASK | 32 | W | lane 掩码，bit i 控制 lane i |
-| 0x0010 | VECTOR_SCALAR | 32 | W | INT8 标量 broadcast 值 |
-| 0x0014 | VECTOR_STATUS | 32 | R | bit0=out_valid |
-| 0x0018 | VECTOR_OP | 32 | W | 写任意值触发一次向量运算 |
-| 0x0020 | VECTOR_SRC_A_LO | 32 | W | `vec_a[31:0]` |
-| 0x0024 | VECTOR_SRC_A_HI | 32 | W | `vec_a[63:32]`（默认 8 lanes） |
-| 0x0028 | VECTOR_SRC_B_LO | 32 | W | `vec_b[31:0]` |
-| 0x002C | VECTOR_SRC_B_HI | 32 | W | `vec_b[63:32]` |
-| 0x0030 | VECTOR_OUT_LO | 32 | R | `vec_out[31:0]` |
-| 0x0034 | VECTOR_OUT_HI | 32 | R | `vec_out[63:32]` |
-| 0x0040 | MATRIX_WEIGHT[0] | 32 | W | 权重 staging |
-| ... | ... | 32 | W | ... |
-| 0x005C | MATRIX_WEIGHT[7] | 32 | W | 默认 4×8 共 8 个 word |
-| 0x0100 | MATRIX_ACT | 32 | W | 4 个 INT8 激活值打包 |
-| 0x0110 | MATRIX_PSUM[0] | 32 | W | 8 个 INT32 部分和 |
-| ... | ... | 32 | W | ... |
-| 0x012C | MATRIX_PSUM[7] | 32 | W | |
-| 0x0200 | MATRIX_OUT[0] | 32 | R | 8 个 INT32 输出 |
-| ... | ... | 32 | R | ... |
-| 0x021C | MATRIX_OUT[7] | 32 | R | |
-| 0x0300 | REQUANT_CTRL | 32 | W | bit0=enable；bit1=copy_to_vec_src_a；bit2=copy_to_vec_src_b |
-| 0x0304 | REQUANT_STATUS | 32 | R | bit0=done |
-| 0x0310 | REQUANT_BIAS[0] | 32 | W | 通道 0 的 signed INT32 bias |
-| ... | ... | 32 | W | ... |
-| 0x032C | REQUANT_BIAS[7] | 32 | W | 通道 7 的 signed INT32 bias |
-| 0x0330 | REQUANT_MULT[0] | 32 | W | 通道 0 的 signed INT32 Q0.31 multiplier |
-| ... | ... | 32 | W | ... |
-| 0x034C | REQUANT_MULT[7] | 32 | W | 通道 7 的 signed INT32 Q0.31 multiplier |
-| 0x0350 | REQUANT_SHIFT | 32 | W | signed 6-bit shift（正=左移、负=右移），所有通道共享 |
-| 0x0354 | REQUANT_OFFSET | 32 | W | signed INT32 output offset |
-| 0x0360 | REQUANT_OUT_LO | 32 | R | 量化后 `out[31:0]`（lanes 0..3） |
-| 0x0364 | REQUANT_OUT_HI | 32 | R | 量化后 `out[63:32]`（lanes 4..7） |
-| 0x0400 | DMA_SRC | 32 | W | DMA 源地址（字节对齐） |
-| 0x0404 | DMA_DST | 32 | W | DMA 目的地址（字节对齐） |
-| 0x0408 | DMA_LEN | 32 | W | 待拷贝 32-bit word 数 |
-| 0x040C | DMA_CTRL | 32 | W | bit0=start；bit1=irq_en |
-| 0x0410 | DMA_STATUS | 32 | R | bit0=busy；bit1=done |
+每个输出通道首先计算：
 
-## 4. 子系统规格
+```text
+acc[oc] = bias[oc] + sum(input[k] * weight[k][oc])
+```
 
-### 4.1 CPU 子系统
+激活和权重均为 INT8，单次乘积可放入 INT16，但多个乘积累加以及 bias 使用
+INT32。Conv1 每个输出累加 9 项，Conv2 每个输出累加 72 项。
 
-- **核**：`cv32e40p_top`（PULP Platform）
-- **ISA**：RV32IMC
-- **接口**：OBI（Open Bus Interface）用于指令和数据
-- **时钟**：与 SoC 同频单时钟
-- **复位**：低电平有效同步复位，受 `rstgen` 和 debug `ndmreset` 共同控制
-- **启动地址**：`BOOT_BASE = 0x0001_0000`
-- **中断**：NPU 完成中断连接到 `irq_i[16]`，NPU DMA 完成中断连接到 `irq_i[17]`（cv32e40p 的 IRQ_MASK 开放了 16..31 自定义中断线，12..15 被屏蔽）
-- **调试**：通过 RISC-V Debug Module + JTAG DMI 支持 halt/resume
+SAME padding 的越界输入使用量化实数零；当前对称量化下即整数 0。
 
-### 4.2 总线子系统
+## 3. 冻结的量化规则
 
-- **协议**：AXI4（由 PULP 提供的 `axi_xbar`、`axi_adapter`、`axi2mem` 构成）
-- **拓扑**：1 个 AXI crossbar，3 个 slave port（CPU instr、CPU data、DM master），4 个 master port（bootram、SRAM、debug、NPU）
-- **地址译码**：由 `addr_decode` 根据 `my_soc_pkg` 中的 `addr_map` 完成
-- **ID 宽度**：slave 2-bit，master 4-bit（adapter 扩展）
-- **Outstanding**：每端口最多 1 笔事务（MaxMstTrans=1, MaxSlvTrans=1）
+### 3.1 数据格式
 
-### 4.3 存储子系统
+- 激活：signed INT8、逐张量对称量化、zero point 为 0
+- 权重：signed INT8、逐输出通道对称量化
+- bias 与部分和：signed INT32
+- Requant multiplier：每输出通道一个 signed INT32 Q0.31 数
+- Requant shift：每输出通道一个 signed 6-bit 数，有效范围 `[-31,31]`
+- `-32` 为非法配置，MMIO 参数提交时拒绝
 
-#### BootRAM
+卷积通道 `c` 的真实缩放比例为：
 
-- 容量：16 words × 32 bit = 64 B
-- 行为：异步读、同步写（或组合读，取决于实现）
-- 内容：复位后第一条指令为 `lui t0, 0x80000; addi t0, t0, 0; jr t0`，即跳转到 SRAM_BASE
+```text
+real_multiplier[c] = input_scale * weight_scale[c] / output_scale
+```
 
-#### SRAM
+模型导出器将它编码为：
 
-- 模型容量：8 KiB（由 `linker.ld` 决定）
-- 位宽：32-bit
-- 字节使能：支持
-- 初始化：通过 `INIT_FILE` 参数加载 `.hex` 文件
-- 实际硬件实现需替换为 BRAM（FPGA）或 SRAM 宏（ASIC）
+```text
+real_multiplier[c] ~= multiplier[c] / 2^31 * 2^shift[c]
+```
 
-### 4.4 Debug 子系统
+### 3.2 Requant 运算顺序
 
-- **DM**：`dm_top`（PULP riscv-dbg）
-- **DMI 传输**：`dmi_jtag` + `dmi_jtag_tap`
-- **功能**：支持外部 JTAG debugger 连接、CPU halt/resume、复位控制
-- **当前状态**：RTL 已集成，JTAG 端口已引出到顶层，但尚未做 debugger 联调测试
+```text
+biased = accumulator + bias
+left_shift  = max(shift, 0)
+right_shift = max(-shift, 0)
+shifted = saturating_left_shift(biased, left_shift)
+scaled = SaturatingRoundingDoublingHighMul(shifted, multiplier)
+scaled = RoundingDivideByPOT(scaled, right_shift)
+result = clamp(scaled + output_offset, activation_min, activation_max)
+```
 
-### 4.5 NPU 子系统
+该顺序与 TFLite/gemmlowp 的传统 double-rounding 整数路径一致。Conv1 和
+Conv2 的钳位范围为 `[0,127]`，同时完成 ReLU；GAP 为 `[-128,127]`。
 
-#### Matrix Unit
+MaxPool 不改变输入 scale。GAP 对 20 个位置先做 INT32 求和，再把固定的
+`1/20` 和 FC 输入 scale 合并进 GAP 的逐通道 multiplier/shift。
 
-- **算法**：Weight-Stationary，一事务计算一个输出向量
-  ```
-  P_out[c] = P_in[c] + Σ_r A[r] * W[r][c]
-  ```
-- **默认配置**：4 rows × 8 cols
-- **数据类型**：
-  - 激活（A）：signed INT8
-  - 权重（W）：signed INT8
-  - 部分和（P_in/P_out）：signed INT32
-- **接口**：流式 ready/valid
-- **关键信号**：
-  - `weight_start_valid/ready`：开始加载权重 tile
-  - `weight_valid/ready`：流式加载 `ARRAY_ROWS` 行权重
-  - `weights_loaded`：当前 tile 权重可用
-  - `idle`：模块空闲
-  - `in_valid/ready`：计算输入
-  - `out_valid/ready`：计算输出
-- **延迟**：从输入被接受到输出产生，`ARRAY_ROWS + ARRAY_COLS - 2` 个使能周期
-- **特性**：
-  - 无 compute/load 重叠
-  - 无双缓冲
-  - 支持 output backpressure（`out_ready` 拉低时冻结流水线）
+### 3.3 FC 输出与分类
 
-#### Vector Unit
+FC 权重继续使用逐输出通道量化，以保留精度。NPU 输出原始 INT32 accumulator，
+因此不同类别的原始整数可能对应不同真实尺度，CPU 不得直接对它们做整数
+`argmax`。
 
-- **类型**：INT8 SIMD ALU
-- **默认配置**：8 lanes
-- **操作**：ADD（饱和）、SUB（饱和）、MAX、MIN、MOV
-- **数据源**：`vec_a` / VACC / `vec_b` / scalar broadcast
-- **目的**：OUTPUT / VACC
-- **接口**：流式 ready/valid，单周期延迟
-- **特性**：
-  - lane mask
-  - 向量累加器 VACC（用于 2×2 MaxPool/MinPool、ReLU、clamp）
-  - 支持 backpressure
+模型部署包必须额外携带每个类别的 `fc_compare_multiplier` 和
+`fc_compare_shift`。CPU 将所有 logit 转换到共同尺度：
 
-#### NPU MMIO Wrapper
+```text
+common_score[c] = MultiplyByQuantizedMultiplier(
+    raw_logit[c], fc_compare_multiplier[c], fc_compare_shift[c]);
+class_id = argmax(common_score);
+```
 
-- 作用：把 `axi2mem` 给出的 32-bit 内存访问转换为 Matrix/Vector Unit 的流式控制
-- 读延迟：1 个时钟周期（寄存器读，与 `axi2mem` 期望的 memory latency 匹配）
-- 完成中断：`irq_o = matrix_out_valid_latch | vec_out_valid_latch`，电平敏感、sticky；CPU 启动下一次 Matrix/Vector 操作时会自动清除对应 latch
-- Requantization：Matrix Unit 输出被接受时，可同步触发 `requant_unit` 做 INT32→INT8 量化；结果写入 `REQUANT_OUT_LO/HI`，并可自动拷贝到 Vector Unit 的 `src_a` / `src_b`
-- DMA 配置透传：wrapper 解码 `0x0400..0x041F` 的 DMA 配置寄存器，通过端口送给 `hardware/soc/rtl/dma/npu_dma.sv`；DMA 完成中断经 `irq_i[17]` 上报
-- 内部状态机：
-  - Matrix：IDLE → LOAD_WEIGHT_START → LOAD_WEIGHT_STREAM → IDLE → COMPUTE → WAIT_OUT
-  - Vector：IDLE → ISSUE → WAIT_OUT
+类别最多为 8，CPU 只需执行最多 8 次整数乘移。Softmax 不是判断最大类别所必需。
 
-## 5. 数据格式与打包
+## 4. NPU 硬件结构与模块分工
 
-### 5.1 Matrix Unit
+正式 SoC 只实例化一套完整 NPU：
 
-#### 权重加载
+```text
+tinycnn8_npu_top
+  |
+  +-- conv2d_engine ------------------ Conv1 / Conv2 / FC 共享
+  |     +-- conv_window_addr_gen ----- 卷积窗口与 padding 地址
+  |     +-- matrix_unit -------------- INT8 MAC 到 INT32
+  |     |     +-- ws_systolic_array
+  |     |           +-- ws_pe
+  |     +-- requant_unit ------------- bias、缩放、舍入、钳位
+  |
+  +-- maxpool2x2_engine -------------- Pool1 / Pool2 共享
+  |     +-- vector_unit -------------- 8-lane signed INT8 MAX
+  |
+  +-- global_avg_pool_engine --------- GAP
+        +-- global_sum_pool_engine
+        |     +-- reduction_sum_unit
+        +-- requant_unit
+```
 
-- 每行权重 = `ARRAY_COLS × WGT_WIDTH` bit
-- 默认 4×8 = 64 bit/行 = 2 个 32-bit word
-- 行 r 的权重 `W[r][c]` 位于 `weight_data[c*8 +: 8]`
-- 写入时 word 0 对应 `W[r][0..3]`，word 1 对应 `W[r][4..7]`
+### 4.1 基础计算单元
 
-#### 激活输入
-
-- `in_act_data = {A[3], A[2], A[1], A[0]}`（默认 4 rows）
-- `A[r]` 位于 `in_act_data[r*8 +: 8]`
-
-#### 部分和 / 输出
-
-- `P[c]` 位于 `in_psum_data[c*32 +: 32]` / `out_psum_data[c*32 +: 32]`
-- lane 0 在最低有效位
-
-### 5.2 Vector Unit
-
-- `vec_a` / `vec_b` / `vec_out` 均为 `LANES × DATA_WIDTH` bit
-- lane i 位于 `[i*8 +: 8]`
-- 默认 8 lanes = 64 bit，分两个 32-bit word 通过 MMIO 写入
-
-## 6. 时钟与复位
-
-### 6.1 时钟
-
-- 当前为单时钟域 `clk_i`。
-- JTAG 有独立的 `tck_i`，但 DMI CDC 已处理跨时钟域。
-- 所有子系统共享同一个主时钟。
-
-### 6.2 复位
-
-- `rst_ni`：板级低电平复位，同步释放。
-- `ndmreset`：来自 Debug Module 的系统级复位，可复位 CPU 和总线。
-- `ndmreset_n`：`rst_ni & ~ndmreset` 经过 `rstgen` 后的复位输出。
-- NPU wrapper 内部把 `rst_ni` 转成高电平有效 `rst` 给 Matrix/Vector Unit。
-
-## 7. 配置参数
-
-### 7.1 顶层参数
-
-`my_soc_top`：
-
-| 参数 | 类型 | 默认值 | 说明 |
-| --- | --- | --- | --- |
-| `INIT_FILE` | string | `"hardware/soc/sim/sw/chipdesign_npu_test.hex"` | SRAM 初始化文件 |
-
-### 7.2 NPU 参数
-
-`npu_mmio_wrapper` / `matrix_unit` / `vector_unit`：
-
-| 参数 | 默认值 | 说明 |
+| 模块 | 文件 | 职责 |
 | --- | --- | --- |
-| `ACT_WIDTH` | 8 | 激活位宽 |
-| `WGT_WIDTH` | 8 | 权重位宽 |
-| `ACC_WIDTH` | 32 | 累加位宽 |
-| `ARRAY_ROWS` | 4 | Matrix Unit 行数 |
-| `ARRAY_COLS` | 8 | Matrix Unit 列数 |
-| `LANES` | 8 | Vector Unit lane 数 |
-| `DATA_WIDTH` | 8 | Vector Unit 数据位宽 |
+| PE | `hardware/npu/rtl/ws_pe.sv` | 单个 INT8 乘加单元 |
+| 脉动阵列 | `ws_systolic_array.sv` | 权重驻留 MAC 阵列 |
+| Matrix Unit | `matrix_unit.sv` | 权重装载、阵列输入输出握手和对齐 |
+| Vector Unit | `vector_unit.sv` | 8-lane INT8 MAX/MIN/ADD/SUB/MOV/VACC |
+| Requant Unit | `requant_unit.sv` | 逐通道 Q31 缩放、双重舍入和饱和 |
+| Reduction Sum | `reduction_sum_unit.sv` | 多位置 INT8 向量归约为 INT32 和 |
 
-## 8. 编程模型
+### 4.2 运算引擎
 
-### 8.1 Matrix Unit 操作流程
+| 模块 | 职责 |
+| --- | --- |
+| `conv_window_addr_gen` | 遍历输出坐标、kernel坐标和输入通道，产生NHWC地址及padding标记 |
+| `conv2d_engine` | 组织权重、激活和partial sum，调用Matrix Unit并完成Requant |
+| `maxpool2x2_engine` | 读取四个空间位置，复用Vector Unit执行逐通道最大值 |
+| `global_sum_pool_engine` | 对`5x4x8`的20个位置逐通道求和 |
+| `global_avg_pool_engine` | 对GAP求和结果执行包含`1/20`的Requant |
+| `fc_engine` | FC独立验证模块；正式顶层把FC映射为`1x1 Conv`以复用Matrix Unit |
 
-```c
-// 1. 写权重到 MATRIX_WEIGHT[0..7]
-for (int i = 0; i < 8; i++)
-    NPU_WEIGHT(i) = weight_words[i];
+### 4.3 完整顶层
 
-// 2. 触发权重加载
-NPU_MATRIX_CTRL = 0x2;
+`tinycnn8_npu_top.sv` 负责：
 
-// 3. 等待 weights_loaded
-while ((NPU_MATRIX_STATUS & 0x2) == 0);
+- 固定网络的层间状态机；
+- Conv1、Conv2、FC 共享同一个 Matrix Unit；
+- Pool1、Pool2 共享同一个 Vector Unit；
+- 激活 A/B bank ping-pong；
+- 权重、bias、multiplier、shift 的本地存储；
+- 类别数检查；
+- 最终 8-lane INT32 logits 寄存。
 
-// 4. 写激活和部分和
-NPU_MATRIX_ACT = act_word;
-for (int c = 0; c < 8; c++)
-    NPU_MATRIX_PSUM(c) = psum[c];
+当前调度以正确性为先：每个空间输出位置重新装载所需的权重 tile，只保留一个
+INT32 partial-sum 向量。未来可以优化空间 tile 和跨位置权重复用，但不得改变
+模型可见的整数结果。
 
-// 5. 启动计算
-NPU_MATRIX_CTRL = 0x1;
+### 4.4 存储布局
 
-// 6. 等待 out_valid
-while ((NPU_MATRIX_STATUS & 0x4) == 0);
+默认 4x8 阵列下：
 
-// 7. 读输出
-for (int c = 0; c < 8; c++)
-    out[c] = NPU_MATRIX_OUT(c);
+- 激活 bank A：4096 字节
+- 激活 bank B：4096 字节
+- 权重存储：256 个 64-bit packed word，共 2048 字节
+- 量化参数：按层、按输出通道保存
+- 运行时仅保留一个 packed INT32 partial sum
+
+激活流向：
+
+```text
+输入 A(320B)
+ -> Conv1 B(2560B)
+ -> Pool1 A(640B)
+ -> Conv2 B(640B)
+ -> Pool2 A(160B)
+ -> GAP B(8B)
+ -> FC logits
 ```
 
-### 8.2 Vector Unit 操作流程
+由于 Pool2 会覆盖 bank A，每次新推理前必须重新装入 320 字节输入。相同模型
+的权重和参数可以跨多次推理保留。
 
-```c
-// 1. 配置控制寄存器
-NPU_VECTOR_CTRL = (dst_sel << 5) | (src_b_sel << 4) | (src_a_sel << 3) | opcode;
-NPU_VECTOR_LANE_MASK = 0xFF;
-NPU_VECTOR_SCALAR = scalar;
+权重基址：Conv1 为 0，Conv2 为 32，FC 为 192。默认 4x8 SoC 中每层只有一个
+输出通道 tile，FC 权重布局不随 1～8 的类别数改变。
 
-// 2. 写输入向量
-NPU_VECTOR_SRC_A_LO = vec_a_lo;
-NPU_VECTOR_SRC_A_HI = vec_a_hi;
-NPU_VECTOR_SRC_B_LO = vec_b_lo;
-NPU_VECTOR_SRC_B_HI = vec_b_hi;
+## 5. SoC 集成决策
 
-// 3. 触发运算
-NPU_VECTOR_OP = 1;
+### 5.1 为什么只接完整 NPU 顶层
 
-// 4. 等待输出有效（OUTPUT 目标）
-while ((NPU_VECTOR_STATUS & 0x1) == 0);
+生产 SoC 的 `my_npu_subsystem` 实例化 `tinycnn8_npu_mmio_wrapper`，后者只实例化
+一个 `tinycnn8_npu_top`。CPU 不直接逐次操纵 Matrix/Vector/Requant。
 
-// 5. 读结果
-vec_out_lo = NPU_VECTOR_OUT_LO;
-vec_out_hi = NPU_VECTOR_OUT_HI;
+旧的 `npu_mmio_wrapper.sv` 保留为底层教学和独立调试代码，但不进入生产 SoC
+filelist。这样避免芯片中出现两套 Matrix/Vector/Requant，也避免 CPU 为一次
+推理执行数千次底层 MMIO 操作。
+
+### 5.2 SoC 总体组成
+
+```text
+CV32E40P CPU
+      |
+    AXI互连 -------- SRAM / BootRAM / Debug
+      |
+tinycnn8_npu_mmio_wrapper ---- DMA配置
+      |
+tinycnn8_npu_top
 ```
 
-### 8.3 NPU 完成中断驱动流程
+地址空间：
 
-NPU wrapper 在 Matrix/Vector 计算完成后会把 `irq_o` 置 1，通过 `my_soc_top.irq_i[16]` 唤醒 CPU。软件使用示例（RISC-V M 模式）：
-
-```c
-// 1. 设置 mtvec 指向中断入口（本例使用直接模式，入口即为程序 _start）
-asm volatile("csrw mtvec, %0" :: "r"(_start));
-
-// 2. 开启 M 模式中断使能，并打开 NPU 中断线（mie[16]）
-asm volatile("csrsi mstatus, 0x8");          // mstatus.MIE = 1
-uint32_t mask = 1 << 16;
-asm volatile("csrs mie, %0" :: "r"(mask));   // mie[16] = 1
-
-// 3. 配置并启动 NPU（写权重、激活、部分和，写 MATRIX_CTRL = 0x1）
-//    ...
-
-// 4. 进入 WFI 等待 NPU 完成中断
-asm volatile("wfi");
-
-// 5. 中断服务程序读取结果
-//    mcause 最高位为 1 表示是中断，读 MATRIX_OUT / VECTOR_OUT 寄存器
-```
-
-当前实现是电平敏感的 sticky 中断：只要 Matrix/Vector 任一输出 pending，`irq_o` 就保持高；启动下一次 Matrix/Vector 操作时，wrapper 内部会自动清除对应 latch。
-
-### 8.4 典型网络层映射
-
-| 网络层操作 | Matrix Unit | Vector Unit |
+| 区域 | 基址 | 长度 |
 | --- | --- | --- |
-| Conv / FC | 负责 MAC 累加 | 后续 bias + requantization（REQUANT_OUT 已可直送 Vector Unit） |
-| ReLU | — | `MAX(x, zero_point)` |
-| Clamp | — | `MAX(x, lower)` + `MIN(VACC, upper)` |
-| MaxPool 2×2 | — | VACC + MAX 序列 |
-| MinPool 2×2 | — | VACC + MIN 序列 |
-| Eltwise ADD | — | `vec_a + vec_b` |
+| Debug | `0x0000_0000` | `0x0000_1000` |
+| BootRAM | `0x0001_0000` | `0x0001_0000` |
+| NPU | `0x7000_0000` | `0x0000_4000` |
+| SRAM | `0x8000_0000` | 系统映射窗口；当前实现8 KiB |
 
-### 8.5 Requantization 操作流程
+## 6. 完整 NPU MMIO 编程模型
 
-Matrix Unit 输出为 INT32，`requant_unit`（TFLite/gemmlowp 双重舍入）按通道做 INT32→INT8 量化后写入 `REQUANT_OUT`，并可直接拷贝到 Vector Unit 输入：
+所有偏移相对于 `NPU_BASE = 0x7000_0000`。
 
-```c
-// 1. 配置量化参数（8 通道独立 bias/multiplier、共享 shift/offset）
-for (int c = 0; c < 8; c++) {
-    NPU_REQUANT_BIAS(c) = bias[c];       // signed INT32
-    NPU_REQUANT_MULT(c) = multiplier[c]; // signed INT32 Q0.31
-}
-NPU_REQUANT_SHIFT  = shift;              // signed 6-bit，正=左移、负=右移
-NPU_REQUANT_OFFSET = output_offset;      // signed INT32
+### 6.1 控制、状态和输出
 
-// 2. 启动 Matrix 计算，并设置 REQUANT_CTRL 为 0x7：
-//    bit0=1 enable；bit1=1 copy to vec_src_a；bit2=1 copy to vec_src_b
-NPU_REQUANT_CTRL = 0x7;
-NPU_MATRIX_CTRL  = 0x1;   // start compute
-
-// 3. 轮询 REQUANT_STATUS 或等待 NPU 中断
-while ((NPU_REQUANT_STATUS & 0x1) == 0);
-
-// 4. 读取 REQUANT_OUT 或直接使用已写入 Vector Unit 的 src_a/src_b
-NPU_VECTOR_OP = 1;        // 例如执行后续 Vector ADD
-```
-
-量化公式（每通道，TFLite/gemmlowp 双重舍入）：
-
-```
-biased[c] = INT32_ACC[c] + BIAS[c]
-scaled[c] = SaturatingRoundingDoublingHighMul(biased[c], MULT[c])   // Q0.31 乘
-result[c] = RoundingDivideByPOT(scaled[c], max(-SHIFT, 0))          // 右移部分
-out[c]    = clamp(result[c] + OFFSET, -128, 127)
-```
-
-其中 `SHIFT > 0` 表示在乘法前对 `biased` 左移 `SHIFT` 位。
-
-### 8.6 NPU DMA 操作流程
-
-`npu_dma` 是一个单 outstanding、word-by-word 的 AXI copy engine，用于在 SRAM 与 NPU MMIO（或 SRAM 内部）之间自动搬运数据，减少 CPU 轮询搬运：
-
-```c
-// 1. 准备源数据（例如把权重写入 SRAM）
-for (int i = 0; i < 8; i++)
-    *(volatile uint32_t*)(0x80001000 + i*4) = weight_words[i];
-
-// 2. 配置 DMA 并启动
-NPU_DMA_SRC = 0x80001000;
-NPU_DMA_DST = 0x70000040;        // MATRIX_WEIGHT[0]
-NPU_DMA_LEN = 8;
-NPU_DMA_CTRL = 0x1;              // start
-
-// 3. 等待完成（轮询或 irq_i[17] 中断）
-while ((NPU_DMA_STATUS & 0x2) == 0);
-
-// 4. 触发 NPU 权重加载、计算...
-NPU_MATRIX_CTRL = 0x2;
-while ((NPU_MATRIX_STATUS & 0x2) == 0);
-```
-
-当前限制：
-
-- 仅支持 32-bit word 对齐的源/目的地址。
-- 单 outstanding，读→写顺序执行，吞吐不是最优。
-- 无链式描述符，每次只能配置一段连续传输。
-
-## 9. 调试与测试
-
-### 9.1 仿真测试
-
-| 测试 | 工具 | 命令 | 状态 |
+| 偏移 | 名称 | 访问 | 说明 |
 | --- | --- | --- | --- |
-| Matrix Unit | Icarus | `hardware/npu/scripts/run_matrix_unit_test.ps1` | PASS |
-| Vector Unit | Icarus | `hardware/npu/scripts/run_vector_unit_test.ps1` | PASS |
-| Integrated SoC (polling) | ModelSim | `hardware/soc/sim/scripts/run_soc.ps1` | PASS |
-| Integrated SoC (NPU IRQ) | ModelSim | `vsim -c chipdesign_npu_irq_tb -do "run -all; exit"` | PASS |
-| Integrated SoC (Matrix→Requant→Vector) | ModelSim | `vsim -c chipdesign_requant_tb -do "run -all; exit"` | PASS |
-| Integrated SoC (NPU DMA) | ModelSim | `vsim -c chipdesign_dma_tb -do "run -all; exit"` | PASS |
+| `0x0000` | CONTROL | R/W | bit0=start脉冲；bit1=IRQ使能；bit2=清done；bit3=清error |
+| `0x0004` | STATUS | R | bit0=ready；bit1=busy；bit2=done；bit3=error；bits7:4=error code低4位 |
+| `0x0008` | CLASS_COUNT | R/W | 合法范围1～8，只能在idle时修改 |
+| `0x000C` | ERROR_CODE | R | 完整8位错误码 |
+| `0x0010..0x002C` | LOGIT[0..7] | R | 最终原始signed INT32 logits |
+| `0x0030` | VERSION | R | 当前值`0x0001_0000` |
 
-### 9.2 调试手段
+错误码：
 
-- **JTAG**：连接外部 debugger 可 halt/resume CPU。
-- **VCD**：testbench 默认输出波形到 `hardware/soc/sim/out/chipdesign_soc_tb.vcd`。
-- **Magic Region**：SRAM 顶部 `0x80001FE0` 用于软件向 testbench 报告 PASS/FAIL/RUNNING。
+| 值 | 含义 |
+| --- | --- |
+| 1 | 类别数非法或start时配置无效 |
+| 2 | NPU busy或start尚待接收时发生不允许的访问 |
+| 3 | MMIO装载地址未按32位对齐 |
+| 4 | 64位权重没有按低32位、再高32位的顺序写入 |
+| 5 | 参数中出现保留的shift `-32` |
+| 6 | 未定义的写地址或参数子地址 |
 
-## 10. 已知限制与后续工作
+`done` 和 NPU IRQ 都会锁存，直到软件写 CONTROL.bit2。新的start也会清除旧done。
+NPU完成中断连接CPU `irq_i[16]`；DMA完成中断连接 `irq_i[17]`。
 
-### 10.1 当前限制
+### 6.2 输入窗口
 
-1. **DMA 较简陋**：已实现单 outstanding word-by-word AXI copy，但无 burst/链式描述符/ outstanding 并行，吞吐受限。
-2. **SRAM 是行为模型**：未替换为可综合存储器。
-3. **NPU 中断较简陋**：已完成 Matrix/Vector/DMA 完成通知中断，但无独立中断清除寄存器，必须通过启动下一次操作或写 STATUS 来清除 sticky latch。
-4. **单时钟域**：未做低功耗时钟门控（除 CPU 内部）。
-5. **未做综合/时序**：仅功能仿真通过。
+```text
+0x1000 + 4*i，i=0..319
+```
 
-### 10.2 下一阶段建议
+每个32位写操作的低8位写入一个INT8输入。当前接口为了控制逻辑简单，没有把
+四个输入字节打包到一个总线word，因此DMA源数据也应按“一字节占一个32位word”
+展开。这是后续可以优化的带宽点，不影响计算语义。
 
-按流片推进顺序：
+### 6.3 权重窗口
 
-1. **FPGA 原型验证**：把当前 RTL 用 Vivado 综合并上板。
-2. **可综合 SRAM/BRAM**：替换行为模型。
-3. **优化 DMA/增加 LSU/AGU**：支持 burst、outstanding、链式描述符，进一步减少 CPU 参与。
-4. **逻辑综合 + STA**：确认时序。
-5. **后端物理实现**：P&R、DRC/LVS。
+```text
+0x2000 + 8*i：packed weight word i 的低32位
+0x2004 + 8*i：packed weight word i 的高32位，并提交完整64位
+i=0..255
+```
 
-> 注：NPU 中断（阶段 1）、Requantization Unit（阶段 2）与简单 AXI DMA（阶段 3）均已实现并通过 ModelSim 验证。
+软件和DMA必须按低半字后高半字的顺序写同一个权重word。
+
+### 6.4 参数窗口
+
+每层占 `0x100` 字节：
+
+```text
+layer_base = 0x3000 + layer_id * 0x100
+```
+
+| layer_id | 参数组 |
+| --- | --- |
+| 0 | Conv1 |
+| 1 | Conv2 |
+| 2 | GAP |
+| 3 | FC |
+
+层内偏移：
+
+| 偏移 | 含义 |
+| --- | --- |
+| `+0x00 + 4*c` | 通道c的INT32 bias |
+| `+0x20 + 4*c` | 通道c的INT32 Q0.31 multiplier |
+| `+0x40 + 4*c` | 通道c的signed 6-bit shift，放在低6位 |
+| `+0x60` | 写任意值，将暂存参数提交到该层 |
+
+参数暂存寄存器在各层之间复用，因此软件必须按“写完整一层参数，然后commit”
+的顺序操作。GAP忽略bias，FC当前只使用bias。
+
+### 6.5 DMA寄存器
+
+| 偏移 | 名称 | 说明 |
+| --- | --- | --- |
+| `0x0400` | DMA_SRC | 源字节地址 |
+| `0x0404` | DMA_DST | 目的字节地址 |
+| `0x0408` | DMA_LEN | 复制的32-bit word数 |
+| `0x040C` | DMA_CTRL | bit0=start，bit1=irq enable |
+| `0x0410` | DMA_STATUS | bit0=busy，bit1=done；写bit1清done |
+
+当前DMA单次只允许一个未完成事务，逐个32位word复制。
+
+## 7. 软件与硬件职责边界
+
+| 工作 | 软件负责 | 硬件负责 |
+| --- | --- | --- |
+| 模型训练 | 网络训练、QAT/PTQ、准确率评估 | 不负责 |
+| 模型导出 | BN折叠、INT8量化、生成权重/bias/multiplier/shift、打包布局 | 按冻结格式消费参数 |
+| 音频前处理 | 采样、分帧、窗函数、FFT、MFCC/log-mel、输入量化 | 不负责 |
+| 模型装载 | CPU/DMA按MMIO格式写输入、权重和参数 | 本地存储并检查部分非法访问 |
+| 网络调度 | 只发一次start并等待done | 自动执行所有卷积、池化、GAP和FC |
+| 数值运算 | 不参与网络中间层 | INT8乘法、INT32累加、逐通道Requant和饱和 |
+| 最终分类 | 将各类INT32 logit统一尺度，再argmax/阈值判断 | 输出原始INT32 logits |
+| 中断 | 配置、响应和清除 | 完整推理结束后锁存IRQ |
+
+软件模型导出器、Python黄金模型和RTL必须共享同一套Requant函数。任何逐层结果
+相差1个LSB都视为不一致，不能用最终类别恰好相同来掩盖。
+
+## 8. 推荐的软件执行流程
+
+```text
+1. 复位后检查VERSION和STATUS.ready
+2. 装载权重和四组参数；同一模型只需装载一次
+3. 为每次推理装载320个INT8输入
+4. 写CLASS_COUNT
+5. 写CONTROL：start=1，irq_enable按需设置
+6. 等待STATUS.done或CPU irq_i[16]
+7. 读取有效LOGIT
+8. 用模型包中的FC比较参数统一尺度并argmax
+9. 写CONTROL.bit2清done，再装入下一帧输入
+```
+
+## 9. 验证状态与尚未完成事项
+
+当前自动回归覆盖：
+
+- PE、Matrix Unit、Vector Unit；
+- TFLite风格Requant随机测试和backpressure；
+- 卷积地址、Conv1、Conv2、Pool1、Pool2、GAP、FC；
+- 4x8和4x4完整TinyCNN-8合成参数推理；
+- 生产MMIO wrapper的非法类别、非法shift、逐通道不同shift、IRQ和logit读取；
+- CPU侧全零输入/权重的整机测试镜像；
+- ModelSim对SoC完整filelist编译（0 error）；
+- Verilator完整SoC静态lint，以及Yosys完整NPU层次/过程/连线检查。
+
+本机当前没有可用的ModelSim SE仿真许可证，因此CPU通过AXI访问NPU的整机动态
+测试尚未实际启动；这不影响已完成的ModelSim编译和NPU独立动态回归，但在取得
+合法许可证后必须补跑`hardware/soc/sim/scripts/run_soc.ps1`。
+
+仍需在训练完成后补齐：
+
+- 真实模型权重、量化参数和模型包导出器；
+- Python/TFLite逐层黄金向量；
+- 至少100条真实语音的逐层bit-exact回归；
+- 大规模分类准确率回归；
+- 行为级数组替换为工艺SRAM宏；
+- 综合、时序、面积和功耗评估；
+- 输入MMIO/DMA四字节打包优化和跨空间位置权重复用。
+
+在真实模型验证完成前，只能声明RTL数据通路和合成测试通过，不能声明最终KWS
+准确率已经验证。

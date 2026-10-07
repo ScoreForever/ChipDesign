@@ -1,46 +1,24 @@
-# SoC Simulation
+# SoC 仿真
 
-This directory is a lightweight simulation entry for the current SoC
-integration. It reuses the CPU, AXI, debug, boot, and memory building blocks
-under `cpu_cv32e40p/` and `soc/rtl/`, while the NPU side is connected from
-`simple_npu/rtl/` through `soc/rtl/my_npu_subsystem.sv`.
+生产SoC仿真入口为 `filelists/chipdesign_soc.f` 和
+`scripts/run_soc.ps1`。它编译CPU、AXI、SRAM、DMA、完整TinyCNN-8 NPU及
+`chipdesign_soc_tb`。
 
-The default top-level testbench is `my_soc_tb`. The program image loaded into
-SRAM at time 0 is selected by `INIT_FILE` in `soc/rtl/mem/my_mainmem.sv`
-(default `soc/sim/tb/lab3_test1.hex`); the matching C self-check sources are
-`soc/sim/tb/lab3_test{1,2,3}.c`.
+从仓库根目录运行：
 
-## ModelSim flow
-
-Run from the repository root (`SoC_cv32e40p/`):
-
-```tcl
-# one-time setup
-vlib work
-vmap work work
-file mkdir soc/sim/out
-
-# compile design + tb (filelist resolves paths relative to cwd)
-vlog -sv -f soc/sim/filelists/my_soc_tb.f
-
-# elaborate + run; -novopt avoids a known vopt segfault on lzc.sv in 2020.4
-vsim -suppress 12110 -novopt work.my_soc_tb
-run -all
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_soc.ps1
 ```
 
-Incremental rebuild after touching one RTL file:
+测试程序 `sw/chipdesign_npu_test.hex` 由 `sw/gen_hex.py` 生成。CPU通过正式
+MMIO窗口装入全零输入和模型，启动一次四分类完整推理，检查完成状态、NPU中断
+和四个INT32零logit，最后在SRAM魔数区域写入PASS或FAIL。
 
-```tcl
-quit -sim
-vlog -sv <changed_file>.sv
-vsim -suppress 12110 -novopt work.my_soc_tb
-run -all
+完整系统需要支持SystemVerilog interface的ModelSim/Questa/VCS。独立NPU和
+MMIO wrapper测试使用Icarus，可运行：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all_tests.ps1
 ```
 
-The testbench polls a magic region at the top of SRAM (`0x80001FE0`) and
-prints `PASS` / `FAIL case=N @ (i,j)` / `TIMEOUT` based on what the test
-program writes there. See `soc/sim/tb/my_soc_tb.sv` for the layout.
-
-Note: `my_soc_tb.sv` always dumps every signal to `soc/sim/out/my_soc_tb.vcd`.
-That file is large and slows the run down. See `sim/tb/my_soc_tb.sv` in the
-Lab 2 package for one way to make the dump optional.
+旧的Lab3测试文件仍保留作课程参考，但不是当前TinyCNN-8生产回归入口。

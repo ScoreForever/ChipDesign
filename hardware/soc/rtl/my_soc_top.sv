@@ -436,7 +436,7 @@ module my_soc_top #(
       .data_i (sram_rdata)
   );
 
-  // ChipDesign NPU subsystem (Matrix Unit + Vector Unit behind MMIO wrapper)
+  // Complete fixed-function TinyCNN-8 NPU behind one production MMIO wrapper.
   logic        npu_req;
   logic        npu_we;
   logic [31:0] npu_addr;

@@ -1,4 +1,9 @@
 `timescale 1ns/1ps
+
+// Legacy low-level teaching/debug interface.  This wrapper exposes individual
+// Matrix/Vector/Requant operations and is intentionally excluded from the
+// production SoC filelist.  Production software must use
+// tinycnn8_npu_mmio_wrapper instead.
 // MMIO wrapper that bridges a 32-bit memory interface to the ChipDesign NPU:
 //   - Weight-Stationary Matrix Unit (matrix_unit)
 //   - INT8 SIMD Vector Unit (vector_unit)

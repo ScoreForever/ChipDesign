@@ -1,5 +1,9 @@
 # soc/sim/sw —— 测试程序是怎么变成 hex 的
 
+当前TinyCNN-8 SoC回归使用 `gen_hex.py` 直接生成
+`chipdesign_npu_test.hex`。该程序通过正式完整NPU MMIO接口装载零模型并运行
+一次端到端推理，不依赖RISC-V GCC。生成结果必须与仓库中的hex逐行一致。
+
 `soc/sim/tb/` 里的 `lab3_test{1,2,3}.hex` 是助教用 RISC-V GCC 预先编译好的。
 **本实验不需要安装工具链**，这个目录只是把编译过程中的中间产物留给你看，
 配合讲义里"C 代码怎么变成 hex"那道思考题使用。

@@ -46,8 +46,10 @@ module tb_requant_unit;
         reg [31:0] mask, remainder, threshold;
         reg signed [31:0] base;
         begin
-            if (exponent == 0)
+            if (exponent <= 0)
                 ref_div_pot = value;
+            else if (exponent >= 32)
+                ref_div_pot = 0;
             else begin
                 mask = (32'h1 << exponent) - 1;
                 remainder = $unsigned(value) & mask;
@@ -164,6 +166,18 @@ module tb_requant_unit;
         send_current();
         drain();
         $display("PASS directed signed multipliers/shifts");
+
+        // The public MMIO rejects -32.  Direct module users still get a
+        // deterministic underflow result instead of an undefined mask shift.
+        for (lane = 0; lane < LANES; lane = lane + 1) begin
+            acc_data[lane*32 +: 32] = 32'sd1234567 + lane;
+            bias_data[lane*32 +: 32] = 0;
+            multiplier_data[lane*32 +: 32] = 32'sh40000000;
+            shift_data[lane*SHIFT_WIDTH +: SHIFT_WIDTH] = -32;
+        end
+        send_current();
+        drain();
+        $display("PASS reserved shift -32 deterministic fallback");
 
         activation_min = 0; activation_max = 127; output_offset = 3;
         lane_mask = '1; lane_mask[LANES-1] = 0;

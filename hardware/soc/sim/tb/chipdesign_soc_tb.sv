@@ -40,6 +40,14 @@ module chipdesign_soc_tb;
   // Hierarchical read of SRAM memory array.
   wire [31:0] magic_status = dut.i_mainmem.i_mainmem.memory[MAGIC_WORD + 0];
 
+  logic seen_npu_irq;
+  always_ff @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni)
+      seen_npu_irq <= 1'b0;
+    else if (dut.i_npu_subsystem.i_npu_core.irq_o)
+      seen_npu_irq <= 1'b1;
+  end
+
   int unsigned cycle_count;
 
   initial begin
@@ -62,6 +70,10 @@ module chipdesign_soc_tb;
       cycle_count = cycle_count + 1;
 
       if (magic_status == STATUS_PASS) begin
+        if (!seen_npu_irq) begin
+          $display("[%0t] FAIL: software completed without a TinyCNN-8 IRQ", $time);
+          $finish;
+        end
         $display("[%0t] PASS: integrated SoC test OK after %0d cycles",
                  $time, cycle_count);
         $finish;

@@ -1,6 +1,7 @@
 # KWS-TinyCNN-8 NPU Architecture Baseline
 
-Status: approved architecture baseline, 2026-09-29.
+Status: compute-core baseline. The authoritative SoC integration and
+software/hardware boundary are documented in `docs/ARCHITECTURE.md`.
 
 This document freezes the model-visible behavior of the first NPU version. The
 MAC array dimensions remain parameters until synthesis results are available.
@@ -54,7 +55,9 @@ signed integer value zero.
 - Global pooling accumulates in INT32, then uses the Requant Unit to convert
   the sum back to signed INT8 for the existing Matrix Unit FC input. Its
   multiplier/shift combines division by 20 with the FC input scale.
-- The final FC result remains INT32 and is not requantized in the baseline.
+- The final FC result remains INT32. Because FC weights are per-output-channel,
+  CPU software must rescale the valid logits to a common comparison scale
+  before argmax, using per-class parameters supplied by the model package.
 
 The exporter, Python golden model, and RTL testbench must use the same rounding
 and saturation functions. A mismatch of one least-significant bit is a test
@@ -106,9 +109,9 @@ instance is frozen.
 
 ## 5. Control boundary
 
-The NPU core is independent of the final SoC bus. It exposes a small command,
-status, and local-memory access interface. A separate wrapper will adapt that
-interface to the SoC interconnect after the CPU integration contract is known.
+The NPU core is independent of the SoC bus. The production SoC adapts it through
+`hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv`; the complete register map
+and loading protocol are specified in `docs/ARCHITECTURE.md`.
 
 Execution engines are configured by compact layer-descriptor fields rather
 than a general instruction set. In the first TinyCNN-8 integration,
