@@ -40,7 +40,8 @@ module npu_mmio_wrapper #(
     input  logic        we_i,
     input  logic [31:0] addr_i,
     input  logic [31:0] wdata_i,
-    output logic [31:0] rdata_o
+    output logic [31:0] rdata_o,
+    output logic        irq_o
 );
 
     localparam int WEIGHT_WORDS = ((ARRAY_COLS * WGT_WIDTH + 31) / 32) * ARRAY_ROWS;
@@ -365,10 +366,15 @@ module npu_mmio_wrapper #(
     end
 
     // -------------------------------------------------------------------------
+    // Interrupt output: level-sensitive, active while any result is pending.
+    // Cleared when software starts the next operation.
+    // -------------------------------------------------------------------------
+    assign irq_o = matrix_out_valid_latch | vec_out_valid_latch;
+
+    // -------------------------------------------------------------------------
     // Address decode helpers
     // -------------------------------------------------------------------------
     logic [15:0] addr_off;
-    logic [5:0]  word_idx;
     logic        addr_in_weight, addr_in_psum, addr_in_out;
     logic        addr_in_vec_src_a, addr_in_vec_src_b;
 

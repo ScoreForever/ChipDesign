@@ -7,7 +7,8 @@ module my_npu_subsystem (
     input  logic        we_i,
     input  logic [31:0] addr_i,
     input  logic [31:0] wdata_i,
-    output logic [31:0] rdata_o
+    output logic [31:0] rdata_o,
+    output logic        irq_o
 );
 
   npu_mmio_wrapper #(
@@ -25,7 +26,8 @@ module my_npu_subsystem (
       .we_i    (we_i),
       .addr_i  (addr_i),
       .wdata_i (wdata_i),
-      .rdata_o (rdata_o)
+      .rdata_o (rdata_o),
+      .irq_o   (irq_o)
   );
 
 endmodule

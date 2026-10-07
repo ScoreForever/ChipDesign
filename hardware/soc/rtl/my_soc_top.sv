@@ -104,6 +104,7 @@ module my_soc_top #(
   logic           debug_resp_ready;
   dm::dmi_resp_t  debug_resp;
   logic           debug_req_irq;
+  logic           npu_irq;
   localparam logic [31:0] DM_HALT_ADDR      = dm::HaltAddress[31:0];
   localparam logic [31:0] DM_EXCEPTION_ADDR = dm::ExceptionAddress[31:0];
 
@@ -138,7 +139,7 @@ module my_soc_top #(
       .data_addr_o         (data_addr),
       .data_wdata_o        (data_wdata),
       .data_rdata_i        (data_rdata),
-      .irq_i               (32'b0),
+      .irq_i               ({15'b0, npu_irq, 16'b0}),
       .irq_ack_o           (),
       .irq_id_o            (),
       .debug_req_i         (debug_req_irq),
@@ -439,7 +440,8 @@ module my_soc_top #(
 
   my_npu_subsystem i_npu_subsystem (
       .clk_i(clk_i), .rst_ni(ndmreset_n), .req_i(npu_req), .we_i(npu_we),
-      .addr_i(npu_addr), .wdata_i(npu_wdata), .rdata_o(npu_rdata)
+      .addr_i(npu_addr), .wdata_i(npu_wdata), .rdata_o(npu_rdata),
+      .irq_o(npu_irq)
   );
 
   axi2mem #(

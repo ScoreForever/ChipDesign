@@ -115,7 +115,7 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 - **时钟**：与 SoC 同频单时钟
 - **复位**：低电平有效同步复位，受 `rstgen` 和 debug `ndmreset` 共同控制
 - **启动地址**：`BOOT_BASE = 0x0001_0000`
-- **中断**：目前全部 tie 0，未接外设中断
+- **中断**：NPU 完成中断已连接到 `cv32e40p_top.irq_i[16]`（cv32e40p 的 IRQ_MASK 开放了 16..31 自定义中断线，12..15 被屏蔽），用于唤醒 CPU
 - **调试**：通过 RISC-V Debug Module + JTAG DMI 支持 halt/resume
 
 ### 4.2 总线子系统
@@ -193,6 +193,7 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 
 - 作用：把 `axi2mem` 给出的 32-bit 内存访问转换为 Matrix/Vector Unit 的流式控制
 - 读延迟：1 个时钟周期（寄存器读，与 `axi2mem` 期望的 memory latency 匹配）
+- 完成中断：`irq_o = matrix_out_valid_latch | vec_out_valid_latch`，电平敏感、sticky；CPU 启动下一次 Matrix/Vector 操作时会自动清除对应 latch
 - 内部状态机：
   - Matrix：IDLE → LOAD_WEIGHT_START → LOAD_WEIGHT_STREAM → IDLE → COMPUTE → WAIT_OUT
   - Vector：IDLE → ISSUE → WAIT_OUT
@@ -319,7 +320,32 @@ vec_out_lo = NPU_VECTOR_OUT_LO;
 vec_out_hi = NPU_VECTOR_OUT_HI;
 ```
 
-### 8.3 典型网络层映射
+### 8.3 NPU 完成中断驱动流程
+
+NPU wrapper 在 Matrix/Vector 计算完成后会把 `irq_o` 置 1，通过 `my_soc_top.irq_i[16]` 唤醒 CPU。软件使用示例（RISC-V M 模式）：
+
+```c
+// 1. 设置 mtvec 指向中断入口（本例使用直接模式，入口即为程序 _start）
+asm volatile("csrw mtvec, %0" :: "r"(_start));
+
+// 2. 开启 M 模式中断使能，并打开 NPU 中断线（mie[16]）
+asm volatile("csrsi mstatus, 0x8");          // mstatus.MIE = 1
+uint32_t mask = 1 << 16;
+asm volatile("csrs mie, %0" :: "r"(mask));   // mie[16] = 1
+
+// 3. 配置并启动 NPU（写权重、激活、部分和，写 MATRIX_CTRL = 0x1）
+//    ...
+
+// 4. 进入 WFI 等待 NPU 完成中断
+asm volatile("wfi");
+
+// 5. 中断服务程序读取结果
+//    mcause 最高位为 1 表示是中断，读 MATRIX_OUT / VECTOR_OUT 寄存器
+```
+
+当前实现是电平敏感的 sticky 中断：只要 Matrix/Vector 任一输出 pending，`irq_o` 就保持高；启动下一次 Matrix/Vector 操作时，wrapper 内部会自动清除对应 latch。
+
+### 8.4 典型网络层映射
 
 | 网络层操作 | Matrix Unit | Vector Unit |
 | --- | --- | --- |
@@ -338,7 +364,8 @@ vec_out_hi = NPU_VECTOR_OUT_HI;
 | --- | --- | --- | --- |
 | Matrix Unit | Icarus | `hardware/npu/scripts/run_matrix_unit_test.ps1` | PASS |
 | Vector Unit | Icarus | `hardware/npu/scripts/run_vector_unit_test.ps1` | PASS |
-| Integrated SoC | ModelSim | `hardware/soc/sim/scripts/run_soc.ps1` | PASS |
+| Integrated SoC (polling) | ModelSim | `hardware/soc/sim/scripts/run_soc.ps1` | PASS |
+| Integrated SoC (NPU IRQ) | ModelSim | `vsim -c chipdesign_npu_irq_tb -do "run -all; exit"` | PASS |
 
 ### 9.2 调试手段
 
@@ -353,7 +380,7 @@ vec_out_hi = NPU_VECTOR_OUT_HI;
 1. **无 LSU/AGU/DMA**：CPU 必须逐字搬运数据到 NPU MMIO，效率低。
 2. **无 requantization 模块**：Matrix Unit 输出是 INT32，需要额外硬件转成 INT8。
 3. **SRAM 是行为模型**：未替换为可综合存储器。
-4. **无中断**：NPU 完成只能轮询，无法中断 CPU。
+4. **NPU 中断较简陋**：已完成 Matrix/Vector 完成通知中断，但无独立中断清除寄存器，必须通过启动下一次操作来清除 sticky latch。
 5. **单时钟域**：未做低功耗时钟门控（除 CPU 内部）。
 6. **未做综合/时序**：仅功能仿真通过。
 

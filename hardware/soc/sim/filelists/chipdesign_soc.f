@@ -80,3 +80,4 @@ hardware/soc/rtl/npu/npu_mmio_wrapper.sv
 hardware/soc/rtl/my_npu_subsystem.sv
 hardware/soc/rtl/my_soc_top.sv
 hardware/soc/sim/tb/chipdesign_soc_tb.sv
+hardware/soc/sim/tb/chipdesign_npu_irq_tb.sv
