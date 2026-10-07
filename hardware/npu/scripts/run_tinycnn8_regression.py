@@ -348,7 +348,7 @@ def main():
     tracked = [*sources(), *sorted((NPU / "tb").glob("tb_*.sv")),
                ROOT / "hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv", NPU / "tb/tb_tinycnn8_fileio.sv", NPU / "tb/tb_tinycnn8_requant_fileio.sv",
                Path(__file__), NPU / "tools/tinycnn8_golden.py"]
-    summary["source_sha256"] = {str(path.relative_to(ROOT)): sha256(path) for path in tracked}
+    summary["source_sha256"] = {str(path.resolve().relative_to(ROOT)): sha256(path) for path in tracked}
     summary["git_head"] = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
     (output / "summary.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False) + "\n")
     with (output / "comparison.csv").open("w", newline="") as stream:
