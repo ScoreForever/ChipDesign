@@ -1,5 +1,7 @@
 # INT8 SIMD Vector Unit
 
+关于 Vector Unit 在整个 SoC 中的位置与编程模型，参见 [`docs/ARCHITECTURE.md`](/docs/ARCHITECTURE.md)。
+
 `rtl/vector_unit.sv` 实现参数化 SIMD VU，默认 `LANES=8`、`DATA_WIDTH=8`，
 每个向量为 64 bit，各 lane 按 signed INT8 解释。全部 lane 同时执行相同 opcode。
 `LANES >= 1`；位宽表达式按 `DATA_WIDTH` 参数推导（须至少为 2），本阶段配置与验证范围均为 INT8。

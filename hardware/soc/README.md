@@ -4,6 +4,9 @@ This directory contains the integrated System-on-Chip: a `cv32e40p` RISC-V core
 connected through an AXI crossbar to bootram, SRAM, JTAG debug, and the
 ChipDesign NPU (Weight-Stationary Matrix Unit + INT8 SIMD Vector Unit).
 
+For the full system architecture, address map, data formats, and programming
+model, see [`docs/ARCHITECTURE.md`](/docs/ARCHITECTURE.md).
+
 ## Directory Layout
 
 ```

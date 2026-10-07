@@ -25,4 +25,5 @@ Run the integrated SoC (ModelSim):
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_soc.ps1
 ```
 
-See `hardware/soc/README.md` for integration details.
+See `hardware/soc/README.md` for integration details and `docs/ARCHITECTURE.md`
+for the full system architecture and programming model.

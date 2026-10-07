@@ -1,5 +1,7 @@
 # Weight-stationary Matrix Unit
 
+For how the Matrix Unit fits into the full SoC, see [`docs/ARCHITECTURE.md`](/docs/ARCHITECTURE.md).
+
 `matrix_unit` computes one output vector per accepted transaction:
 
 `P_out[c] = P_in[c] + sum(r=0..ARRAY_ROWS-1) A[r] * W[r][c]`.
