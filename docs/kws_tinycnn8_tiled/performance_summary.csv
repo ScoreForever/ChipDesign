@@ -1,0 +1,7 @@
+mode,tile,network_cycles,conv2_cycles,hardware_conv2_cycles,conv2_weight_rows,conv2_weight_bytes,matrix_inputs,psum_bytes,tag_bytes,pack_bytes,major_tile_storage_bytes,peak_inflight
+baseline,0,51821,30482,30483,5760,46080,1440,32,0,4,0,1
+overlap,0,46061,24722,24723,5760,46080,1440,32,0,4,0,1
+tile7,7,32544,11205,11206,864,6912,1440,224,64,8,296,3
+tile8,8,31930,10591,10592,720,5760,1440,256,64,8,328,3
+tile16,16,30395,9056,9057,360,2880,1440,512,64,8,584,3
+tile32,32,29781,8442,8443,216,1728,1440,1024,64,8,1096,3

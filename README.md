@@ -20,6 +20,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_vec
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all_tests.ps1
 ```
 
+Run the reproducible synthetic TinyCNN schedule/golden/MMIO regression:
+
+```sh
+python3 hardware/npu/scripts/run_tinycnn8_regression.py --output /path/to/new-empty-directory
+```
+
+This compares original, gather/load overlap and spatial-tile schedules with the
+same compute core. [Measured results and trade-offs](docs/kws_tinycnn8_tiled/REPORT.md),
+[design decisions and contribution scope](docs/kws_tinycnn8_tiled/THOUGHTS.md), and
+[reproduction details](hardware/npu/sim/README_tinycnn8.md) describe the fixed
+behavioral-memory contract. It does not establish trained KWS accuracy or PPA.
+
 Run the integrated SoC (ModelSim):
 
 ```powershell

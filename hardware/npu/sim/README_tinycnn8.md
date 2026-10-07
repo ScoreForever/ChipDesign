@@ -50,8 +50,8 @@ swift hardware/npu/tools/render_tiled_charts.swift docs/kws_tinycnn8_tiled/perfo
 ```
 
 Swift/AppKit only renders charts on macOS; it is not a simulation dependency.
-The old `docs/kws_tinycnn8` report remains historical phase-one evidence, not
-an up-to-date deployment guide or newest-main experiment. Use the tiled report.
+Phase-one overlap evidence is preserved separately in the local verified backup;
+the current repository report is `docs/kws_tinycnn8_tiled`.
 
 ## Boundaries
 

@@ -34,7 +34,7 @@ def main():
                      "major_tile_storage_bytes": tile * 32 + 72 if tiled else 0,
                      "peak_inflight": hw["peak_inflight"]})
     with (output / "performance_summary.csv").open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=rows[0]);writer.writeheader();writer.writerows(rows)
+        writer = csv.DictWriter(stream, fieldnames=rows[0], lineterminator="\n");writer.writeheader();writer.writerows(rows)
     accepted = {"status": "PASS", "scope": summary["scope"], "git_head": summary["git_head"],
                 "tools": summary["tools"], "compared_elements": summary["compared_elements"],
                 "cases": [{"name": x["case"], "classes": x["classes"], "pattern": x["pattern"],
