@@ -26,11 +26,12 @@
 //   0x0200..0x021F  MATRIX_OUT[0..7]     [R] 8 INT32 outputs
 //   0x0300  REQUANT_CTRL      [W] bit0=enable, bit1=copy_to_vec_src_a, bit2=copy_to_vec_src_b
 //   0x0304  REQUANT_STATUS    [R] bit0=done
-//   0x0310..0x032C  REQUANT_SCALE[0..7]  [W] signed INT16 per-channel scale
-//   0x0330  REQUANT_SHIFT     [W] 0..31 right arithmetic shift amount
-//   0x0334  REQUANT_ZERO_POINT [W] signed INT8 zero point
-//   0x0340  REQUANT_OUT_LO    [R] lanes 0..3 INT8
-//   0x0344  REQUANT_OUT_HI    [R] lanes 4..7 INT8
+//   0x0310..0x032C  REQUANT_BIAS[0..7]    [W] signed INT32 per-lane bias
+//   0x0330..0x034C  REQUANT_MULT[0..7]    [W] signed INT32 Q0.31 per-lane multiplier
+//   0x0350  REQUANT_SHIFT     [W] signed 6-bit shift (positive=left, negative=right), broadcast
+//   0x0354  REQUANT_OFFSET    [W] signed INT32 output offset
+//   0x0360  REQUANT_OUT_LO    [R] lanes 0..3 INT8
+//   0x0364  REQUANT_OUT_HI    [R] lanes 4..7 INT8
 //   0x0400  DMA_SRC           [W] source address (byte)
 //   0x0404  DMA_DST           [W] destination address (byte)
 //   0x0408  DMA_LEN           [W] number of 32-bit words to copy
@@ -168,13 +169,14 @@ module npu_mmio_wrapper #(
     logic [31:0] vec_out_regs   [0:VEC_WORDS-1];
     logic        vec_out_valid_latch;
 
-    // Requantization registers
-    localparam int REQUANT_SCALE_WIDTH = 16;
+    // Requantization registers (TFLite/gemmlowp double-rounding unit)
+    localparam int REQUANT_SHIFT_WIDTH = 6;
     logic [2:0]  requant_ctrl_reg;       // {copy_to_vec_src_b, copy_to_vec_src_a, enable}
     logic        requant_done_latch;
-    logic [REQUANT_SCALE_WIDTH-1:0] requant_scale_regs [0:ARRAY_COLS-1];
-    logic [4:0]  requant_shift_reg;
-    logic [DATA_WIDTH-1:0] requant_zp_reg;
+    logic [31:0] requant_bias_regs [0:ARRAY_COLS-1];
+    logic [31:0] requant_mult_regs  [0:ARRAY_COLS-1];
+    logic [REQUANT_SHIFT_WIDTH-1:0] requant_shift_reg;
+    logic [31:0] requant_offset_reg;
     logic [31:0] requant_out_regs [0:VEC_WORDS-1];
 
     // DMA config registers
@@ -209,39 +211,47 @@ module npu_mmio_wrapper #(
         end
     endgenerate
 
-    // Requantization Unit interface signals
+    // Requantization Unit interface signals (TFLite/gemmlowp double-rounding)
     logic [ARRAY_COLS*ACC_WIDTH-1:0]           requant_acc_i;
-    logic [ARRAY_COLS*REQUANT_SCALE_WIDTH-1:0] requant_scale_i;
+    logic [ARRAY_COLS*32-1:0]                  requant_bias_i;
+    logic [ARRAY_COLS*32-1:0]                  requant_mult_i;
+    logic [ARRAY_COLS*REQUANT_SHIFT_WIDTH-1:0] requant_shift_i;
     logic [ARRAY_COLS*DATA_WIDTH-1:0]          requant_out_o;
     logic                                      requant_valid_i;
     logic                                      requant_valid_o;
 
-    // Pack requantization scales into the unit's input vector.
+    // Pack per-lane bias / multiplier and broadcast shift into unit inputs.
     generate
         genvar rq;
-        for (rq = 0; rq < ARRAY_COLS; rq = rq + 1) begin : gen_requant_scale
-            assign requant_scale_i[rq*REQUANT_SCALE_WIDTH +: REQUANT_SCALE_WIDTH] = requant_scale_regs[rq];
+        for (rq = 0; rq < ARRAY_COLS; rq = rq + 1) begin : gen_requant_pack
+            assign requant_bias_i[rq*32 +: 32] = requant_bias_regs[rq];
+            assign requant_mult_i[rq*32 +: 32] = requant_mult_regs[rq];
+            assign requant_shift_i[rq*REQUANT_SHIFT_WIDTH +: REQUANT_SHIFT_WIDTH] = requant_shift_reg;
         end
     endgenerate
 
     assign requant_acc_i   = mu_out_psum_data;
-    assign requant_valid_i = mu_out_valid && mu_out_ready;
+    assign requant_valid_i = mu_out_valid && mu_out_ready && requant_ctrl_reg[0];
 
     requant_unit #(
         .LANES       (ARRAY_COLS),
-        .ACC_WIDTH   (ACC_WIDTH),
-        .SCALE_WIDTH (REQUANT_SCALE_WIDTH),
-        .DATA_WIDTH  (DATA_WIDTH)
+        .SHIFT_WIDTH (REQUANT_SHIFT_WIDTH)
     ) i_requant_unit (
-        .clk_i         (clk_i),
-        .rst_ni        (rst_ni),
-        .valid_i       (requant_valid_i),
-        .acc_i         (requant_acc_i),
-        .scale_i       (requant_scale_i),
-        .shift_i       (requant_shift_reg),
-        .zero_point_i  (requant_zp_reg),
-        .out_o         (requant_out_o),
-        .valid_o       (requant_valid_o)
+        .clk             (clk_i),
+        .rst             (~rst_ni),
+        .in_valid        (requant_valid_i),
+        .in_ready        (),
+        .lane_mask       ({ARRAY_COLS{1'b1}}),
+        .acc_data        (requant_acc_i),
+        .bias_data       (requant_bias_i),
+        .multiplier_data (requant_mult_i),
+        .shift_data      (requant_shift_i),
+        .output_offset   (requant_offset_reg),
+        .activation_min  (8'sh80),
+        .activation_max  (8'sh7f),
+        .out_data        (requant_out_o),
+        .out_valid       (requant_valid_o),
+        .out_ready       (1'b1)
     );
 
     // -------------------------------------------------------------------------
@@ -459,7 +469,7 @@ module npu_mmio_wrapper #(
     logic [15:0] addr_off;
     logic        addr_in_weight, addr_in_psum, addr_in_out;
     logic        addr_in_vec_src_a, addr_in_vec_src_b;
-    logic        addr_in_requant_scale;
+    logic        addr_in_requant_bias, addr_in_requant_mult;
 
     assign addr_off = addr_i[15:0];
 
@@ -468,15 +478,17 @@ module npu_mmio_wrapper #(
     assign addr_in_out      = (addr_off[15:8] == 8'h02) && (addr_off[7:5] == 3'b000); // 0x0200-0x021F
     assign addr_in_vec_src_a = (addr_off[15:4] == 12'h002); // 0x0020-0x002F
     assign addr_in_vec_src_b = (addr_off[15:4] == 12'h002); // overlaps, refined below
-    assign addr_in_requant_scale = (addr_off >= 16'h0310) && (addr_off <= 16'h032C);
+    assign addr_in_requant_bias = (addr_off >= 16'h0310) && (addr_off <= 16'h032C);
+    assign addr_in_requant_mult  = (addr_off >= 16'h0330) && (addr_off <= 16'h034C);
 
     // Word indices within each register bank (offsets are byte addresses).
     logic [5:0] weight_idx, psum_idx, out_idx;
-    logic [2:0] requant_scale_idx;
+    logic [2:0] requant_bias_idx, requant_mult_idx;
     assign weight_idx = (addr_off - 16'h0040) >> 2;
     assign psum_idx   = (addr_off - 16'h0110) >> 2;
     assign out_idx    = (addr_off - 16'h0200) >> 2;
-    assign requant_scale_idx = (addr_off - 16'h0310) >> 2;
+    assign requant_bias_idx = (addr_off - 16'h0310) >> 2;
+    assign requant_mult_idx  = (addr_off - 16'h0330) >> 2;
 
     // -------------------------------------------------------------------------
     // MMIO write handling
@@ -496,9 +508,12 @@ module npu_mmio_wrapper #(
             end
             requant_ctrl_reg   <= '0;
             requant_done_latch <= 1'b0;
-            for (int i = 0; i < ARRAY_COLS; i = i + 1) requant_scale_regs[i] <= '0;
+            for (int i = 0; i < ARRAY_COLS; i = i + 1) begin
+                requant_bias_regs[i] <= '0;
+                requant_mult_regs[i]  <= '0;
+            end
             requant_shift_reg  <= '0;
-            requant_zp_reg     <= '0;
+            requant_offset_reg <= '0;
             dma_src_reg        <= '0;
             dma_dst_reg        <= '0;
             dma_len_reg        <= '0;
@@ -531,8 +546,8 @@ module npu_mmio_wrapper #(
                     16'h002C: if (VEC_WORDS > 1) vec_src_b_regs[1] <= wdata_i;
                     16'h0100: matrix_act_reg <= wdata_i;
                     16'h0300: requant_ctrl_reg <= wdata_i[2:0];
-                    16'h0330: requant_shift_reg <= wdata_i[4:0];
-                    16'h0334: requant_zp_reg    <= wdata_i[DATA_WIDTH-1:0];
+                    16'h0350: requant_shift_reg <= wdata_i[REQUANT_SHIFT_WIDTH-1:0];
+                    16'h0354: requant_offset_reg <= wdata_i;
                     16'h0400: dma_src_reg   <= wdata_i;
                     16'h0404: dma_dst_reg   <= wdata_i;
                     16'h0408: dma_len_reg   <= wdata_i;
@@ -544,17 +559,20 @@ module npu_mmio_wrapper #(
                     default: begin
                         if (addr_in_psum)     matrix_psum_regs[psum_idx]   <= wdata_i;
                         if (addr_in_weight)   matrix_weight_regs[weight_idx] <= wdata_i;
-                        if (addr_in_requant_scale) requant_scale_regs[requant_scale_idx] <= wdata_i[REQUANT_SCALE_WIDTH-1:0];
+                        if (addr_in_requant_bias) requant_bias_regs[requant_bias_idx] <= wdata_i;
+                        if (addr_in_requant_mult)  requant_mult_regs[requant_mult_idx]  <= wdata_i;
                     end
                 endcase
             end
 
-            // Requantization result capture: when Matrix Unit output is accepted,
-            // optionally quantize and copy into vector source registers.
+            // Requantization result capture: the TFLite unit registers its
+            // output one cycle after the Matrix Unit output is accepted, so
+            // capture on the unit's out_valid. Optionally copy into the Vector
+            // Unit source registers.
             if (mu_start_compute_d)
                 requant_done_latch <= 1'b0;
 
-            if (mu_out_valid && mu_out_ready && requant_ctrl_reg[0]) begin
+            if (requant_valid_o) begin
                 requant_out_regs[0] <= requant_out_o[31:0];
                 if (VEC_WORDS > 1)
                     requant_out_regs[1] <= requant_out_o[63:32];
@@ -593,12 +611,12 @@ module npu_mmio_wrapper #(
         else if (addr_in_out)          rdata_next = matrix_out_regs[out_idx];
         else if (addr_off == 16'h0300) rdata_next = {29'b0, requant_ctrl_reg};
         else if (addr_off == 16'h0304) rdata_next = {31'b0, requant_done_latch};
-        else if (addr_in_requant_scale) rdata_next = {{(32-REQUANT_SCALE_WIDTH){requant_scale_regs[requant_scale_idx][REQUANT_SCALE_WIDTH-1]}},
-                                                       requant_scale_regs[requant_scale_idx]};
-        else if (addr_off == 16'h0330) rdata_next = {27'b0, requant_shift_reg};
-        else if (addr_off == 16'h0334) rdata_next = {{(32-DATA_WIDTH){requant_zp_reg[DATA_WIDTH-1]}}, requant_zp_reg};
-        else if (addr_off == 16'h0340) rdata_next = requant_out_regs[0];
-        else if (addr_off == 16'h0344) rdata_next = (VEC_WORDS > 1) ? requant_out_regs[1] : 32'b0;
+        else if (addr_in_requant_bias) rdata_next = requant_bias_regs[requant_bias_idx];
+        else if (addr_in_requant_mult)  rdata_next = requant_mult_regs[requant_mult_idx];
+        else if (addr_off == 16'h0350) rdata_next = {{(32-REQUANT_SHIFT_WIDTH){requant_shift_reg[REQUANT_SHIFT_WIDTH-1]}}, requant_shift_reg};
+        else if (addr_off == 16'h0354) rdata_next = requant_offset_reg;
+        else if (addr_off == 16'h0360) rdata_next = requant_out_regs[0];
+        else if (addr_off == 16'h0364) rdata_next = (VEC_WORDS > 1) ? requant_out_regs[1] : 32'b0;
         else if (addr_off == 16'h0400) rdata_next = dma_src_reg;
         else if (addr_off == 16'h0404) rdata_next = dma_dst_reg;
         else if (addr_off == 16'h0408) rdata_next = dma_len_reg;

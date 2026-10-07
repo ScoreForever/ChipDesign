@@ -106,13 +106,16 @@ clk / rst_ni / tck / tms / td |   my_soc_top     |
 | 0x021C | MATRIX_OUT[7] | 32 | R | |
 | 0x0300 | REQUANT_CTRL | 32 | W | bit0=enable；bit1=copy_to_vec_src_a；bit2=copy_to_vec_src_b |
 | 0x0304 | REQUANT_STATUS | 32 | R | bit0=done |
-| 0x0310 | REQUANT_SCALE[0] | 32 | W | 通道 0 的 signed INT16 scale |
+| 0x0310 | REQUANT_BIAS[0] | 32 | W | 通道 0 的 signed INT32 bias |
 | ... | ... | 32 | W | ... |
-| 0x032C | REQUANT_SCALE[7] | 32 | W | 通道 7 的 signed INT16 scale |
-| 0x0330 | REQUANT_SHIFT | 32 | W | 0..31 的算术右移位数 |
-| 0x0334 | REQUANT_ZERO_POINT | 32 | W | signed INT8 zero point |
-| 0x0340 | REQUANT_OUT_LO | 32 | R | 量化后 `out[31:0]`（lanes 0..3） |
-| 0x0344 | REQUANT_OUT_HI | 32 | R | 量化后 `out[63:32]`（lanes 4..7） |
+| 0x032C | REQUANT_BIAS[7] | 32 | W | 通道 7 的 signed INT32 bias |
+| 0x0330 | REQUANT_MULT[0] | 32 | W | 通道 0 的 signed INT32 Q0.31 multiplier |
+| ... | ... | 32 | W | ... |
+| 0x034C | REQUANT_MULT[7] | 32 | W | 通道 7 的 signed INT32 Q0.31 multiplier |
+| 0x0350 | REQUANT_SHIFT | 32 | W | signed 6-bit shift（正=左移、负=右移），所有通道共享 |
+| 0x0354 | REQUANT_OFFSET | 32 | W | signed INT32 output offset |
+| 0x0360 | REQUANT_OUT_LO | 32 | R | 量化后 `out[31:0]`（lanes 0..3） |
+| 0x0364 | REQUANT_OUT_HI | 32 | R | 量化后 `out[63:32]`（lanes 4..7） |
 | 0x0400 | DMA_SRC | 32 | W | DMA 源地址（字节对齐） |
 | 0x0404 | DMA_DST | 32 | W | DMA 目的地址（字节对齐） |
 | 0x0408 | DMA_LEN | 32 | W | 待拷贝 32-bit word 数 |
@@ -374,14 +377,16 @@ asm volatile("wfi");
 
 ### 8.5 Requantization 操作流程
 
-Matrix Unit 输出为 INT32，`requant_unit` 按通道做 INT32→INT8 量化后写入 `REQUANT_OUT`，并可直接拷贝到 Vector Unit 输入：
+Matrix Unit 输出为 INT32，`requant_unit`（TFLite/gemmlowp 双重舍入）按通道做 INT32→INT8 量化后写入 `REQUANT_OUT`，并可直接拷贝到 Vector Unit 输入：
 
 ```c
-// 1. 配置量化参数（8 通道独立 scale、共享 shift/zp）
-for (int c = 0; c < 8; c++)
-    NPU_REQUANT_SCALE(c) = scale[c];
-NPU_REQUANT_SHIFT      = shift;
-NPU_REQUANT_ZERO_POINT = zero_point;
+// 1. 配置量化参数（8 通道独立 bias/multiplier、共享 shift/offset）
+for (int c = 0; c < 8; c++) {
+    NPU_REQUANT_BIAS(c) = bias[c];       // signed INT32
+    NPU_REQUANT_MULT(c) = multiplier[c]; // signed INT32 Q0.31
+}
+NPU_REQUANT_SHIFT  = shift;              // signed 6-bit，正=左移、负=右移
+NPU_REQUANT_OFFSET = output_offset;      // signed INT32
 
 // 2. 启动 Matrix 计算，并设置 REQUANT_CTRL 为 0x7：
 //    bit0=1 enable；bit1=1 copy to vec_src_a；bit2=1 copy to vec_src_b
@@ -395,11 +400,16 @@ while ((NPU_REQUANT_STATUS & 0x1) == 0);
 NPU_VECTOR_OP = 1;        // 例如执行后续 Vector ADD
 ```
 
-量化公式（每通道）：
+量化公式（每通道，TFLite/gemmlowp 双重舍入）：
 
 ```
-out[c] = clamp((INT32_ACC[c] * SCALE[c]) >>> SHIFT + ZERO_POINT, -128, 127)
+biased[c] = INT32_ACC[c] + BIAS[c]
+scaled[c] = SaturatingRoundingDoublingHighMul(biased[c], MULT[c])   // Q0.31 乘
+result[c] = RoundingDivideByPOT(scaled[c], max(-SHIFT, 0))          // 右移部分
+out[c]    = clamp(result[c] + OFFSET, -128, 127)
 ```
+
+其中 `SHIFT > 0` 表示在乘法前对 `biased` 左移 `SHIFT` 位。
 
 ### 8.6 NPU DMA 操作流程
 

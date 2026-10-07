@@ -2,9 +2,10 @@
 """Generate chipdesign_requant_test.hex — Matrix -> Requant -> Vector chain test.
 
 The program runs a 4x8 INT8 GEMM with weights=1 and activations=1, producing
-INT32 output 4 in every column.  A requant scale=2 / shift=1 / zp=0 converts
-this to INT8 4, auto-copies it into the Vector Unit's src_a, then performs an
-INT8 vector ADD with src_b=1.  Expected result is 5 in every lane.
+INT32 output 4 in every column.  TFLite requant with bias=0, Q0.31 multiplier
+0.5, shift=+1, offset=0 converts this to INT8 4, auto-copies it into the
+Vector Unit's src_a, then performs an INT8 vector ADD with src_b=1.  Expected
+result is 5 in every lane.
 """
 
 REGS = {
@@ -130,15 +131,19 @@ def main():
     for off in [0x110, 0x114, 0x118, 0x11C, 0x120, 0x124, 0x128, 0x12C]:
         op('sw', 'zero', off, 't0')
 
-    # Requant scale = 2 for all 8 channels
-    op('addi', 't1', 'zero', 2)
+    # Requant bias = 0 for all 8 channels
     for off in [0x310, 0x314, 0x318, 0x31C, 0x320, 0x324, 0x328, 0x32C]:
+        op('sw', 'zero', off, 't0')
+
+    # Requant multiplier = 0x40000000 (Q0.31 = 0.5) for all 8 channels
+    op('lui', 't1', 0x40000)
+    for off in [0x330, 0x334, 0x338, 0x33C, 0x340, 0x344, 0x348, 0x34C]:
         op('sw', 't1', off, 't0')
 
-    # Requant shift = 1, zero_point = 0
+    # Requant shift = +1 (left shift 1), output offset = 0
     op('addi', 't1', 'zero', 1)
-    op('sw', 't1', 0x330, 't0')
-    op('sw', 'zero', 0x334, 't0')
+    op('sw', 't1', 0x350, 't0')
+    op('sw', 'zero', 0x354, 't0')
 
     # Requant control: enable + copy to vec_src_a
     op('addi', 't1', 'zero', 3)
