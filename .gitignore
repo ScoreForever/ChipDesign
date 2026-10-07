@@ -14,3 +14,8 @@ __pycache__/
 *~
 *.swp
 *.swo
+
+# Local agent configuration and reproducible simulation output
+.zcode/
+hardware/npu/sim/tinycnn8/
+hardware/npu/sim/tinycnn8_tiled/

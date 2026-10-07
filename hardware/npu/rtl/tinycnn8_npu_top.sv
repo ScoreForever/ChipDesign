@@ -7,7 +7,10 @@ module tinycnn8_npu_top #(
     parameter ACT_BANK_BYTES=4096,
     parameter WEIGHT_WORDS=256,
     parameter ADDR_WIDTH=16,
-    parameter SHIFT_WIDTH=6
+    parameter SHIFT_WIDTH=6,
+    parameter OPT_GATHER_LOAD=0,
+    parameter OPT_SPATIAL_TILE=0,
+    parameter SPATIAL_TILE=16
 ) (
     input wire clk,input wire rst,
     input wire start_valid,output wire start_ready,
@@ -25,7 +28,15 @@ module tinycnn8_npu_top #(
     input wire [7:0] host_parameter_tile,
     input wire [ARRAY_COLS*32-1:0] host_bias_data,
     input wire [ARRAY_COLS*32-1:0] host_multiplier_data,
-    input wire [ARRAY_COLS*SHIFT_WIDTH-1:0] host_shift_data
+    input wire [ARRAY_COLS*SHIFT_WIDTH-1:0] host_shift_data,
+    output reg [31:0] perf_total_cycles,
+    output reg [6*32-1:0] perf_layer_cycles,
+    output reg [31:0] perf_weight_rows,
+    output reg [31:0] perf_matrix_issues,
+    output reg [31:0] perf_matrix_retires,
+    output reg [31:0] perf_peak_inflight,
+    output reg perf_overflow,
+    output reg perf_valid
 );
     localparam CONV1_WEIGHT_BASE=0,CONV2_WEIGHT_BASE=32,FC_WEIGHT_BASE=192;
     localparam MAX_TILES=(8+ARRAY_COLS-1)/ARRAY_COLS;
@@ -74,7 +85,12 @@ module tinycnn8_npu_top #(
     wire [15:0] conv_weight_base=(conv_phase==0)?CONV1_WEIGHT_BASE:
         (conv_phase==1)?CONV2_WEIGHT_BASE:FC_WEIGHT_BASE;
 
-    conv2d_engine #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS)) conv(
+    wire perf_activation_fire,perf_activation_padding,perf_weight_fire;
+    wire perf_matrix_issue,perf_matrix_retire;
+    wire [7:0] perf_inflight;
+    conv2d_engine #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
+        .OPT_GATHER_LOAD(OPT_GATHER_LOAD),.OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
+        .SPATIAL_TILE(SPATIAL_TILE)) conv(
         .clk(clk),.rst(rst),.start_valid(conv_start_valid),.start_ready(conv_start_ready),
         .input_height(conv_ih),.input_width(conv_iw),.input_channels(conv_ic),
         .output_height(conv_oh),.output_width(conv_ow),.output_channels(conv_oc),
@@ -92,7 +108,11 @@ module tinycnn8_npu_top #(
         .output_write_data(conv_write_data),.output_write_mask(conv_write_mask),
         .int32_write_valid(conv_i32_valid),.int32_write_ready(1'b1),
         .int32_write_addr(conv_i32_addr),.int32_write_data(conv_i32_data),
-        .int32_write_mask(conv_i32_mask));
+        .int32_write_mask(conv_i32_mask),
+        .perf_activation_fire(perf_activation_fire),
+        .perf_activation_padding(perf_activation_padding),
+        .perf_weight_fire(perf_weight_fire),.perf_matrix_issue(perf_matrix_issue),
+        .perf_matrix_retire(perf_matrix_retire),.perf_inflight(perf_inflight));
 
     wire pool_start_ready,pool_busy,pool_done,pool_write_valid;
     wire [ADDR_WIDTH-1:0] pool_act_addr,pool_write_addr;
@@ -148,6 +168,43 @@ module tinycnn8_npu_top #(
     assign start_ready=(state==IDLE)&&!rst&&
                        (class_count>=4'd1)&&(class_count<=4'd8);
     assign busy=(state!=IDLE);
+    // Profiler contract: count every edge whose pre-edge sequencer state is
+    // START or WAIT, including the engine-done transition edge. Accepted start
+    // itself is excluded. Layer lanes (LSB first): C1,P1,C2,P2,GAP,FC; their sum
+    // equals total absent saturation. Counters saturate at UINT32_MAX and set
+    // sticky overflow on an attempted increment beyond it. Accepted start and
+    // reset clear all fields; completion sets valid and freezes until next job.
+    // Rejected starts and wrapper clear_done do not affect this snapshot.
+    always @(posedge clk) begin : profiler
+        integer layer;
+        if(rst || (start_valid && start_ready))begin
+            perf_total_cycles<=0;perf_layer_cycles<=0;perf_weight_rows<=0;
+            perf_matrix_issues<=0;perf_matrix_retires<=0;perf_peak_inflight<=0;
+            perf_overflow<=0;perf_valid<=0;
+        end else if(busy)begin
+            layer=(state-1)/2;
+            if(perf_total_cycles==32'hffffffff)perf_overflow<=1;
+            else perf_total_cycles<=perf_total_cycles+1'b1;
+            if(perf_layer_cycles[layer*32 +: 32]==32'hffffffff)perf_overflow<=1;
+            else perf_layer_cycles[layer*32 +: 32]<=perf_layer_cycles[layer*32 +: 32]+1'b1;
+            if(perf_weight_fire)begin
+                if(perf_weight_rows==32'hffffffff)perf_overflow<=1;
+                else perf_weight_rows<=perf_weight_rows+1'b1;
+            end
+            if(perf_matrix_issue)begin
+                if(perf_matrix_issues==32'hffffffff)perf_overflow<=1;
+                else perf_matrix_issues<=perf_matrix_issues+1'b1;
+            end
+            if(perf_matrix_retire)begin
+                if(perf_matrix_retires==32'hffffffff)perf_overflow<=1;
+                else perf_matrix_retires<=perf_matrix_retires+1'b1;
+            end
+            if({24'd0,perf_inflight}>perf_peak_inflight)
+                perf_peak_inflight<={24'd0,perf_inflight};
+            if(state==FC_WAIT && conv_done)perf_valid<=1;
+        end
+    end
+
     always @(posedge clk) begin : sequencer_and_memory_writes
         integer lane;
         if(rst)begin state<=IDLE;done<=0;cfg_class_count<=0;conv_phase<=0;logits<=0;end

@@ -1,0 +1,41 @@
+name: TinyCNN RTL regression
+
+on:
+  pull_request:
+    paths:
+      - 'hardware/npu/**'
+      - 'hardware/soc/rtl/npu/**'
+      - 'hardware/soc/rtl/my_npu_subsystem.sv'
+      - '.github/workflows/tinycnn8.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'hardware/npu/**'
+      - 'hardware/soc/rtl/npu/**'
+      - 'hardware/soc/rtl/my_npu_subsystem.sv'
+      - '.github/workflows/tinycnn8.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rtl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install RTL simulator
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Validate standalone and production MMIO paths
+        run: python3 hardware/npu/scripts/run_tinycnn8_regression.py --output "${RUNNER_TEMP}/tinycnn8_results"
+      - name: Preserve experiment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tinycnn8-rtl-evidence
+          path: ${{ runner.temp }}/tinycnn8_results
+          retention-days: 14

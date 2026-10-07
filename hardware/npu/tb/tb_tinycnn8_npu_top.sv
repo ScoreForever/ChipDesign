@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 module tb_tinycnn8_npu_top;
     parameter ARRAY_ROWS=4,ARRAY_COLS=8;
+    parameter OPT_GATHER_LOAD=0,OPT_SPATIAL_TILE=0,SPATIAL_TILE=16;
     localparam SHIFT_WIDTH=6,TILES=(8+ARRAY_COLS-1)/ARRAY_COLS;
     reg clk=0,rst=1,start_valid=0;
     reg [3:0] class_count=6;
@@ -16,7 +17,9 @@ module tb_tinycnn8_npu_top;
     reg [ARRAY_COLS*SHIFT_WIDTH-1:0] host_shift_data=0;
     integer k,tile,lane,oc,ic,index,o,expected,cycles=0;
 
-    tinycnn8_npu_top #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS)) dut(
+    tinycnn8_npu_top #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
+        .OPT_GATHER_LOAD(OPT_GATHER_LOAD),.OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
+        .SPATIAL_TILE(SPATIAL_TILE)) dut(
         .clk(clk),.rst(rst),.start_valid(start_valid),.start_ready(start_ready),
         .class_count(class_count),.busy(busy),.done(done),.logits(logits),
         .host_activation_we(host_activation_we),.host_activation_addr(host_activation_addr),

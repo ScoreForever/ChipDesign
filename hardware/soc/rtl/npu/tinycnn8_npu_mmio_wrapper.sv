@@ -11,7 +11,10 @@ module tinycnn8_npu_mmio_wrapper #(
     parameter int ARRAY_COLS = 8,
     parameter int SHIFT_WIDTH = 6,
     parameter int INPUT_BYTES = 320,
-    parameter int WEIGHT_WORDS = 256
+    parameter int WEIGHT_WORDS = 256,
+    parameter int OPT_GATHER_LOAD = 0,
+    parameter int OPT_SPATIAL_TILE = 0,
+    parameter int SPATIAL_TILE = 16
 ) (
     input  logic        clk_i,
     input  logic        rst_ni,
@@ -119,11 +122,19 @@ module tinycnn8_npu_mmio_wrapper #(
     assign dma_irq_en_o = dma_irq_en_reg;
     assign dma_clear_done_o = dma_clear_done_pulse;
 
+    logic [31:0] perf_total_cycles,perf_weight_rows,perf_matrix_issues;
+    logic [31:0] perf_matrix_retires,perf_peak_inflight;
+    logic [191:0] perf_layer_cycles;
+    logic perf_valid,perf_overflow;
+
     tinycnn8_npu_top #(
         .ARRAY_ROWS   (ARRAY_ROWS),
         .ARRAY_COLS   (ARRAY_COLS),
         .WEIGHT_WORDS (WEIGHT_WORDS),
-        .SHIFT_WIDTH  (SHIFT_WIDTH)
+        .SHIFT_WIDTH  (SHIFT_WIDTH),
+        .OPT_GATHER_LOAD(OPT_GATHER_LOAD),
+        .OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
+        .SPATIAL_TILE(SPATIAL_TILE)
     ) i_tinycnn8_npu (
         .clk                  (clk_i),
         .rst                  (~rst_ni),
@@ -144,7 +155,11 @@ module tinycnn8_npu_mmio_wrapper #(
         .host_parameter_tile  (host_parameter_tile),
         .host_bias_data       (host_bias_data),
         .host_multiplier_data (host_multiplier_data),
-        .host_shift_data      (host_shift_data)
+        .host_shift_data      (host_shift_data),
+        .perf_total_cycles(perf_total_cycles),.perf_layer_cycles(perf_layer_cycles),
+        .perf_weight_rows(perf_weight_rows),.perf_matrix_issues(perf_matrix_issues),
+        .perf_matrix_retires(perf_matrix_retires),.perf_peak_inflight(perf_peak_inflight),
+        .perf_overflow(perf_overflow),.perf_valid(perf_valid)
     );
 
     always_ff @(posedge clk_i or negedge rst_ni) begin
@@ -318,7 +333,24 @@ module tinycnn8_npu_mmio_wrapper #(
         else if ((addr_off >= 16'h0010) && (addr_off <= 16'h002c))
             rdata_next = npu_logits[((addr_off - 16'h0010) >> 2)*32 +: 32];
         else if (addr_off == 16'h0030)
-            rdata_next = 32'h0001_0000;
+            rdata_next = 32'h0001_0001;
+        // Read-only profile snapshot/live counters. 0x44..0x58 are
+        // C1,P1,C2,P2,GAP,FC. Status: bit0 valid, bit1 overflow, bit2 active.
+        // Writes fall through to existing unsupported-address error code 6.
+        else if (addr_off == 16'h0040)
+            rdata_next = perf_total_cycles;
+        else if ((addr_off >= 16'h0044) && (addr_off <= 16'h0058) && addr_off[1:0]==0)
+            rdata_next = perf_layer_cycles[((addr_off-16'h0044)>>2)*32 +: 32];
+        else if (addr_off == 16'h005c)
+            rdata_next = perf_weight_rows;
+        else if (addr_off == 16'h0060)
+            rdata_next = perf_matrix_issues;
+        else if (addr_off == 16'h0064)
+            rdata_next = perf_matrix_retires;
+        else if (addr_off == 16'h0068)
+            rdata_next = perf_peak_inflight;
+        else if (addr_off == 16'h006c)
+            rdata_next = {29'd0,npu_busy,perf_overflow,perf_valid};
         else if (addr_off == 16'h0400)
             rdata_next = dma_src_reg;
         else if (addr_off == 16'h0404)

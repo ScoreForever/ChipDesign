@@ -1,6 +1,10 @@
 `timescale 1ns/1ps
 
-module my_npu_subsystem (
+module my_npu_subsystem #(
+    parameter int OPT_GATHER_LOAD = 0,
+    parameter int OPT_SPATIAL_TILE = 0,
+    parameter int SPATIAL_TILE = 16
+) (
     input  logic        clk_i,
     input  logic        rst_ni,
     input  logic        req_i,
@@ -24,7 +28,10 @@ module my_npu_subsystem (
   tinycnn8_npu_mmio_wrapper #(
       .ARRAY_ROWS (4),
       .ARRAY_COLS (8),
-      .SHIFT_WIDTH(6)
+      .SHIFT_WIDTH(6),
+      .OPT_GATHER_LOAD(OPT_GATHER_LOAD),
+      .OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
+      .SPATIAL_TILE(SPATIAL_TILE)
   ) i_npu_core (
       .clk_i   (clk_i),
       .rst_ni  (rst_ni),
