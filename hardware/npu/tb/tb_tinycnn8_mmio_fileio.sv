@@ -22,6 +22,7 @@ module tb_tinycnn8_mmio_fileio #(
     integer classes=6,cycle=0,accepted_writes=0;
     integer load_cycles,load_writes,load_begin,write_begin;
     integer perf_fd,logit_fd,job,index,lane,group;
+    integer mon_i,read_i,load_i,load_g,load_l,profile_i,result_i,output_i,snapshot_i,reset_i;
     integer mon_total=0,mon_layer[0:5],mon_weights=0,mon_issues=0,mon_retires=0;
     integer mon_phase=0,mon_inflight=0,mon_peak=0;
     reg mon_active=0;
@@ -33,7 +34,7 @@ module tb_tinycnn8_mmio_fileio #(
         if(rst_ni && dut.npu_start_pulse && dut.npu_start_ready)begin
             mon_active=1;mon_phase=0;mon_total=0;mon_weights=0;
             mon_issues=0;mon_retires=0;mon_inflight=0;mon_peak=0;
-            for(integer i=0;i<6;i=i+1)mon_layer[i]=0;
+            for(mon_i=0;mon_i<6;mon_i=mon_i+1)mon_layer[mon_i]=0;
         end else if(mon_active)begin
             mon_total=mon_total+1;mon_layer[mon_phase]=mon_layer[mon_phase]+1;
             if(dut.i_tinycnn8_npu.perf_inflight!==mon_inflight[7:0])
@@ -53,8 +54,8 @@ module tb_tinycnn8_mmio_fileio #(
             if(mon_inflight<0)$fatal(1,"negative matrix inflight");
             case(mon_phase)
                 0,2:if(dut.i_tinycnn8_npu.conv_done)mon_phase=mon_phase+1;
-                1,3:if(dut.i_tinycnn8_npu.pool_done)mon_phase=mon_phase+1;
-                4:if(dut.i_tinycnn8_npu.gap_done)mon_phase=5;
+                1:if(dut.i_tinycnn8_npu.pool_done)mon_phase=2;
+                3:if(dut.i_tinycnn8_npu.pool_done)mon_phase=5;
                 5:if(dut.i_tinycnn8_npu.conv_done)mon_active=0;
             endcase
         end
@@ -76,34 +77,37 @@ module tb_tinycnn8_mmio_fileio #(
     endtask
     task read_images(input string dir);
         begin
-            for(integer i=0;i<8;i=i+1)golden[i]=0;
+            for(read_i=0;read_i<8;read_i=read_i+1)golden[read_i]=0;
             $readmemh({dir,"/input.hex"},input_image);
             $readmemh({dir,"/weights.hex"},weight_image);
             $readmemh({dir,"/bias.hex"},bias_image);
             $readmemh({dir,"/multiplier.hex"},mult_image);
             $readmemh({dir,"/shift.hex"},shift_image);
             $readmemh({dir,"/golden_fc.hex"},golden,0,classes-1);
-            for(integer i=0;i<24;i=i+1)
-                if(shift_image[i][5:0]==6'b100000)$fatal(1,"golden model has reserved shift -32");
+            for(read_i=0;read_i<24;read_i=read_i+1)
+                if(shift_image[read_i][5:0]==6'b100000)$fatal(1,"golden model has reserved shift -32");
         end
     endtask
     task load_model(input bit full_model);
         begin
             load_begin=cycle;write_begin=accepted_writes;
-            for(integer i=0;i<320;i=i+1)load_write(16'h1000+i*4,{24'd0,input_image[i]});
+            for(load_i=0;load_i<320;load_i=load_i+1)
+                load_write(16'h1000+load_i*4,{24'd0,input_image[load_i]});
             if(full_model)begin
-                for(integer i=0;i<256;i=i+1)begin
-                    load_write(16'h2000+i*8,weight_image[i][31:0]);
-                    load_write(16'h2004+i*8,weight_image[i][63:32]);
+                for(load_i=0;load_i<256;load_i=load_i+1)begin
+                    load_write(16'h2000+load_i*8,weight_image[load_i][31:0]);
+                    load_write(16'h2004+load_i*8,weight_image[load_i][63:32]);
                 end
-                for(integer g=0;g<4;g=g+1)begin
-                    for(integer l=0;l<8;l=l+1)begin
-                        load_write(16'h3000+g*256+l*4,bias_image[g*8+l]);
-                        load_write(16'h3020+g*256+l*4,mult_image[g*8+l]);
-                        load_write(16'h3040+g*256+l*4,
-                            {{24{shift_image[g*8+l][7]}},shift_image[g*8+l]});
+                for(load_g=0;load_g<4;load_g=load_g+1)begin
+                    if(load_g!=2)begin
+                        for(load_l=0;load_l<8;load_l=load_l+1)begin
+                            load_write(16'h3000+load_g*256+load_l*4,bias_image[load_g*8+load_l]);
+                            load_write(16'h3020+load_g*256+load_l*4,mult_image[load_g*8+load_l]);
+                            load_write(16'h3040+load_g*256+load_l*4,
+                                {{24{shift_image[load_g*8+load_l][7]}},shift_image[load_g*8+load_l]});
+                        end
+                        load_write(16'h3060+load_g*256,1);
                     end
-                    load_write(16'h3060+g*256,1);
                 end
             end
             // Drain the wrapper's registered native-host write before start.
@@ -111,11 +115,14 @@ module tb_tinycnn8_mmio_fileio #(
             load_cycles=cycle-load_begin;load_writes=accepted_writes-write_begin;
             mmio_read(16'h000c,value);
             if(value!==0)$fatal(1,"load error %0d",value);
-            if(load_writes!=(full_model?932:320))$fatal(1,"load transaction count mismatch");
+            if(load_writes!=(full_model?907:320))$fatal(1,"load transaction count mismatch");
         end
     endtask
     task read_profile;
-        begin for(integer i=0;i<12;i=i+1)mmio_read(16'h0040+i*4,profile[i]);end
+        begin
+            for(profile_i=0;profile_i<12;profile_i=profile_i+1)
+                mmio_read(16'h0040+profile_i*4,profile[profile_i]);
+        end
     endtask
     task expect_error(input [31:0] code);
         begin
@@ -151,34 +158,38 @@ module tb_tinycnn8_mmio_fileio #(
                profile[0],mon_total,profile[7],mon_weights,profile[8],mon_issues,
                profile[9],mon_retires,profile[10],mon_peak);
             sum_layers=0;
-            for(integer i=0;i<6;i=i+1)begin
-                if(profile[i+1]!==mon_layer[i])$fatal(1,"layer %0d cycles mismatch",i);
-                sum_layers=sum_layers+profile[i+1];
+            for(result_i=0;result_i<6;result_i=result_i+1)begin
+                if(profile[result_i+1]!==mon_layer[result_i])
+                    $fatal(1,"layer %0d cycles mismatch",result_i);
+                sum_layers=sum_layers+profile[result_i+1];
             end
             if(sum_layers!=profile[0] || mon_issues!=mon_retires || mon_inflight!=0)
                 $fatal(1,"cycle conservation or matrix drain mismatch");
-            for(integer i=0;i<8;i=i+1)begin
-                mmio_read(16'h0010+i*4,value);
-                if(value!==(i<classes?golden[i]:32'd0))$fatal(1,"job %0d logit %0d got %h expected %h",number,i,value,golden[i]);
-                $fdisplay(logit_fd,"%0d,%0d,%0d,%0d",number,i,$signed(value),$signed(golden[i]));
+            for(output_i=0;output_i<8;output_i=output_i+1)begin
+                mmio_read(16'h0010+output_i*4,value);
+                if(value!==(output_i<classes?golden[output_i]:32'd0))
+                    $fatal(1,"job %0d logit %0d got %h expected %h",number,output_i,value,golden[output_i]);
+                $fdisplay(logit_fd,"%0d,%0d,%0d,%0d",number,output_i,$signed(value),$signed(golden[output_i]));
             end
             $fdisplay(perf_fd,"%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d",
                 number,profile[0],profile[1],profile[2],profile[3],profile[4],
                 profile[5],profile[6],profile[7],profile[8],profile[9],profile[10],
                 load_writes,accepted_writes,load_cycles);
-            for(integer i=0;i<12;i=i+1)snapshot[i]=profile[i];
+            for(snapshot_i=0;snapshot_i<12;snapshot_i=snapshot_i+1)
+                snapshot[snapshot_i]=profile[snapshot_i];
             // Enabling a previously masked completed IRQ must assert it.
             mmio_write(0,2);if(!irq)$fatal(1,"pending done IRQ did not unmask");
             mmio_write(0,6);if(irq)$fatal(1,"done clear did not clear IRQ");
             mmio_read(4,value);if(value[2])$fatal(1,"done latch retained");
             repeat(5)@(negedge clk);
             read_profile();
-            for(integer i=0;i<12;i=i+1)
-                if(profile[i]!==snapshot[i])$fatal(1,"clear_done changed profile %0d",i);
+            for(snapshot_i=0;snapshot_i<12;snapshot_i=snapshot_i+1)
+                if(profile[snapshot_i]!==snapshot[snapshot_i])
+                    $fatal(1,"clear_done changed profile %0d",snapshot_i);
             mmio_write(16'h0040,32'hdeadbeef);expect_error(6);
             read_profile();
-            for(integer i=0;i<12;i=i+1)
-                if(profile[i]!==snapshot[i])$fatal(1,"readonly write changed profile");
+            for(snapshot_i=0;snapshot_i<12;snapshot_i=snapshot_i+1)
+                if(profile[snapshot_i]!==snapshot[snapshot_i])$fatal(1,"readonly write changed profile");
         end
     endtask
     initial begin
@@ -190,11 +201,11 @@ module tb_tinycnn8_mmio_fileio #(
         perf_fd=$fopen({out_dir,"/mmio_perf.csv"},"w");
         logit_fd=$fopen({out_dir,"/mmio_logits.csv"},"w");
         if(!perf_fd||!logit_fd)$fatal(1,"cannot open result files");
-        $fdisplay(perf_fd,"job,total_cycles,conv1_cycles,pool1_cycles,conv2_cycles,pool2_cycles,gap_cycles,fc_cycles,weight_rows,matrix_issues,matrix_retires,peak_inflight,jobacceptedwrites,totalacceptedwrites,hostloadcycles");
+        $fdisplay(perf_fd,"job,total_cycles,conv1_cycles,pool1_cycles,conv2_cycles,pool2_cycles,reserved_cycles,fc_cycles,weight_rows,matrix_issues,matrix_retires,peak_inflight,jobacceptedwrites,totalacceptedwrites,hostloadcycles");
         $fdisplay(logit_fd,"job,class,actual,golden");
         repeat(4)@(negedge clk);rst_ni=1;
-        read_profile();for(integer i=0;i<12;i=i+1)
-            if(profile[i]!==0)$fatal(1,"reset profile nonzero");
+        read_profile();for(reset_i=0;reset_i<12;reset_i=reset_i+1)
+            if(profile[reset_i]!==0)$fatal(1,"reset profile nonzero");
         mmio_write(8,0);expect_error(1);
         mmio_write(8,9);expect_error(1);
         mmio_write(8,classes);

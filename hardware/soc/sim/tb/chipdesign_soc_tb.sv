@@ -71,23 +71,27 @@ module chipdesign_soc_tb;
 
       if (magic_status == STATUS_PASS) begin
         if (!seen_npu_irq) begin
-          $display("[%0t] FAIL: software completed without a TinyCNN-8 IRQ", $time);
-          $finish;
+          $fatal(1, "[%0t] FAIL: software completed without a TinyCNN-8 IRQ", $time);
         end
         $display("[%0t] PASS: integrated SoC test OK after %0d cycles",
                  $time, cycle_count);
         $finish;
       end
       if (magic_status == STATUS_FAIL) begin
-        $display("[%0t] FAIL: integrated SoC test failed after %0d cycles",
-                 $time, cycle_count);
-        $finish;
+        $display("NPU debug: error=%0d code=%0d ready=%0d busy=%0d done=%0d irq=%0d",
+                 dut.i_npu_subsystem.i_npu_core.error_latched,
+                 dut.i_npu_subsystem.i_npu_core.error_code,
+                 dut.i_npu_subsystem.i_npu_core.npu_start_ready,
+                 dut.i_npu_subsystem.i_npu_core.npu_busy,
+                 dut.i_npu_subsystem.i_npu_core.done_latched,
+                 seen_npu_irq);
+        $fatal(1, "[%0t] FAIL: integrated SoC test failed after %0d cycles",
+               $time, cycle_count);
       end
     end
 
-    $display("[%0t] TIMEOUT after %0d cycles, magic_status=0x%08h",
-             $time, TIMEOUT_CYCLES, magic_status);
-    $finish;
+    $fatal(1, "[%0t] TIMEOUT after %0d cycles, magic_status=0x%08h",
+           $time, TIMEOUT_CYCLES, magic_status);
   end
 
 endmodule

@@ -5,7 +5,7 @@ of Peking University.
 
 ## What's inside
 
-- `hardware/npu/` — 完整 KWS-TinyCNN-8 INT8 NPU、基础计算单元和
+- `hardware/npu/` — 完整四分类 KWS-TinyCNN-8-Flat INT8 NPU、基础计算单元和
   Icarus兼容的自检回归。
 - `hardware/soc/` — Integrated SoC with `cv32e40p` CPU, AXI crossbar, bootram,
   SRAM, JTAG debug, and the NPU behind an MMIO wrapper (ModelSim).

@@ -13,12 +13,9 @@ try {
         (Join-Path $rtl 'matrix_unit.sv') `
         (Join-Path $rtl 'vector_unit.sv') `
         (Join-Path $rtl 'requant_unit.sv') `
-        (Join-Path $rtl 'reduction_sum_unit.sv') `
         (Join-Path $rtl 'conv_window_addr_gen.sv') `
         (Join-Path $rtl 'conv2d_engine.sv') `
         (Join-Path $rtl 'maxpool2x2_engine.sv') `
-        (Join-Path $rtl 'global_sum_pool_engine.sv') `
-        (Join-Path $rtl 'global_avg_pool_engine.sv') `
         (Join-Path $rtl 'tinycnn8_npu_top.sv') `
         (Join-Path $soc 'tinycnn8_npu_mmio_wrapper.sv') $tb
     if($LASTEXITCODE-ne 0){throw 'iverilog compile failed'}

@@ -175,14 +175,14 @@ class LayerAndPackingTests(unittest.TestCase):
     def test_weight_packedword_bases_and_canonical_k_order(self):
         c1 = [[[[0] for _ in range(3)] for _ in range(3)] for _ in range(8)]
         c2 = [[[[0] * 8 for _ in range(3)] for _ in range(3)] for _ in range(8)]
-        fc = [[0] * 8 for _ in range(4)]
+        fc = [[0] * 160 for _ in range(4)]
         c1[0][0][0][0], c1[7][2][2][0] = -128, 127
         c2[3][1][2][5], c2[0][2][2][7] = -2, 3
-        fc[0][0], fc[3][7] = 2, -1
+        fc[0][0], fc[3][159] = 2, -1
         model = {"conv1": {"weights": c1}, "conv2": {"weights": c2}, "fc": {"weights": fc}}
         words = golden.pack_weights(model)
-        expected = {0: 0x80, 8: 0x7F00000000000000, 77: 0xFE000000,
-                    103: 3, 192: 2, 199: 0xFF000000}
+        expected = {0: 0x80, 8: 0x7F00000000000000, 54: 0xFE000000,
+                    80: 3, 81: 2, 240: 0xFF000000}
         self.assertEqual(len(words), 256)
         self.assertEqual({i: word for i, word in enumerate(words) if word}, expected)
 
@@ -195,8 +195,8 @@ class LayerAndPackingTests(unittest.TestCase):
         self.assertEqual(bias[16:24], [0] * 8)
         self.assertEqual(bias[24:28], model["fc"]["bias"])
         self.assertEqual(bias[28:], [0] * 4)
-        self.assertEqual(mult[16:24], [0x66666666] * 8)
-        self.assertEqual(shifts[16:24], [-4] * 8)
+        self.assertEqual(mult[16:24], [0] * 8)
+        self.assertEqual(shifts[16:24], [0] * 8)
         self.assertEqual(mult[24:], [0] * 8)
         self.assertEqual(shifts[24:], [0] * 8)
 
@@ -210,13 +210,13 @@ class GenerationTests(unittest.TestCase):
     def test_patterns_change_inputs_not_model_parameters(self):
         models = [golden.build_model(pattern=pattern) for pattern in golden.PATTERNS]
         for model in models[1:]:
-            for layer in ("conv1", "conv2", "gap", "fc"):
+            for layer in ("conv1", "conv2", "fc"):
                 self.assertEqual(model[layer], models[0][layer])
         self.assertEqual(set(models[2]["input"]), {-128, 127})
         self.assertNotEqual(models[0]["input"], models[1]["input"])
 
     def test_all_patterns_classes_lengths_hashes_and_manifest(self):
-        shapes = [[20, 16, 8], [10, 8, 8], [10, 8, 8], [5, 4, 8], [1, 1, 8]]
+        shapes = [[20, 16, 8], [10, 8, 8], [10, 8, 8], [5, 4, 8]]
         for pattern in golden.PATTERNS:
             for classes in (4, 6):
                 with self.subTest(pattern=pattern, classes=classes), tempfile.TemporaryDirectory() as tmp:
@@ -227,7 +227,7 @@ class GenerationTests(unittest.TestCase):
                                 "bias.hex": (32, 8), "multiplier.hex": (32, 8), "shift.hex": (32, 2),
                                 "golden_conv1.hex": (2560, 2), "golden_pool1.hex": (640, 2),
                                 "golden_conv2.hex": (640, 2), "golden_pool2.hex": (160, 2),
-                                "golden_gap.hex": (8, 2), "golden_fc.hex": (classes, 8)}
+                                "golden_fc.hex": (classes, 8)}
                     self.assertEqual({p.name for p in Path(tmp).iterdir()}, set(expected) | {"manifest.json"})
                     self.assertEqual(set(manifest["files"]), set(expected))
                     for filename, (count, digits) in expected.items():
@@ -246,15 +246,15 @@ class GenerationTests(unittest.TestCase):
                         encoded = [int(line, 16) for line in (Path(tmp) / ("golden_" + name + ".hex")).read_text().splitlines()]
                         decoded = [value - (1 << bits) if value >= (1 << (bits - 1)) else value for value in encoded]
                         self.assertEqual(decoded, values)
-                    self.assertEqual((Path(tmp) / "shift.hex").read_text().splitlines()[16:24], ["fc"] * 8)
+                    self.assertEqual((Path(tmp) / "shift.hex").read_text().splitlines()[16:24], ["00"] * 8)
                     self.assertTrue(manifest["synthetic"])
                     self.assertFalse(manifest["trained"])
                     self.assertEqual((manifest["seed"], manifest["classes"], manifest["pattern"]), (7, classes, pattern))
-                    self.assertEqual([layer["id"] for layer in manifest["layers"]], list(range(6)))
+                    self.assertEqual([layer["id"] for layer in manifest["layers"]], list(range(5)))
                     self.assertEqual([layer["output_shape"] for layer in manifest["layers"]], shapes + [[1, 1, classes]])
-                    self.assertEqual(manifest["weight_packing"]["bases"], {"conv1": 0, "conv2": 32, "fc": 192})
-                    self.assertEqual(manifest["macs"]["nominal"], 69120 + 8 * classes)
-                    self.assertEqual(manifest["macs"]["useful"], 60768 + 8 * classes)
+                    self.assertEqual(manifest["weight_packing"]["bases"], {"conv1": 0, "conv2": 9, "fc": 81})
+                    self.assertEqual(manifest["macs"]["nominal"], 69120 + 160 * classes)
+                    self.assertEqual(manifest["macs"]["useful"], 60768 + 160 * classes)
 
     def test_non_degenerate_across_seeds_and_patterns(self):
         for seed in (0, 7, 19, 12345):
@@ -265,8 +265,6 @@ class GenerationTests(unittest.TestCase):
                         self.assertTrue(any(value != 0 for value in outputs[layer]))
                         self.assertTrue(any(0 < value < 127 for value in outputs[layer]))
                         self.assertGreater(len(set(outputs[layer])), 1)
-                    self.assertTrue(any(outputs["gap"]))
-                    self.assertGreater(len(set(outputs["gap"])), 1)
                     self.assertTrue(any(outputs["fc"]))
                     self.assertGreater(len(set(outputs["fc"])), 1)
 
@@ -283,10 +281,10 @@ class GenerationTests(unittest.TestCase):
 
     def test_default_hand_stable_witness_outputs(self):
         outputs = golden.run_model(golden.build_model())
-        self.assertEqual(outputs["gap"], [7, 13, 19, 1, 5, 0, 4, 0])
-        self.assertEqual(outputs["fc"], [-10, 36, -27, -14, 86, 69])
+        self.assertEqual(outputs["fc"], [-11, 36, -8, 179, 121, 325])
         # First two FC channels deliberately have one unit tap and one bias.
-        self.assertEqual(outputs["fc"][:2], [outputs["gap"][0] - 17, outputs["gap"][1] + 23])
+        self.assertEqual(outputs["fc"][:2], [outputs["pool2"][0] - 17,
+                                              outputs["pool2"][1] + 23])
 
     def test_cli_flags_and_json_stdout(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -17,7 +17,7 @@ tinycnn8_npu_mmio_wrapper
    v
 tinycnn8_npu_top
    |
-   +-- Conv1 -> Pool1 -> Conv2 -> Pool2 -> GAP -> FC
+   +-- Conv1 -> Pool1 -> Conv2 -> Pool2 -> NHWC Flatten -> FC(160->4)
 ```
 
 算子级的旧 `npu_mmio_wrapper.sv` 已删除：它从未进入正式 SoC filelist，正式 SoC
@@ -67,6 +67,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run
 CPU测试程序通过正式MMIO窗口装入全零输入和模型，启动一次四分类完整推理，
 检查NPU完成中断与四个零logit，并清除done。测试镜像由
 `hardware/soc/sim/sw/gen_hex.py`生成。
+
+当前MMIO ABI版本为`0x0002_0001`（Flatten ABI + 性能计数器）。参数层2是已移除GAP留下的保留槽，提交
+会返回错误码6；正式软件只提交Conv1（层0）、Conv2（层1）和FC（层3）。
 
 SoC使用SystemVerilog interface和断言，不能用Icarus编译整个SoC；Icarus仍用于
 独立NPU和MMIO wrapper回归。

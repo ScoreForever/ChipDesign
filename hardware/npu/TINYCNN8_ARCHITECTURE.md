@@ -1,159 +1,116 @@
-# KWS-TinyCNN-8 NPU Architecture Baseline
+# KWS TinyCNN-8-Flat NPU Architecture Baseline
 
-Status: compute-core baseline. The authoritative SoC integration and
-software/hardware boundary are documented in `docs/ARCHITECTURE.md`.
-
-This document freezes the model-visible behavior of the first NPU version. The
-MAC array dimensions remain parameters until synthesis results are available.
+Status: current compute-core baseline. The authoritative SoC register map and
+software/hardware boundary are in `docs/ARCHITECTURE.md`.
 
 ## 1. Accelerator boundary
 
-The CPU or host performs audio sampling and MFCC/log-mel feature extraction.
-The NPU accepts one signed INT8 `20 x 16 x 1` feature tensor and returns up to
-eight signed INT32 logits. Softmax, thresholding, and argmax are CPU software
-responsibilities.
+The host converts one second of 16 kHz audio to a signed INT8 `20×16×1`
+log-mel tensor. The NPU returns four signed INT32 raw logits for
+`yes/no/up/down`. Audio capture, log-mel, final per-class scale alignment,
+argmax, rejection policy, and application behavior are software tasks.
 
-Tensor storage uses NHWC order. Channel is the fastest-changing dimension and
-channels are handled in groups of up to eight lanes.
+Tensor storage is NHWC: channel is the fastest-changing dimension.
 
-## 2. Baseline network
+## 2. Fixed production network
 
 | Stage | Operation | Output shape |
 | --- | --- | --- |
-| Input | signed INT8 feature tensor | `20 x 16 x 1` |
-| 1 | Conv2D `1 -> 8`, `3 x 3`, stride 1, SAME | `20 x 16 x 8` |
-| 2 | fused bias, requantization, ReLU | `20 x 16 x 8` |
-| 3 | MaxPool `2 x 2`, stride 2 | `10 x 8 x 8` |
-| 4 | Conv2D `8 -> 8`, `3 x 3`, stride 1, SAME | `10 x 8 x 8` |
-| 5 | fused bias, requantization, ReLU | `10 x 8 x 8` |
-| 6 | MaxPool `2 x 2`, stride 2 | `5 x 4 x 8` |
-| 7 | Global sum/average pool over 20 positions | `1 x 1 x 8` |
-| 8 | Fully connected `8 -> 4/6`, hardware maximum 8 | `1 x 1 x 4/6` |
-| Output | signed INT32 logits | 4 or 6 valid lanes |
+| Input | signed INT8 feature tensor | `20×16×1` |
+| Conv1 | `3×3`, stride 1, SAME, `1→8`; bias/requant/ReLU | `20×16×8` INT8 |
+| Pool1 | `2×2`, stride 2 MaxPool | `10×8×8` INT8 |
+| Conv2 | `3×3`, stride 1, SAME, `8→8`; bias/requant/ReLU | `10×8×8` INT8 |
+| Pool2 | `2×2`, stride 2 MaxPool | `5×4×8` INT8 |
+| Flatten | reinterpret contiguous NHWC storage | `160` INT8 |
+| FC | `160→4` | `4` INT32 logits |
 
-Batch normalization is folded into convolution weights and biases before model
-export. Inference hardware does not contain a batch-normalization unit.
+Flatten contains no arithmetic and no copy: Pool2 writes the 160 values in the
+order consumed by FC. The previous GAP path is not part of production. Its
+standalone modules remain only as verified generic/legacy IP.
 
-For SAME padding, a location outside the input tensor has the quantized value
-of real zero. The baseline symmetric activation format therefore pads with the
-signed integer value zero.
+Batch normalization is folded into convolution weights and biases at export.
+SAME-padding uses integer zero because activation zero point is zero.
 
 ## 3. Integer contract
 
-- Activations and weights are signed INT8.
-- Convolution and fully-connected products are signed `INT8 x INT8`.
-- Bias and partial sums are signed INT32.
-- Weight quantization is symmetric and per output channel.
-- Activation quantization is symmetric and per tensor for the first version.
-- Each requantized output channel has a signed Q0.31 multiplier and a signed
-  power-of-two shift.
-- Requantization uses the TFLite/CMSIS-NN style sequence: saturating rounding
-  doubling-high multiply, followed by rounding divide by a power of two.
-- ReLU is fused by clamping the requantized result to `[0, 127]`. ReLU may be
-  disabled, in which case the clamp interval is `[-128, 127]`.
-- MaxPool preserves the input scale.
-- Global pooling accumulates in INT32, then uses the Requant Unit to convert
-  the sum back to signed INT8 for the existing Matrix Unit FC input. Its
-  multiplier/shift combines division by 20 with the FC input scale.
-- The final FC result remains INT32. Because FC weights are per-output-channel,
-  CPU software must rescale the valid logits to a common comparison scale
-  before argmax, using per-class parameters supplied by the model package.
+- Activations and weights: signed INT8.
+- Convolution and FC products: signed `INT8×INT8`.
+- Biases, partial sums, and raw logits: signed INT32.
+- Activations are symmetric per tensor; weights are symmetric per output channel.
+- Conv requantization has one signed Q0.31 multiplier and shift per output
+  channel and follows TFLite/gemmlowp double rounding.
+- Conv/ReLU clamps to `[0,127]`; MaxPool and Flatten preserve scale.
+- FC is not requantized. Software applies exported per-class comparison
+  multiplier/shift before argmax.
 
-The exporter, Python golden model, and RTL testbench must use the same rounding
-and saturation functions. A mismatch of one least-significant bit is a test
-failure.
+A one-LSB disagreement between exporter, Python golden model, and RTL is a
+verification failure.
 
-## 4. Datapath and storage
+## 4. Datapath, scheduling, and storage
 
 ```text
- host/CPU
-    |
-    v
- activation SRAM A/B -- window/address generator -- matrix unit
-                                                   |
- weight SRAM --------------------------------------+
-                                                   v
-                                      INT32 bias / partial sums
-                                                   |
-                                                   v
-                                 requant + optional ReLU clamp
-                                                   |
-                                                   v
-                                      max-pool / activation SRAM
-                                                   |
-                                                   v
-                                           INT32 GAP accumulator
-                                                   |
-                                                   v
-                                             matrix unit (FC)
-                                                   |
-                                                   v
-                                             INT32 logits
+activation SRAM A/B -> window generator -> shared Matrix Unit -> requant
+       |                                      ^
+       +------------ MaxPool/Vector Unit      |
+weight SRAM ----------------------------------+
+
+Pool2 in bank A (160 INT8, NHWC) -> shared Matrix Unit as 1×1 Conv/FC
+                                  -> four INT32 logits
 ```
 
-Two activation banks are used in ping-pong fashion. Each bank must hold at
-least the largest INT8 feature map, `20 x 16 x 8 = 2560` bytes. The logical
-architecture uses writable SRAM interfaces; simulation initially uses
-behavioral arrays and physical design may replace them with foundry SRAM
-macros.
+Activation flow:
 
-The four/six-class model contains 680/696 INT8 weights and 20/22 INT32 biases:
-700/718 scalar parameters, not bytes. Raw weights plus biases occupy 760/784
-bytes; Q31 multipliers and shifts require additional storage. The behavioral
-4x8 top allocates 256 packed weight words (2 KiB), separate parameter arrays,
-and two 4 KiB activation banks. This is not the SoC's 8 KiB main-SRAM budget.
+```text
+input A(320 B) -> Conv1 B(2560 B) -> Pool1 A(640 B)
+ -> Conv2 B(640 B) -> Pool2 A(160 B) -> FC logits
+```
 
-The existing weight-stationary Matrix Unit is retained. The default controller
-keeps one packed partial sum live. Optional K-major spatial tiling accelerates
-only the fixed 4x8 Conv2 descriptor; other descriptors retain the baseline
-schedule. Tile16 uses 512 B partial sums, 64 B integer tags and 8 B activation
-packs, with additional control/profiler logic. Array shape and tile size remain
-parameters, not a synthesized ASIC selection. The current experiment compares
-4x4 fallback and 4x8 schedules; no claim is made that 1x8/2x8 have been accepted
-by the new tiled regression.
+The production 8-column weight SRAM contains 256 packed 64-bit words:
 
-## 5. Control boundary
+| Layer | Word range | Words |
+| --- | ---: | ---: |
+| Conv1 | `[0,9)` | 9 |
+| Conv2 | `[9,81)` | 72 |
+| FC | `[81,241)` | 160 |
+| Spare | `[241,256)` | 15 |
 
-The NPU core is independent of the SoC bus. The production SoC adapts it through
-`hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv`; the complete register map
-and loading protocol are specified in `docs/ARCHITECTURE.md`.
+The training model has 1,324 trainable parameters. Deployment weight values
+are 72 + 576 + 640 = 1,288 INT8 values; folded biases and quantization
+parameters are stored separately.
 
-Execution engines are configured by compact layer-descriptor fields rather
-than a general instruction set. In the first TinyCNN-8 integration,
-`tinycnn8_npu_top` emits the fixed model's descriptors as a small combinational
-microcode table selected by its sequencer; a later SoC wrapper may replace this
-table with writable descriptors without changing the compute engines. A
-descriptor provides at least:
+The baseline controller keeps one packed partial sum live. The remote tiled
+work is preserved through `OPT_GATHER_LOAD`, `OPT_SPATIAL_TILE`, and
+`SPATIAL_TILE`: the optimized path applies only to the fixed 4×8 Conv2
+descriptor and falls back for other descriptors. K-major spatial tiling keeps
+one INT32 partial sum per selected output position so a loaded weight group can
+serve several positions. Tile16 uses 512 B for partial sums plus tags and
+activation packs. These behavioral capacities are not final physical SRAM,
+area, timing, or power results.
 
-- operation kind;
-- input and output base addresses;
-- height, width, input channels, and output channels;
-- kernel size, stride, and SAME/VALID padding mode;
-- weight, bias, multiplier, and shift base addresses;
-- activation clamp bounds;
-- valid output-lane count.
+## 5. Control and profiler
 
-The first implementation only needs to accept descriptor combinations used by
-the baseline network. Unsupported combinations must be rejected or documented;
-they must not silently produce a result.
+`tinycnn8_npu_top` sequences Conv1, Pool1, Conv2, Pool2, and FC. Conv1, Conv2,
+and FC share one `conv2d_engine`/Matrix Unit; both pools share one
+`maxpool2x2_engine`/Vector Unit. The core remains bus-independent.
 
-The fixed top accepts `class_count` values from 1 through 8 and refuses zero or
-larger values without starting a job. A new inference must reload the complete
-input feature tensor because activation bank A is reused by later pooling. FC
-weights are packed with `ceil(class_count / ARRAY_COLS)` output tiles per input
-channel; changing to a model with a different class count therefore requires
-reloading its matching FC weights and parameters.
+The six profiler lanes remain ABI-stable: Conv1, Pool1, Conv2, Pool2,
+reserved, FC. Lane 4 was GAP and is now always zero. Counters track total and
+per-stage cycles, weight-row handshakes, matrix issues/retires, peak in-flight
+transactions, validity, and saturation overflow.
+
+The reusable RTL interface accepts `class_count=1..8`; the frozen trained
+deployment package has exactly four classes and 160 FC input features. A model
+change requires matching weights, parameters, labels, and regression vectors.
 
 ## 6. Verification gates
 
-1. Unit-level randomized tests for PE, Matrix Unit, Vector Unit, requantization,
-   pooling, address generation, and memories.
-2. Bit-exact single-layer comparison against an independent software model.
-3. Full-network comparison using deterministic synthetic weights and features.
-4. Full-network comparison using trained and folded INT8 parameters.
-5. Layer-by-layer dumps for at least 100 real test samples, followed by a
-   larger classification regression.
+1. Unit regressions for PE, Matrix Unit, Vector Unit, requant, pooling, address
+   generation, baseline and tiled Conv2 scheduling.
+2. Synthetic full-network tests on 4×8 and 4×4 arrays.
+3. MMIO protocol, profiler, and error-path regression.
+4. Full test-set Python integer accuracy evaluation.
+5. At least 100 real speech samples comparing all four RTL raw logits
+   bit-for-bit against the deployed Python integer model.
 
-Icarus Verilog remains the required open-source RTL simulator for the baseline
-regression. Additional Verilator or commercial-simulator runs may be added but
-must not replace the reproducible Icarus test.
+Icarus Verilog is the reproducible NPU simulator. Commercial simulation may
+supplement but does not replace it.

@@ -33,8 +33,16 @@ function Run-Local {
 
     # Simulate
     Write-Output "Running simulation: vsim -c $testbench -do 'run -all; exit'"
-    & vsim -c $testbench -do "run -all; exit"
-    if ($LASTEXITCODE -ne 0) { throw 'vsim simulation failed' }
+    $simLines = & vsim -c $testbench -do "run -all; exit" 2>&1
+    $simExit = $LASTEXITCODE
+    $simOutput = $simLines -join [Environment]::NewLine
+    Write-Output $simOutput
+    if ($simExit -ne 0 -or
+        $simOutput -match '(?m)^# .*\b(?:FAIL|TIMEOUT)\b' -or
+        $simOutput -match '(?m)^# Errors: [1-9]' -or
+        $simOutput -notmatch '(?m)^# .*PASS: integrated SoC test OK') {
+        throw 'vsim simulation failed or did not report the expected PASS marker'
+    }
 }
 
 function Run-Remote {
@@ -65,8 +73,16 @@ function Run-Remote {
     ) -join ' && '
 
     Write-Output "Running on ${sshHost} ..."
-    & ssh $sshHost $remoteCmd
-    if ($LASTEXITCODE -ne 0) { throw 'Remote simulation failed' }
+    $remoteLines = & ssh $sshHost $remoteCmd 2>&1
+    $remoteExit = $LASTEXITCODE
+    $remoteOutput = $remoteLines -join [Environment]::NewLine
+    Write-Output $remoteOutput
+    if ($remoteExit -ne 0 -or
+        $remoteOutput -match '(?m)^# .*\b(?:FAIL|TIMEOUT)\b' -or
+        $remoteOutput -match '(?m)^# Errors: [1-9]' -or
+        $remoteOutput -notmatch '(?m)^# .*PASS: integrated SoC test OK') {
+        throw 'Remote simulation failed or did not report the expected PASS marker'
+    }
 }
 
 try {

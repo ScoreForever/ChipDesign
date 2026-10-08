@@ -153,11 +153,14 @@ TFLite/gemmlowp 双重舍入、output offset 和可配置激活钳位，输出 s
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_requant_unit_test.ps1
 ```
 
-## Global Pool Reduction
+## 旧版 Global Pool IP（不进入当前生产顶层）
 
-`rtl/reduction_sum_unit.sv` 将一串 signed INT8 通道向量归约为每通道 INT32
-累加和，用于 TinyCNN-8 的 `5×4` 全局池化。模型导出阶段把固定的 `1/20`
-比例折叠进后续 FC 量化尺度。回归测试命令：
+`rtl/reduction_sum_unit.sv`、`global_sum_pool_engine.sv` 和
+`global_avg_pool_engine.sv` 是早期 GAP 方案留下的通用单元，仍保留独立回归，
+但 TinyCNN-8-Flat 生产顶层不再实例化它们。当前 Pool2 的 `5×4×8` 数据直接
+按 NHWC 展平后输入 FC。
+
+Reduction Sum 回归命令：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_reduction_sum_test.ps1
@@ -192,22 +195,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_con
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_maxpool_test.ps1
 ```
 
-`rtl/global_sum_pool_engine.sv` 复用 INT32 reduction sum 单元完成 `5×4×8`
-全局空间归约；`1/20` 在模型导出时折叠进 FC 尺度。测试覆盖 8/4/3 lanes：
+旧 Global Sum Pool 测试覆盖 8/4/3 lanes：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_global_sum_pool_test.ps1
 ```
 
-`rtl/global_avg_pool_engine.sv` 在上述 INT32 sum 后复用 Requant Unit，将固定
-`1/20` 和 FC 输入尺度合并成逐通道 multiplier/shift，再输出 signed INT8：
+旧 Global Avg Pool 的 INT32 sum + requant 回归：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_global_avg_pool_test.ps1
 ```
 
 `rtl/fc_engine.sv` 复用 Matrix Unit 完成 INT8 输入和权重到 INT32 logits 的
-全连接层。4类/6类输出均在 4×8 和 4×4 阵列配置下验证：
+全连接层。通用单元覆盖4类/6类输出；当前生产模型固定为`160→4`：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_fc_engine_test.ps1
@@ -215,16 +216,24 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_fc_
 
 ## TinyCNN-8 NPU Top
 
-`rtl/tinycnn8_npu_top.sv` 串联 Conv1、Pool1、Conv2、Pool2、GAP requant 和
-FC；Conv1/Conv2/FC 共享同一个 Matrix Unit。权重和量化参数可在空闲时加载，
+`rtl/tinycnn8_npu_top.sv` 串联 Conv1、Pool1、Conv2、Pool2、NHWC Flatten 和
+`FC(160→4)`；Flatten 不搬运数据，Conv1/Conv2/FC 共享同一个 Matrix Unit。
+权重和量化参数可在空闲时加载，
 顶层使用两块行为级激活 SRAM 做 ping-pong。运行过程中输入所在的 A bank
 会被后续层复用，因此每次推理开始前，主机必须重新加载完整输入特征；权重和
-量化参数可以跨同一模型的推理保留。FC 权重按当前模型类别数对应的
-`ceil(class_count / ARRAY_COLS)` 个输出 tile 紧密排列；切换 4 类/6 类模型时
-必须同时重装匹配布局的 FC 权重和参数。端到端合成测试参数回归命令：
+量化参数可以跨同一模型的推理保留。生产8-lane权重基址为Conv1=0、Conv2=9、
+FC=81，共使用241个64-bit word。端到端合成测试参数回归命令：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_tinycnn8_top_test.ps1
+```
+
+训练权重和真实语音的逐位回归：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File hardware/npu/scripts/run_tinycnn8_trained_test.ps1 `
+  -VectorDir data/rtl_vectors_flatten
 ```
 
 运行全部 NPU RTL 回归：

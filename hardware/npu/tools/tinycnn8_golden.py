@@ -18,9 +18,7 @@ INT32_MIN = -(1 << 31)
 INT32_MAX = (1 << 31) - 1
 LANES = 8
 WEIGHT_WORDS = 256
-WEIGHT_BASES = {"conv1": 0, "conv2": 32, "fc": 192}
-GAP_MULTIPLIER = 0x66666666
-GAP_SHIFT = -4
+WEIGHT_BASES = {"conv1": 0, "conv2": 9, "fc": 81}
 PATTERNS = ("random", "impulse", "extreme")
 
 
@@ -237,12 +235,13 @@ def build_model(seed=7, classes=6, pattern="random"):
                         0x70000000, 0x48000000, 0x5C000000, 0x74000000]
     conv2_shift = [-1, -2, -3, -3, -4, -3, -4, -3]
 
-    fc_weights = [[rng.randint(-3, 3) for _ in range(LANES)] for _ in range(classes)]
+    fc_weights = [[rng.randint(-3, 3) for _ in range(5 * 4 * LANES)]
+                  for _ in range(classes)]
     fc_bias = [(oc - 2) * 17 + rng.randint(-16, 16) for oc in range(classes)]
-    fc_weights[0] = [1] + [0] * 7
+    fc_weights[0] = [1] + [0] * 159
     fc_bias[0] = -17
     if classes > 1:
-        fc_weights[1] = [0, 1] + [0] * 6
+        fc_weights[1] = [0, 1] + [0] * 158
         fc_bias[1] = 23
 
     return {
@@ -251,20 +250,18 @@ def build_model(seed=7, classes=6, pattern="random"):
                   "multiplier": conv1_multiplier, "shift": conv1_shift},
         "conv2": {"weights": conv2_weights, "bias": conv2_bias,
                   "multiplier": conv2_multiplier, "shift": conv2_shift},
-        "gap": {"multiplier": [GAP_MULTIPLIER] * LANES, "shift": [GAP_SHIFT] * LANES},
         "fc": {"weights": fc_weights, "bias": fc_bias},
     }
 
 
 def run_model(model):
-    """Evaluate all six stages from canonical weights, independently of packing."""
+    """Evaluate the five Flatten-baseline stages independently of packing."""
     c1 = conv2d_same(model["input"], 20, 16, 1, **model["conv1"])
     p1 = maxpool2x2(c1, 20, 16, 8)
     c2 = conv2d_same(p1, 10, 8, 8, **model["conv2"])
     p2 = maxpool2x2(c2, 10, 8, 8)
-    gap = global_average_pool(p2, 5, 4, 8, **model["gap"])
-    fc = fully_connected(gap, **model["fc"])
-    return {"conv1": c1, "pool1": p1, "conv2": c2, "pool2": p2, "gap": gap, "fc": fc}
+    fc = fully_connected(p2, **model["fc"])
+    return {"conv1": c1, "pool1": p1, "conv2": c2, "pool2": p2, "fc": fc}
 
 
 def pack_lanes(values, bits=8, lanes=LANES):
@@ -288,20 +285,20 @@ def pack_weights(model):
                     words[WEIGHT_BASES[name] + k] = pack_lanes(
                         [weights[oc][ky][kx][ic] for oc in range(LANES)])
                     k += 1
-    for ic in range(LANES):
+    for ic in range(5 * 4 * LANES):
         words[WEIGHT_BASES["fc"] + ic] = pack_lanes(
             [row[ic] for row in model["fc"]["weights"]])
     return words
 
 
 def parameter_arrays(model):
-    """Flat parameter[layer * 8 + lane]: C1, C2, GAP, FC (not stage IDs)."""
+    """Flat parameter[group * 8 + lane]: C1, C2, reserved, FC."""
     bias = model["conv1"]["bias"] + model["conv2"]["bias"] + [0] * LANES
     bias += model["fc"]["bias"] + [0] * (LANES - model["classes"])
     multiplier = (model["conv1"]["multiplier"] + model["conv2"]["multiplier"]
-                  + model["gap"]["multiplier"] + [0] * LANES)
+                  + [0] * LANES + [0] * LANES)
     shift = (model["conv1"]["shift"] + model["conv2"]["shift"]
-             + model["gap"]["shift"] + [0] * LANES)
+             + [0] * LANES + [0] * LANES)
     return bias, multiplier, shift
 
 
@@ -333,19 +330,17 @@ def _layers(classes):
          "output_shape": [10, 8, 8], "stride": [2, 2], "nominal_macs": 0, "useful_macs": 0},
         {"id": 2, "name": "conv2", "operation": "conv2d_same_relu", "input_shape": [10, 8, 8],
          "output_shape": [10, 8, 8], "kernel_shape": [3, 3], "stride": [1, 1],
-         "padding": "SAME", "parameter_layer": 1, "weight_base_packedword": 32,
+         "padding": "SAME", "parameter_layer": 1, "weight_base_packedword": 9,
          "weight_words": 72, "weight_shape": [8, 3, 3, 8],
          "nominal_macs": c2_nominal, "useful_macs": c2_useful},
         {"id": 3, "name": "pool2", "operation": "maxpool2x2", "input_shape": [10, 8, 8],
          "output_shape": [5, 4, 8], "stride": [2, 2], "nominal_macs": 0, "useful_macs": 0},
-        {"id": 4, "name": "gap", "operation": "sum_then_q31", "input_shape": [5, 4, 8],
-         "output_shape": [1, 1, 8], "parameter_layer": 2, "reduction_positions": 20,
-         "multiplier": GAP_MULTIPLIER, "shift": GAP_SHIFT,
-         "nominal_macs": 0, "useful_macs": 0},
-        {"id": 5, "name": "fc", "operation": "fully_connected_int32", "input_shape": [1, 1, 8],
+        {"id": 4, "name": "fc", "operation": "flatten_fully_connected_int32",
+         "input_shape": [5, 4, 8], "flattened_input_elements": 160,
          "output_shape": [1, 1, classes], "parameter_layer": 3,
-         "weight_base_packedword": 192, "weight_words": 8, "weight_shape": [classes, 8],
-         "nominal_macs": classes * 8, "useful_macs": classes * 8},
+         "weight_base_packedword": 81, "weight_words": 160,
+         "weight_shape": [classes, 160],
+         "nominal_macs": classes * 160, "useful_macs": classes * 160},
     ]
 
 
@@ -381,19 +376,19 @@ def generate(output_dir, seed=7, classes=6, pattern="random"):
                            "word_order": "base + (ky * kernel_width + kx) * input_channels + ic",
                            "unused_words_and_lanes": "zero"},
         "parameter_layout": {"index": "layer * 8 + lane", "lanes": LANES,
-                             "layers": {"conv1": 0, "conv2": 1, "gap": 2, "fc": 3},
+                             "layers": {"conv1": 0, "conv2": 1, "reserved": 2, "fc": 3},
                              "base_address_unit": "scalar_parameter", "shift_storage_bits": 8,
                              "shift_signed": True, "rtl_shift_bits": 6,
-                             "gap_bias": "ignored; zero", "fc_multiplier_and_shift": "ignored; zero"},
+                             "reserved_group": "must remain zero; writes rejected by MMIO",
+                             "fc_multiplier_and_shift": "ignored; zero"},
         "integer_contract": {"accumulator": "INT32 wrap after each product/add and bias once",
                              "valid_shift_range": [-31, 31], "reserved_shift": -32,
                              "q31_high_mul_ties": "toward positive infinity",
                              "q31_right_shift_ties": "away from zero",
                              "positive_shift": "saturating INT32 before Q31 high multiply",
                              "offset": "sign-extend INT32 operands and add in 33 bits before clamp",
-                             "conv_clamp": [0, 127], "gap_clamp": [-128, 127],
-                             "gap": "sum all 20 positions, then Q31; never integer-divide first",
-                             "fc": "INT32 logits without requantization"},
+                             "conv_clamp": [0, 127],
+                             "fc": "flatten 5x4x8 in NHWC order; INT32 logits without requantization"},
         "macs": {"nominal": sum(layer["nominal_macs"] for layer in layers),
                  "useful": sum(layer["useful_macs"] for layer in layers),
                  "useful_definition": "In-bounds products only; excludes SAME padding, not numeric zeros"},
@@ -415,7 +410,7 @@ def main(argv=None):
     result = generate(args.output, args.seed, args.classes, args.pattern)
     print(json.dumps({"output": str(args.output), "seed": args.seed, "classes": args.classes,
                       "pattern": args.pattern, "synthetic": True,
-                      "gap": result["golden"]["gap"], "fc": result["golden"]["fc"]}, sort_keys=True))
+                      "fc": result["golden"]["fc"]}, sort_keys=True))
     return 0
 
 

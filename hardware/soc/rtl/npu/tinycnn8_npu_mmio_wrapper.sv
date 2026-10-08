@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-// Production MMIO adapter for the complete fixed-function TinyCNN-8 NPU.
+// Production MMIO adapter for the complete fixed-function TinyCNN-8-Flat NPU.
 //
 // The CPU sees 32-bit registers and write-only loading windows.  The adapter
 // converts those accesses into the native host ports of tinycnn8_npu_top and
@@ -69,7 +69,8 @@ module tinycnn8_npu_mmio_wrapper #(
     logic [ADDR_WIDTH-1:0] weight_low_index;
     logic weight_low_valid;
 
-    // Parameter staging is reused for each of the four parameter groups.
+    // Parameter staging is reused for each parameter group. Layer 2 is a
+    // reserved slot retained only for ABI-compatible address decoding.
     logic [ARRAY_COLS*32-1:0] param_bias_stage;
     logic [ARRAY_COLS*32-1:0] param_mult_stage;
     logic [ARRAY_COLS*SHIFT_WIDTH-1:0] param_shift_stage;
@@ -295,7 +296,11 @@ module tinycnn8_npu_mmio_wrapper #(
                         param_shift_stage[parameter_lane_index*SHIFT_WIDTH +: SHIFT_WIDTH]
                             <= wdata_i[SHIFT_WIDTH-1:0];
                     end else if (parameter_suboffset == 8'h60) begin
-                        if ((parameter_layer_index != 2'd3) && invalid_shift_stage) begin
+                        if (parameter_layer_index == 2'd2) begin
+                            // Layer 2 was the removed GAP stage and is reserved.
+                            error_latched <= 1'b1;
+                            error_code <= 8'd6;
+                        end else if ((parameter_layer_index != 2'd3) && invalid_shift_stage) begin
                             error_latched <= 1'b1;
                             error_code <= 8'd5;
                         end else begin
@@ -333,9 +338,9 @@ module tinycnn8_npu_mmio_wrapper #(
         else if ((addr_off >= 16'h0010) && (addr_off <= 16'h002c))
             rdata_next = npu_logits[((addr_off - 16'h0010) >> 2)*32 +: 32];
         else if (addr_off == 16'h0030)
-            rdata_next = 32'h0001_0001;
+            rdata_next = 32'h0002_0001;
         // Read-only profile snapshot/live counters. 0x44..0x58 are
-        // C1,P1,C2,P2,GAP,FC. Status: bit0 valid, bit1 overflow, bit2 active.
+        // C1,P1,C2,P2,reserved,FC. Status: bit0 valid, bit1 overflow, bit2 active.
         // Writes fall through to existing unsupported-address error code 6.
         else if (addr_off == 16'h0040)
             rdata_next = perf_total_cycles;

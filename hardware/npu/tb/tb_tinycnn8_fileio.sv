@@ -113,7 +113,6 @@ module tb_tinycnn8_fileio;
                 dut.P1_START,dut.P1_WAIT: hw_layer=1;
                 dut.C2_START,dut.C2_WAIT: hw_layer=2;
                 dut.P2_START,dut.P2_WAIT: hw_layer=3;
-                dut.GAP_START,dut.GAP_WAIT: hw_layer=4;
                 dut.FC_START,dut.FC_WAIT: hw_layer=5;
             endcase
             if(hw_layer>=0)begin
@@ -135,8 +134,6 @@ module tb_tinycnn8_fileio;
             if(dut.pool_start_valid&&dut.pool_start_ready)begin
                 if(dut.state==dut.P1_START)begin_layer(1);else begin_layer(3);
             end
-            if(dut.state==dut.GAP_START&&dut.gap_start_ready)begin_layer(4);
-
             if(layer_active>=0)begin
                 if(dut.conv_busy&&(layer_active==0||layer_active==2||layer_active==5))begin
                     state_cycles[layer_active][dut.conv.state]=
@@ -183,17 +180,10 @@ module tb_tinycnn8_fileio;
                     event_record(layer_active,"pool_read",dut.pool_act_addr,8'hff,
                         {192'd0,dut.pool_act_data});
                 end
-                if(dut.gap.sum_engine.reduce_in_valid&&dut.gap.sum_engine.reduce_in_ready)begin
-                    activation_bytes[layer_active]=activation_bytes[layer_active]+8;
-                    event_record(layer_active,"gap_read",dut.gap_act_addr,8'hff,
-                        {192'd0,dut.gap_act_data});
-                end
                 if(dut.conv_write_valid)record_output(layer_active,dut.conv_write_addr,
                     dut.conv_write_mask,0,{192'd0,dut.conv_write_data});
                 if(dut.pool_write_valid)record_output(layer_active,dut.pool_write_addr,
                     dut.pool_write_mask,0,{192'd0,dut.pool_write_data});
-                if(dut.gap_write_valid)record_output(layer_active,dut.gap_write_addr,
-                    dut.gap_write_mask,0,{192'd0,dut.gap_write_data});
                 if(dut.conv_i32_valid)record_output(layer_active,dut.conv_i32_addr,
                     dut.conv_i32_mask,1,dut.conv_i32_data);
             end
@@ -205,7 +195,6 @@ module tb_tinycnn8_fileio;
             if(dut.pool_done)begin
                 if(dut.state==dut.P1_WAIT)end_layer(1);else end_layer(3);
             end
-            if(dut.gap_done)end_layer(4);
             if(wave_enabled)begin
                 if(layer_active==2&&wave_dumping==0)begin
                     wave_begin=cycle;wave_end=cycle+180;wave_dumping=1;$dumpon;
@@ -260,12 +249,14 @@ module tb_tinycnn8_fileio;
         end
         @(negedge clk);host_weight_we=0;
         for(layer=0;layer<4;layer=layer+1)begin
-            @(negedge clk);host_parameter_we=1;host_parameter_layer=layer;
-            host_parameter_tile=0;
-            for(lane=0;lane<8;lane=lane+1)begin
-                host_bias_data[lane*32 +: 32]=bias_image[layer*8+lane];
-                host_multiplier_data[lane*32 +: 32]=mult_image[layer*8+lane];
-                host_shift_data[lane*6 +: 6]=shift_image[layer*8+lane][5:0];
+            if(layer!=2)begin
+                @(negedge clk);host_parameter_we=1;host_parameter_layer=layer;
+                host_parameter_tile=0;
+                for(lane=0;lane<8;lane=lane+1)begin
+                    host_bias_data[lane*32 +: 32]=bias_image[layer*8+lane];
+                    host_multiplier_data[lane*32 +: 32]=mult_image[layer*8+lane];
+                    host_shift_data[lane*6 +: 6]=shift_image[layer*8+lane][5:0];
+                end
             end
         end
         @(negedge clk);host_parameter_we=0;start_valid=1;
@@ -302,7 +293,7 @@ module tb_tinycnn8_fileio;
            perf_matrix_retires!==matrix_outputs[0]+matrix_outputs[2]+matrix_outputs[5])
             $fatal(1,"hardware event counters differ");
         index=$fopen({out_dir,"/hardware_profile.csv"},"w");
-        $fdisplay(index,"total_cycles,c1,p1,c2,p2,gap,fc,weight_rows,issues,retires,peak_inflight,overflow,valid");
+        $fdisplay(index,"total_cycles,c1,p1,c2,p2,reserved,fc,weight_rows,issues,retires,peak_inflight,overflow,valid");
         $fdisplay(index,"%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d",
             perf_total_cycles,hw_cycles[0],hw_cycles[1],hw_cycles[2],hw_cycles[3],hw_cycles[4],hw_cycles[5],
             perf_weight_rows,perf_matrix_issues,perf_matrix_retires,perf_peak_inflight,perf_overflow,perf_valid);

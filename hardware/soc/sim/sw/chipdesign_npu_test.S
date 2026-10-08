@@ -30,7 +30,6 @@ clear_weights:
     lui     t2, 0x70003          /* parameter windows */
     sw      zero, 0x060(t2)      /* commit Conv1 */
     sw      zero, 0x160(t2)      /* commit Conv2 */
-    sw      zero, 0x260(t2)      /* commit GAP */
     sw      zero, 0x360(t2)      /* commit FC */
 
     li      t1, 4

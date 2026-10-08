@@ -3,6 +3,8 @@ module tb_tinycnn8_npu_top;
     parameter ARRAY_ROWS=4,ARRAY_COLS=8;
     parameter OPT_GATHER_LOAD=0,OPT_SPATIAL_TILE=0,SPATIAL_TILE=16;
     localparam SHIFT_WIDTH=6,TILES=(8+ARRAY_COLS-1)/ARRAY_COLS;
+    localparam CONV2_BASE=9*TILES,FC_BASE=CONV2_BASE+72*TILES;
+    localparam WEIGHT_WORDS=FC_BASE+160*TILES;
     reg clk=0,rst=1,start_valid=0;
     reg [3:0] class_count=6;
     always #5 clk=~clk;
@@ -18,6 +20,7 @@ module tb_tinycnn8_npu_top;
     integer k,tile,lane,oc,ic,index,o,expected,cycles=0;
 
     tinycnn8_npu_top #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
+        .WEIGHT_WORDS(WEIGHT_WORDS),
         .OPT_GATHER_LOAD(OPT_GATHER_LOAD),.OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
         .SPATIAL_TILE(SPATIAL_TILE)) dut(
         .clk(clk),.rst(rst),.start_valid(start_valid),.start_ready(start_ready),
@@ -79,8 +82,8 @@ module tb_tinycnn8_npu_top;
             cycles=cycles+run_cycles;
             for(o=0;o<classes;o=o+1)begin
                 expected=o-2;
-                for(ic=0;ic<8;ic=ic+1)
-                    expected=expected+(2+ic)*(((ic+o)%3)-1);
+                for(ic=0;ic<160;ic=ic+1)
+                    expected=expected+(2+(ic%8))*(((ic+o)%3)-1);
                 if($signed(logits[o*32 +: 32])!==expected)
                     $fatal(1,"classes=%0d logit=%0d expected=%0d actual=%0d",
                            classes,o,expected,$signed(logits[o*32 +: 32]));
@@ -97,7 +100,7 @@ module tb_tinycnn8_npu_top;
         reg [ARRAY_COLS*8-1:0] fc_word;
         begin
             fc_tiles=(classes+ARRAY_COLS-1)/ARRAY_COLS;
-            for(fc_k=0;fc_k<8;fc_k=fc_k+1)
+            for(fc_k=0;fc_k<160;fc_k=fc_k+1)
                 for(fc_tile=0;fc_tile<fc_tiles;fc_tile=fc_tile+1)begin
                     fc_word=0;
                     for(fc_lane=0;fc_lane<ARRAY_COLS;fc_lane=fc_lane+1)begin
@@ -105,7 +108,7 @@ module tb_tinycnn8_npu_top;
                         if(fc_oc<classes)
                             fc_word[fc_lane*8 +: 8]=((fc_k+fc_oc)%3)-1;
                     end
-                    write_weight(192+fc_k*fc_tiles+fc_tile,fc_word);
+                    write_weight(FC_BASE+fc_k*fc_tiles+fc_tile,fc_word);
                 end
         end
     endtask
@@ -133,7 +136,7 @@ module tb_tinycnn8_npu_top;
                 oc=tile*ARRAY_COLS+lane;
                 if(k>=32 && k<40 && oc==ic)weight_word[lane*8 +: 8]=1;
             end
-            write_weight(32+k*TILES+tile,weight_word);
+            write_weight(CONV2_BASE+k*TILES+tile,weight_word);
         end
         // FC weights are packed using the selected model's output tile count.
         load_fc_weights(6);
@@ -149,12 +152,6 @@ module tb_tinycnn8_npu_top;
             write_parameter(0,tile,bias_word,mult_word,shift_word);
             bias_word=0;
             write_parameter(1,tile,bias_word,mult_word,shift_word);
-            mult_word=0;shift_word=0;
-            for(lane=0;lane<ARRAY_COLS;lane=lane+1)begin
-                mult_word[lane*32 +: 32]=32'sh66666666;
-                shift_word[lane*SHIFT_WIDTH +: SHIFT_WIDTH]=-4;
-            end
-            write_parameter(2,tile,0,mult_word,shift_word);
             bias_word=0;
             for(lane=0;lane<ARRAY_COLS;lane=lane+1)begin
                 oc=tile*ARRAY_COLS+lane;

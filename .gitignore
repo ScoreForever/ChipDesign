@@ -29,3 +29,7 @@ ChipDesign.pdf
 # Generator for the local figure; force-add with `git add -f` if it should ship.
 .arch_spec.py
 .build_arch.py
+
+# Dataset / training artifacts
+data/
+software/train/runs/

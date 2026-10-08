@@ -18,8 +18,8 @@ import time
 
 ROOT = Path(__file__).resolve().parents[3]
 NPU = ROOT / "hardware/npu"
-LAYERS = ("conv1", "pool1", "conv2", "pool2", "gap", "fc")
-SIZES = (2560, 640, 640, 160, 8)
+LAYERS = ("conv1", "pool1", "conv2", "pool2", "reserved", "fc")
+SIZES = (2560, 640, 640, 160, 0, 0)
 RTL = (
     "ws_pe", "ws_systolic_array", "matrix_unit", "vector_unit",
     "requant_unit", "reduction_sum_unit", "conv_window_addr_gen",
@@ -76,6 +76,11 @@ def check_outputs(data, run, classes):
             actual[layer][index] = value
     checks = []
     for layer, name in enumerate(LAYERS):
+        if name == "reserved":
+            if actual[layer]:
+                raise AssertionError("reserved profiler slot produced outputs")
+            checks.append({"layer": name, "elements": 0, "status": "PASS"})
+            continue
         width = 32 if name == "fc" else 8
         expected = [int(x, 16) for x in (data / f"golden_{name}.hex").read_text().split()]
         expected = [x - (1 << width) if x & (1 << (width - 1)) else x for x in expected]
@@ -140,12 +145,13 @@ def unit_regressions(build, logs):
             (("OPT_SPATIAL_TILE", 1), ("SPATIAL_TILE", tile)))
         log = logs / (image.stem + "_expected_rejection.log")
         try:
-            command(["vvp", image], log)
+            text, _ = command(["vvp", image], log)
         except RuntimeError:
-            if "SPATIAL_TILE must be in range 1..80" not in log.read_text():
-                raise AssertionError(f"wrong tile guard failure: {log}")
-        else:
-            raise AssertionError(f"invalid tile {tile} was not rejected")
+            text = log.read_text()
+        # Some vvp builds print $fatal but return zero, so the diagnostic is
+        # the portable evidence that elaboration rejected the bad parameter.
+        if "SPATIAL_TILE must be in range 1..80" not in text:
+            raise AssertionError(f"invalid tile {tile} was not rejected: {log}")
         result.append({"test": "tile_parameter_guard", "tile": tile,
                        "status": "PASS", "expected_rejection": True})
         print(f"PASS expected tile rejection {tile}", flush=True)
@@ -288,7 +294,7 @@ def main():
                     raise AssertionError(f"C2 transaction count {name}: {perf['2']}")
                 if perf["0"]["weight_rows"] != 3840 or perf["0"]["matrix_inputs"] != 960:
                     raise AssertionError("C1 schedule changed")
-                if perf["5"]["useful_mac"] != classes * 8:
+                if perf["5"]["useful_mac"] != classes * 160:
                     raise AssertionError("FC useful MAC mismatch")
                 with (run / "hardware_profile.csv").open() as stream:
                     hardware = {k: int(v) for k, v in next(csv.DictReader(stream)).items()}
@@ -326,10 +332,10 @@ def main():
                             ("matrix_issues", "issues"), ("matrix_retires", "retires"), ("peak_inflight", "peak_inflight")):
                             if profile[mmio_key] != hw[native_key]:
                                 raise AssertionError(f"MMIO/native profile mismatch {name} {mmio_key}")
-                        for mmio_key, native_key in zip(("conv1_cycles", "pool1_cycles", "conv2_cycles", "pool2_cycles", "gap_cycles", "fc_cycles"), ("c1", "p1", "c2", "p2", "gap", "fc")):
+                        for mmio_key, native_key in zip(("conv1_cycles", "pool1_cycles", "conv2_cycles", "pool2_cycles", "reserved_cycles", "fc_cycles"), ("c1", "p1", "c2", "p2", "reserved", "fc")):
                             if profile[mmio_key] != hw[native_key]:
                                 raise AssertionError(f"MMIO/native layer profile mismatch {name} {mmio_key}")
-                    if [r["jobacceptedwrites"] for r in profiles] != [932, 320, 932]:
+                    if [r["jobacceptedwrites"] for r in profiles] != [907, 320, 907]:
                         raise AssertionError("MMIO load count mismatch")
                     entry["runs"][name]["mmio_hardware_profiles"] = profiles
                     with (run / "mmio_logits.csv").open() as stream:
@@ -359,7 +365,7 @@ def main():
                 for layer in (*map(str, range(6)), "CTRL", "TOTAL"):
                     opt = run["perf"][layer]["cycles"]
                     base = case["runs"].get("baseline", {}).get("perf", {}).get(layer, {}).get("cycles")
-                    hw_key = ("c1", "p1", "c2", "p2", "gap", "fc")[int(layer)] if layer.isdigit() else "total_cycles" if layer == "TOTAL" else None
+                    hw_key = ("c1", "p1", "c2", "p2", "reserved", "fc")[int(layer)] if layer.isdigit() else "total_cycles" if layer == "TOTAL" else None
                     writer.writerow((case["case"], name, LAYERS[int(layer)] if layer.isdigit() else layer,
                         opt, run["hardware_profile"].get(hw_key, "n/a"), base, base-opt if base is not None else "n/a",
                         f"{base/opt:.6f}" if base is not None and opt else "n/a", run["perf"][layer]["weight_rows"],

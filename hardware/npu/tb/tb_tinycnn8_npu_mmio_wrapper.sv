@@ -117,14 +117,6 @@ module tb_tinycnn8_npu_mmio_wrapper;
             end
             commit_parameter(1);
 
-            // GAP: alternating encodings of approximately 1/20.
-            for (lane = 0; lane < 8; lane = lane + 1) begin
-                multiplier = lane[0] ? 32'sh33333333 : 32'sh66666666;
-                shift = lane[0] ? -6'sd3 : -6'sd4;
-                stage_parameter_lane(2, lane, 0, multiplier, shift);
-            end
-            commit_parameter(2);
-
             // FC only consumes bias; multiplier and shift are ignored.
             for (lane = 0; lane < 8; lane = lane + 1)
                 stage_parameter_lane(3, lane, lane-2, 0, 0);
@@ -137,6 +129,10 @@ module tb_tinycnn8_npu_mmio_wrapper;
         @(negedge clk);
         rst_ni = 1;
 
+        mmio_read(16'h0030, status_word);
+        if (status_word !== 32'h0002_0001)
+            $fatal(1, "unexpected Flatten MMIO ABI version=%h", status_word);
+
         // Reject the reserved signed shift value -32 at parameter commit.
         stage_parameter_lane(0, 0, 0, 32'sh40000000, -6'sd32);
         commit_parameter(0);
@@ -144,6 +140,13 @@ module tb_tinycnn8_npu_mmio_wrapper;
         if (!status_word[3] || status_word[7:4] != 4'd5)
             $fatal(1, "invalid shift was not rejected status=%h", status_word);
         mmio_write(16'h0000, 32'h00000008); // clear error
+
+        // Layer 2 belonged to the removed GAP stage and must be rejected.
+        commit_parameter(2);
+        mmio_read(16'h0004, status_word);
+        if (!status_word[3] || status_word[7:4] != 4'd6)
+            $fatal(1, "reserved parameter layer was not rejected status=%h", status_word);
+        mmio_write(16'h0000, 32'h00000008);
 
         // Reject an invalid class count without changing the configured model.
         mmio_write(16'h0008, 32'd9);
@@ -172,15 +175,15 @@ module tb_tinycnn8_npu_mmio_wrapper;
             for (lane = 0; lane < 8; lane = lane + 1)
                 if ((k >= 32) && (k < 40) && (lane == ic))
                     weight_word[lane*8 +: 8] = 1;
-            write_weight(32+k, weight_word);
+            write_weight(9+k, weight_word);
         end
 
-        // FC weights for six output classes.
-        for (k = 0; k < 8; k = k + 1) begin
+        // Flatten FC weights for six output classes (160 NHWC inputs).
+        for (k = 0; k < 160; k = k + 1) begin
             weight_word = 0;
             for (lane = 0; lane < 6; lane = lane + 1)
                 weight_word[lane*8 +: 8] = ((k+lane)%3)-1;
-            write_weight(192+k, weight_word);
+            write_weight(81+k, weight_word);
         end
 
         configure_parameters();
@@ -191,7 +194,7 @@ module tb_tinycnn8_npu_mmio_wrapper;
         while (!irq) begin
             @(posedge clk);
             cycles = cycles + 1;
-            if (cycles > 100000)
+            if (cycles > 250000)
                 $fatal(1, "MMIO TinyCNN inference timeout");
         end
 
@@ -201,8 +204,8 @@ module tb_tinycnn8_npu_mmio_wrapper;
 
         for (lane = 0; lane < 6; lane = lane + 1) begin
             expected = lane-2;
-            for (ic = 0; ic < 8; ic = ic + 1)
-                expected = expected + (2+ic)*(((ic+lane)%3)-1);
+            for (ic = 0; ic < 160; ic = ic + 1)
+                expected = expected + (2+(ic%8))*(((ic+lane)%3)-1);
             mmio_read(16'h0010 + lane*4, logit_word);
             if (logit_word !== expected)
                 $fatal(1, "logit=%0d expected=%0d actual=%0d",

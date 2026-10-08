@@ -6,6 +6,10 @@ production MMIO windows, starts one four-class inference, checks four zero
 INT32 logits, clears completion, and writes PASS/FAIL to the SRAM magic word.
 """
 
+import argparse
+import os
+
+
 REGS = {
     'zero': 0, 'ra': 1, 'sp': 2, 'gp': 3, 'tp': 4,
     't0': 5, 't1': 6, 't2': 7, 's0': 8, 's1': 9,
@@ -109,9 +113,9 @@ def build():
     op('addi', 't3', 't3', -1)
     op('bne', 't3', 'zero', 'clear_weights')
 
-    # Parameter staging resets to zero. Commit it to Conv1/Conv2/GAP/FC.
+    # Parameter staging resets to zero. Commit it to Conv1/Conv2/FC.
     op('lui', 't2', 0x70003)
-    for offset in (0x060, 0x160, 0x260, 0x360):
+    for offset in (0x060, 0x160, 0x360):
         op('sw', 'zero', offset, 't2')
 
     # Four classes, start inference, and enable the completion IRQ.
@@ -170,4 +174,15 @@ def build():
 
 
 if __name__ == '__main__':
-    print(build(), end='')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--output', help='write ASCII hex image instead of stdout')
+    args = parser.parse_args()
+    image = build()
+    if args.output:
+        output = os.path.abspath(args.output)
+        os.makedirs(os.path.dirname(output), exist_ok=True)
+        with open(output, 'w', encoding='ascii', newline='\n') as handle:
+            handle.write(image)
+        print(f'wrote {output}')
+    else:
+        print(image, end='')
