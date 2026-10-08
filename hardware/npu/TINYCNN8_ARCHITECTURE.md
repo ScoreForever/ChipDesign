@@ -97,15 +97,20 @@ architecture uses writable SRAM interfaces; simulation initially uses
 behavioral arrays and physical design may replace them with foundry SRAM
 macros.
 
-The complete model has 700 parameters for four classes or 718 parameters for
-six classes, so a 1 KiB logical weight store is sufficient for model data. The
-implementation may round this up to a convenient physical SRAM size.
+The four/six-class model contains 680/696 INT8 weights and 20/22 INT32 biases:
+700/718 scalar parameters, not bytes. Raw weights plus biases occupy 760/784
+bytes; Q31 multipliers and shifts require additional storage. The behavioral
+4x8 top allocates 256 packed weight words (2 KiB), separate parameter arrays,
+and two 4 KiB activation banks. This is not the SoC's 8 KiB main-SRAM budget.
 
-The existing weight-stationary Matrix Unit is retained. Spatial output
-positions are processed in tiles so that only a bounded number of INT32 partial
-sums must remain live. Array rows and columns stay parameterized. At minimum,
-`1x8`, `2x8`, `4x4`, and `4x8` configurations will be compared before the ASIC
-instance is frozen.
+The existing weight-stationary Matrix Unit is retained. The default controller
+keeps one packed partial sum live. Optional K-major spatial tiling accelerates
+only the fixed 4x8 Conv2 descriptor; other descriptors retain the baseline
+schedule. Tile16 uses 512 B partial sums, 64 B integer tags and 8 B activation
+packs, with additional control/profiler logic. Array shape and tile size remain
+parameters, not a synthesized ASIC selection. The current experiment compares
+4x4 fallback and 4x8 schedules; no claim is made that 1x8/2x8 have been accepted
+by the new tiled regression.
 
 ## 5. Control boundary
 

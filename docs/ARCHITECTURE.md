@@ -184,9 +184,17 @@ tinycnn8_npu_top
 - 类别数检查；
 - 最终 8-lane INT32 logits 寄存。
 
-当前调度以正确性为先：每个空间输出位置重新装载所需的权重 tile，只保留一个
-INT32 partial-sum 向量。未来可以优化空间 tile 和跨位置权重复用，但不得改变
-模型可见的整数结果。
+调度默认保留主线原路径。`OPT_GATHER_LOAD=1` 对固定 Conv2 重叠输入收集和
+权重装载；`OPT_SPATIAL_TILE=1` 优先选择 K-major 空间分块，默认
+`SPATIAL_TILE=16`。优化仅对 4x8、10x8 空间、Cin/Cout=8、3x3 SAME、stride=1
+的 Conv2 生效，其他 descriptor 走原路径。两种优化共享原 Matrix Unit 和
+Requant Unit，不实例化第二套计算核。
+
+空间分块为每个输出位置保留 INT32 部分和，一组权重装载后服务多个位置。
+issue 与 retire 独立，按实际握手记录返回结果所属的位置；本组全部退休且
+Matrix idle 后才换权重，全部 K 完成后才量化。tile=16 的部分和容量为512B，
+另有激活 pack 和 tag 队列。端口仍是当前组合逻辑存储接口，不能把缓存容量
+等同综合面积，也不能由 RTL 周期推断实际 SRAM、频率或功耗。
 
 ### 4.4 存储布局
 
@@ -261,7 +269,23 @@ tinycnn8_npu_top
 | `0x0008` | CLASS_COUNT | R/W | 合法范围1～8，只能在idle时修改 |
 | `0x000C` | ERROR_CODE | R | 完整8位错误码 |
 | `0x0010..0x002C` | LOGIT[0..7] | R | 最终原始signed INT32 logits |
-| `0x0030` | VERSION | R | 当前值`0x0001_0000` |
+| `0x0030` | VERSION | R | 当前值`0x0001_0001` |
+| `0x0040` | PERF_TOTAL | R | 最近一次已接受任务的核心周期 |
+| `0x0044..0x0058` | PERF_LAYER[0..5] | R | Conv1、Pool1、Conv2、Pool2、GAP、FC 周期 |
+| `0x005C` | PERF_WEIGHT_ROWS | R | 阵列接受的权重装载行数，包含补零行 |
+| `0x0060` | PERF_MATRIX_ISSUES | R | Matrix 接受的输入事务数 |
+| `0x0064` | PERF_MATRIX_RETIRES | R | Matrix 接收完成的输出事务数 |
+| `0x0068` | PERF_PEAK_INFLIGHT | R | 输入已接受但输出未退休的事务峰值 |
+| `0x006C` | PERF_STATUS | R | bit0=valid；bit1=overflow；bit2=busy |
+
+性能计数排除接受 start 的 IDLE 边沿，从下一拍开始计数每个层 START/WAIT
+状态，包含引擎完成时的层间转移边沿。无饱和时六个层周期之和等于总周期。
+计数器在接受新的 start 或 reset 时清零，完成后冻结；清 done 不抹除统计，
+被拒绝的 start 不清零。32位计数饱和于 `0xffffffff`，继续递增时置 sticky
+overflow。执行期间读取为实时进度，valid=1 表示完整完成快照。
+
+这些计数不包含模型装载、CPU/AXI/DMA或音频前处理时间；权重装载指内部
+Matrix 行握手，不是主机写权重窗口的事务。性能地址只读，写入仍按错误码6处理。
 
 错误码：
 
