@@ -1,0 +1,202 @@
+# ChipDesign 合并差异清单（对账用）
+
+**生成时间**：2026-10-07
+**比对区间**：`9ca44a0`（Yimisda，阶段3）→ `d2bf7e1`（origin/main，Merge PR #4）
+**规模**：7 笔提交、70 个文件、+8168 / −943 行
+
+> 用途：与队友核对各方改动归属与接口影响，再决定进展报告的表述口径。
+> 本清单只陈述事实与可验证证据，不含评价。
+
+---
+
+## 一、提交归属
+
+| 提交 | 作者 | 时间 | 文件数 | 内容 |
+| --- | --- | --- | ---: | --- |
+| `e663a41` | mugamucyuu `<cmy1008@stu.pku.edu.cn>` | 09-30 23:22 | 30 | TinyCNN-8 加速器实现与验证 |
+| `85c0b47` | mugamucyuu | 10-08 00:15 | 4 | 合并 tinycnn8-npu 分支 |
+| `46d759b` | mugamucyuu | 10-08 01:08 | 22 | 把完整 TinyCNN-8 NPU 集成进 SoC |
+| `51477df` | Zhiyuan Zhao `<2400012709@stu.pku.edu.cn>` | 10-07 14:06 | 20 | 空间 tile 流水线 + MMIO profiling |
+| `3a95eaf` | Zhiyuan Zhao | 10-07 14:14 | 1 | 修正可复现性清单中的路径 |
+| `b910290` | Zhiyuan Zhao | 10-07 14:22 | 13 | 记录实测权衡与综合前验收 |
+| `d2bf7e1` | Zhao Zhiyuan | 10-07 22:13 | 0 | Merge PR #4 |
+
+**区间前的既有提交（Yimisda，即 9ca44a0 及以前）**：SoC 集成、架构文档、阶段1 中断、阶段2 Requant、阶段3 DMA。
+
+---
+
+## 二、新增模块（全部由队友新增，共 8 个 RTL 文件）
+
+| 文件 | 行数 | 功能 |
+| --- | ---: | --- |
+| `hardware/npu/rtl/conv2d_engine.sv` | 560 | NHWC Conv2d，含 padding/stride/kernel 参数 |
+| `hardware/npu/rtl/conv_window_addr_gen.sv` | 172 | 卷积窗口地址生成 |
+| `hardware/npu/rtl/fc_engine.sv` | 126 | 全连接层 |
+| `hardware/npu/rtl/maxpool2x2_engine.sv` | 169 | 2×2 stride-2 MaxPool 控制器 |
+| `hardware/npu/rtl/global_sum_pool_engine.sv` | 116 | 全局求和池化 |
+| `hardware/npu/rtl/global_avg_pool_engine.sv` | 89 | 全局平均池化（除法并入 multiplier/shift） |
+| `hardware/npu/rtl/reduction_sum_unit.sv` | 63 | 逐 lane INT8→INT32 横向求和 |
+| `hardware/npu/rtl/tinycnn8_npu_top.sv` | 261 | 整网层序控制器 |
+| `hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv` | 372 | SoC 侧的新 MMIO 包装器 |
+
+---
+
+## 三、被覆盖的既有文件（需要确认归属）
+
+| 文件 | 我方版本 | 上游改动 | 谁改的 |
+| --- | --- | --- | --- |
+| `hardware/npu/rtl/requant_unit.sv` | 63 行（Yimisda，`76a4b31`） | **+156 / −50**，变为 206 行 | mugamucyuu（`e663a41`、`46d759b`） |
+| `hardware/soc/rtl/npu/npu_mmio_wrapper.sv` | 我方 SoC 主包装器 | **+69 / −46** | mugamucyuu（`85c0b47`、`46d759b`） |
+| `hardware/soc/rtl/my_npu_subsystem.sv` | 例化 `npu_mmio_wrapper` | 改为例化 `tinycnn8_npu_mmio_wrapper` | mugamucyuu + Zhiyuan Zhao |
+| `hardware/soc/rtl/my_soc_top.sv` | 注释"Matrix Unit + Vector Unit" | 1 行注释改为"Complete fixed-function TinyCNN-8 NPU" | mugamucyuu |
+| `hardware/soc/sim/filelists/chipdesign_soc.f` | 含 4 个 SoC 测试平台 | **+8 / −3** | mugamucyuu |
+| `docs/ARCHITECTURE.md` | 我方系统架构规格 | **747 行重写** | mugamucyuu + Zhiyuan Zhao |
+| `hardware/soc/sim/sw/gen_hex.py` | 我方玩具汇编器 | 重写 | mugamucyuu |
+| `hardware/soc/sim/sw/chipdesign_npu_test.S/.hex` | 我方 NPU 测试程序 | 重写 | mugamucyuu |
+| `hardware/soc/sim/tb/chipdesign_soc_tb.sv` | 我方集成测试 | +12 | mugamucyuu |
+
+### 3.1 `requant_unit.sv` 的两版对比
+
+| | 我方（`76a4b31`） | 上游（`46d759b`） |
+| --- | --- | --- |
+| 行数 | 63 | 206 |
+| 接口 | `clk_i`/`rst_ni`（低有效）、`valid_i`/`valid_o` | `clk`/`rst`（高有效）、`in_valid`/`in_ready`/`out_valid`/`out_ready` |
+| 量化公式 | `(acc × scale) >>> shift + zp` | 乘数+移位、TFLite 风格**双舍入** |
+| 额外能力 | 逐通道 INT16 scale | 逐 lane bias、`lane_mask`、`activation_min/max` 激活钳位、INT32 饱和 |
+
+**这是两套接口不兼容的实现，同一路径、同名模块，不可共存。**
+
+---
+
+## 四、未被上游改动的我方工作（仍然有效）
+
+| 文件 | 状态 |
+| --- | --- |
+| `hardware/npu/rtl/vector_unit.sv` | ✅ **一行未改** |
+| `hardware/npu/rtl/matrix_unit.sv` | ✅ 一行未改 |
+| `hardware/npu/rtl/ws_pe.sv` | ✅ 一行未改 |
+| `hardware/npu/rtl/ws_systolic_array.sv` | ✅ 一行未改 |
+| `hardware/npu/VECTOR_UNIT.md` | ✅ 未改 |
+| `hardware/npu/tb/tb_vector_unit.sv`、`tb_matrix_unit.sv`、`tb_ws_pe.sv` | ✅ 未改 |
+| `hardware/npu/scripts/run_vector_unit_test.ps1`、`run_matrix_unit_test.ps1` | ✅ 未改 |
+| `hardware/soc/rtl/dma/npu_dma.sv` | ✅ 未改（仍在 filelist 中） |
+| `hardware/soc/sim/tb/chipdesign_npu_irq_tb.sv`、`chipdesign_requant_tb.sv` | 文件保留，但**已从 filelist 移除** |
+
+结论：**基础计算单元（Matrix / Vector / DMA）的所有权清晰，未被触碰**；被替换的是它们之上的集成层与 requant。
+
+---
+
+## 五、MMIO 寄存器映射的变化（关键影响）
+
+### 5.1 我方版本保留的寄存器区块
+
+```
+0x0000 MATRIX_CTRL          0x0200 MATRIX_OUT[0..7]
+0x0004 MATRIX_STATUS        0x0300 REQUANT_CTRL
+0x0008 VECTOR_CTRL          0x0304 REQUANT_STATUS
+0x000C VECTOR_LANE_MASK     0x0310 REQUANT_SCALE[0..7]
+0x0010 VECTOR_SCALAR        0x0330 REQUANT_SHIFT
+0x0014 VECTOR_STATUS        0x0334 REQUANT_ZERO_POINT
+0x0018 VECTOR_OP            0x0340 REQUANT_OUT_LO/HI
+0x0020 VECTOR_SRC_A_LO/HI   0x0400..0x0410 DMA_*
+0x0028 VECTOR_SRC_B_LO/HI
+0x0030 VECTOR_OUT_LO/HI
+0x0040 MATRIX_WEIGHT[0..7]
+0x0100 MATRIX_ACT
+0x0110 MATRIX_PSUM[0..7]
+```
+
+### 5.2 上游新版本的寄存器区块
+
+```
+0x0000, 0x0004, 0x0008, 0x000C, 0x0010    控制与状态
+0x002C, 0x0030                             
+0x0040, 0x0044, 0x0058 .. 0x006C          
+0x0400..0x0410                            DMA_*（与旧版一致 ✅）
+0x1000..(INPUT_BYTES*4)                   输入张量
+0x2000..(WEIGHT_WORDS*8)                  权重
+0x3000..0x33FF                            逐层参数
+```
+
+### 5.3 结论
+
+| 区块 | 状态 |
+| --- | --- |
+| **`0x0400..0x0410` DMA 寄存器** | ✅ **两版完全一致，DMA 通路未变** |
+| **`0x0008..0x0034` VECTOR_\* 整套** | ❌ **已移除** |
+| **`0x0100 / 0x0110 / 0x0200` MATRIX_ACT / PSUM / OUT** | ❌ 已移除 |
+| **`0x0300..0x0344` REQUANT_\* 整套** | ❌ 已移除 |
+| **`0x0000` 位定义** | ⚠️ **语义已变**：旧为 `bit0=start compute, bit1=load weights`；新为 `bit0=启动 NPU, bit1=IRQ 使能, bit2=清 done, bit3=清错误` |
+
+**需要共同确认的问题**：`vector_unit` 硬件仍在 RTL 中且未被修改，但**已无 MMIO 通路可达**，即 CPU 无法再直接驱动向量单元，只能由 TinyCNN-8 内部引擎间接使用。请确认这是有意设计还是集成疏漏。
+
+---
+
+## 六、测试回归的现状（我方实测）
+
+| 测试平台 | filelist | 实测结果 |
+| --- | --- | --- |
+| `chipdesign_soc_tb` | ✅ 在 | ✅ PASS（**81247 周期**，原为 355 周期） |
+| `chipdesign_dma_tb` | ✅ 在 | ❌ **TIMEOUT**（100 万周期，magic 停在 RUNNING） |
+| `chipdesign_npu_irq_tb` | ❌ 已移除 | 不参与回归 |
+| `chipdesign_requant_tb` | ❌ 已移除 | 不参与回归 |
+| Icarus：`tb_vector_unit` | ✅ 未改 | ✅ PASS（8/1/3/16 lane） |
+| Icarus：`tb_matrix_unit` | ✅ 未改 | ✅ PASS（PE、4×4、4×8、8×8） |
+
+**编译**：`vlog -sv -f chipdesign_soc.f` → 0 错误、615 警告。
+
+### 6.1 DMA 测试超时根因（已定位）
+
+`hardware/soc/sim/sw/gen_dma_hex.py` 第 134-161 行仍使用旧 Matrix Unit 语义：
+
+```python
+op('addi','t1','zero',2); op('sw','t1',0,'t0')   # 写 0x0000=2，旧语义"load weights"
+mark('poll_wg')
+op('lw','t1',4,'t0'); op('andi','t1','t1',2)
+op('beq','t1','zero','poll_wg')                  # 等 weights_loaded，永不置位 → 死循环
+```
+
+在新包装器中写 `0x0002` 到 `0x0000` 仅表示"使能 IRQ"，不触发任何 Matrix 操作，故 `0x0004` 的 `weights_loaded` 永不置位。
+
+**DMA 传输本身是成功的**（`0x0400..0x0410` 仍完整实现），超时发生在后续旧寄存器轮询。
+`chipdesign_dma_tb.sv` 与 `gen_dma_hex.py` 上游均未改动，属重构遗漏。
+
+---
+
+## 七、待确认事项
+
+| # | 事项 | 涉及方 |
+| --- | --- | --- |
+| 1 | `requant_unit.sv` 两版如何取舍或合流？我方接口与 `npu_mmio_wrapper` 绑定，上游接口与 TinyCNN-8 绑定 | mugamucyuu / Yimisda |
+| 2 | `vector_unit` 失去 MMIO 通路是否有意为之？是否需要恢复 `0x0008..0x0034` 寄存器区？ | mugamucyuu / Yimisda |
+| 3 | `chipdesign_npu_irq_tb`、`chipdesign_requant_tb` 是永久移除还是待改？ | mugamucyuu |
+| 4 | `chipdesign_dma_tb` 超时如何修：改测试程序用新寄存器语义，还是移出 filelist？ | Yimisda / mugamucyuu |
+| 5 | `npu_mmio_wrapper.sv`（旧）仍在磁盘但不在 filelist，保留还是删除？ | 共同 |
+| 6 | 最终以哪套 NPU 为报告主线：TinyCNN-8 固定功能，还是通用 Matrix+Vector？ | 共同 |
+| 7 | `docs/ARCHITECTURE.md` 已被 747 行重写，进展报告（`docs/PROGRESS_REPORT.md`）需按新架构改写 | Yimisda |
+
+---
+
+## 八、我方贡献的可核验边界（供报告口径参考）
+
+若报告需要如实标注贡献范围，以下是基于 git 历史的客观事实：
+
+**Yimisda（5 笔提交）**
+- 集成 Lab3 SoC 基线（CPU / AXI / 存储 / 调试）+ 接入自研 NPU
+- 阶段1：NPU→CPU 完成中断
+- 阶段2：`requant_unit.sv`（已被上游替换）
+- 阶段3：AXI DMA（`npu_dma.sv`，**未被上游改动**）
+- `docs/ARCHITECTURE.md` 初版、Matrix/Vector 单元文档与 Icarus 回归
+
+**mugamucyuu（3 笔提交）**
+- TinyCNN-8 加速器 8 个 RTL 模块 + 全部单元级 testbench
+- SoC 集成：新 MMIO 包装器、`my_npu_subsystem`、filelist、软件测试程序
+- `requant_unit.sv` 替换版、`TINYCNN8_ARCHITECTURE.md`
+
+**Zhiyuan Zhao（3 笔提交）**
+- 空间 tile 流水线优化与 MMIO profiling 通道
+- 可复现性回归脚本（Python/Swift 工具链）与接受度清单
+- `docs/kws_tinycnn8_tiled/` 全套报告与图表、CI workflow
+
+**未被任何人改动的共同资产**
+- `vector_unit.sv`、`matrix_unit.sv`、`ws_pe.sv`、`ws_systolic_array.sv` 及其 Icarus 回归

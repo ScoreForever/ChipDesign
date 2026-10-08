@@ -19,3 +19,13 @@ __pycache__/
 .zcode/
 hardware/npu/sim/tinycnn8/
 hardware/npu/sim/tinycnn8_tiled/
+
+# Local architecture-figure artefacts (not published)
+# Kept out of the remote on purpose: the report and its figure stay local.
+ChipDesign.drawio
+ChipDesign.png
+ChipDesign.pdf
+
+# Generator for the local figure; force-add with `git add -f` if it should ship.
+.arch_spec.py
+.build_arch.py
