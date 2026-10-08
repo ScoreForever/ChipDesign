@@ -224,6 +224,47 @@ Matrix idle 后才换权重，全部 K 完成后才量化。tile=16 的部分和
 权重基址：Conv1 为 0，Conv2 为 32，FC 为 192。默认 4x8 SoC 中每层只有一个
 输出通道 tile，FC 权重布局不随 1～8 的类别数改变。
 
+### 4.5 SoC 侧存储器
+
+`hardware/soc/rtl/mem/` 下三个文件构成两层结构：
+
+| 文件 | 层次 | 职责 |
+| --- | --- | --- |
+| `bootram.sv` | 启动存储器 | 16 字（64 B）**可写** RAM，内容在复位时硬编码写入，不依赖外部文件 |
+| `my_mainmem.sv` | SRAM 适配层 | 把 AXI 的 **字节地址** 转为字索引（`addr_i[12:2]`），并用 `be_i & {4{we_i}}` 门控字节使能 |
+| `sram_ff.sv` | SRAM 阵列 | 行为模型：`2^11 = 2048` 字 × 32 bit = **8 KiB**，字节使能写入，同步读（1 拍延迟），`initial $readmemh` 加载程序镜像 |
+
+启动流程：
+
+```text
+CPU 复位，PC = BOOT_BASE (0x0001_0000)
+      |
+      v
+bootram 中的 3 条指令：
+  lui  t0, 0x80000      ; t0 <- 0x8000_0000
+  addi t0, t0, 0
+  jalr x0, 0(t0)        ; 跳转
+      |
+      v
+SRAM @ 0x8000_0000，执行 sram_ff 中由 $readmemh 装入的程序
+```
+
+**为什么 bootram 不是 ROM**：它的内容靠异步复位边沿写入 `mem_q`（`bootram.sv:15-35`），
+因此可写、可在仿真中修改，这与只读的 ROM 语义不同。文件首行注释"作为 bootrom 的
+替代"即指此历史沿革。
+
+两点实现约束：
+
+- `bootram.sv` 与 `sram_ff.sv` 的初始化方式（复位边沿硬编码、`initial $readmemh`）
+  **都不可综合**，上板前必须替换为工艺 SRAM 宏或 FPGA Block RAM 推断写法。
+- `my_mainmem.sv` 的 `INIT_FILE` 默认值仍指向历史路径 `"soc/sim/tb/lab3_test1.hex"`，
+  实际由 `my_soc_top` 参数覆盖。直接例化而不传参时会加载失败，`$readmemh` 静默
+  失败并使数组保持全 `x`。
+
+> 早期由课程基线提供的第三方 `bootrom.sv`（ETH Zurich / University of Bologna）
+> 已于后续清理中删除：它从未进入 filelist，也未被任何模块例化，其启动内容已被
+> `bootram.sv` 取代。
+
 ## 5. SoC 集成决策
 
 ### 5.1 为什么只接完整 NPU 顶层
