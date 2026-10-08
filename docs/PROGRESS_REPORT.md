@@ -314,7 +314,9 @@ TinyCNN-8 集成后，`chipdesign_dma_tb` 一度超时、另两个测试平台�
 
 **（3）`chipdesign_npu_irq_tb` / `chipdesign_requant_tb` 已移出回归**
 
-这两个测试平台的文件仍在仓库中，但已从 `chipdesign_soc.f` 移除，原因是其针对的向量/重量化 MMIO 寄存器区在 TinyCNN-8 集成时被替换（详见 `docs/MERGE_DIFF.md` 第五节）。是否恢复取决于通用单元是否需要保留 CPU 可达的独立通路——列为待决策事项（见第八节）。
+这两个测试平台针对的是**算子级调试接口**——即直接暴露 `MATRIX_CTRL` / `VECTOR_OP` / `REQUANT_*` 寄存器的旧包装器。该接口在设计上不进入生产 SoC filelist（依据 `docs/ARCHITECTURE.md` 5.1 节：只接完整 NPU 顶层，避免 CPU 为一次推理执行数千次底层 MMIO 操作），并已于本轮清理中**删除**（`npu_mmio_wrapper.sv`，584 行）。
+
+因此这两个测试平台不再有可达的 MMIO 地址空间，其文件虽保留在仓库中但不再参与回归。算子级的验证改由 `hardware/npu/` 下的 Icarus 单元回归承担（`run_matrix_unit_test.ps1` / `run_vector_unit_test.ps1`），详见 5.2 节。
 
 ### 5.5 对端 TinyCNN-8 回归的声明范围
 
@@ -375,7 +377,7 @@ TinyCNN-8 集成后，`chipdesign_dma_tb` 一度超时、另两个测试平台�
 
 1. **可综合存储器替换**（前置任务）：将 `sram_ff.sv` 行为模型替换为可综合 BRAM 或 FPGA Block RAM 推断写法，保留字节使能语义
 2. **逻辑综合与时序分析**：选定目标器件或教学工艺库，跑通综合与 STA，产出面积/时序报告，识别关键路径
-3. **决定集成遗留项的处理**：确认向量/矩阵 MMIO 寄存器区是否需要恢复（影响 `chipdesign_npu_irq_tb` 与 `chipdesign_requant_tb` 能否回归）；决定两版重量化单元的取舍
+3. **清理集成遗留（已完成）**：算子级调试接口 `npu_mmio_wrapper.sv` 已删除，`ARCHITECTURE.md` 与 `hardware/soc/README.md` 已同步；`chipdesign_dma_tb` 已修复通过
 
 ### 8.2 中期
 
@@ -404,7 +406,7 @@ TinyCNN-8 集成后，`chipdesign_dma_tb` 一度超时、另两个测试平台�
 
 1. **双层架构已建成并可用**：底层通用计算单元（矩阵/向量/重量化/DMA）稳定且未被改动，上层 TinyCNN-8 固定功能加速器已完成整网集成与调度优化。
 2. **调度优化收益已量化**：同一 4×8 阵列、同一网络、同一存储契约下，整网周期从 51,821 降至 30,395，**降低 41.35%（1.705×）**，Conv2 加速 3.366×。
-3. **验证边界清楚**：Icarus 单元回归 2 项、ModelSim SoC 回归 2 项全部实测通过。TinyCNN-8 的验证限于 synthetic 参数与固定网络，**尚未验证真实准确率**；`chipdesign_npu_irq_tb` 与 `chipdesign_requant_tb` 因 MMIO 寄存器区被替换而暂未回归（5.4 节）。
+3. **验证边界清楚**：Icarus 单元回归 2 项、ModelSim SoC 回归 2 项全部实测通过。TinyCNN-8 的验证限于 synthetic 参数与固定网络，**尚未验证真实准确率**；`chipdesign_npu_irq_tb` 与 `chipdesign_requant_tb` 针对的是算子级调试接口，该接口已按设计移除，故不再参与回归（5.4 节）。
 4. **下一阶段瓶颈明确**：不在功能正确性，而在可综合存储器替换与时序收敛。
 5. **风险已识别**：9 项限制中有 2 项高风险（未综合、SRAM 为行为模型），已列为短期计划前置任务。
 

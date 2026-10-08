@@ -231,9 +231,13 @@ Matrix idle 后才换权重，全部 K 完成后才量化。tile=16 的部分和
 生产 SoC 的 `my_npu_subsystem` 实例化 `tinycnn8_npu_mmio_wrapper`，后者只实例化
 一个 `tinycnn8_npu_top`。CPU 不直接逐次操纵 Matrix/Vector/Requant。
 
-旧的 `npu_mmio_wrapper.sv` 保留为底层教学和独立调试代码，但不进入生产 SoC
-filelist。这样避免芯片中出现两套 Matrix/Vector/Requant，也避免 CPU 为一次
-推理执行数千次底层 MMIO 操作。
+这样避免 CPU 为一次推理执行数千次底层 MMIO 操作，也保证芯片中只有一套
+Matrix/Vector/Requant 实例。
+
+> 历史上曾有一个算子级的 `npu_mmio_wrapper.sv`（直接暴露 Matrix/Vector/Requant
+> 寄存器），它从未进入生产 filelist，已于后续清理中删除。需要算子级调试时，
+> 请改用 `hardware/npu/` 下的 Icarus 单元回归
+> （`run_matrix_unit_test.ps1` / `run_vector_unit_test.ps1`）。
 
 ### 5.2 SoC 总体组成
 

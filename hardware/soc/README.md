@@ -20,8 +20,8 @@ tinycnn8_npu_top
    +-- Conv1 -> Pool1 -> Conv2 -> Pool2 -> GAP -> FC
 ```
 
-旧的 `rtl/npu/npu_mmio_wrapper.sv` 是直接操纵 Matrix/Vector/Requant 的底层
-调试模块，不进入正式SoC filelist。正式SoC只包含一套计算单元。
+算子级的旧 `npu_mmio_wrapper.sv` 已删除：它从未进入正式 SoC filelist，正式 SoC
+只包含一套计算单元。需要算子级调试请使用 `hardware/npu/` 下的 Icarus 单元回归。
 
 ## 目录
 
@@ -31,7 +31,6 @@ hardware/soc/
 │   ├── axi/、common_cells/、clk_rst/、debug/、mem/
 │   ├── dma/npu_dma.sv
 │   ├── npu/tinycnn8_npu_mmio_wrapper.sv
-│   ├── npu/npu_mmio_wrapper.sv          # 旧底层调试接口
 │   ├── my_npu_subsystem.sv
 │   └── my_soc_top.sv
 └── sim/

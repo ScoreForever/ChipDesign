@@ -46,7 +46,7 @@
 | 文件 | 我方版本 | 上游改动 | 谁改的 |
 | --- | --- | --- | --- |
 | `hardware/npu/rtl/requant_unit.sv` | 63 行（Yimisda，`76a4b31`） | **+156 / −50**，变为 206 行 | mugamucyuu（`e663a41`、`46d759b`） |
-| `hardware/soc/rtl/npu/npu_mmio_wrapper.sv` | 我方 SoC 主包装器 | **+69 / −46** | mugamucyuu（`85c0b47`、`46d759b`） |
+| `hardware/soc/rtl/npu/npu_mmio_wrapper.sv` | 我方 SoC 主包装器 | 先 **+69 / −46** 同步到新 requant 接口，随后**整体删除** | mugamucyuu（`85c0b47`、`46d759b`）+ Yimisda（删除） |
 | `hardware/soc/rtl/my_npu_subsystem.sv` | 例化 `npu_mmio_wrapper` | 改为例化 `tinycnn8_npu_mmio_wrapper` | mugamucyuu + Zhiyuan Zhao |
 | `hardware/soc/rtl/my_soc_top.sv` | 注释"Matrix Unit + Vector Unit" | 1 行注释改为"Complete fixed-function TinyCNN-8 NPU" | mugamucyuu |
 | `hardware/soc/sim/filelists/chipdesign_soc.f` | 含 4 个 SoC 测试平台 | **+8 / −3** | mugamucyuu |
@@ -165,15 +165,15 @@ op('beq','t1','zero','poll_wg')                  # 等 weights_loaded，永不�
 
 ## 七、待确认事项
 
-| # | 事项 | 涉及方 |
+| # | 事项 | 状态 / 结论 |
 | --- | --- | --- |
-| 1 | `requant_unit.sv` 两版如何取舍或合流？我方接口与 `npu_mmio_wrapper` 绑定，上游接口与 TinyCNN-8 绑定 | mugamucyuu / Yimisda |
-| 2 | `vector_unit` 失去 MMIO 通路是否有意为之？是否需要恢复 `0x0008..0x0034` 寄存器区？ | mugamucyuu / Yimisda |
-| 3 | `chipdesign_npu_irq_tb`、`chipdesign_requant_tb` 是永久移除还是待改？ | mugamucyuu |
-| 4 | `chipdesign_dma_tb` 超时如何修：改测试程序用新寄存器语义，还是移出 filelist？ | Yimisda / mugamucyuu |
-| 5 | `npu_mmio_wrapper.sv`（旧）仍在磁盘但不在 filelist，保留还是删除？ | 共同 |
-| 6 | 最终以哪套 NPU 为报告主线：TinyCNN-8 固定功能，还是通用 Matrix+Vector？ | 共同 |
-| 7 | `docs/ARCHITECTURE.md` 已被 747 行重写，进展报告（`docs/PROGRESS_REPORT.md`）需按新架构改写 | Yimisda |
+| 1 | `requant_unit.sv` 两版如何取舍或合流？ | 已结：上游版为当前唯一实现，接口与 TinyCNN-8 一致，且是原接口的参数化演进（+bias/multiplier/activation clamp，SHIFT_WIDTH 取代 SCALE_WIDTH） |
+| 2 | `vector_unit` 失去 MMIO 通路是否有意为之？ | **有意**。`ARCHITECTURE.md` 5.1 节说明：只接完整 NPU 顶层，避免 CPU 做数千次底层 MMIO 操作 |
+| 3 | `chipdesign_npu_irq_tb`、`chipdesign_requant_tb` 是永久移除还是待改？ | 待决策。二者针对算子级调试接口；该接口已删除，若需回归须另行设计 |
+| 4 | `chipdesign_dma_tb` 超时如何修？ | **已修复**（提交 `c73720e`）：SRAM→SRAM 自校验，PASS 725 周期 |
+| 5 | `npu_mmio_wrapper.sv`（旧）保留还是删除？ | **已删除**。从未进入生产 filelist，仅 584 行教学/调试代码；`ARCHITECTURE.md` 与 `hardware/soc/README.md` 已同步 |
+| 6 | 最终以哪套 NPU 为报告主线？ | **已定：双层口径**（通用计算底座 + TinyCNN-8 应用层），见 `PROGRESS_REPORT.md` 第一、二节 |
+| 7 | 进展报告需按新架构改写 | **已完成**，见 `PROGRESS_REPORT.md` |
 
 ---
 
