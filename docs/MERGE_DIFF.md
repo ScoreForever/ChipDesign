@@ -1,6 +1,7 @@
 # ChipDesign 合并差异清单（对账用）
 
 **生成时间**：2026-10-07
+**最后更新**：2026-10-08（已修复 DMA 测试、清理两处死代码，见第三、五、七节）
 **比对区间**：`9ca44a0`（Yimisda，阶段3）→ `d2bf7e1`（origin/main，Merge PR #4）
 **规模**：7 笔提交、70 个文件、+8168 / −943 行
 
@@ -80,7 +81,7 @@
 | `hardware/npu/tb/tb_vector_unit.sv`、`tb_matrix_unit.sv`、`tb_ws_pe.sv` | ✅ 未改 |
 | `hardware/npu/scripts/run_vector_unit_test.ps1`、`run_matrix_unit_test.ps1` | ✅ 未改 |
 | `hardware/soc/rtl/dma/npu_dma.sv` | ✅ 未改（仍在 filelist 中） |
-| `hardware/soc/sim/tb/chipdesign_npu_irq_tb.sv`、`chipdesign_requant_tb.sv` | 文件保留，但**已从 filelist 移除** |
+| `hardware/soc/sim/tb/chipdesign_npu_irq_tb.sv`、`chipdesign_requant_tb.sv` | 已从 filelist 移除，随后**连同镜像与生成器一并删除**（`6 文件 / 638 行`） |
 
 结论：**基础计算单元（Matrix / Vector / DMA）的所有权清晰，未被触碰**；被替换的是它们之上的集成层与 requant。
 
@@ -136,30 +137,44 @@
 
 | 测试平台 | filelist | 实测结果 |
 | --- | --- | --- |
-| `chipdesign_soc_tb` | ✅ 在 | ✅ PASS（**81247 周期**，原为 355 周期） |
-| `chipdesign_dma_tb` | ✅ 在 | ❌ **TIMEOUT**（100 万周期，magic 停在 RUNNING） |
-| `chipdesign_npu_irq_tb` | ❌ 已移除 | 不参与回归 |
-| `chipdesign_requant_tb` | ❌ 已移除 | 不参与回归 |
+| `chipdesign_soc_tb` | ✅ 在 | ✅ PASS（**81247 周期**） |
+| `chipdesign_dma_tb` | ✅ 在 | ✅ PASS（**725 周期**，超时缺陷已修复，见 6.1） |
+| `chipdesign_npu_irq_tb` | 已删除 | 针对的算子级接口已移除 |
+| `chipdesign_requant_tb` | 已删除 | 针对的算子级接口已移除 |
 | Icarus：`tb_vector_unit` | ✅ 未改 | ✅ PASS（8/1/3/16 lane） |
 | Icarus：`tb_matrix_unit` | ✅ 未改 | ✅ PASS（PE、4×4、4×8、8×8） |
 
 **编译**：`vlog -sv -f chipdesign_soc.f` → 0 错误、615 警告。
 
-### 6.1 DMA 测试超时根因（已定位）
+### 6.1 DMA 测试超时：根因与修复（已完成）
 
-`hardware/soc/sim/sw/gen_dma_hex.py` 第 134-161 行仍使用旧 Matrix Unit 语义：
+原测试程序有两处独立缺陷；DMA RTL 本身无问题。
 
-```python
-op('addi','t1','zero',2); op('sw','t1',0,'t0')   # 写 0x0000=2，旧语义"load weights"
-mark('poll_wg')
-op('lw','t1',4,'t0'); op('andi','t1','t1',2)
-op('beq','t1','zero','poll_wg')                  # 等 weights_loaded，永不置位 → 死循环
+**缺陷 1 — 旧寄存器语义。** 程序写 `0x0000` 后轮询 `0x0004` 的 `weights_loaded`。
+当前包装器的 `0x0000` 位定义为 `bit0=启动 / bit1=IRQ使能 / bit2=清done / bit3=清错误`，
+故轮询条件永不成立。
+
+**缺陷 2 — DMA 目标落在引擎自己的配置寄存器上。** 中间修复曾把目标设为
+`0x70000400..0x7000041C`，该窗口含 DMA 的 SRC/DST/LEN/CTRL。载荷覆盖 `LEN` 为
+`0x01010101`，引擎从约 1684 万字数开始倒数，**永不结束**。实测计数器轨迹：
+
+```text
+dst=0x70000408  cnt=0x00000006    <- 正常
+dst=0x01010101  cnt=0x01010101    <- 计数器被载荷覆盖
+dst=0x01010105  cnt=0x01010100    <- 从 0x01010101 递减
 ```
 
-在新包装器中写 `0x0002` 到 `0x0000` 仅表示"使能 IRQ"，不触发任何 Matrix 操作，故 `0x0004` 的 `weights_loaded` 永不置位。
+**修复**：改为 SRAM→SRAM 自校验（`0x80001000` → `0x80001800`），引擎配置寄存器零接触，
+CPU 逐字读回比对。
 
-**DMA 传输本身是成功的**（`0x0400..0x0410` 仍完整实现），超时发生在后续旧寄存器轮询。
-`chipdesign_dma_tb.sv` 与 `gen_dma_hex.py` 上游均未改动，属重构遗漏。
+**结果**：`chipdesign_dma_tb` → **PASS，725 周期**（提交 `c73720e`）。
+
+> 共性教训：DMA 的目标窗口不得与其自身控制寄存器重叠；设备 MMIO 写入有副作用，
+> 不能当作通用暂存区。
+
+**工具链陷阱（同批修复）**：用 PowerShell 的 `>` 重定向写 hex 会得到 UTF-16LE（含 BOM）
+文件，`$readmemh` 无法解析，SRAM 静默保持全 `x`，程序表现为"完全没运行"。
+`gen_dma_hex.py` 现自行以 ASCII 无 BOM 写文件。
 
 ---
 
@@ -169,7 +184,7 @@ op('beq','t1','zero','poll_wg')                  # 等 weights_loaded，永不�
 | --- | --- | --- |
 | 1 | `requant_unit.sv` 两版如何取舍或合流？ | 已结：上游版为当前唯一实现，接口与 TinyCNN-8 一致，且是原接口的参数化演进（+bias/multiplier/activation clamp，SHIFT_WIDTH 取代 SCALE_WIDTH） |
 | 2 | `vector_unit` 失去 MMIO 通路是否有意为之？ | **有意**。`ARCHITECTURE.md` 5.1 节说明：只接完整 NPU 顶层，避免 CPU 做数千次底层 MMIO 操作 |
-| 3 | `chipdesign_npu_irq_tb`、`chipdesign_requant_tb` 是永久移除还是待改？ | 待决策。二者针对算子级调试接口；该接口已删除，若需回归须另行设计 |
+| 3 | `chipdesign_npu_irq_tb`、`chipdesign_requant_tb` 是永久移除还是待改？ | **已删除**，连同其镜像与生成器（6 文件 / 638 行）。算子级验证改由 Icarus 单元回归承担 |
 | 4 | `chipdesign_dma_tb` 超时如何修？ | **已修复**（提交 `c73720e`）：SRAM→SRAM 自校验，PASS 725 周期 |
 | 5 | `npu_mmio_wrapper.sv`（旧）保留还是删除？ | **已删除**。从未进入生产 filelist，仅 584 行教学/调试代码；`ARCHITECTURE.md` 与 `hardware/soc/README.md` 已同步 |
 | 6 | 最终以哪套 NPU 为报告主线？ | **已定：双层口径**（通用计算底座 + TinyCNN-8 应用层），见 `PROGRESS_REPORT.md` 第一、二节 |

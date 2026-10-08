@@ -288,8 +288,8 @@ P_out[c] = P_in[c] + Σ(r = 0 .. ARRAY_ROWS−1) A[r] · W[r][c]
 | --- | --- | --- |
 | `chipdesign_soc_tb` | ✅ | ✅ PASS（81,247 周期） |
 | `chipdesign_dma_tb` | ✅ | ✅ PASS（725 周期） |
-| `chipdesign_npu_irq_tb` | ❌ 已移除 | 不参与回归（见 5.4） |
-| `chipdesign_requant_tb` | ❌ 已移除 | 不参与回归（见 5.4） |
+| `chipdesign_npu_irq_tb` | 已删除 | 针对的算子级接口已移除（见 5.4） |
+| `chipdesign_requant_tb` | 已删除 | 针对的算子级接口已移除（见 5.4） |
 
 ### 5.4 集成遗留问题的修复与说明
 
@@ -312,11 +312,19 @@ TinyCNN-8 集成后，`chipdesign_dma_tb` 一度超时、另两个测试平台�
 
 生成测试镜像时，若用 PowerShell 的 `>` 重定向输出，PS 5.1 默认写出 **UTF-16LE（含 BOM）** 文件；`$readmemh` 无法解析，SRAM 静默保持全 `x`，程序表现为"完全没运行"。当前生成器已改为**自行以 ASCII 无 BOM 写文件**，并在文档中记录该约束。
 
-**（3）`chipdesign_npu_irq_tb` / `chipdesign_requant_tb` 已移出回归**
+**（3）算子级测试平台及其配套文件已清理**
 
-这两个测试平台针对的是**算子级调试接口**——即直接暴露 `MATRIX_CTRL` / `VECTOR_OP` / `REQUANT_*` 寄存器的旧包装器。该接口在设计上不进入生产 SoC filelist（依据 `docs/ARCHITECTURE.md` 5.1 节：只接完整 NPU 顶层，避免 CPU 为一次推理执行数千次底层 MMIO 操作），并已于本轮清理中**删除**（`npu_mmio_wrapper.sv`，584 行）。
+`chipdesign_npu_irq_tb` / `chipdesign_requant_tb` 针对的是**算子级调试接口**——即直接暴露 `MATRIX_CTRL` / `VECTOR_OP` / `REQUANT_*` 寄存器的旧包装器。该接口在设计上不进入生产 SoC filelist（依据 `docs/ARCHITECTURE.md` 5.1 节：只接完整 NPU 顶层，避免 CPU 为一次推理执行数千次底层 MMIO 操作），并于本轮清理中**删除**（`npu_mmio_wrapper.sv`，642 行）。
 
-因此这两个测试平台不再有可达的 MMIO 地址空间，其文件虽保留在仓库中但不再参与回归。算子级的验证改由 `hardware/npu/` 下的 Icarus 单元回归承担（`run_matrix_unit_test.ps1` / `run_vector_unit_test.ps1`），详见 5.2 节。
+这两个测试平台随之失去可达的 MMIO 地址空间，因此**连同其测试镜像与镜像生成器一并删除**，共 6 个文件、638 行：
+
+| 类别 | 文件 |
+| --- | --- |
+| 测试平台 | `chipdesign_npu_irq_tb.sv`、`chipdesign_requant_tb.sv` |
+| 测试镜像 | `chipdesign_npu_irq_test.hex`、`chipdesign_requant_test.hex` |
+| 镜像生成器 | `gen_irq_hex.py`、`gen_requant_hex.py` |
+
+算子级的验证改由 `hardware/npu/` 下的 Icarus 单元回归承担（`run_matrix_unit_test.ps1` / `run_vector_unit_test.ps1`），后者不依赖 MMIO 通路，详见 5.2 节。
 
 ### 5.5 对端 TinyCNN-8 回归的声明范围
 
@@ -406,7 +414,7 @@ TinyCNN-8 集成后，`chipdesign_dma_tb` 一度超时、另两个测试平台�
 
 1. **双层架构已建成并可用**：底层通用计算单元（矩阵/向量/重量化/DMA）稳定且未被改动，上层 TinyCNN-8 固定功能加速器已完成整网集成与调度优化。
 2. **调度优化收益已量化**：同一 4×8 阵列、同一网络、同一存储契约下，整网周期从 51,821 降至 30,395，**降低 41.35%（1.705×）**，Conv2 加速 3.366×。
-3. **验证边界清楚**：Icarus 单元回归 2 项、ModelSim SoC 回归 2 项全部实测通过。TinyCNN-8 的验证限于 synthetic 参数与固定网络，**尚未验证真实准确率**；`chipdesign_npu_irq_tb` 与 `chipdesign_requant_tb` 针对的是算子级调试接口，该接口已按设计移除，故不再参与回归（5.4 节）。
+3. **验证边界清楚**：Icarus 单元回归 2 项、ModelSim SoC 回归 2 项全部实测通过。TinyCNN-8 的验证限于 synthetic 参数与固定网络，**尚未验证真实准确率**；算子级测试平台已随其接口一并清理（5.4 节）。
 4. **下一阶段瓶颈明确**：不在功能正确性，而在可综合存储器替换与时序收敛。
 5. **风险已识别**：9 项限制中有 2 项高风险（未综合、SRAM 为行为模型），已列为短期计划前置任务。
 
