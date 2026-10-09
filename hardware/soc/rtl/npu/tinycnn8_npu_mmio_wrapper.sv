@@ -5,7 +5,8 @@
 // The CPU sees 32-bit registers and write-only loading windows.  The adapter
 // converts those accesses into the native host ports of tinycnn8_npu_top and
 // latches the one-cycle inference-done pulse into a level-sensitive IRQ.
-// The production SoC uses ARRAY_ROWS=4 and ARRAY_COLS=8.
+// The Lab6 production SoC configures ARRAY_ROWS=4 and ARRAY_COLS=8. The
+// requantization datapath processes these eight lanes serially to limit area.
 module tinycnn8_npu_mmio_wrapper #(
     parameter int ARRAY_ROWS = 4,
     parameter int ARRAY_COLS = 8,

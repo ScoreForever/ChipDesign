@@ -22,6 +22,10 @@ module ws_pe #(
     wire signed [PRODUCT_WIDTH-1:0] product = signed_act * weight_reg;
     wire signed [ACC_WIDTH-1:0] extended_product = product;
     wire signed [ACC_WIDTH-1:0] signed_psum = $signed(psum_in);
+    // Keep the MAC in a DSP48 instead of expanding each 8x8 multiply and
+    // 32-bit accumulation into LUT carry chains on the Artix-7 target.
+    (* use_dsp = "yes" *) wire signed [ACC_WIDTH-1:0] mac_result =
+        signed_psum + extended_product;
 
     always @(posedge clk) begin
         if (rst) begin
@@ -33,7 +37,7 @@ module ws_pe #(
                 weight_reg <= $signed(weight_in);
             if (ce) begin
                 act_out  <= act_in;
-                psum_out <= signed_psum + extended_product;
+                psum_out <= mac_result;
             end
         end
     end

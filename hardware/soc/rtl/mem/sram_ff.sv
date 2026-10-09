@@ -19,19 +19,23 @@ module sram_ff #(
     // 输出赋值
     assign data_o = data_out_reg;
     
-    // 初始化内存
+    // 初始化内存：只在仿真时用 $readmemh 从 hex 预载程序。
+    // 综合（上板）时程序由 JTAG/OpenOCD 在运行时写入 SRAM，这里不能执行 $readmemh，
+    // 否则 Vivado 会因相对路径找不到文件而报 [Synth 8-4445]。
     initial begin
+`ifndef SYNTHESIS
         if (INIT_FILE != "") begin
             $readmemh(INIT_FILE, memory);
         end
+`endif
     end
-    
+
     // 读写操作
     always @(posedge clk_i) begin
         if (req_i) begin
             // 读取操作
             data_out_reg <= memory[addr_i];
-            
+
             // 写入操作（基于字节使能）
             if (wen_i[0]) memory[addr_i][7:0]   <= data_i[7:0];
             if (wen_i[1]) memory[addr_i][15:8]  <= data_i[15:8];

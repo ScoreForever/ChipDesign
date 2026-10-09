@@ -11,6 +11,7 @@ module conv2d_engine #(
     parameter CHANNEL_WIDTH = 8,
     parameter ADDR_WIDTH = 16,
     parameter SHIFT_WIDTH = 6,
+    parameter EXTERNAL_REQUANT = 0,
     parameter OPT_GATHER_LOAD = 0,
     parameter OPT_SPATIAL_TILE = 0,
     parameter SPATIAL_TILE = 16
@@ -65,7 +66,19 @@ module conv2d_engine #(
     output wire perf_matrix_retire,
     output wire [7:0] perf_inflight,
     output wire perf_psum_read,
-    output wire perf_psum_write
+    output wire perf_psum_write,
+    output wire requant_in_valid,
+    input  wire requant_in_ready,
+    output wire [ARRAY_COLS-1:0] requant_lane_mask,
+    output wire [ARRAY_COLS*32-1:0] requant_acc_data,
+    output wire [ARRAY_COLS*32-1:0] requant_multiplier_data,
+    output wire [ARRAY_COLS*SHIFT_WIDTH-1:0] requant_shift_data,
+    output wire signed [31:0] requant_output_offset,
+    output wire signed [7:0] requant_activation_min,
+    output wire signed [7:0] requant_activation_max,
+    input  wire [ARRAY_COLS*8-1:0] requant_out_data,
+    input  wire requant_out_valid,
+    output wire requant_out_ready
 );
     localparam TILE_CAPACITY = SPATIAL_TILE > 0 ? SPATIAL_TILE : 1;
     generate if (SPATIAL_TILE < 1 || SPATIAL_TILE > 80) begin : invalid_spatial_tile
@@ -214,19 +227,38 @@ module conv2d_engine #(
         .out_psum_data(matrix_out_data)
     );
 
-    wire requant_in_ready, requant_out_valid;
-    wire [ARRAY_COLS*8-1:0] requant_out_data;
-    wire requant_in_valid = (state == S_REQUANT_INPUT);
-    wire requant_out_ready = (state == S_REQUANT_WAIT);
-    requant_unit #(.LANES(ARRAY_COLS), .SHIFT_WIDTH(SHIFT_WIDTH)) requant (
-        .clk(clk), .rst(rst), .in_valid(requant_in_valid),
-        .in_ready(requant_in_ready), .lane_mask(tile_lane_mask),
-        .acc_data(partial_sum), .bias_data({ARRAY_COLS*32{1'b0}}),
-        .multiplier_data(tile_multiplier), .shift_data(tile_shift),
-        .output_offset(cfg_output_offset), .activation_min(cfg_activation_min),
-        .activation_max(cfg_activation_max), .out_data(requant_out_data),
-        .out_valid(requant_out_valid), .out_ready(requant_out_ready)
-    );
+    wire internal_requant_in_ready, internal_requant_out_valid;
+    wire [ARRAY_COLS*8-1:0] internal_requant_out_data;
+    wire requant_in_ready_eff = EXTERNAL_REQUANT ? requant_in_ready :
+                                                       internal_requant_in_ready;
+    wire requant_out_valid_eff = EXTERNAL_REQUANT ? requant_out_valid :
+                                                        internal_requant_out_valid;
+    wire [ARRAY_COLS*8-1:0] requant_out_data_eff = EXTERNAL_REQUANT ? requant_out_data :
+                                                                         internal_requant_out_data;
+    assign requant_in_valid = (state == S_REQUANT_INPUT);
+    assign requant_lane_mask = tile_lane_mask;
+    assign requant_acc_data = partial_sum;
+    assign requant_multiplier_data = tile_multiplier;
+    assign requant_shift_data = tile_shift;
+    assign requant_output_offset = cfg_output_offset;
+    assign requant_activation_min = cfg_activation_min;
+    assign requant_activation_max = cfg_activation_max;
+    assign requant_out_ready = (state == S_REQUANT_WAIT);
+    generate if (!EXTERNAL_REQUANT) begin : g_internal_requant
+        requant_unit #(.LANES(ARRAY_COLS), .SHIFT_WIDTH(SHIFT_WIDTH)) requant (
+            .clk(clk), .rst(rst), .in_valid(requant_in_valid),
+            .in_ready(internal_requant_in_ready), .lane_mask(tile_lane_mask),
+            .acc_data(partial_sum), .bias_data({ARRAY_COLS*32{1'b0}}),
+            .multiplier_data(tile_multiplier), .shift_data(tile_shift),
+            .output_offset(cfg_output_offset), .activation_min(cfg_activation_min),
+            .activation_max(cfg_activation_max), .out_data(internal_requant_out_data),
+            .out_valid(internal_requant_out_valid), .out_ready(requant_out_ready)
+        );
+    end else begin : g_external_requant
+        assign internal_requant_in_ready = 1'b0;
+        assign internal_requant_out_valid = 1'b0;
+        assign internal_requant_out_data = {ARRAY_COLS*8{1'b0}};
+    end endgenerate
 
     integer lane_index;
     integer row_index;
@@ -270,7 +302,7 @@ module conv2d_engine #(
                              ($unsigned(output_channel_tile) * ARRAY_COLS);
         output_write_addr = cfg_output_base + output_offset_calc[ADDR_WIDTH-1:0];
         output_write_valid = (state == S_WRITE);
-        output_write_data = requant_out_data;
+        output_write_data = requant_out_data_eff;
         output_write_mask = tile_lane_mask;
         int32_write_valid = (state == S_WRITE_INT32);
         int32_write_addr = cfg_output_base + output_offset_calc[ADDR_WIDTH-1:0];
@@ -448,11 +480,11 @@ module conv2d_engine #(
                     end
                 end
                 S_REQUANT_INPUT: begin
-                    if (requant_in_ready)
+                    if (requant_in_ready_eff)
                         state <= S_REQUANT_WAIT;
                 end
                 S_REQUANT_WAIT: begin
-                    if (requant_out_valid)
+                    if (requant_out_valid_eff)
                         state <= S_WRITE;
                 end
                 S_WRITE: begin

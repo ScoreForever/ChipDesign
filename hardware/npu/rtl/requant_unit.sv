@@ -24,26 +24,38 @@ module requant_unit #(
     localparam signed [31:0] INT32_MIN_VALUE = 32'sh80000000;
     localparam signed [31:0] INT32_MAX_VALUE = 32'sh7fffffff;
 
-    wire advance = !out_valid || out_ready;
+    // Reuse one pipelined quantization datapath across all lanes. This trades
+    // latency for substantially less multiplier and rounding logic.
+    localparam INDEX_WIDTH = (LANES <= 1) ? 1 : $clog2(LANES);
+    reg busy;
+    reg [INDEX_WIDTH-1:0] lane_index;
+    reg [1:0] lane_phase;
+    reg [LANES-1:0] saved_lane_mask;
+    reg [LANES*32-1:0] saved_acc_data, saved_bias_data, saved_multiplier_data;
+    reg [LANES*SHIFT_WIDTH-1:0] saved_shift_data;
+    reg signed [31:0] saved_output_offset;
+    reg signed [7:0] saved_activation_min, saved_activation_max;
+    reg saved_lane_mask_reg;
+    reg signed [31:0] lane_shifted_reg, lane_multiplier_reg, lane_high_product_reg;
+    reg signed [63:0] lane_product_reg;
+    reg lane_highmul_overflow_reg;
+    reg signed [SHIFT_WIDTH-1:0] lane_shift_reg;
     wire input_fire = in_valid && in_ready;
-    wire [LANES*8-1:0] result;
 
-    assign in_ready = advance && !rst;
+    assign in_ready = !busy && (!out_valid || out_ready) && !rst;
 
     // gemmlowp/TFLite SaturatingRoundingDoublingHighMul. Division is used
     // here to make truncation toward zero explicit for negative products.
-    function automatic signed [31:0] saturating_rounding_high_mul;
-        input signed [31:0] a;
-        input signed [31:0] b;
-        reg signed [63:0] product;
+    function automatic signed [31:0] saturating_rounding_high_mul_product;
+        input signed [63:0] product;
+        input exceptional;
         reg signed [63:0] nudge;
         reg signed [63:0] rounded_product;
         reg signed [63:0] magnitude;
         begin
-            if (a == INT32_MIN_VALUE && b == INT32_MIN_VALUE) begin
-                saturating_rounding_high_mul = INT32_MAX_VALUE;
+            if (exceptional) begin
+                saturating_rounding_high_mul_product = INT32_MAX_VALUE;
             end else begin
-                product = a * b;
                 nudge = (product >= 0) ? 64'sd1073741824 : -64'sd1073741823;
                 rounded_product = product + nudge;
                 // Signed division by 2^31 with truncation toward zero. Write
@@ -52,7 +64,7 @@ module requant_unit #(
                     magnitude = rounded_product >>> 31;
                 else
                     magnitude = -((-rounded_product) >>> 31);
-                saturating_rounding_high_mul = magnitude[31:0];
+                saturating_rounding_high_mul_product = magnitude[31:0];
             end
         end
     endfunction
@@ -103,67 +115,105 @@ module requant_unit #(
         end
     endfunction
 
-    function automatic signed [31:0] multiply_by_quantized_multiplier;
-        input signed [31:0] value;
-        input signed [31:0] multiplier;
-        input signed [SHIFT_WIDTH-1:0] shift;
-        integer left_shift;
-        integer right_shift;
-        reg signed [31:0] shifted_value;
-        reg signed [31:0] high_product;
-        begin
-            left_shift = (shift > 0) ? shift : 0;
-            right_shift = (shift < 0) ? -shift : 0;
-            shifted_value = saturating_left_shift(value, left_shift);
-            high_product = saturating_rounding_high_mul(shifted_value, multiplier);
-            multiply_by_quantized_multiplier =
-                rounding_divide_by_pot(high_product, right_shift);
-        end
-    endfunction
-
-    genvar lane;
-    generate
-        for (lane = 0; lane < LANES; lane = lane + 1) begin : requant_lane
-            wire signed [31:0] lane_acc =
-                $signed(acc_data[lane*32 +: 32]);
-            wire signed [31:0] lane_bias =
-                $signed(bias_data[lane*32 +: 32]);
-            wire signed [31:0] lane_multiplier =
-                $signed(multiplier_data[lane*32 +: 32]);
-            wire signed [SHIFT_WIDTH-1:0] lane_shift =
-                $signed(shift_data[lane*SHIFT_WIDTH +: SHIFT_WIDTH]);
-            wire signed [31:0] biased = lane_acc + lane_bias;
-            wire signed [31:0] scaled =
-                multiply_by_quantized_multiplier(biased, lane_multiplier, lane_shift);
-            wire signed [32:0] offset_value =
-                $signed({scaled[31], scaled}) + $signed({output_offset[31], output_offset});
-            wire signed [32:0] min_extended =
-                {{25{activation_min[7]}}, activation_min};
-            wire signed [32:0] max_extended =
-                {{25{activation_max[7]}}, activation_max};
-            reg signed [7:0] clamped;
-            always @* begin
-                if (!lane_mask[lane])
-                    clamped = 8'sd0;
-                else if (offset_value < min_extended)
-                    clamped = activation_min;
-                else if (offset_value > max_extended)
-                    clamped = activation_max;
-                else
-                    clamped = offset_value[7:0];
-            end
-            assign result[lane*8 +: 8] = clamped;
-        end
-    endgenerate
+    wire signed [31:0] lane_acc = $signed(saved_acc_data[lane_index*32 +: 32]);
+    wire signed [31:0] lane_bias = $signed(saved_bias_data[lane_index*32 +: 32]);
+    wire signed [31:0] selected_lane_multiplier =
+        $signed(saved_multiplier_data[lane_index*32 +: 32]);
+    wire signed [SHIFT_WIDTH-1:0] selected_lane_shift =
+        $signed(saved_shift_data[lane_index*SHIFT_WIDTH +: SHIFT_WIDTH]);
+    wire signed [31:0] biased = lane_acc + lane_bias;
+    wire signed [31:0] lane_pre_shifted = saturating_left_shift(
+        biased, (selected_lane_shift > 0) ? selected_lane_shift : 0);
+    wire signed [63:0] lane_product = lane_shifted_reg * lane_multiplier_reg;
+    wire lane_highmul_overflow = (lane_shifted_reg == INT32_MIN_VALUE) &&
+                                  (lane_multiplier_reg == INT32_MIN_VALUE);
+    wire signed [31:0] lane_scaled = rounding_divide_by_pot(
+        lane_high_product_reg, (lane_shift_reg < 0) ? -lane_shift_reg : 0);
+    wire signed [32:0] offset_value =
+        $signed({lane_scaled[31], lane_scaled}) +
+        $signed({saved_output_offset[31], saved_output_offset});
+    wire signed [32:0] min_extended = {{25{saved_activation_min[7]}}, saved_activation_min};
+    wire signed [32:0] max_extended = {{25{saved_activation_max[7]}}, saved_activation_max};
+    reg signed [7:0] lane_result;
+    always @* begin
+        if (!saved_lane_mask_reg)
+            lane_result = 8'sd0;
+        else if (offset_value < min_extended)
+            lane_result = saved_activation_min;
+        else if (offset_value > max_extended)
+            lane_result = saved_activation_max;
+        else
+            lane_result = offset_value[7:0];
+    end
 
     always @(posedge clk) begin
         if (rst) begin
             out_data <= {LANES*8{1'b0}};
             out_valid <= 1'b0;
-        end else if (advance) begin
-            out_valid <= input_fire;
-            if (input_fire)
-                out_data <= result;
+            busy <= 1'b0;
+            lane_index <= {INDEX_WIDTH{1'b0}};
+            lane_phase <= 2'd0;
+            saved_lane_mask <= {LANES{1'b0}};
+            saved_acc_data <= {LANES*32{1'b0}};
+            saved_bias_data <= {LANES*32{1'b0}};
+            saved_multiplier_data <= {LANES*32{1'b0}};
+            saved_shift_data <= {LANES*SHIFT_WIDTH{1'b0}};
+            saved_output_offset <= 32'sd0;
+            saved_activation_min <= 8'sd0;
+            saved_activation_max <= 8'sd0;
+            saved_lane_mask_reg <= 1'b0;
+            lane_shifted_reg <= 32'sd0;
+            lane_multiplier_reg <= 32'sd0;
+            lane_high_product_reg <= 32'sd0;
+            lane_product_reg <= 64'sd0;
+            lane_highmul_overflow_reg <= 1'b0;
+            lane_shift_reg <= '0;
+        end else begin
+            if (out_valid && out_ready)
+                out_valid <= 1'b0;
+            if (input_fire) begin
+                busy <= 1'b1;
+                lane_index <= {INDEX_WIDTH{1'b0}};
+                lane_phase <= 2'd0;
+                saved_lane_mask <= lane_mask;
+                saved_acc_data <= acc_data;
+                saved_bias_data <= bias_data;
+                saved_multiplier_data <= multiplier_data;
+                saved_shift_data <= shift_data;
+                saved_output_offset <= output_offset;
+                saved_activation_min <= activation_min;
+                saved_activation_max <= activation_max;
+            end else if (busy) begin
+                case (lane_phase)
+                    2'd0: begin
+                        lane_shifted_reg <= lane_pre_shifted;
+                        lane_multiplier_reg <= selected_lane_multiplier;
+                        lane_shift_reg <= selected_lane_shift;
+                        saved_lane_mask_reg <= saved_lane_mask[lane_index];
+                        lane_phase <= 2'd1;
+                    end
+                    2'd1: begin
+                        lane_product_reg <= lane_product;
+                        lane_highmul_overflow_reg <= lane_highmul_overflow;
+                        lane_phase <= 2'd2;
+                    end
+                    2'd2: begin
+                        lane_high_product_reg <= saturating_rounding_high_mul_product(
+                            lane_product_reg, lane_highmul_overflow_reg);
+                        lane_phase <= 2'd3;
+                    end
+                    default: begin
+                        out_data[lane_index*8 +: 8] <= lane_result;
+                        lane_phase <= 2'd0;
+                        if (lane_index == LANES-1) begin
+                            busy <= 1'b0;
+                            out_valid <= 1'b1;
+                        end else begin
+                            lane_index <= lane_index + 1'b1;
+                        end
+                    end
+                endcase
+            end
         end
     end
 endmodule

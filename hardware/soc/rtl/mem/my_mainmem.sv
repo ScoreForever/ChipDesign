@@ -3,7 +3,7 @@
 module my_mainmem #(
     parameter int ADDR_W = 11,
     parameter int DATA_W = 32,
-    parameter INIT_FILE = "soc/sim/tb/lab3_test1.hex"
+    parameter INIT_FILE = "hardware/soc/sim/tb/lab3_test1.hex"
 ) (
     input  logic              clk_i,
     input  logic              rst_ni,

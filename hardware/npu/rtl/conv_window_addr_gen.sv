@@ -48,16 +48,19 @@ module conv_window_addr_gen #(
     reg [DIM_WIDTH-1:0] out_y_count, out_x_count;
     reg [DIM_WIDTH-1:0] kernel_y_count, kernel_x_count;
     reg [CHANNEL_WIDTH-1:0] channel_count;
+    reg addr_valid;
 
     integer signed input_y_calc;
     integer signed input_x_calc;
     integer unsigned address_calc;
+    reg is_padding_calc;
+    reg [ADDR_WIDTH-1:0] activation_addr_calc;
 
     wire start_fire = start_valid && start_ready;
     wire item_fire = item_valid && item_ready;
 
     assign start_ready = !busy && !rst;
-    assign item_valid = busy && !rst;
+    assign item_valid = busy && addr_valid && !rst;
     assign out_y = out_y_count;
     assign out_x = out_x_count;
     assign kernel_y = kernel_y_count;
@@ -82,17 +85,17 @@ module conv_window_addr_gen #(
                        $unsigned(kernel_y_count) - $unsigned(cfg_pad_top);
         input_x_calc = $unsigned(out_x_count) * $unsigned(cfg_stride_width) +
                        $unsigned(kernel_x_count) - $unsigned(cfg_pad_left);
-        is_padding = (input_y_calc < 0) ||
-                     (input_x_calc < 0) ||
-                     (input_y_calc >= $unsigned(cfg_input_height)) ||
-                     (input_x_calc >= $unsigned(cfg_input_width));
-        if (is_padding) begin
-            activation_addr = {ADDR_WIDTH{1'b0}};
+        is_padding_calc = (input_y_calc < 0) ||
+                          (input_x_calc < 0) ||
+                          (input_y_calc >= $unsigned(cfg_input_height)) ||
+                          (input_x_calc >= $unsigned(cfg_input_width));
+        if (is_padding_calc) begin
+            activation_addr_calc = {ADDR_WIDTH{1'b0}};
         end else begin
             address_calc = ((input_y_calc * $unsigned(cfg_input_width)) +
                             input_x_calc) * $unsigned(cfg_input_channels) +
                            $unsigned(channel_count);
-            activation_addr = address_calc[ADDR_WIDTH-1:0];
+            activation_addr_calc = address_calc[ADDR_WIDTH-1:0];
         end
     end
 
@@ -116,6 +119,9 @@ module conv_window_addr_gen #(
             kernel_y_count <= 0;
             kernel_x_count <= 0;
             channel_count <= 0;
+            addr_valid <= 1'b0;
+            activation_addr <= {ADDR_WIDTH{1'b0}};
+            is_padding <= 1'b0;
         end else begin
             done <= 1'b0;
             if (start_fire) begin
@@ -135,13 +141,19 @@ module conv_window_addr_gen #(
                 kernel_y_count <= 0;
                 kernel_x_count <= 0;
                 channel_count <= 0;
+                addr_valid <= 1'b0;
                 // Zero dimensions are illegal and deliberately rejected.
                 busy <= (input_height != 0) && (input_width != 0) &&
                         (input_channels != 0) && (output_height != 0) &&
                         (output_width != 0) && (kernel_height != 0) &&
                         (kernel_width != 0) && (stride_height != 0) &&
                         (stride_width != 0);
+            end else if (busy && !addr_valid) begin
+                activation_addr <= activation_addr_calc;
+                is_padding <= is_padding_calc;
+                addr_valid <= 1'b1;
             end else if (item_fire) begin
+                addr_valid <= 1'b0;
                 if (last_in_layer) begin
                     busy <= 1'b0;
                     done <= 1'b1;

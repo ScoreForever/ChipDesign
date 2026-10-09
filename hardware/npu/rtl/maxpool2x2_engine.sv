@@ -28,7 +28,8 @@ module maxpool2x2_engine #(
 );
     localparam [2:0] S_IDLE = 3'd0, S_READ_SEND = 3'd1,
                      S_READ_ADVANCE = 3'd2, S_OUTPUT_SEND = 3'd3,
-                     S_OUTPUT_WAIT = 3'd4, S_WRITE = 3'd5;
+                     S_OUTPUT_WAIT = 3'd4, S_WRITE = 3'd5,
+                     S_READ_PREP = 3'd6;
     localparam [2:0] VU_MAX = 3'd2, VU_MOV = 3'd4;
     localparam VECTOR_A = 1'b0, VACC = 1'b1;
     localparam VECTOR_B = 1'b0, OUTPUT = 1'b0, DEST_VACC = 1'b1;
@@ -62,6 +63,7 @@ module maxpool2x2_engine #(
 
     integer lane;
     integer unsigned input_y_calc, input_x_calc, input_addr_calc, output_addr_calc;
+    reg [ADDR_WIDTH-1:0] activation_read_addr_calc;
     wire descriptor_valid = (input_height >= 2) && (input_width >= 2) &&
                             (channels != 0);
     assign start_ready = (state == S_IDLE) && !rst && descriptor_valid;
@@ -73,7 +75,7 @@ module maxpool2x2_engine #(
         input_addr_calc = ((input_y_calc * $unsigned(cfg_input_width) + input_x_calc) *
                            $unsigned(cfg_channels)) +
                           ($unsigned(channel_tile) * LANES);
-        activation_read_addr = cfg_input_base + input_addr_calc[ADDR_WIDTH-1:0];
+        activation_read_addr_calc = cfg_input_base + input_addr_calc[ADDR_WIDTH-1:0];
         output_addr_calc = (($unsigned(out_y) * ($unsigned(cfg_input_width) >> 1) +
                             $unsigned(out_x)) * $unsigned(cfg_channels)) +
                            ($unsigned(channel_tile) * LANES);
@@ -93,6 +95,7 @@ module maxpool2x2_engine #(
             tile_count <= 0;
             position <= 0;
             lane_mask <= 0;
+            activation_read_addr <= 0;
         end else begin
             done <= 1'b0;
             case (state)
@@ -110,8 +113,12 @@ module maxpool2x2_engine #(
                         position <= 0;
                         for (lane = 0; lane < LANES; lane = lane + 1)
                             lane_mask[lane] <= lane < channels;
-                        state <= S_READ_SEND;
+                        state <= S_READ_PREP;
                     end
+                end
+                S_READ_PREP: begin
+                    activation_read_addr <= activation_read_addr_calc;
+                    state <= S_READ_SEND;
                 end
                 S_READ_SEND: begin
                     if (vu_in_ready)
@@ -122,7 +129,7 @@ module maxpool2x2_engine #(
                         state <= S_OUTPUT_SEND;
                     end else begin
                         position <= position + 1'b1;
-                        state <= S_READ_SEND;
+                        state <= S_READ_PREP;
                     end
                 end
                 S_OUTPUT_SEND: begin
@@ -141,19 +148,19 @@ module maxpool2x2_engine #(
                             for (lane = 0; lane < LANES; lane = lane + 1)
                                 lane_mask[lane] <=
                                     ((channel_tile+1)*LANES + lane) < cfg_channels;
-                            state <= S_READ_SEND;
+                            state <= S_READ_PREP;
                         end else begin
                             channel_tile <= 0;
                             for (lane = 0; lane < LANES; lane = lane + 1)
                                 lane_mask[lane] <= lane < cfg_channels;
                             if (out_x != (cfg_input_width >> 1)-1) begin
                                 out_x <= out_x + 1'b1;
-                                state <= S_READ_SEND;
+                                state <= S_READ_PREP;
                             end else begin
                                 out_x <= 0;
                                 if (out_y != (cfg_input_height >> 1)-1) begin
                                     out_y <= out_y + 1'b1;
-                                    state <= S_READ_SEND;
+                                    state <= S_READ_PREP;
                                 end else begin
                                     state <= S_IDLE;
                                     done <= 1'b1;
