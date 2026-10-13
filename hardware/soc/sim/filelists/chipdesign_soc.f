@@ -82,6 +82,9 @@ hardware/npu/rtl/conv_window_addr_gen.sv
 hardware/npu/rtl/conv2d_engine.sv
 hardware/npu/rtl/maxpool2x2_engine.sv
 hardware/npu/rtl/tinycnn8_npu_top.sv
+hardware/npu/rtl/fused_ws_array.sv
+hardware/npu/rtl/requant_lane.sv
+hardware/npu/rtl/tinycnn8_npu_fused.sv
 hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv
 hardware/soc/rtl/my_npu_subsystem.sv
 hardware/soc/rtl/my_soc_top.sv

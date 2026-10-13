@@ -5,8 +5,14 @@
 // The CPU sees 32-bit registers and write-only loading windows.  The adapter
 // converts those accesses into the native host ports of tinycnn8_npu_top and
 // latches the one-cycle inference-done pulse into a level-sensitive IRQ.
-// The Lab6 production SoC configures ARRAY_ROWS=4 and ARRAY_COLS=8. The
-// requantization datapath processes these eight lanes serially to limit area.
+// The production SoC configures ARRAY_ROWS=4 and ARRAY_COLS=8.
+//
+// FUSED_CORE=1 (default) selects tinycnn8_npu_fused: conv+pool fused, single
+// requant lane, 1 KiB activation store. It pools on INT32 before
+// requantizing, which is exact only for non-negative multipliers, so
+// conv-layer commits with a negative multiplier fail with error 5 and
+// VERSION reads 0x0002_0002. FUSED_CORE=0 keeps the layered reference core
+// (tinycnn8_npu_top, VERSION 0x0002_0001). Both sit under g_core.i_tinycnn8_npu.
 module tinycnn8_npu_mmio_wrapper #(
     parameter int ARRAY_ROWS = 4,
     parameter int ARRAY_COLS = 8,
@@ -15,7 +21,8 @@ module tinycnn8_npu_mmio_wrapper #(
     parameter int WEIGHT_WORDS = 256,
     parameter int OPT_GATHER_LOAD = 0,
     parameter int OPT_SPATIAL_TILE = 0,
-    parameter int SPATIAL_TILE = 16
+    parameter int SPATIAL_TILE = 16,
+    parameter int FUSED_CORE = 1
 ) (
     input  logic        clk_i,
     input  logic        rst_ni,
@@ -76,6 +83,7 @@ module tinycnn8_npu_mmio_wrapper #(
     logic [ARRAY_COLS*32-1:0] param_mult_stage;
     logic [ARRAY_COLS*SHIFT_WIDTH-1:0] param_shift_stage;
     logic invalid_shift_stage;
+    logic invalid_multiplier_stage;
 
     // DMA registers retain the existing SoC programming model.
     logic [31:0] dma_src_reg;
@@ -114,6 +122,11 @@ module tinycnn8_npu_mmio_wrapper #(
             if ($signed(param_shift_stage[i*SHIFT_WIDTH +: SHIFT_WIDTH]) == -32)
                 invalid_shift_stage = 1'b1;
         end
+        invalid_multiplier_stage = 1'b0;
+        if (FUSED_CORE != 0)
+            for (int i = 0; i < ARRAY_COLS; i++)
+                if (param_mult_stage[i*32+31])
+                    invalid_multiplier_stage = 1'b1;
     end
 
     assign irq_o = irq_enable_reg && done_latched;
@@ -129,40 +142,77 @@ module tinycnn8_npu_mmio_wrapper #(
     logic [191:0] perf_layer_cycles;
     logic perf_valid,perf_overflow;
 
-    tinycnn8_npu_top #(
-        .ARRAY_ROWS   (ARRAY_ROWS),
-        .ARRAY_COLS   (ARRAY_COLS),
-        .WEIGHT_WORDS (WEIGHT_WORDS),
-        .SHIFT_WIDTH  (SHIFT_WIDTH),
-        .OPT_GATHER_LOAD(OPT_GATHER_LOAD),
-        .OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
-        .SPATIAL_TILE(SPATIAL_TILE)
-    ) i_tinycnn8_npu (
-        .clk                  (clk_i),
-        .rst                  (~rst_ni),
-        .start_valid          (npu_start_pulse),
-        .start_ready          (npu_start_ready),
-        .class_count          (class_count_reg),
-        .busy                 (npu_busy),
-        .done                 (npu_done),
-        .logits               (npu_logits),
-        .host_activation_we   (host_activation_we),
-        .host_activation_addr (host_activation_addr),
-        .host_activation_data (host_activation_data),
-        .host_weight_we       (host_weight_we),
-        .host_weight_addr     (host_weight_addr),
-        .host_weight_data     (host_weight_data),
-        .host_parameter_we    (host_parameter_we),
-        .host_parameter_layer (host_parameter_layer),
-        .host_parameter_tile  (host_parameter_tile),
-        .host_bias_data       (host_bias_data),
-        .host_multiplier_data (host_multiplier_data),
-        .host_shift_data      (host_shift_data),
-        .perf_total_cycles(perf_total_cycles),.perf_layer_cycles(perf_layer_cycles),
-        .perf_weight_rows(perf_weight_rows),.perf_matrix_issues(perf_matrix_issues),
-        .perf_matrix_retires(perf_matrix_retires),.perf_peak_inflight(perf_peak_inflight),
-        .perf_overflow(perf_overflow),.perf_valid(perf_valid)
-    );
+    generate if (FUSED_CORE != 0) begin : g_core
+        tinycnn8_npu_fused #(
+            .ARRAY_ROWS   (ARRAY_ROWS),
+            .ARRAY_COLS   (ARRAY_COLS),
+            .WEIGHT_WORDS (WEIGHT_WORDS),
+            .SHIFT_WIDTH  (SHIFT_WIDTH),
+            .OPT_GATHER_LOAD(OPT_GATHER_LOAD),
+            .OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
+            .SPATIAL_TILE(SPATIAL_TILE)
+        ) i_tinycnn8_npu (
+            .clk                  (clk_i),
+            .rst                  (~rst_ni),
+            .start_valid          (npu_start_pulse),
+            .start_ready          (npu_start_ready),
+            .class_count          (class_count_reg),
+            .busy                 (npu_busy),
+            .done                 (npu_done),
+            .logits               (npu_logits),
+            .host_activation_we   (host_activation_we),
+            .host_activation_addr (host_activation_addr),
+            .host_activation_data (host_activation_data),
+            .host_weight_we       (host_weight_we),
+            .host_weight_addr     (host_weight_addr),
+            .host_weight_data     (host_weight_data),
+            .host_parameter_we    (host_parameter_we),
+            .host_parameter_layer (host_parameter_layer),
+            .host_parameter_tile  (host_parameter_tile),
+            .host_bias_data       (host_bias_data),
+            .host_multiplier_data (host_multiplier_data),
+            .host_shift_data      (host_shift_data),
+            .perf_total_cycles(perf_total_cycles),.perf_layer_cycles(perf_layer_cycles),
+            .perf_weight_rows(perf_weight_rows),.perf_matrix_issues(perf_matrix_issues),
+            .perf_matrix_retires(perf_matrix_retires),.perf_peak_inflight(perf_peak_inflight),
+            .perf_overflow(perf_overflow),.perf_valid(perf_valid)
+        );
+    end else begin : g_core
+        tinycnn8_npu_top #(
+            .ARRAY_ROWS   (ARRAY_ROWS),
+            .ARRAY_COLS   (ARRAY_COLS),
+            .WEIGHT_WORDS (WEIGHT_WORDS),
+            .SHIFT_WIDTH  (SHIFT_WIDTH),
+            .OPT_GATHER_LOAD(OPT_GATHER_LOAD),
+            .OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
+            .SPATIAL_TILE(SPATIAL_TILE)
+        ) i_tinycnn8_npu (
+            .clk                  (clk_i),
+            .rst                  (~rst_ni),
+            .start_valid          (npu_start_pulse),
+            .start_ready          (npu_start_ready),
+            .class_count          (class_count_reg),
+            .busy                 (npu_busy),
+            .done                 (npu_done),
+            .logits               (npu_logits),
+            .host_activation_we   (host_activation_we),
+            .host_activation_addr (host_activation_addr),
+            .host_activation_data (host_activation_data),
+            .host_weight_we       (host_weight_we),
+            .host_weight_addr     (host_weight_addr),
+            .host_weight_data     (host_weight_data),
+            .host_parameter_we    (host_parameter_we),
+            .host_parameter_layer (host_parameter_layer),
+            .host_parameter_tile  (host_parameter_tile),
+            .host_bias_data       (host_bias_data),
+            .host_multiplier_data (host_multiplier_data),
+            .host_shift_data      (host_shift_data),
+            .perf_total_cycles(perf_total_cycles),.perf_layer_cycles(perf_layer_cycles),
+            .perf_weight_rows(perf_weight_rows),.perf_matrix_issues(perf_matrix_issues),
+            .perf_matrix_retires(perf_matrix_retires),.perf_peak_inflight(perf_peak_inflight),
+            .perf_overflow(perf_overflow),.perf_valid(perf_valid)
+        );
+    end endgenerate
 
     always_ff @(posedge clk_i or negedge rst_ni) begin
         if (!rst_ni) begin
@@ -301,7 +351,8 @@ module tinycnn8_npu_mmio_wrapper #(
                             // Layer 2 was the removed GAP stage and is reserved.
                             error_latched <= 1'b1;
                             error_code <= 8'd6;
-                        end else if ((parameter_layer_index != 2'd3) && invalid_shift_stage) begin
+                        end else if ((parameter_layer_index != 2'd3) &&
+                                     (invalid_shift_stage || invalid_multiplier_stage)) begin
                             error_latched <= 1'b1;
                             error_code <= 8'd5;
                         end else begin
@@ -339,9 +390,10 @@ module tinycnn8_npu_mmio_wrapper #(
         else if ((addr_off >= 16'h0010) && (addr_off <= 16'h002c))
             rdata_next = npu_logits[((addr_off - 16'h0010) >> 2)*32 +: 32];
         else if (addr_off == 16'h0030)
-            rdata_next = 32'h0002_0001;
+            rdata_next = (FUSED_CORE != 0) ? 32'h0002_0002 : 32'h0002_0001;
         // Read-only profile snapshot/live counters. 0x44..0x58 are
-        // C1,P1,C2,P2,reserved,FC. Status: bit0 valid, bit1 overflow, bit2 active.
+        // C1,P1,C2,P2,reserved,FC (fused core: P1/P2 folded into C1/C2, read 0).
+        // Status: bit0 valid, bit1 overflow, bit2 active.
         // Writes fall through to existing unsupported-address error code 6.
         else if (addr_off == 16'h0040)
             rdata_next = perf_total_cycles;

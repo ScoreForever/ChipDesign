@@ -1,4 +1,7 @@
 `timescale 1ns/1ps
+`ifndef TINYCNN8_CORE
+`define TINYCNN8_CORE tinycnn8_npu_top
+`endif
 module tb_tinycnn8_npu_top;
     parameter ARRAY_ROWS=4,ARRAY_COLS=8;
     parameter OPT_GATHER_LOAD=0,OPT_SPATIAL_TILE=0,SPATIAL_TILE=16;
@@ -19,7 +22,7 @@ module tb_tinycnn8_npu_top;
     reg [ARRAY_COLS*SHIFT_WIDTH-1:0] host_shift_data=0;
     integer k,tile,lane,oc,ic,index,o,expected,cycles=0;
 
-    tinycnn8_npu_top #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
+    `TINYCNN8_CORE #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
         .WEIGHT_WORDS(WEIGHT_WORDS),
         .OPT_GATHER_LOAD(OPT_GATHER_LOAD),.OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
         .SPATIAL_TILE(SPATIAL_TILE)) dut(

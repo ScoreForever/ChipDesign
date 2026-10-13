@@ -308,5 +308,77 @@ class GenerationTests(unittest.TestCase):
             golden.build_model(pattern="unknown")
 
 
+
+class PoolBeforeRequantTests(unittest.TestCase):
+    """The fused core pools INT32 accumulators and requantizes once per window.
+
+    Bias is folded into the INT32 accumulator before pooling (with the same
+    wrap as the reference), so the requant step sees bias=0. That step is
+    monotonic non-decreasing for every non-negative multiplier and any
+    shift/clamp, which makes the reordering exact. The MMIO wrapper rejects
+    negative conv multipliers to keep this precondition.
+    """
+
+    def test_requant_is_monotonic_for_non_negative_multipliers(self):
+        rng = random.Random(20261013)
+        for _ in range(400):
+            multiplier = rng.choice((0, 1, HALF, MAX32, rng.randint(0, MAX32)))
+            shift = rng.randint(-31, 8)
+            start = rng.choice((MIN32, -(1 << 21), 0, (1 << 21), MAX32 - 64))
+            low, high = rng.choice(((0, 127), (-128, 127), (-64, 63)))
+            previous = None
+            for acc in range(start, start + 64):
+                value = golden.requant(acc, 0, multiplier, shift,
+                                       activation_min=low, activation_max=high)
+                if previous is not None:
+                    self.assertGreaterEqual(value, previous, (acc, multiplier, shift))
+                previous = value
+
+    def test_negative_multiplier_breaks_the_identity(self):
+        a, b = 100, 200
+        pooled = golden.requant(max(a, b), 0, -HALF, 0, activation_min=-128)
+        separate = max(golden.requant(v, 0, -HALF, 0, activation_min=-128) for v in (a, b))
+        self.assertNotEqual(pooled, separate)
+
+    def test_fused_order_matches_reference_on_generated_models(self):
+        def conv_accumulators(values, height, width, channels, layer):
+            out = []
+            for y in range(height):
+                for x in range(width):
+                    for oc, kernel in enumerate(layer["weights"]):
+                        acc = layer["bias"][oc]
+                        for ky in range(3):
+                            for kx in range(3):
+                                iy, ix = y + ky - 1, x + kx - 1
+                                if 0 <= iy < height and 0 <= ix < width:
+                                    base = (iy * width + ix) * channels
+                                    acc += sum(values[base + ic] * kernel[ky][kx][ic]
+                                               for ic in range(channels))
+                        out.append(golden.wrap32(acc))
+            return out
+
+        def fused_stage(values, height, width, channels, layer):
+            # Bias is folded into the accumulator, then each 2x2 window's
+            # INT32 maximum is requantized once with zero bias.
+            acc = conv_accumulators(values, height, width, channels, layer)
+            windows = []
+            for y in range(0, height, 2):
+                for x in range(0, width, 2):
+                    for oc in range(8):
+                        windows.append(max(acc[((y + dy) * width + x + dx) * 8 + oc]
+                                           for dy in range(2) for dx in range(2)))
+            return [golden.requant(v, 0, layer["multiplier"][i % 8], layer["shift"][i % 8],
+                                   activation_min=0) for i, v in enumerate(windows)]
+
+        for pattern in golden.PATTERNS:
+            for seed in (3, 7):
+                model = golden.build_model(seed=seed, classes=4, pattern=pattern)
+                reference = golden.run_model(model)
+                with self.subTest(pattern=pattern, seed=seed):
+                    pool1 = fused_stage(model["input"], 20, 16, 1, model["conv1"])
+                    self.assertEqual(pool1, reference["pool1"])
+                    self.assertEqual(fused_stage(pool1, 10, 8, 8, model["conv2"]),
+                                     reference["pool2"])
+
 if __name__ == "__main__":
     unittest.main()
