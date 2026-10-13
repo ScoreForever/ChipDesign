@@ -59,6 +59,24 @@ FC 权重逐输出通道量化，四个 raw logit 的真实 scale 不同。CPU �
 
 ## 4. RTL 与性能优化
 
+生产核心是 `tinycnn8_npu_fused`（`FUSED_CORE=1`，默认），分层核心
+`tinycnn8_npu_top` 保留为逐层 bit-exact 参考。两者端口和 MMIO ABI 相同。
+
+```text
+tinycnn8_npu_fused（生产）
+  +-- 1 KiB 字节 bank 激活存储：每拍任意地址 4 B 读
+  +-- fused_ws_array：4×8 WS 阵列，PE 双 bank 权重，bank 选择随操作数流动
+  +-- 输出侧 INT32 累加（tile16 = 4 个 2×2 窗口）-> INT32 2×2 max
+  +-- requant_lane：单 lane、II=1、4 级流水
+```
+
+融合核心对所有层都做 K-major tile，权重预取与计算重叠，Conv 与 MaxPool 融合，
+先在 INT32 上池化再量化（multiplier ≥ 0 时逐位等价）。实测单次推理 2,805 周期，
+分层核心为 59,357 周期（tile16 为 33,610）。设计、实测和验证见
+`hardware/npu/TINYCNN8_FUSED.md`。
+
+分层参考核心：
+
 ```text
 tinycnn8_npu_top
   +-- conv2d_engine：Conv1 / Conv2 / FC 共享
@@ -78,6 +96,9 @@ tinycnn8_npu_top
 回退。优化复用同一 Matrix/Requant，不增加第二套计算核。
 
 ## 5. NPU 本地存储
+
+融合核心：激活只有 1 KiB。输入 `0..319`，Pool1 `320..959`，Pool2 `0..159`（覆盖
+输入）。Conv 输出不落地。权重和参数布局与下文相同。以下是分层参考核心的布局：
 
 - 激活 bank A/B：各 4096 字节；
 - 权重：256×64 bit，共 2048 字节；
@@ -103,7 +124,8 @@ INT32 partial sums 及少量 tag/pack；行为数组仍需在物理实现阶段�
 
 ## 6. SoC 集成与存储器
 
-生产 SoC 只实例化 `tinycnn8_npu_mmio_wrapper -> tinycnn8_npu_top`。历史算子级
+生产 SoC 只实例化 `tinycnn8_npu_mmio_wrapper -> tinycnn8_npu_fused`
+（`FUSED_CORE=0` 时为分层参考核心 `tinycnn8_npu_top`）。历史算子级
 wrapper 已从远程 main 删除。BootRAM 复位后跳到 `0x8000_0000`；主 SRAM 行为
 模型是 2048×32 bit（8 KiB），通过 `$readmemh` 加载测试程序。该初始化方式不是
 最终 ASIC 存储实现。
@@ -126,7 +148,7 @@ wrapper 已从远程 main 删除。BootRAM 复位后跳到 `0x8000_0000`；主 S
 | `0x0008` | CLASS_COUNT | RTL 合法 1–8；生产写 4 |
 | `0x000C` | ERROR_CODE | 完整错误码 |
 | `0x0010..0x002C` | LOGIT[0..7] | raw signed INT32 |
-| `0x0030` | VERSION | `0x0002_0001`：Flatten ABI + profiler |
+| `0x0030` | VERSION | `0x0002_0002`：融合核心；`0x0002_0001`：分层参考核心 |
 | `0x0040` | PERF_TOTAL | 最近任务核心周期 |
 | `0x0044..0x0058` | PERF_LAYER[0..5] | C1、P1、C2、P2、保留0、FC |
 | `0x005C` | PERF_WEIGHT_ROWS | Matrix 权重行握手数 |
@@ -135,10 +157,11 @@ wrapper 已从远程 main 删除。BootRAM 复位后跳到 `0x8000_0000`；主 S
 | `0x006C` | PERF_STATUS | valid、overflow、busy |
 
 性能计数从 start 后一拍到完成转移边沿；六个 lane 中 lane4 为已移除 GAP 的保留
-零值，其余五层之和等于 total。新 start/reset 清零，完成后冻结，clear done 不清
+零值，其余五层之和等于 total。融合核心把 P1/P2 计入 C1/C2，P1/P2 lane 读 0。新 start/reset 清零，完成后冻结，clear done 不清
 profile；写性能地址返回错误6。
 
-错误码：1非法配置，2 busy访问，3未对齐，4权重高低半字顺序，5非法 shift，
+错误码：1非法配置，2 busy访问，3未对齐，4权重高低半字顺序，5非法 shift
+（融合核心下，卷积层 multiplier 为负也报 5），
 6保留/未定义操作。IRQ 在完成后锁存至 clear done。
 
 装载窗口：
