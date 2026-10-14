@@ -100,5 +100,5 @@ BRAM36 2、DSP 51。50 MHz 综合时序估计 WNS +1.841 ns、TNS 0。
 - 未屏蔽 DSP 建议的完整审计：`drc_audited.rpt`。
 - 最新完整 ModelSim 回归：`work/structure_regression_20261014_124642/`。
 
-改动尚未提交或推送。前一轮资源优化的历史结果见
+对应改动已包含在当前main（7569a43）。前一轮资源优化的历史结果见
 [`FPGA_STRUCTURE_OPTIMIZATION.md`](FPGA_STRUCTURE_OPTIMIZATION.md)。

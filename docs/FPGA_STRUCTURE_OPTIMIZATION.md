@@ -94,4 +94,4 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run
 
 在最终 Vivado 证据目录中可依次运行 `run_synth.tcl` 和 `run_opt.tcl`；
 它们依赖本机 Vivado、当前仓库源码和上述 Lab6 引脚约束。生成产物位于
-Git 忽略的 `work/`；本轮代码与测试改动尚未提交或推送。
+Git 忽略的 `work/`；对应改动已包含在当前main；此处保留当时本机证据路径。
