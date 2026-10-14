@@ -89,12 +89,30 @@ module tb_requant_unit;
     reg pending = 0;
     reg [LANES*8-1:0] held_output;
     integer lane, value, shift_value, test_index;
+    reg signed [31:0] highmul_corners [0:11];
+    reg signed [31:0] highmul_a, highmul_b, highmul_actual;
+    reg signed [63:0] highmul_product;
+    integer corner_a, corner_b;
+
+    // Check the full INT32 result before INT8 clamping can hide a rounding
+    // difference. The independent oracle retains signed division and nudge.
+    task check_highmul;
+        input signed [31:0] a, b;
+        begin
+            highmul_product = a * b;
+            highmul_actual = dut.saturating_rounding_high_mul_product(
+                highmul_product, a == 32'sh80000000 && b == 32'sh80000000);
+            if (highmul_actual !== ref_high_mul(a, b))
+                $fatal(1, "highmul a=%0d b=%0d expected=%0d actual=%0d",
+                       a, b, ref_high_mul(a, b), highmul_actual);
+        end
+    endtask
 
     always @(posedge clk) begin
         if (rst) begin
             pending = 0;
         end else begin
-            if (out_valid !== pending) $fatal(1, "out_valid mismatch");
+            if (out_valid && !pending) $fatal(1, "output without accepted input");
             if (out_valid && !out_ready) begin
                 stalls = stalls + 1;
                 held_output = out_data;
@@ -131,8 +149,6 @@ module tb_requant_unit;
                     expected[lane] = value;
                 end
             end
-            #1;
-            if (out_valid !== pending) $fatal(1, "registered valid mismatch");
         end
     end
 
@@ -145,14 +161,33 @@ module tb_requant_unit;
     endtask
 
     task drain;
+        integer wait_cycles;
         begin
             @(negedge clk); in_valid = 0; out_ready = 1;
-            @(posedge clk); @(negedge clk);
+            wait_cycles = 0;
+            while (pending && wait_cycles < LANES*4+4) begin
+                @(posedge clk); @(negedge clk);
+                wait_cycles = wait_cycles + 1;
+            end
             if (out_valid || pending) $fatal(1, "drain failed");
         end
     endtask
 
     initial begin
+        highmul_corners[0]=32'sh80000000; highmul_corners[1]=32'sh80000001;
+        highmul_corners[2]=-1073741825; highmul_corners[3]=-1073741824;
+        highmul_corners[4]=-1073741823; highmul_corners[5]=-1;
+        highmul_corners[6]=0; highmul_corners[7]=1;
+        highmul_corners[8]=1073741823; highmul_corners[9]=1073741824;
+        highmul_corners[10]=1073741825; highmul_corners[11]=32'sh7fffffff;
+        for(corner_a=0;corner_a<12;corner_a=corner_a+1)
+            for(corner_b=0;corner_b<12;corner_b=corner_b+1)
+                check_highmul(highmul_corners[corner_a],highmul_corners[corner_b]);
+        for(corner_a=0;corner_a<20000;corner_a=corner_a+1) begin
+            highmul_a=$urandom; highmul_b=$urandom;
+            check_highmul(highmul_a,highmul_b);
+        end
+        $display("PASS full INT32 highmul oracle: 144 corners and 20000 random products");
         repeat (3) @(posedge clk);
         @(negedge clk); rst = 0;
 

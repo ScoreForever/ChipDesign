@@ -81,6 +81,13 @@ def main():
             print(f"FUSED_CORE={fused}: " + text.strip().splitlines()[0])
             summary["units"].append(f"tb_tinycnn8_npu_mmio_wrapper FUSED_CORE={fused}")
 
+        for a_bytes, b_bytes in ((640, 2560), (4096, 4096)):
+            image = compile_tb(build, "tb_tinycnn8_capacity",
+                               LAYERED + [NPU / "tb/tb_tinycnn8_capacity.sv"],
+                               (("ACT_A_BANK_BYTES", a_bytes), ("ACT_BANK_BYTES", b_bytes)))
+            print(run(["vvp", image], "ALL FLAT CAPACITY TESTS PASSED").strip())
+            summary["units"].append(f"tb_tinycnn8_capacity A={a_bytes} B={b_bytes}")
+
         image = compile_tb(build, "tb_tinycnn8_fused_golden", FUSED + [NPU / "tb/tb_tinycnn8_fused_golden.sv"])
         cases = [(seed, 1 + (seed - 1) % 8, "random") for seed in range(1, options.seeds + 1)]
         cases += [(11, 6, "impulse"), (12, 4, "impulse"), (5, 6, "extreme"), (6, 8, "extreme"), (7, 4, "random")]

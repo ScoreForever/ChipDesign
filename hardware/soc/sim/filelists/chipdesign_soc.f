@@ -81,6 +81,9 @@ hardware/npu/rtl/requant_unit.sv
 hardware/npu/rtl/conv_window_addr_gen.sv
 hardware/npu/rtl/conv2d_engine.sv
 hardware/npu/rtl/maxpool2x2_engine.sv
+hardware/npu/rtl/reduction_sum_unit.sv
+hardware/npu/rtl/global_sum_pool_engine.sv
+hardware/npu/rtl/global_avg_pool_engine.sv
 hardware/npu/rtl/tinycnn8_npu_top.sv
 hardware/npu/rtl/fused_ws_array.sv
 hardware/npu/rtl/requant_lane.sv

@@ -1,6 +1,6 @@
 # Weight-stationary Matrix Unit
 
-For how the Matrix Unit fits into the full SoC, see [`docs/ARCHITECTURE.md`](/docs/ARCHITECTURE.md).
+For how the Matrix Unit fits into the full SoC, see [`docs/ARCHITECTURE.md`](../../docs/ARCHITECTURE.md).
 
 `matrix_unit` computes one output vector per accepted transaction:
 

@@ -1,6 +1,7 @@
 # TinyCNN-8-Flat 融合核心（`tinycnn8_npu_fused`）
 
-生产 SoC 默认使用的 NPU 核心。它和分层参考核心 `tinycnn8_npu_top` 端口相同，MMIO ABI 也相同，
+生产SoC默认使用的NPU核心。2026-10-14冲突解决保留了main的AXI/SRAM三拍读取、
+FPGA约束/DRC脚本和Q31舍入简化；旧GAP配置的综合结果不能沿用到本核心。它和分层参考核心 `tinycnn8_npu_top` 端口相同，MMIO ABI 也相同，
 `tinycnn8_npu_mmio_wrapper` 通过 `FUSED_CORE` 参数在两者之间切换（默认为 1）。分层核心继续保留，
 用作逐层 bit-exact 参考，也用于 profiler/trace 实验。
 
@@ -92,7 +93,7 @@ golden 用例中全部是 2,805。
 | maxpool2x2_engine + vector_unit | 有 | **无** |
 
 合计数据存储约从 10.8 KB 降到 3.7 KB。LUT/FF/DSP 和频率需要 Vivado（EGo1 xc7a35t）综合
-后才能确认。仓库里还没有综合脚本，这是下一步的工作。
+后才能确认。仓库已保留FPGA顶层与DRC检查脚本，但尚未取得本融合配置的综合结果。
 
 ## 4. 验证
 

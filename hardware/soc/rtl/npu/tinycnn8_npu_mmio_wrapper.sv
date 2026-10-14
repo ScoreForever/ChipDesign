@@ -179,6 +179,8 @@ module tinycnn8_npu_mmio_wrapper #(
         );
     end else begin : g_core
         tinycnn8_npu_top #(
+            .ACT_A_BANK_BYTES(640),
+            .ACT_B_BANK_BYTES(2560),
             .ARRAY_ROWS   (ARRAY_ROWS),
             .ARRAY_COLS   (ARRAY_COLS),
             .WEIGHT_WORDS (WEIGHT_WORDS),

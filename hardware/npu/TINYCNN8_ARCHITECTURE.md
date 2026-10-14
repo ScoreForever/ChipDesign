@@ -1,6 +1,6 @@
 # KWS TinyCNN-8-Flat NPU Architecture Baseline
 
-Status: current compute-core baseline. The authoritative SoC register map and
+Status: Flat layered reference core; production defaults to the fused core. The authoritative SoC register map and
 software/hardware boundary are in `docs/ARCHITECTURE.md`.
 
 ## 1. Accelerator boundary
@@ -58,7 +58,7 @@ Pool2 in bank A (160 INT8, NHWC) -> shared Matrix Unit as 1×1 Conv/FC
                                   -> four INT32 logits
 ```
 
-Activation flow:
+Layered activation flow:
 
 ```text
 input A(320 B) -> Conv1 B(2560 B) -> Pool1 A(640 B)
@@ -114,3 +114,20 @@ change requires matching weights, parameters, labels, and regression vectors.
 
 Icarus Verilog is the reproducible NPU simulator. Commercial simulation may
 supplement but does not replace it.
+
+## 7. Integrated fused default and retained main fixes (2026-10-14)
+
+The MMIO adapter defaults to `FUSED_CORE=1` (`tinycnn8_npu_fused`), version
+`0x0002_0002`. See [fused design](TINYCNN8_FUSED.md). `FUSED_CORE=0` selects this
+layered Flat reference, version `0x0002_0001`. Both use bases 0/9/81 in the
+8-column deployment and consume 160 FC inputs; layer2 remains reserved.
+
+The layered core retains eight byte banks per activation area and independent
+`ACT_A_BANK_BYTES`/`ACT_B_BANK_BYTES` parameters. Defaults inherit 4096 B;
+MMIO sets 640/2560 B. Reads are asynchronous, writes synchronous. The layered
+quantizer is parallel; the fused quantizer is one lane, four pipeline stages,
+II=1. Both retain the 32-bit Q31 rounding simplification from main.
+
+SoC SRAM/AXI retains its 3-cycle read pipeline. Prior FPGA PPA/DRC reports
+were for the GAP configuration and do not establish fused-core implementation
+results. ModelSim/Vivado were unavailable during this conflict resolution.

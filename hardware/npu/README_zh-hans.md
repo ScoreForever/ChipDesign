@@ -241,3 +241,17 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all_tests.ps1
 ```
+
+## 默认融合核心（PR #5）
+
+SoC默认选择`tinycnn8_npu_fused`，分层`tinycnn8_npu_top`仍用于逐层参考。
+两者都使用Flatten和160输入FC。融合核使用1 KiB激活存储、双bank权重和
+4级II=1单lane量化；分层MMIO实例保留八银行和A=640/B=2560 B容量优化。
+设计细节见 [TINYCNN8_FUSED.md](TINYCNN8_FUSED.md)。
+
+```sh
+python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
+```
+
+`requant_unit`现为分层并行参考接口；main的Q31舍入简化同时保留在它和
+融合`requant_lane`中。最新结构容量测试是`tb_tinycnn8_capacity`，不再执行GAP网络。

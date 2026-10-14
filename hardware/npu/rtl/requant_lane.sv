@@ -76,16 +76,8 @@ module requant_lane #(
     reg signed [7:0] s1_min, s1_max, s2_min, s2_max, s3_min, s3_max;
     reg [TAG_WIDTH-1:0] s1_tag, s2_tag, s3_tag;
 
-    reg signed [63:0] s2_rounded;
-    reg signed [63:0] s2_magnitude;
     reg signed [31:0] s3_scaled;
     always @* begin
-        s2_rounded = s2_product +
-            ((s2_product >= 0) ? 64'sd1073741824 : -64'sd1073741823);
-        if (s2_rounded >= 0)
-            s2_magnitude = s2_rounded >>> 31;
-        else
-            s2_magnitude = -((-s2_rounded) >>> 31);
         s3_scaled = rounding_divide_by_pot(s3_high, (s3_shift < 0) ? -s3_shift : 0);
     end
 
@@ -113,7 +105,7 @@ module requant_lane #(
             s2_shift <= s1_shift; s2_min <= s1_min; s2_max <= s1_max; s2_tag <= s1_tag;
 
             s3_valid <= s2_valid;
-            s3_high <= s2_exceptional ? INT32_MAX_VALUE : s2_magnitude[31:0];
+            s3_high <= s2_exceptional ? INT32_MAX_VALUE : s2_product[62:31] + {31'd0, s2_product[30]};
             s3_shift <= s2_shift; s3_min <= s2_min; s3_max <= s2_max; s3_tag <= s2_tag;
 
             out_valid <= s3_valid;

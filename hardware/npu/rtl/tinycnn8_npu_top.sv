@@ -11,7 +11,9 @@ module tinycnn8_npu_top #(
     parameter SHIFT_WIDTH=6,
     parameter OPT_GATHER_LOAD=0,
     parameter OPT_SPATIAL_TILE=0,
-    parameter SPATIAL_TILE=16
+    parameter SPATIAL_TILE=16,
+    parameter ACT_A_BANK_BYTES=ACT_BANK_BYTES,
+    parameter ACT_B_BANK_BYTES=ACT_BANK_BYTES
 ) (
     input wire clk,input wire rst,
     input wire start_valid,output wire start_ready,
@@ -45,6 +47,14 @@ module tinycnn8_npu_top #(
     localparam CONV1_WEIGHT_BASE=0;
     localparam CONV2_WEIGHT_BASE=9*INTERNAL_TILES;
     localparam FC_WEIGHT_BASE=CONV2_WEIGHT_BASE+72*INTERNAL_TILES;
+    // Bank activation storage by the low address bits. Eight consecutive
+    // byte writes then target one location in each bank, which lets Vivado
+    // infer distributed RAM instead of expanding each bank into flip-flops.
+    localparam ACT_BANKS=8;
+    localparam ACT_A_BANK_DEPTH=ACT_A_BANK_BYTES/ACT_BANKS;
+    localparam ACT_B_BANK_DEPTH=ACT_B_BANK_BYTES/ACT_BANKS;
+    localparam ACT_A_BANK_ADDR_WIDTH=$clog2(ACT_A_BANK_DEPTH);
+    localparam ACT_B_BANK_ADDR_WIDTH=$clog2(ACT_B_BANK_DEPTH);
     localparam MAX_TILES=(8+ARRAY_COLS-1)/ARRAY_COLS;
     localparam [3:0] IDLE=0,C1_START=1,C1_WAIT=2,P1_START=3,P1_WAIT=4,
         C2_START=5,C2_WAIT=6,P2_START=7,P2_WAIT=8,FC_START=9,FC_WAIT=10;
@@ -52,8 +62,17 @@ module tinycnn8_npu_top #(
     reg [3:0] cfg_class_count;
     reg [1:0] conv_phase;
 
-    reg [7:0] act_a[0:ACT_BANK_BYTES-1];
-    reg [7:0] act_b[0:ACT_BANK_BYTES-1];
+    reg [7:0] act_a_bank_wdata[0:ACT_BANKS-1];
+    reg [ACT_A_BANK_ADDR_WIDTH-1:0] act_a_bank_waddr[0:ACT_BANKS-1];
+    reg [ACT_BANKS-1:0] act_a_bank_wen;
+    reg [7:0] act_b_bank_wdata[0:ACT_BANKS-1];
+    reg [ACT_B_BANK_ADDR_WIDTH-1:0] act_b_bank_waddr[0:ACT_BANKS-1];
+    reg [ACT_BANKS-1:0] act_b_bank_wen;
+    reg [15:0] act_a_read_base,act_b_read_base;
+    wire [ACT_A_BANK_ADDR_WIDTH-1:0] act_a_bank_raddr[0:ACT_BANKS-1];
+    wire [ACT_B_BANK_ADDR_WIDTH-1:0] act_b_bank_raddr[0:ACT_BANKS-1];
+    wire [7:0] act_a_bank_rdata[0:ACT_BANKS-1];
+    wire [7:0] act_b_bank_rdata[0:ACT_BANKS-1];
     reg [ARRAY_COLS*8-1:0] weight_mem[0:WEIGHT_WORDS-1];
     reg [ARRAY_COLS*32-1:0] bias_conv1[0:MAX_TILES-1];
     reg [ARRAY_COLS*32-1:0] bias_conv2[0:MAX_TILES-1];
@@ -62,6 +81,26 @@ module tinycnn8_npu_top #(
     reg [ARRAY_COLS*32-1:0] mult_conv2[0:MAX_TILES-1];
     reg [ARRAY_COLS*SHIFT_WIDTH-1:0] shift_conv1[0:MAX_TILES-1];
     reg [ARRAY_COLS*SHIFT_WIDTH-1:0] shift_conv2[0:MAX_TILES-1];
+
+    // Each bank has one synchronous write port and one asynchronous read
+    // port, the supported distributed-RAM pattern for this byte-wide store.
+    genvar act_bank;
+    generate for(act_bank=0;act_bank<ACT_BANKS;act_bank=act_bank+1)begin: g_act_banks
+        reg [7:0] act_a_mem[0:ACT_A_BANK_DEPTH-1];
+        reg [7:0] act_b_mem[0:ACT_B_BANK_DEPTH-1];
+        assign act_a_bank_raddr[act_bank]=
+            (act_a_read_base[15:3]+(act_bank<act_a_read_base[2:0]));
+        assign act_b_bank_raddr[act_bank]=
+            (act_b_read_base[15:3]+(act_bank<act_b_read_base[2:0]));
+        assign act_a_bank_rdata[act_bank]=act_a_mem[act_a_bank_raddr[act_bank]];
+        assign act_b_bank_rdata[act_bank]=act_b_mem[act_b_bank_raddr[act_bank]];
+        always @(posedge clk)begin
+            if(act_a_bank_wen[act_bank])
+                act_a_mem[act_a_bank_waddr[act_bank]]<=act_a_bank_wdata[act_bank];
+            if(act_b_bank_wen[act_bank])
+                act_b_mem[act_b_bank_waddr[act_bank]]<=act_b_bank_wdata[act_bank];
+        end
+    end endgenerate
 
     wire conv_start_ready,conv_busy,conv_done;
     wire [ADDR_WIDTH-1:0] conv_act_addr,conv_weight_addr,conv_param_addr;
@@ -139,7 +178,9 @@ module tinycnn8_npu_top #(
         integer lane;
         // Conv1 input and both pooled tensors all reside in act_a. Pool2 is
         // already contiguous NHWC, so FC sees it as a 160-element vector.
-        conv_act_data=act_a[conv_act_addr];
+        act_a_read_base=conv_act_addr;
+        act_b_read_base=pool_act_addr;
+        conv_act_data=act_a_bank_rdata[conv_act_addr[2:0]];
         conv_bias_data=0;conv_mult_data=0;conv_shift_data=0;
         if(conv_phase==0)begin conv_bias_data=bias_conv1[conv_param_addr];
             conv_mult_data=mult_conv1[conv_param_addr];conv_shift_data=shift_conv1[conv_param_addr];end
@@ -148,7 +189,48 @@ module tinycnn8_npu_top #(
         else conv_bias_data=bias_fc[conv_param_addr];
         pool_act_data=0;
         for(lane=0;lane<ARRAY_COLS;lane=lane+1)begin
-            pool_act_data[lane*8 +: 8]=act_b[pool_act_addr+lane];
+            pool_act_data[lane*8 +: 8]=act_b_bank_rdata[(pool_act_addr+lane)%ACT_BANKS];
+        end
+    end
+
+    // Form one write per bank. The host and pool paths on act_a are mutually
+    // exclusive in the sequencer. Consecutive masked lane writes are distributed by
+    // address across the banks.
+    integer bank_i,lane_i,write_addr_i;
+    always @* begin : activation_write_banks
+        for(bank_i=0;bank_i<ACT_BANKS;bank_i=bank_i+1)begin
+            act_a_bank_wen[bank_i]=0;
+            act_a_bank_waddr[bank_i]=0;
+            act_a_bank_wdata[bank_i]=0;
+            act_b_bank_wen[bank_i]=0;
+            act_b_bank_waddr[bank_i]=0;
+            act_b_bank_wdata[bank_i]=0;
+            if(host_activation_we&&state==IDLE)begin
+                if((host_activation_addr%ACT_BANKS)==bank_i)begin
+                    act_a_bank_wen[bank_i]=1;
+                    act_a_bank_waddr[bank_i]=host_activation_addr/ACT_BANKS;
+                    act_a_bank_wdata[bank_i]=host_activation_data;
+                end
+            end else if(pool_write_valid)begin
+                for(lane_i=0;lane_i<ARRAY_COLS;lane_i=lane_i+1)begin
+                    write_addr_i=pool_write_addr+lane_i;
+                    if(pool_write_mask[lane_i]&&((write_addr_i%ACT_BANKS)==bank_i))begin
+                        act_a_bank_wen[bank_i]=1;
+                        act_a_bank_waddr[bank_i]=write_addr_i/ACT_BANKS;
+                        act_a_bank_wdata[bank_i]=pool_write_data[lane_i*8 +: 8];
+                    end
+                end
+            end
+            if(conv_write_valid)begin
+                for(lane_i=0;lane_i<ARRAY_COLS;lane_i=lane_i+1)begin
+                    write_addr_i=conv_write_addr+lane_i;
+                    if(conv_write_mask[lane_i]&&((write_addr_i%ACT_BANKS)==bank_i))begin
+                        act_b_bank_wen[bank_i]=1;
+                        act_b_bank_waddr[bank_i]=write_addr_i/ACT_BANKS;
+                        act_b_bank_wdata[bank_i]=conv_write_data[lane_i*8 +: 8];
+                    end
+                end
+            end
         end
     end
 
@@ -201,7 +283,6 @@ module tinycnn8_npu_top #(
         if(rst)begin state<=IDLE;done<=0;cfg_class_count<=0;conv_phase<=0;logits<=0;end
         else begin
             done<=0;
-            if(host_activation_we&&state==IDLE)act_a[host_activation_addr]<=host_activation_data;
             if(host_weight_we&&state==IDLE)weight_mem[host_weight_addr]<=host_weight_data;
             if(host_parameter_we&&state==IDLE)begin
                 case(host_parameter_layer)
@@ -215,12 +296,6 @@ module tinycnn8_npu_top #(
                     3:bias_fc[host_parameter_tile]<=host_bias_data;
                 endcase
             end
-            if(conv_write_valid)
-                for(lane=0;lane<ARRAY_COLS;lane=lane+1)
-                    if(conv_write_mask[lane])act_b[conv_write_addr+lane]<=conv_write_data[lane*8 +: 8];
-            if(pool_write_valid)
-                for(lane=0;lane<ARRAY_COLS;lane=lane+1)
-                    if(pool_write_mask[lane])act_a[pool_write_addr+lane]<=pool_write_data[lane*8 +: 8];
             if(conv_i32_valid)
                 for(lane=0;lane<ARRAY_COLS;lane=lane+1)
                     if(conv_i32_mask[lane])logits[(conv_i32_addr+lane)*32 +: 32]<=

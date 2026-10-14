@@ -38,5 +38,11 @@ Run the integrated SoC (ModelSim):
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_soc.ps1
 ```
 
+默认SoC使用融合Flat核心（`FUSED_CORE=1`）。运行融合核与两种MMIO核心选择回归：
+
+```sh
+python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
+```
+
 系统模型、量化、模块分工、MMIO接口和软硬件边界见
 `docs/ARCHITECTURE.md`。

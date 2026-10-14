@@ -30,6 +30,8 @@ jobs:
           python-version: '3.12'
       - name: Install RTL simulator
         run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Validate fused core and both MMIO selections
+        run: python3 hardware/npu/scripts/run_tinycnn8_fused_test.py --summary "${RUNNER_TEMP}/tinycnn8_fused.json"
       - name: Validate standalone and production MMIO paths
         run: python3 hardware/npu/scripts/run_tinycnn8_regression.py --output "${RUNNER_TEMP}/tinycnn8_results"
       - name: Preserve experiment evidence
@@ -37,5 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tinycnn8-rtl-evidence
-          path: ${{ runner.temp }}/tinycnn8_results
+          path: |
+            ${{ runner.temp }}/tinycnn8_results
+            ${{ runner.temp }}/tinycnn8_fused.json
           retention-days: 14

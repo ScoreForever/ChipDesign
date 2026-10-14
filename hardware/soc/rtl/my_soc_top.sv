@@ -407,7 +407,8 @@ module my_soc_top #(
   logic [31:0] sram_rdata;
 
   my_mainmem #(
-      .INIT_FILE(INIT_FILE)
+      .INIT_FILE(INIT_FILE),
+      .PIPELINED(1)
   ) i_mainmem (
       .clk_i  (clk_i),
       .rst_ni (ndmreset_n),
@@ -423,7 +424,8 @@ module my_soc_top #(
       .AXI_ID_WIDTH   (4),
       .AXI_ADDR_WIDTH (32),
       .AXI_DATA_WIDTH (32),
-      .AXI_USER_WIDTH (1)
+      .AXI_USER_WIDTH (1),
+      .READ_LATENCY  (3)
   ) i_axi2sram (
       .clk_i  (clk_i),
       .rst_ni (ndmreset_n),

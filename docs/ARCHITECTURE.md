@@ -1,7 +1,8 @@
 # KWS TinyCNN-8-Flat 芯片系统架构与软硬件边界
 
-本文是当前生产基线的权威说明，覆盖模型计算、量化规则、NPU RTL、性能优化、
-存储、SoC 接口和软硬件职责。旧六分类/GAP 方案只用于历史实验。
+本文按PR #5与main冲突解决后的实现核对，更新于2026-10-14。
+默认使用融合Flat核；分层Flat核保留为参考。此前7569a43的GAP/Flat接口不一致
+已通过恢复160输入FC和0/9/81权重布局解决。旧GAP模块保留独立测试。
 
 ## 1. 系统边界
 
@@ -60,7 +61,7 @@ FC 权重逐输出通道量化，四个 raw logit 的真实 scale 不同。CPU �
 ## 4. RTL 与性能优化
 
 生产核心是 `tinycnn8_npu_fused`（`FUSED_CORE=1`，默认），分层核心
-`tinycnn8_npu_top` 保留为逐层 bit-exact 参考。两者端口和 MMIO ABI 相同。
+`tinycnn8_npu_top` 保留为逐层 bit-exact 参考。两者host/装载窗口相同，VERSION与PERF_LAYER解释不同。
 
 ```text
 tinycnn8_npu_fused（生产）
@@ -88,10 +89,10 @@ tinycnn8_npu_top
 ```
 
 旧 `reduction_sum_unit`、`global_sum_pool_engine`、`global_avg_pool_engine`
-保留独立测试，但不进入生产顶层或 SoC filelist。
+保留独立测试及SoC filelist编译项，但不进入当前Flat顶层实例路径。
 
 远程 main 的性能优化已保留：`OPT_GATHER_LOAD` 可重叠固定 Conv2 的输入收集与
-权重装载；`OPT_SPATIAL_TILE` 使用 K-major 空间分块，默认 `SPATIAL_TILE=16`。
+权重装载；`OPT_SPATIAL_TILE` 使用 K-major 空间分块，默认 `SPATIAL_TILE=16`，但两项优化开关默认0。融合核固定tile16，不使用这两个开关。
 仅固定 4×8、`10×8×8`、`3×3 SAME` Conv2 使用优化路径，其余 descriptor 自动
 回退。优化复用同一 Matrix/Requant，不增加第二套计算核。
 
@@ -100,7 +101,7 @@ tinycnn8_npu_top
 融合核心：激活只有 1 KiB。输入 `0..319`，Pool1 `320..959`，Pool2 `0..159`（覆盖
 输入）。Conv 输出不落地。权重和参数布局与下文相同。以下是分层参考核心的布局：
 
-- 激活 bank A/B：各 4096 字节；
+- 分层核默认激活A/B各4096 B；MMIO参考实例设置A=640 B、B=2560 B；
 - 权重：256×64 bit，共 2048 字节；
 - 参数：Conv1、Conv2、FC 三组；
 - 输出：最多 8×INT32，生产模型前 4 路有效。
@@ -126,9 +127,10 @@ INT32 partial sums 及少量 tag/pack；行为数组仍需在物理实现阶段�
 
 生产 SoC 只实例化 `tinycnn8_npu_mmio_wrapper -> tinycnn8_npu_fused`
 （`FUSED_CORE=0` 时为分层参考核心 `tinycnn8_npu_top`）。历史算子级
-wrapper 已从远程 main 删除。BootRAM 复位后跳到 `0x8000_0000`；主 SRAM 行为
-模型是 2048×32 bit（8 KiB），通过 `$readmemh` 加载测试程序。该初始化方式不是
-最终 ASIC 存储实现。
+wrapper 已从远程 main 删除。BootRAM 复位后跳到 `0x8000_0000`；主SRAM为2048×32 bit（8 KiB）。生产SoC保持main的`PIPELINED=1`和
+AXI `READ_LATENCY=3`：请求输入、RAM读取、同步输出三级；背压期间保持读数据。
+复位屏蔽新请求，已接受请求可完成，SRAM内容保留。仿真用`$readmemh`加载程序，
+综合时关闭预载；FPGA程序运行时装入。该实现不是ASIC工艺SRAM。
 
 | 区域 | 基址 | 长度 |
 | --- | --- | --- |
@@ -185,4 +187,25 @@ profile；写性能地址返回错误6。
 
 截至 2026-10-08：强增强 INT8 accuracy/macro-F1 为 89.94%/90.00%；100 条真实
 语音四个 raw logit 与 RTL bit-exact；基础、baseline/tiled 调度、MMIO 和 SoC
-ModelSim 动态回归均须作为合并门槛。最终类别相同不能掩盖任何 1 LSB 差异。
+ModelSim动态回归属于部署验收项。本次合并可执行验证与未运行项见第9节；
+最终类别相同不能掩盖任何1 LSB差异。
+
+## 9. PR #5 与 main 的冲突解决（2026-10-14）
+
+- 默认融合核保留4×8双bank权重、输出侧累加、INT32池化和单lane II=1量化。
+- 分层参考恢复Flat计算图，同时保留main的八银行激活组织和独立A/B容量参数。
+  每银行同步写/异步读，`bank=addr%8`、`row=addr/8`，MMIO实例为640/2560 B。
+- 分层`requant_unit`采用并行参考接口，融合`requant_lane`采用4级流水、II=1接口；
+  两者保留main的32位Q31舍入简化`product[62:31]+product[30]`及INT32_MIN饱和特例。
+- main的AXI/SRAM三拍读、FPGA顶层、配置约束和DRC脚本保留。
+- 原GAP容量测试改为`tb_tinycnn8_capacity`，检查非零Flat网络、A=639/B=2559边界、
+  4/6/8类连续推理和默认/非对称容量；结构回归入口同步更新。
+- CI增加融合核与两种MMIO核心选择回归；原分层调度实验继续验证参考路径。
+
+此前FPGA资源和DRC数字属于GAP配置；默认核心更换后必须重新运行Vivado才能
+确认新的LUT/FF/DSP和时序。本机没有ModelSim/Vivado，本次不声明整SoC或综合通过。
+历史训练/100条真实语音结果保留为当时证据，不替代本次回归。
+
+本次本地验证：融合21个golden用例共33,936次比较（每次2,805周期），
+两种MMIO核心选择及分层容量640/2560、4096/4096均通过；完整分层调度回归
+通过，共224,292次逐元素比较。融合与分层回归已接入GitHub Actions。

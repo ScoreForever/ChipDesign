@@ -15,7 +15,7 @@ CPU / DMA
 tinycnn8_npu_mmio_wrapper
    |
    v
-tinycnn8_npu_top
+tinycnn8_npu_fused（默认；FUSED_CORE=0选择分层tinycnn8_npu_top）
    |
    +-- Conv1 -> Pool1 -> Conv2 -> Pool2 -> NHWC Flatten -> FC(160->4)
 ```
@@ -73,3 +73,6 @@ CPU测试程序通过正式MMIO窗口装入全零输入和模型，启动一次�
 
 SoC使用SystemVerilog interface和断言，不能用Icarus编译整个SoC；Icarus仍用于
 独立NPU和MMIO wrapper回归。
+
+主SRAM保持三拍读取和AXI `READ_LATENCY=3`。分层参考的MMIO实例激活容量640/2560 B，
+融合核使用1 KiB。GAP参数缺口通过恢复Flat网络解决；layer2仍保留并拒绝commit。
