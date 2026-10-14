@@ -32,3 +32,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all
 ```
 
 旧的Lab3测试文件仍保留作课程参考，但不是当前TinyCNN-8生产回归入口。
+
+结构优化的 ModelSim 回归（重定量、激活存储容量、SoC、DMA、AXI/SRAM 流水线）：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_structure_regression.ps1
+```
+
+该入口创建独立仿真库，并关闭 VCD 记录。资源对比和测试边界见
+[`FPGA_STRUCTURE_OPTIMIZATION.md`](../../../docs/FPGA_STRUCTURE_OPTIMIZATION.md)。
+后续 DRC 修正和读延迟代价见
+[`FPGA_DRC_CLOSURE.md`](../../../docs/FPGA_DRC_CLOSURE.md)。

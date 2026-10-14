@@ -132,6 +132,10 @@ module tinycnn8_npu_mmio_wrapper #(
     tinycnn8_npu_top #(
         .ARRAY_ROWS   (ARRAY_ROWS),
         .ARRAY_COLS   (ARRAY_COLS),
+        // Bank A holds input (320), Pool1 (640), and Pool2 (160) bytes.
+        // Bank B holds Conv1 (2560), Conv2 (640), and GAP (8) bytes.
+        .ACT_A_BANK_BYTES(640),
+        .ACT_B_BANK_BYTES(2560),
         .WEIGHT_WORDS (WEIGHT_WORDS),
         .SHIFT_WIDTH  (SHIFT_WIDTH),
         .OPT_GATHER_LOAD(OPT_GATHER_LOAD),

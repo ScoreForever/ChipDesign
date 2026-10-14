@@ -10,7 +10,11 @@ module tinycnn8_npu_top #(
     parameter SHIFT_WIDTH=6,
     parameter OPT_GATHER_LOAD=0,
     parameter OPT_SPATIAL_TILE=0,
-    parameter SPATIAL_TILE=16
+    parameter SPATIAL_TILE=16,
+    // Default to symmetric banks for existing users. Fixed-network wrappers
+    // can size each ping-pong bank for the largest tensor it actually stores.
+    parameter ACT_A_BANK_BYTES=ACT_BANK_BYTES,
+    parameter ACT_B_BANK_BYTES=ACT_BANK_BYTES
 ) (
     input wire clk,input wire rst,
     input wire start_valid,output wire start_ready,
@@ -43,8 +47,10 @@ module tinycnn8_npu_top #(
     // byte writes then target one location in each bank, which lets Vivado
     // infer distributed RAM instead of expanding each bank into flip-flops.
     localparam ACT_BANKS=8;
-    localparam ACT_BANK_DEPTH=ACT_BANK_BYTES/ACT_BANKS;
-    localparam ACT_BANK_ADDR_WIDTH=$clog2(ACT_BANK_DEPTH);
+    localparam ACT_A_BANK_DEPTH=ACT_A_BANK_BYTES/ACT_BANKS;
+    localparam ACT_B_BANK_DEPTH=ACT_B_BANK_BYTES/ACT_BANKS;
+    localparam ACT_A_BANK_ADDR_WIDTH=$clog2(ACT_A_BANK_DEPTH);
+    localparam ACT_B_BANK_ADDR_WIDTH=$clog2(ACT_B_BANK_DEPTH);
     localparam MAX_TILES=(8+ARRAY_COLS-1)/ARRAY_COLS;
     localparam [3:0] IDLE=0,C1_START=1,C1_WAIT=2,P1_START=3,P1_WAIT=4,
         C2_START=5,C2_WAIT=6,P2_START=7,P2_WAIT=8,GAP_START=9,GAP_WAIT=10,
@@ -54,14 +60,14 @@ module tinycnn8_npu_top #(
     reg [1:0] conv_phase;
 
     reg [7:0] act_a_bank_wdata[0:ACT_BANKS-1];
-    reg [ACT_BANK_ADDR_WIDTH-1:0] act_a_bank_waddr[0:ACT_BANKS-1];
+    reg [ACT_A_BANK_ADDR_WIDTH-1:0] act_a_bank_waddr[0:ACT_BANKS-1];
     reg [ACT_BANKS-1:0] act_a_bank_wen;
     reg [7:0] act_b_bank_wdata[0:ACT_BANKS-1];
-    reg [ACT_BANK_ADDR_WIDTH-1:0] act_b_bank_waddr[0:ACT_BANKS-1];
+    reg [ACT_B_BANK_ADDR_WIDTH-1:0] act_b_bank_waddr[0:ACT_BANKS-1];
     reg [ACT_BANKS-1:0] act_b_bank_wen;
     reg [15:0] act_a_read_base,act_b_read_base;
-    wire [ACT_BANK_ADDR_WIDTH-1:0] act_a_bank_raddr[0:ACT_BANKS-1];
-    wire [ACT_BANK_ADDR_WIDTH-1:0] act_b_bank_raddr[0:ACT_BANKS-1];
+    wire [ACT_A_BANK_ADDR_WIDTH-1:0] act_a_bank_raddr[0:ACT_BANKS-1];
+    wire [ACT_B_BANK_ADDR_WIDTH-1:0] act_b_bank_raddr[0:ACT_BANKS-1];
     wire [7:0] act_a_bank_rdata[0:ACT_BANKS-1];
     wire [7:0] act_b_bank_rdata[0:ACT_BANKS-1];
     reg [ARRAY_COLS*8-1:0] weight_mem[0:WEIGHT_WORDS-1];
@@ -79,8 +85,8 @@ module tinycnn8_npu_top #(
     // port, the supported distributed-RAM pattern for this byte-wide store.
     genvar act_bank;
     generate for(act_bank=0;act_bank<ACT_BANKS;act_bank=act_bank+1)begin: g_act_banks
-        reg [7:0] act_a_mem[0:ACT_BANK_DEPTH-1];
-        reg [7:0] act_b_mem[0:ACT_BANK_DEPTH-1];
+        reg [7:0] act_a_mem[0:ACT_A_BANK_DEPTH-1];
+        reg [7:0] act_b_mem[0:ACT_B_BANK_DEPTH-1];
         assign act_a_bank_raddr[act_bank]=
             (act_a_read_base[15:3]+(act_bank<act_a_read_base[2:0]));
         assign act_b_bank_raddr[act_bank]=

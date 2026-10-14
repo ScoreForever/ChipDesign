@@ -44,27 +44,19 @@ module requant_unit #(
 
     assign in_ready = !busy && (!out_valid || out_ready) && !rst;
 
-    // gemmlowp/TFLite SaturatingRoundingDoublingHighMul. Division is used
-    // here to make truncation toward zero explicit for negative products.
+    // gemmlowp/TFLite SaturatingRoundingDoublingHighMul. For both product
+    // signs, its sign-dependent nudge and truncation toward zero equal
+    // floor((product + 2^30) / 2^31). The low 31 bits contribute only bit 30
+    // as a carry into the retained word; no 64-bit add/negate is needed.
     function automatic signed [31:0] saturating_rounding_high_mul_product;
         input signed [63:0] product;
         input exceptional;
-        reg signed [63:0] nudge;
-        reg signed [63:0] rounded_product;
-        reg signed [63:0] magnitude;
         begin
             if (exceptional) begin
                 saturating_rounding_high_mul_product = INT32_MAX_VALUE;
             end else begin
-                nudge = (product >= 0) ? 64'sd1073741824 : -64'sd1073741823;
-                rounded_product = product + nudge;
-                // Signed division by 2^31 with truncation toward zero. Write
-                // it as shifts so synthesis cannot infer a general divider.
-                if (rounded_product >= 0)
-                    magnitude = rounded_product >>> 31;
-                else
-                    magnitude = -((-rounded_product) >>> 31);
-                saturating_rounding_high_mul_product = magnitude[31:0];
+                saturating_rounding_high_mul_product =
+                    product[62:31] + {31'd0, product[30]};
             end
         end
     endfunction
