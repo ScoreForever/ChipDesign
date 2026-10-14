@@ -5,15 +5,28 @@
 /* Mirrors tools/quantize.py, including negative rounding and saturation. */
 int32_t kws_scale(int32_t value, int32_t multiplier, int shift) {
     if (shift > 0) {
-        int64_t wide = (int64_t)value * ((int64_t)1 << shift);
-        value = wide > INT32_MAX ? INT32_MAX : wide < INT32_MIN ? INT32_MIN : (int32_t)wide;
+        if (value > (INT32_MAX >> shift)) value = INT32_MAX;
+        else if (value < (INT32_MIN >> shift)) value = INT32_MIN;
+        else value = (int32_t)((uint32_t)value << shift);
     }
     int32_t high;
     if (value == INT32_MIN && multiplier == INT32_MIN) high = INT32_MAX;
     else {
-        int64_t product = (int64_t)value * multiplier;
-        int64_t rounded = product + (product >= 0 ? 1073741824LL : -1073741823LL);
-        high = rounded >= 0 ? (int32_t)(rounded >> 31) : -(int32_t)((-rounded) >> 31);
+        uint32_t low, upper;
+#if defined(__riscv) && __riscv_xlen == 32
+        __asm__("mulh %0, %2, %3\n\tmul %1, %2, %3"
+                : "=&r"(upper), "=r"(low) : "r"(value), "r"(multiplier));
+#else
+        uint64_t product = (uint64_t)((int64_t)value * multiplier);
+        low = (uint32_t)product;
+        upper = (uint32_t)(product >> 32);
+#endif
+        /* floor((product + 2^30) / 2^31) also implements the negative
+         * nudge followed by truncation toward zero. Use unsigned halves
+         * so the carry and doubled high word cannot overflow signed C. */
+        uint32_t rounded = low + 0x40000000u;
+        upper += rounded < low;
+        high = (int32_t)((upper << 1) | (rounded >> 31));
     }
     if (shift < 0) {
         unsigned exponent = (unsigned)-shift;
@@ -54,7 +67,24 @@ int kws_load_model(const kws_model *model) {
 int kws_load_input(const int8_t input[320]) {
     int error = idle();
     if (error) return error;
-    for (unsigned i = 0; i < 320; ++i) npu_write_input(i, input[i]);
+    if ((uintptr_t)input & 3u) {
+        for (unsigned i = 0; i < 320; ++i) npu_write_input(i, input[i]);
+    } else {
+        const uint8_t *src = __builtin_assume_aligned(input, 4);
+        volatile uint32_t *dst = (volatile uint32_t *)(uintptr_t)(NPU_BASE + NPU_INPUT);
+        for (unsigned i = 0; i < 80; ++i) {
+            uint32_t word;
+            /* Fixed-size memcpy permits an aligned lw without violating
+             * the effective type of the caller's INT8 array. RV32 is LE. */
+            __builtin_memcpy(&word, src, sizeof word);
+            dst[0] = word & 0xffu;
+            dst[1] = (word >> 8) & 0xffu;
+            dst[2] = (word >> 16) & 0xffu;
+            dst[3] = word >> 24;
+            src += 4;
+            dst += 4;
+        }
+    }
     return idle();
 }
 int kws_start_wait(uint32_t poll_limit) {
