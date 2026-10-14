@@ -1,0 +1,1371 @@
+{
+  "status": "PASS",
+  "kind": "real_speech",
+  "samples": 100,
+  "logit_comparisons": 400,
+  "pooled_byte_comparisons": 80000,
+  "event_edges": 280600,
+  "jobs": [
+    {
+      "job": 0,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 1,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 2,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 3,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 4,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 5,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 6,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 7,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 8,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 9,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 10,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 11,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 12,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 13,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 14,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 15,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 16,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 17,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 18,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 19,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 20,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 21,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 22,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 23,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 24,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 25,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 26,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 27,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 28,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 29,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 30,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 31,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 32,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 33,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 34,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 35,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 36,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 37,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 38,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 39,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 40,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 41,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 42,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 43,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 44,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 45,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 46,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 47,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 48,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 49,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 50,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 51,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 52,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 53,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 54,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 55,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 56,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 57,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 58,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 59,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 60,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 61,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 62,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 63,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 64,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 65,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 66,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 67,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 68,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 69,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 70,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 71,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 72,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 73,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 74,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 75,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 76,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 77,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 78,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 79,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 80,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 81,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 82,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 83,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 84,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 85,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 86,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 87,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 88,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 89,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 90,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 91,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 92,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 93,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 94,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 95,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 96,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 97,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 98,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    },
+    {
+      "job": 99,
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "issues": 2440,
+      "weight_rows": 760,
+      "quantized_bytes": 800,
+      "peak_inflight": 11
+    }
+  ],
+  "negative_checks": [
+    "retire",
+    "retire_tag",
+    "array_value",
+    "activation_address",
+    "pool_value",
+    "write_value",
+    "profiler",
+    "requant_latency",
+    "clock_gap",
+    "bank_hazard"
+  ],
+  "confusion": [
+    [
+      25,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      22,
+      0,
+      3
+    ],
+    [
+      0,
+      1,
+      23,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      23
+    ]
+  ],
+  "sample_accuracy": 0.93,
+  "vector_manifest_sha256": "153295d7a73c0302abcc710bfeda23c306d6815b3fdd8f0ad110e55051572b22",
+  "package_sha256": "2c393a3ca92f77dfbf24605f5e8047bdf116b94e8fdf356e7d2a0c384030a595",
+  "source_sha256": {
+    "hardware/npu/rtl/ws_pe.sv": "aed1c371037cef18defe0b2fde6d01cfaf94862580293a0072eddbca69110654",
+    "hardware/npu/rtl/ws_systolic_array.sv": "e2cf5a0e401ecc54655d70b1156903ebb8e415c7861baefe3826145c26d94db6",
+    "hardware/npu/rtl/matrix_unit.sv": "fb299733080942e57fa809fc9dd63471ff6c87ddf6221f1d53aaf7be384e0a30",
+    "hardware/npu/rtl/vector_unit.sv": "fc53ee565570e7e352623cadbd1afccb0a5be1e550df297e1b7e1d57407adbe2",
+    "hardware/npu/rtl/requant_unit.sv": "940bd7dad3e65ceb4a4683d194d84d873c758d6644bec5fcbe535551098fbdc8",
+    "hardware/npu/rtl/conv_window_addr_gen.sv": "35a6f9f39b43c41ab916c15ce2fb5841685088d13caa587b4727066fd91eb6cb",
+    "hardware/npu/rtl/conv2d_engine.sv": "dff6b8449ab2c95ca07bda80a692e3b2f2a08e171d4061f04100cc8c18e93319",
+    "hardware/npu/rtl/maxpool2x2_engine.sv": "6440c71885a92ec2750864a23e0cb1d0ece8db6223b24887dbd27ea150e19113",
+    "hardware/npu/rtl/tinycnn8_npu_top.sv": "bf5f32dbc85fb7d2be606e4e3e5d1edae29553b4a9ccd9c1064ae0314d689eed",
+    "hardware/npu/rtl/fused_ws_array.sv": "e73b3ab9284c73632bf390744bb98353da73bc41545ff7e2bbb123400e34dee7",
+    "hardware/npu/rtl/requant_lane.sv": "43890f97abba08208f1e4e9bc8274340bd9c046c65690951ea237c8bb42bccd5",
+    "hardware/npu/rtl/tinycnn8_npu_fused.sv": "04d35161dcb8c1373559eaa706b95eb717e891b12c36817130054b309fc6470d",
+    "hardware/npu/tb/tb_tinycnn8_trained_model.sv": "e4a06e07cecd6f6f4937c1c69dcb749a51a35851cca0045ee5976de818d5da53",
+    "hardware/npu/tb/fused_event_trace.svh": "adf8be068cffd93b975fb53997f789bd70a5533c3d8782c03489d0adb4b12981",
+    "hardware/npu/tools/check_fused_events.py": "064fcffb95dfd045184859cbbfa6e2ca7032cd09fff33b51a52027e31d27f392",
+    "hardware/npu/tools/test_fused_events.py": "977040ce706087f8032c61f6c54ed408a2ac4d3c2fe6da06d4c0b33e67ca4fac",
+    "hardware/npu/scripts/run_tinycnn8_speech_test.py": "4fd3d9336b733cf5f8052fb5b05dbbc1d7063eaa7ac6efc7df18bbc3421f7334"
+  },
+  "iverilog": "Icarus Verilog version 12.0 (stable) ()"
+}

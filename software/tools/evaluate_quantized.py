@@ -1,6 +1,8 @@
 """在 GSCD 验证/测试集上评估导出的 INT8 部署包。"""
 
 import argparse
+import hashlib
+import json
 import os
 import sys
 
@@ -43,6 +45,7 @@ def main():
     parser.add_argument('--data-dir', required=True)
     parser.add_argument('--split', choices=('validation', 'test'), default='test')
     parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--json', help='save exact metrics and model hash')
     args = parser.parse_args()
     with np.load(args.package, allow_pickle=False) as loaded:
         pkg = {key: loaded[key] for key in loaded.files}
@@ -62,6 +65,15 @@ def main():
     print('per-class recall: ' + ', '.join(
         f'{labels[i]}={recall[i]:.4f}' for i in range(len(labels))
     ))
+    if args.json:
+        with open(args.package, 'rb') as handle:
+            package_hash = hashlib.sha256(handle.read()).hexdigest()
+        with open(args.json, 'w', encoding='utf-8') as handle:
+            json.dump({'split': args.split, 'seed': args.seed, 'count': len(dataset),
+                       'labels': labels, 'accuracy': accuracy, 'macro_f1': macro_f1,
+                       'confusion': confusion.tolist(), 'recall': recall.tolist(),
+                       'package_sha256': package_hash}, handle, indent=2)
+            handle.write('\n')
 
 
 if __name__ == '__main__':

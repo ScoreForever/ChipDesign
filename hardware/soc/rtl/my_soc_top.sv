@@ -2,7 +2,7 @@
 `include "axi/assign.svh"
 
 module my_soc_top #(
-    parameter string INIT_FILE = "hardware/soc/sim/sw/chipdesign_npu_test.hex"
+    parameter INIT_FILE = "hardware/soc/sim/sw/chipdesign_npu_test.hex"
 ) (
     input   logic   clk_i,
     input   logic   rst_ni,

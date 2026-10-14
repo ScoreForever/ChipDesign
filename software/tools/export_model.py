@@ -7,6 +7,7 @@
 import os
 import sys
 import argparse
+import hashlib
 
 import numpy as np
 import torch
@@ -207,6 +208,10 @@ def export(checkpoint_path, data_dir, calib_size, device):
     )
 
     pkg = {
+        'checkpoint_sha256': np.asarray(hashlib.sha256(open(checkpoint_path, 'rb').read()).hexdigest()),
+        'training_epoch': np.int32(ckpt.get('epoch', -1)),
+        'training_augmentation': np.asarray(ckpt.get('augmentation', 'unknown')),
+        'training_label_smoothing': np.float32(ckpt.get('label_smoothing', 0.0)),
         'num_classes': ckpt['num_classes'],
         'labels': np.asarray(labels),
         'preprocess_frame_len': np.int32(preprocess.FRAME_LEN),
