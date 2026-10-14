@@ -83,8 +83,8 @@ def unpack_conv2(packed):
     return W
 
 
-def infer(pkg, input_int8):
-    """pkg: 导出包 dict；input_int8: (20, 16) 或 (320,) int8 -> (class_count,) int32 logits。"""
+def infer_with_intermediates(pkg, input_int8):
+    """Return pooled tensors and raw logits for independent RTL comparison."""
     if np.asarray(pkg.get('model_head', '')).item() != 'flatten':
         raise ValueError('golden model accepts only the Flatten deployment ABI')
     if int(np.asarray(pkg['num_classes']).item()) != 4:
@@ -101,7 +101,12 @@ def infer(pkg, input_int8):
     p2 = _maxpool2x2(c2)                                                   # (5,4,8)
     flat = p2.reshape(-1)                                                   # NHWC (160,)
     logits = _fc_int8(flat, pkg['fc_w'], pkg['fc_bias'])                   # (class_count,)
-    return logits
+    return {'pool1': p1, 'pool2': p2, 'logits': logits}
+
+
+def infer(pkg, input_int8):
+    """Deployment package + INT8 input -> raw INT32 logits."""
+    return infer_with_intermediates(pkg, input_int8)['logits']
 
 
 def argmax_with_fc_compare(logits, fc_cmp_mult, fc_cmp_shift):

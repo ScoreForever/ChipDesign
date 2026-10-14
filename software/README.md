@@ -1,5 +1,10 @@
 # TinyCNN-8-Flat 软件训练、量化与验证
 
+2026-10-14：保持RTL兼容的弱增强+label smoothing训练对照，在本次重训基线上
+将INT8 test准确率从89.57%提高到90.06%。未超过历史最好90.56%；完整协议与边界见
+[模型准确率实验](../docs/MODEL_ACCURACY_OPTIMIZATION.md)。选中模型已通过
+[融合核真实语音与逐周期验证](../docs/FUSED_SPEECH_VALIDATION.md)。
+
 当前正式软件基线是四分类 `yes/no/up/down` 的 TinyCNN-8-Flat。完整规格见
 [`docs/MODEL_TRAINING_PLAN.md`](../docs/MODEL_TRAINING_PLAN.md)，硬件整数契约见
 [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md)。
@@ -58,6 +63,15 @@ D:\conda\envs\ml\python.exe software/tools/evaluate_quantized.py `
 Conv2 `[9,81)`、FC `[81,241)`。
 
 ## 真实模型 RTL 对拍
+
+当前融合/分层双核心验证入口（带来源hash和独立逐周期检查）：
+
+```sh
+python3 hardware/npu/scripts/run_tinycnn8_speech_test.py \
+  --vector-dir /path/to/exported-vectors --output /path/to/new-results
+```
+
+下面的PowerShell入口仍默认验证分层参考核。
 
 ```powershell
 D:\conda\envs\ml\python.exe software/tools/export_rtl_vectors.py `

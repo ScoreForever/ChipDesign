@@ -29,6 +29,9 @@ LAYERED = [RTL / f"{name}.sv" for name in (
     "ws_pe", "ws_systolic_array", "matrix_unit", "vector_unit", "requant_unit",
     "conv_window_addr_gen", "conv2d_engine", "maxpool2x2_engine", "tinycnn8_npu_top")]
 WRAPPER = ROOT / "hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv"
+sys.path.insert(0, str(NPU / "tools"))
+from check_fused_events import check_trace, read_hex  # noqa: E402
+from test_fused_events import negative_checks  # noqa: E402
 PROFILE = re.compile(r"PROFILE run=(\d+) classes=(\d+) total=(\d+) C1=(\d+) C2=(\d+) FC=(\d+) "
                      r"weight_rows=(\d+) issues=(\d+) peak_inflight=(\d+)")
 
@@ -88,21 +91,32 @@ def main():
             print(run(["vvp", image], "ALL FLAT CAPACITY TESTS PASSED").strip())
             summary["units"].append(f"tb_tinycnn8_capacity A={a_bytes} B={b_bytes}")
 
-        image = compile_tb(build, "tb_tinycnn8_fused_golden", FUSED + [NPU / "tb/tb_tinycnn8_fused_golden.sv"])
+        image = compile_tb(build, "tb_tinycnn8_fused_golden", FUSED + [NPU / "tb/tb_tinycnn8_fused_golden.sv"],
+                           defines=("TINYCNN8_FUSED_EVENTS",))
         cases = [(seed, 1 + (seed - 1) % 8, "random") for seed in range(1, options.seeds + 1)]
         cases += [(11, 6, "impulse"), (12, 4, "impulse"), (5, 6, "extreme"), (6, 8, "extreme"), (7, 4, "random")]
         compared = 0
         for seed, classes, pattern in cases:
             data = build / f"{pattern}_s{seed}_c{classes}"
             golden.generate(data, seed=seed, classes=classes, pattern=pattern)
-            text = run(["vvp", image, f"+DATA_DIR={data}", f"+CLASSES={classes}"], "PASS fused golden")
+            trace = data / "events.csv"
+            text = run(["vvp", image, f"+DATA_DIR={data}", f"+CLASSES={classes}",
+                        f"+EVENT_TRACE={trace}"], "PASS fused golden")
+            args = ([read_hex(data / "input.hex")], read_hex(data / "weights.hex"),
+                    read_hex(data / "bias.hex"), read_hex(data / "multiplier.hex"),
+                    read_hex(data / "shift.hex"), classes)
+            events = check_trace(trace, *args)
+            if len(events) != 2:
+                raise SystemExit(f"FAIL: missing event jobs for {data.name}")
+            if not summary["cases"]:
+                summary["negative_event_checks"] = negative_checks(trace, *args)
             profiles = [dict(zip(("run", "classes", "total", "c1", "c2", "fc", "weight_rows",
                                   "issues", "peak_inflight"), map(int, m.groups())))
                         for m in PROFILE.finditer(text)]
             if len(profiles) != 2 or profiles[0]["total"] != profiles[1]["total"]:
                 raise SystemExit(f"FAIL: unstable or missing profile for {data.name}")
             compared += 2 * (640 + 160 + 8)
-            summary["cases"].append({"case": data.name, "profile": profiles[0]})
+            summary["cases"].append({"case": data.name, "profile": profiles[0], "event_jobs": events})
             p = profiles[0]
             print(f"PASS {data.name}: total={p['total']} C1={p['c1']} C2={p['c2']} FC={p['fc']} "
                   f"weight_rows={p['weight_rows']} issues={p['issues']}")

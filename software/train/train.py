@@ -56,7 +56,7 @@ def evaluate(model, dl, loss_fn, device, num_classes=None):
     }
 
 
-def checkpoint(epoch, model, metrics, labels, augmentation):
+def checkpoint(epoch, model, metrics, labels, augmentation, label_smoothing=0.0):
     return {
         'epoch': epoch,
         'state_dict': model.state_dict(),
@@ -64,6 +64,7 @@ def checkpoint(epoch, model, metrics, labels, augmentation):
         'labels': list(labels),
         'model_head': model.head,
         'augmentation': augmentation,
+        'label_smoothing': label_smoothing,
         'val_accuracy': metrics['accuracy'],
         'val_macro_f1': metrics['macro_f1'],
         'preprocess': {
@@ -89,6 +90,10 @@ def main():
     p.add_argument('--task', choices=tuple(TASK_LABELS), default=DEFAULT_TASK)
     p.add_argument('--augmentation', choices=('strong', 'weak', 'none'), default='strong')
     p.add_argument('--head', choices=('gap', 'flatten'), default='flatten')
+    p.add_argument('--label-smoothing', type=float, default=0.0,
+                   help='training-only regularization; deployment architecture is unchanged')
+    p.add_argument('--skip-test', action='store_true',
+                   help='select experiments on validation before any held-out test evaluation')
     args = p.parse_args()
 
     random.seed(args.seed)
@@ -136,7 +141,10 @@ def main():
 
     opt = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     sched = torch.optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs)
-    loss_fn = nn.CrossEntropyLoss()
+    if not 0 <= args.label_smoothing < 1:
+        raise ValueError('--label-smoothing must be in [0,1)')
+    loss_fn = nn.CrossEntropyLoss(label_smoothing=args.label_smoothing)
+    eval_loss_fn = nn.CrossEntropyLoss()
 
     best_f1 = -1.0
     for epoch in range(1, args.epochs + 1):
@@ -158,7 +166,7 @@ def main():
         sched.step()
         train_acc = correct / total
         train_loss = loss_sum / n
-        val = evaluate(model, val_dl, loss_fn, device, num_classes)
+        val = evaluate(model, val_dl, eval_loss_fn, device, num_classes)
         print(f'epoch {epoch:3d}/{args.epochs}  '
               f'train loss {train_loss:.4f} acc {train_acc:.4f}  '
               f"val loss {val['loss']:.4f} acc {val['accuracy']:.4f} "
@@ -166,14 +174,17 @@ def main():
               f'{time.time() - t0:.1f}s', flush=True)
         if val['macro_f1'] > best_f1:
             best_f1 = val['macro_f1']
-            torch.save(checkpoint(epoch, model, val, labels, args.augmentation),
+            torch.save(checkpoint(epoch, model, val, labels, args.augmentation, args.label_smoothing),
                        os.path.join(out_dir, 'best.pt'))
-    torch.save(checkpoint(args.epochs, model, val, labels, args.augmentation),
+    torch.save(checkpoint(args.epochs, model, val, labels, args.augmentation, args.label_smoothing),
                os.path.join(out_dir, 'last.pt'))
 
     best = torch.load(os.path.join(out_dir, 'best.pt'), map_location=device)
     model.load_state_dict(best['state_dict'])
-    test = evaluate(model, test_dl, loss_fn, device, num_classes)
+    if args.skip_test:
+        print(f"best epoch={best['epoch']} val macro_f1={best['val_macro_f1']:.4f}; test deferred", flush=True)
+        return
+    test = evaluate(model, test_dl, eval_loss_fn, device, num_classes)
     print(f"best epoch={best['epoch']} val macro_f1={best['val_macro_f1']:.4f}", flush=True)
     print(f"test loss={test['loss']:.4f} acc={test['accuracy']:.4f} "
           f"macro_f1={test['macro_f1']:.4f}", flush=True)
