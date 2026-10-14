@@ -3,7 +3,8 @@
 module my_npu_subsystem #(
     parameter int OPT_GATHER_LOAD = 0,
     parameter int OPT_SPATIAL_TILE = 0,
-    parameter int SPATIAL_TILE = 16
+    parameter int SPATIAL_TILE = 16,
+    parameter int FUSED_CORE = 1
 ) (
     input  logic        clk_i,
     input  logic        rst_ni,
@@ -31,7 +32,8 @@ module my_npu_subsystem #(
       .SHIFT_WIDTH(6),
       .OPT_GATHER_LOAD(OPT_GATHER_LOAD),
       .OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),
-      .SPATIAL_TILE(SPATIAL_TILE)
+      .SPATIAL_TILE(SPATIAL_TILE),
+      .FUSED_CORE(FUSED_CORE)
   ) i_npu_core (
       .clk_i   (clk_i),
       .rst_ni  (rst_ni),

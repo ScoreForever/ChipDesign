@@ -5,18 +5,11 @@
 > [MODEL_TRAINING_RESULTS.md](MODEL_TRAINING_RESULTS.md)。修改冻结项前必须同时检查
 > 训练代码、导出器、整数黄金模型、RTL 和 CPU 端软件。
 
-## 当前实现兼容性（2026-10-14）
-
-本文为Flatten软件训练/导出规格。当前main RTL实际执行GAP和FC(8→class_count)，
-权重基址0/32/192；MMIO拒绝GAP层2commit。本文的160输入FC、0/9/81布局和
-真实语音验收要求尚未与当前硬件统一，不能作为当前生产RTL的已实现规格。
-当前硬件行为见 [ARCHITECTURE.md](ARCHITECTURE.md)。
-
 ## 1. 当前基线与验收标准
 
-当前软件模型为四分类 `TinyCNN-8-Flat`：`yes/no/up/down`。Pool2 的
-`5×4×8` 特征按 NHWC 顺序直接展平为 160 维，再连接 `FC(160→4)`；GAP
-分类头和六分类任务在软件中用于实验，不进入本导出器的Flatten包；当前RTL仍使用GAP。
+当前正式模型为四分类 `TinyCNN-8-Flat`：`yes/no/up/down`。Pool2 的
+`5×4×8` 特征按 NHWC 顺序直接展平为 160 维，再连接 `FC(160→4)`；旧的 GAP
+分类头和六分类任务只保留为历史对照，不进入当前部署包和生产 NPU 数据通路。
 
 验收分为四层：
 
@@ -104,14 +97,13 @@ real_multiplier[c] = input_scale * weight_scale[c] / output_scale
 
 部署包包含前处理元数据、标签、scale、Conv1/Conv2/FC 权重与 bias、卷积
 multiplier/shift、FC 比较参数，以及可直接写入 NPU 的 `256×8` INT8 权重镜像。
-Flatten 软件包的 8-lane 布局为 Conv1 base=0、Conv2 base=9、FC base=81，共用到 241 个
+生产 8-lane 布局为 Conv1 base=0、Conv2 base=9、FC base=81，共用到 241 个
 64-bit word。
 
 ## 4. 软硬件边界
 
 软件负责训练、BN 折叠、量化、权重打包、log-mel、输入量化、模型装载以及最终
-logit 尺度统一和分类。本文目标硬件负责两个卷积、两个MaxPool、NHWC Flatten解释和FC；
-当前RTL实际使用GAP，需先统一实现。
+logit 尺度统一和分类。NPU 负责两个卷积、两个 MaxPool、NHWC Flatten 解释和 FC。
 CPU 每次只发一个 start；NPU 自动完成整张网络。
 
 ## 5. 标准命令

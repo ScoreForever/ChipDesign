@@ -1,8 +1,8 @@
 `timescale 1ns/1ps
-// Regression for the current Conv/Pool/Conv/Pool/GAP/FC implementation.
+// Regression for the current Conv/Pool/Conv/Pool/Flatten/FC implementation.
 // Exercise every Conv1 activation location, including byte 2559, and compare
 // nonzero logits against a hand-computed identity-convolution network.
-module tb_tinycnn8_gap_capacity;
+module tb_tinycnn8_capacity;
     parameter ACT_BANK_BYTES=2560;
     parameter ACT_A_BANK_BYTES=640;
     reg clk=0,rst=1,start_valid=0;
@@ -70,8 +70,8 @@ module tb_tinycnn8_gap_capacity;
     endtask
     task run_and_check;
         input integer classes,input_value;
-        integer index,cycles,o,c,expected,y,x,dy,dx,pool_max,spatial_sum,channel_mean;
-        reg signed [63:0] mean_product;
+        integer index,cycles,o,c,expected,y,x,dy,dx,pool_max,spatial_sum;
+
         begin
             for(index=0;index<320;index=index+1)
                 write_activation(index,input_value<0?spatial_input(index/16,index%16):input_value);
@@ -97,18 +97,14 @@ module tb_tinycnn8_gap_capacity;
                 expected=0;
                 if(o<classes) begin
                     expected=o-2;
-                    for(c=0;c<8;c=c+1) begin
-                        mean_product=(spatial_sum+20*c)*64'sd1717986918;
-                        channel_mean=(mean_product+64'sd1073741824)/64'sd2147483648;
-                        channel_mean=(channel_mean+8)/16;
-                        expected=expected+channel_mean*(((c+o)%3)-1);
-                    end
+                    for(c=0;c<8;c=c+1)
+                        expected=expected+(spatial_sum+20*c)*(((c+o)%3)-1);
                 end
                 if($signed(logits[o*32 +: 32])!==expected)
                     $fatal(1,"capacity=%0d classes=%0d lane=%0d expected=%0d actual=%0d",
                         ACT_BANK_BYTES,classes,o,expected,$signed(logits[o*32 +: 32]));
             end
-            $display("PASS GAP capacity=%0d classes=%0d input=%0d cycles=%0d",
+            $display("PASS Flat capacity=%0d classes=%0d input=%0d cycles=%0d",
                 ACT_BANK_BYTES,classes,input_value,cycles);
         end
     endtask
@@ -120,24 +116,22 @@ module tb_tinycnn8_gap_capacity;
         for(k=0;k<256;k=k+1) begin
             weights=0;
             if(k==4) weights={8{8'd1}};
-            if(k>=64 && k<72) weights[(k-64)*8 +: 8]=1;
-            if(k>=192 && k<200)
-                for(c=0;c<8;c=c+1) weights[c*8 +: 8]=(((k-192+c)%3)-1);
+            if(k>=41 && k<49) weights[(k-41)*8 +: 8]=1;
+            if(k>=81 && k<241)
+                for(c=0;c<8;c=c+1) weights[c*8 +: 8]=((((k-81)%8+c)%3)-1);
             write_weight(k,weights);
         end
         biases=0;
         for(c=0;c<8;c=c+1) biases[c*32 +: 32]=c;
         write_parameter(0,biases,{8{32'h40000000}},{8{6'd1}});
         write_parameter(1,0,{8{32'h40000000}},{8{6'd1}});
-        // Q31 multiplier 0.8 followed by >>4 implements the 1/20 mean.
-        write_parameter(2,0,{8{32'h66666666}},{8{6'b111100}});
         for(c=0;c<8;c=c+1) biases[c*32 +: 32]=c-2;
         write_parameter(3,biases,0,0);
         run_and_check(6,2);
         run_and_check(4,5);
         run_and_check(8,9);
         run_and_check(8,-1);
-        $display("ALL GAP CAPACITY TESTS PASSED");
+        $display("ALL FLAT CAPACITY TESTS PASSED");
         $finish;
     end
 endmodule

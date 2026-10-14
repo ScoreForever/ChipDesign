@@ -153,12 +153,12 @@ TFLite/gemmlowp 双重舍入、output offset 和可配置激活钳位，输出 s
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_requant_unit_test.ps1
 ```
 
-## Global Pool IP（当前顶层 GAP 路径）
+## 旧版 Global Pool IP（不进入当前生产顶层）
 
-`global_avg_pool_engine.sv` 实例化 `global_sum_pool_engine.sv` 和
-`reduction_sum_unit.sv`，对 Pool2 的 `5×4×8` 数据逐通道求和，再调用与 Conv
-共享的串行 Requant Unit。multiplier/shift 包含除以20及尺度转换，输出8个INT8。
-当前顶层没有Flatten路径；MMIO无法提交GAP参数的限制见系统架构说明。
+`rtl/reduction_sum_unit.sv`、`global_sum_pool_engine.sv` 和
+`global_avg_pool_engine.sv` 是早期 GAP 方案留下的通用单元，仍保留独立回归，
+但 TinyCNN-8-Flat 生产顶层不再实例化它们。当前 Pool2 的 `5×4×8` 数据直接
+按 NHWC 展平后输入 FC。
 
 Reduction Sum 回归命令：
 
@@ -180,8 +180,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_con
 ## Conv2D Engine
 
 `rtl/conv2d_engine.sv` 将窗口地址生成器、Matrix Unit 和 Requant Unit 连接成
-描述符驱动的普通卷积引擎。默认采用单空间位置保留 INT32 PSUM 的调度；可选 gather/load 与 K-major
-空间 tile 已实现，仅用于匹配固定4×8 Conv2的描述符，默认关闭。TinyCNN Conv1
+描述符驱动的普通卷积引擎。首版采用单空间位置保留 INT32 PSUM 的保守调度，
+先保证逐位正确；空间 tile 和权重跨位置复用将在此基线上优化。TinyCNN Conv1
 分别映射到 4×8 和 4×4 阵列进行完整层回归：
 
 ```powershell
@@ -195,21 +195,20 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_con
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_maxpool_test.ps1
 ```
 
-Global Sum Pool 测试覆盖 8/4/3 lanes：
+旧 Global Sum Pool 测试覆盖 8/4/3 lanes：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_global_sum_pool_test.ps1
 ```
 
-Global Avg Pool 的 INT32 sum + requant 回归：
+旧 Global Avg Pool 的 INT32 sum + requant 回归：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_global_avg_pool_test.ps1
 ```
 
 `rtl/fc_engine.sv` 复用 Matrix Unit 完成 INT8 输入和权重到 INT32 logits 的
-全连接层。通用单元覆盖4类/6类输出；当前顶层通过 `conv2d_engine` 执行 `8→class_count`，
-不实例化独立 `fc_engine`：
+全连接层。通用单元覆盖4类/6类输出；当前生产模型固定为`160→4`：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_fc_engine_test.ps1
@@ -217,25 +216,42 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_fc_
 
 ## TinyCNN-8 NPU Top
 
-`rtl/tinycnn8_npu_top.sv` 串联 Conv1、Pool1、Conv2、Pool2、GAP 和
-`FC(8→class_count)`，支持1–8类。Conv1/Conv2/FC共享Matrix Unit，Conv/GAP
-共享一套每lane4相位的串行量化器。输入A→Conv1 B→Pool1 A→Conv2 B→Pool2 A
-→GAP B→FC logits；每次推理重装输入。核默认A/B各4096 B，MMIO配置640/2560 B。
-8列权重基址为0/32/192，有效9/72/8个word，共89个；空闲时可由原生host装载
-四组参数，包含GAP层2。当前MMIO拒绝层2commit，软件Flat部署包不能直接使用。
-
-当前GAP非零容量回归入口（直接核端口装载参数）：
+`rtl/tinycnn8_npu_top.sv` 串联 Conv1、Pool1、Conv2、Pool2、NHWC Flatten 和
+`FC(160→4)`；Flatten 不搬运数据，Conv1/Conv2/FC 共享同一个 Matrix Unit。
+权重和量化参数可在空闲时加载，
+顶层使用两块行为级激活 SRAM 做 ping-pong。运行过程中输入所在的 A bank
+会被后续层复用，因此每次推理开始前，主机必须重新加载完整输入特征；权重和
+量化参数可以跨同一模型的推理保留。生产8-lane权重基址为Conv1=0、Conv2=9、
+FC=81，共使用241个64-bit word。端到端合成测试参数回归命令：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_structure_regression.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_tinycnn8_top_test.ps1
 ```
 
-该脚本也运行SoC/DMA及AXI/SRAM检查，需要ModelSim。旧顶层、训练模型和MMIO
-测试入口仍在仓库内，但不能把此前Flat测试结果当成当前实现的验收结论。
-训练包和当前RTL的差异见 [软件说明](../../software/README.md)。
+训练权重和真实语音的逐位回归：
 
-现有全部 NPU RTL 回归入口（含尚需适配当前实现的旧用例）：
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File hardware/npu/scripts/run_tinycnn8_trained_test.ps1 `
+  -VectorDir data/rtl_vectors_flatten
+```
+
+运行全部 NPU RTL 回归：
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all_tests.ps1
 ```
+
+## 默认融合核心（PR #5）
+
+SoC默认选择`tinycnn8_npu_fused`，分层`tinycnn8_npu_top`仍用于逐层参考。
+两者都使用Flatten和160输入FC。融合核使用1 KiB激活存储、双bank权重和
+4级II=1单lane量化；分层MMIO实例保留八银行和A=640/B=2560 B容量优化。
+设计细节见 [TINYCNN8_FUSED.md](TINYCNN8_FUSED.md)。
+
+```sh
+python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
+```
+
+`requant_unit`现为分层并行参考接口；main的Q31舍入简化同时保留在它和
+融合`requant_lane`中。最新结构容量测试是`tb_tinycnn8_capacity`，不再执行GAP网络。

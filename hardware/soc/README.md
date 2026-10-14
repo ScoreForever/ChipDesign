@@ -15,9 +15,9 @@ CPU / DMA
 tinycnn8_npu_mmio_wrapper
    |
    v
-tinycnn8_npu_top
+tinycnn8_npu_fused（默认；FUSED_CORE=0选择分层tinycnn8_npu_top）
    |
-   +-- Conv1 -> Pool1 -> Conv2 -> Pool2 -> GAP -> FC(8->class_count)
+   +-- Conv1 -> Pool1 -> Conv2 -> Pool2 -> NHWC Flatten -> FC(160->4)
 ```
 
 算子级的旧 `npu_mmio_wrapper.sv` 已删除：它从未进入正式 SoC filelist，正式 SoC
@@ -68,14 +68,11 @@ CPU测试程序通过正式MMIO窗口装入全零输入和模型，启动一次�
 检查NPU完成中断与四个零logit，并清除done。测试镜像由
 `hardware/soc/sim/sw/gen_hex.py`生成。
 
-当前MMIO版本读回`0x0002_0001`，但核实际执行GAP，性能lane4统计GAP周期。
-wrapper仍拒绝层2commit（错误6），而核需要层2的GAP multiplier/shift，且这些
-数组没有复位初始化。因此仅通过MMIO无法完整装载当前网络；全零smoke不能证明
-非零模型部署正确。软件Flatten包的FC维度和权重基址也与当前核不兼容。
-
-当前激活容量为A=640 B、B=2560 B，八银行异步读/同步写。
-SoC主SRAM使用三拍读流水线，AXI配置`READ_LATENCY=3`。
-详细数据通路、地址和验证边界见上述系统架构说明。
+当前MMIO ABI版本为`0x0002_0002`（Flatten ABI + 性能计数器，融合核心；`FUSED_CORE=0`的分层参考核心读`0x0002_0001`）。参数层2是已移除GAP留下的保留槽，提交
+会返回错误码6；正式软件只提交Conv1（层0）、Conv2（层1）和FC（层3）。
 
 SoC使用SystemVerilog interface和断言，不能用Icarus编译整个SoC；Icarus仍用于
 独立NPU和MMIO wrapper回归。
+
+主SRAM保持三拍读取和AXI `READ_LATENCY=3`。分层参考的MMIO实例激活容量640/2560 B，
+融合核使用1 KiB。GAP参数缺口通过恢复Flat网络解决；layer2仍保留并拒绝commit。

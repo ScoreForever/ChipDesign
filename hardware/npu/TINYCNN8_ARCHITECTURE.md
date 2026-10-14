@@ -1,110 +1,133 @@
-# TinyCNN-8 implemented NPU architecture
+# KWS TinyCNN-8-Flat NPU Architecture Baseline
 
-Checked against `main` commit `7569a43` on 2026-10-14. The implemented core uses
-GAP; the software exporter uses Flatten. The MMIO adapter also retains Flat-era
-parameter restrictions. See [system design details](../../docs/ARCHITECTURE.md)
-for the complete register map and the integration gap.
+Status: Flat layered reference core; production defaults to the fused core. The authoritative SoC register map and
+software/hardware boundary are in `docs/ARCHITECTURE.md`.
 
-## 1. Fixed compute graph
+## 1. Accelerator boundary
 
-Activations are signed INT8 in NHWC order, channel fastest.
+The host converts one second of 16 kHz audio to a signed INT8 `20×16×1`
+log-mel tensor. The NPU returns four signed INT32 raw logits for
+`yes/no/up/down`. Audio capture, log-mel, final per-class scale alignment,
+argmax, rejection policy, and application behavior are software tasks.
 
-| Stage | Operation | Output |
+Tensor storage is NHWC: channel is the fastest-changing dimension.
+
+## 2. Fixed production network
+
+| Stage | Operation | Output shape |
 | --- | --- | --- |
-| Input | Host-provided features | `20×16×1` INT8 |
-| Conv1 | `3×3 SAME, 1→8`, bias/requant/ReLU | `20×16×8` INT8 |
-| Pool1 | `2×2 stride2` MaxPool | `10×8×8` INT8 |
-| Conv2 | `3×3 SAME, 8→8`, bias/requant/ReLU | `10×8×8` INT8 |
-| Pool2 | `2×2 stride2` MaxPool | `5×4×8` INT8 |
-| GAP | Sum 20 spatial values/channel, then requant | 8 INT8 |
-| FC | `1×1 Conv, 8→class_count` | 1–8 INT32 logits |
+| Input | signed INT8 feature tensor | `20×16×1` |
+| Conv1 | `3×3`, stride 1, SAME, `1→8`; bias/requant/ReLU | `20×16×8` INT8 |
+| Pool1 | `2×2`, stride 2 MaxPool | `10×8×8` INT8 |
+| Conv2 | `3×3`, stride 1, SAME, `8→8`; bias/requant/ReLU | `10×8×8` INT8 |
+| Pool2 | `2×2`, stride 2 MaxPool | `5×4×8` INT8 |
+| Flatten | reinterpret contiguous NHWC storage | `160` INT8 |
+| FC | `160→4` | `4` INT32 logits |
 
-No Flatten stage is implemented. The core has no label names or frontend DSP.
-The four-class Flat software package (`160→4`) cannot be loaded directly.
+Flatten contains no arithmetic and no copy: Pool2 writes the 160 values in the
+order consumed by FC. The previous GAP path is not part of production. Its
+standalone modules remain only as verified generic/legacy IP.
 
-## 2. Shared datapath and sequencing
+Batch normalization is folded into convolution weights and biases at export.
+SAME-padding uses integer zero because activation zero point is zero.
 
-```text
-Conv1/Conv2/FC -> conv2d_engine -> window generator -> Matrix Unit
-Pool1/Pool2   -> maxpool2x2_engine -> Vector Unit
-GAP           -> global_avg_pool_engine -> global_sum_pool_engine -> reduction
-Conv/GAP      -> one shared serial requant_unit
-```
+## 3. Integer contract
 
-The default Matrix Unit is 4×8, with INT8 activations/weights and INT32 partial
-sums. Bias initializes Conv/FC partial sums. FC selects INT32 output and bypasses
-requant. The sequencer executes C1, P1, C2, P2, GAP and FC serially, each with a
-START handshake and WAIT state. Accepted start clears logits and latches the
-class count; completion emits a one-cycle done pulse.
+- Activations and weights: signed INT8.
+- Convolution and FC products: signed `INT8×INT8`.
+- Biases, partial sums, and raw logits: signed INT32.
+- Activations are symmetric per tensor; weights are symmetric per output channel.
+- Conv requantization has one signed Q0.31 multiplier and shift per output
+  channel and follows TFLite/gemmlowp double rounding.
+- Conv/ReLU clamps to `[0,127]`; MaxPool and Flatten preserve scale.
+- FC is not requantized. Software applies exported per-class comparison
+  multiplier/shift before argmax.
 
-`OPT_GATHER_LOAD=0` and `OPT_SPATIAL_TILE=0` are defaults, including the current
-SoC. `SPATIAL_TILE=16` sets capacity when enabled. Optimization applies only to
-the fixed 4×8, `10×8×8`, `3×3 SAME`, stride1 INT8 Conv2 descriptor. Spatial tiling
-takes priority over gather/load overlap; other descriptors fall back.
-K-major tiling reuses loaded weights across output positions and tags retired
-partial sums. Tile16 declares 512 B of INT32 partial sums plus packs/tags.
-Matrix itself has no weight double buffer or simultaneous compute/load.
+A one-LSB disagreement between exporter, Python golden model, and RTL is a
+verification failure.
 
-## 3. Integer behavior
-
-- Conv/ReLU clamps to `[0,127]`; GAP clamps to `[-128,127]`; offset is zero.
-- GAP multiplier/shift must include division by 20 and the output scale change.
-- Per-channel Q0.31 scaling uses TFLite/gemmlowp double rounding. The high
-  multiply is `product[62:31] + product[30]`, with the INT32_MIN×INT32_MIN
-  saturation exception; right-shift rounding uses ties away from zero.
-- Positive shifts saturate before multiplication. INT32 bias/accumulator
-  additions do not saturate; model parameters must avoid overflow.
-- One vector is latched and processed in four phases per lane. With eight
-  lanes, out_valid is produced 32 cycles after acceptance; output backpressure
-  holds the result. Masked lanes still take phases and produce zero.
-- FC emits raw INT32; any per-class scale alignment is a host/model contract.
-
-## 4. Memory layout
+## 4. Datapath, scheduling, and storage
 
 ```text
-input A(320 B) -> C1 B(2560 B) -> P1 A(640 B)
- -> C2 B(640 B) -> P2 A(160 B) -> GAP B(8 B) -> FC logits
+activation SRAM A/B -> window generator -> shared Matrix Unit -> requant
+       |                                      ^
+       +------------ MaxPool/Vector Unit      |
+weight SRAM ----------------------------------+
+
+Pool2 in bank A (160 INT8, NHWC) -> shared Matrix Unit as 1×1 Conv/FC
+                                  -> four INT32 logits
 ```
 
-The standalone core defaults to 4096 B per activation area. The MMIO wrapper
-sets A=640 B and B=2560 B. Each area contains eight byte banks, addressed by
-`bank=address%8`, `row=address/8`, with synchronous writes and asynchronous
-reads. These are behavioral arrays, not ASIC SRAM macros.
+Layered activation flow:
 
-For eight columns, weight memory is 256×64 bit; lane 0 occupies the lowest byte.
+```text
+input A(320 B) -> Conv1 B(2560 B) -> Pool1 A(640 B)
+ -> Conv2 B(640 B) -> Pool2 A(160 B) -> FC logits
+```
 
-| Layer | Base | Active words | Range |
-| --- | ---: | ---: | --- |
-| Conv1 | 0 | 9 | `[0,9)` |
-| Conv2 | 32 | 72 | `[32,104)` |
-| FC | 192 | 8 | `[192,200)` |
+The production 8-column weight SRAM contains 256 packed 64-bit words:
 
-There are 89 active words with gaps between layers. General addressing is
-`base + k*ceil(output_channels/ARRAY_COLS) + output_tile`; four-column cores
-use additional output tiles. Parameters are indexed by output tile: layer 0/1
-use bias/multiplier/shift, layer 2 (GAP) uses multiplier/shift, layer 3 uses bias.
-Weight/parameter arrays are not reset-initialized. Reload 320 input bytes for
-each inference; weights and parameters can persist across jobs.
+| Layer | Word range | Words |
+| --- | ---: | ---: |
+| Conv1 | `[0,9)` | 9 |
+| Conv2 | `[9,81)` | 72 |
+| FC | `[81,241)` | 160 |
+| Spare | `[241,256)` | 15 |
 
-## 5. Profiler and MMIO limitation
+The training model has 1,324 trainable parameters. Deployment weight values
+are 72 + 576 + 640 = 1,288 INT8 values; folded biases and quantization
+parameters are stored separately.
 
-Profiler lanes are C1/P1/C2/P2/GAP/FC; lane 4 actively counts GAP. START/WAIT
-edges count, including completion transitions, excluding accepted-start IDLE.
-Counters saturate, freeze on completion and clear on accepted start/reset.
-The wrapper latches done for IRQ and exposes version `0x0002_0001`.
+The baseline controller keeps one packed partial sum live. The remote tiled
+work is preserved through `OPT_GATHER_LOAD`, `OPT_SPATIAL_TILE`, and
+`SPATIAL_TILE`: the optimized path applies only to the fixed 4×8 Conv2
+descriptor and falls back for other descriptors. K-major spatial tiling keeps
+one INT32 partial sum per selected output position so a loaded weight group can
+serve several positions. Tile16 uses 512 B for partial sums plus tags and
+activation packs. These behavioral capacities are not final physical SRAM,
+area, timing, or power results.
 
-Native host ports can load layer 2, but MMIO layer 2 commit returns error 6.
-GAP parameters are consequently unavailable through the current production
-adapter and are not initialized by reset. The version constant does not imply
-Flat compatibility. Software exports bases 0/9/81 and a 160-input FC; it must not
-be treated as a deployment package for this core.
+## 5. Control and profiler
 
-## 6. Verification boundary
+`tinycnn8_npu_top` sequences Conv1, Pool1, Conv2, Pool2, and FC. Conv1, Conv2,
+and FC share one `conv2d_engine`/Matrix Unit; both pools share one
+`maxpool2x2_engine`/Vector Unit. The core remains bus-independent.
 
-`tb_tinycnn8_gap_capacity.sv` directly loads all four parameter groups and
-checks nonzero GAP networks with 4/6/8 classes and both activation capacities.
-Existing ModelSim structure/DRC reports record those checks, Q31 arithmetic,
-SoC zero-model smoke, DMA and AXI/SRAM tests. See the linked system document.
-Flat trained-model results and earlier schedule measurements are historical
-and do not establish current GAP MMIO deployment correctness. This documentation
-update did not rerun simulation or synthesis.
+The six profiler lanes remain ABI-stable: Conv1, Pool1, Conv2, Pool2,
+reserved, FC. Lane 4 was GAP and is now always zero. Counters track total and
+per-stage cycles, weight-row handshakes, matrix issues/retires, peak in-flight
+transactions, validity, and saturation overflow.
+
+The reusable RTL interface accepts `class_count=1..8`; the frozen trained
+deployment package has exactly four classes and 160 FC input features. A model
+change requires matching weights, parameters, labels, and regression vectors.
+
+## 6. Verification gates
+
+1. Unit regressions for PE, Matrix Unit, Vector Unit, requant, pooling, address
+   generation, baseline and tiled Conv2 scheduling.
+2. Synthetic full-network tests on 4×8 and 4×4 arrays.
+3. MMIO protocol, profiler, and error-path regression.
+4. Full test-set Python integer accuracy evaluation.
+5. At least 100 real speech samples comparing all four RTL raw logits
+   bit-for-bit against the deployed Python integer model.
+
+Icarus Verilog is the reproducible NPU simulator. Commercial simulation may
+supplement but does not replace it.
+
+## 7. Integrated fused default and retained main fixes (2026-10-14)
+
+The MMIO adapter defaults to `FUSED_CORE=1` (`tinycnn8_npu_fused`), version
+`0x0002_0002`. See [fused design](TINYCNN8_FUSED.md). `FUSED_CORE=0` selects this
+layered Flat reference, version `0x0002_0001`. Both use bases 0/9/81 in the
+8-column deployment and consume 160 FC inputs; layer2 remains reserved.
+
+The layered core retains eight byte banks per activation area and independent
+`ACT_A_BANK_BYTES`/`ACT_B_BANK_BYTES` parameters. Defaults inherit 4096 B;
+MMIO sets 640/2560 B. Reads are asynchronous, writes synchronous. The layered
+quantizer is parallel; the fused quantizer is one lane, four pipeline stages,
+II=1. Both retain the 32-bit Q31 rounding simplification from main.
+
+SoC SRAM/AXI retains its 3-cycle read pipeline. Prior FPGA PPA/DRC reports
+were for the GAP configuration and do not establish fused-core implementation
+results. ModelSim/Vivado were unavailable during this conflict resolution.

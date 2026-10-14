@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-module tb_tinycnn8_npu_mmio_wrapper;
+module tb_tinycnn8_npu_mmio_wrapper #(parameter FUSED_CORE=1);
     localparam ARRAY_COLS = 8;
     localparam SHIFT_WIDTH = 6;
 
@@ -22,7 +22,7 @@ module tb_tinycnn8_npu_mmio_wrapper;
 
     always #5 clk = ~clk;
 
-    tinycnn8_npu_mmio_wrapper dut (
+    tinycnn8_npu_mmio_wrapper #(.FUSED_CORE(FUSED_CORE)) dut (
         .clk_i(clk), .rst_ni(rst_ni), .req_i(req), .we_i(we),
         .addr_i(addr), .wdata_i(wdata), .rdata_o(rdata), .irq_o(irq),
         .dma_src_o(dma_src), .dma_dst_o(dma_dst), .dma_len_o(dma_len),
@@ -130,8 +130,20 @@ module tb_tinycnn8_npu_mmio_wrapper;
         rst_ni = 1;
 
         mmio_read(16'h0030, status_word);
-        if (status_word !== 32'h0002_0001)
+        if (status_word !== (FUSED_CORE ? 32'h0002_0002 : 32'h0002_0001))
             $fatal(1, "unexpected Flatten MMIO ABI version=%h", status_word);
+
+        // The fused core pools before requantizing, which needs non-negative
+        // multipliers; the layered reference core accepts any sign.
+        stage_parameter_lane(0, 0, 0, -32'sd1, 6'sd0);
+        commit_parameter(0);
+        mmio_read(16'h0004, status_word);
+        if (FUSED_CORE && (!status_word[3] || status_word[7:4] != 4'd5))
+            $fatal(1, "negative multiplier was not rejected status=%h", status_word);
+        if (!FUSED_CORE && status_word[3])
+            $fatal(1, "layered core rejected a negative multiplier status=%h", status_word);
+        mmio_write(16'h0000, 32'h00000008); // clear error
+        stage_parameter_lane(0, 0, 0, 32'sh40000000, 6'sd0);
 
         // Reject the reserved signed shift value -32 at parameter commit.
         stage_parameter_lane(0, 0, 0, 32'sh40000000, -6'sd32);

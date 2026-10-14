@@ -1,11 +1,5 @@
 # TinyCNN-8 reproducible RTL and MMIO experiment
 
-Status on 2026-10-14: this describes the earlier recorded experiment. Current
-`main` uses a GAP core while the MMIO adapter rejects GAP parameter commits, and
-Flat software uses a different FC shape/weight layout. These commands remain
-entry points, but the recorded acceptance results do not certify current main.
-See [current implementation](../../../docs/ARCHITECTURE.md).
-
 Run from the repository root:
 
 ```sh

@@ -9,7 +9,8 @@ module tb_tinycnn8_mmio_fileio #(
     wire [31:0] rdata;
     wire irq;
     always #5 clk=~clk;
-    tinycnn8_npu_mmio_wrapper #(.OPT_GATHER_LOAD(OPT_GATHER_LOAD),
+    // The observer probes layered-core internals, so pin the reference core.
+    tinycnn8_npu_mmio_wrapper #(.FUSED_CORE(0),.OPT_GATHER_LOAD(OPT_GATHER_LOAD),
         .OPT_SPATIAL_TILE(OPT_SPATIAL_TILE),.SPATIAL_TILE(SPATIAL_TILE)) dut(
         .clk_i(clk),.rst_ni(rst_ni),.req_i(req),.we_i(we),.addr_i(addr),
         .wdata_i(wdata),.rdata_o(rdata),.irq_o(irq),
@@ -37,26 +38,26 @@ module tb_tinycnn8_mmio_fileio #(
             for(mon_i=0;mon_i<6;mon_i=mon_i+1)mon_layer[mon_i]=0;
         end else if(mon_active)begin
             mon_total=mon_total+1;mon_layer[mon_phase]=mon_layer[mon_phase]+1;
-            if(dut.i_tinycnn8_npu.perf_inflight!==mon_inflight[7:0])
+            if(dut.g_core.i_tinycnn8_npu.perf_inflight!==mon_inflight[7:0])
                 $fatal(1,"live inflight mismatch expected=%0d actual=%0d",mon_inflight,
-                    dut.i_tinycnn8_npu.perf_inflight);
+                    dut.g_core.i_tinycnn8_npu.perf_inflight);
             if(mon_inflight>mon_peak)mon_peak=mon_inflight;
-            if(dut.i_tinycnn8_npu.conv.matrix_weight_valid &&
-               dut.i_tinycnn8_npu.conv.matrix_weight_ready)mon_weights=mon_weights+1;
-            if(dut.i_tinycnn8_npu.conv.matrix_in_valid &&
-               dut.i_tinycnn8_npu.conv.matrix_in_ready)begin
+            if(dut.g_core.i_tinycnn8_npu.conv.matrix_weight_valid &&
+               dut.g_core.i_tinycnn8_npu.conv.matrix_weight_ready)mon_weights=mon_weights+1;
+            if(dut.g_core.i_tinycnn8_npu.conv.matrix_in_valid &&
+               dut.g_core.i_tinycnn8_npu.conv.matrix_in_ready)begin
                 mon_issues=mon_issues+1;mon_inflight=mon_inflight+1;
             end
-            if(dut.i_tinycnn8_npu.conv.matrix_out_valid &&
-               dut.i_tinycnn8_npu.conv.matrix_out_ready)begin
+            if(dut.g_core.i_tinycnn8_npu.conv.matrix_out_valid &&
+               dut.g_core.i_tinycnn8_npu.conv.matrix_out_ready)begin
                 mon_retires=mon_retires+1;mon_inflight=mon_inflight-1;
             end
             if(mon_inflight<0)$fatal(1,"negative matrix inflight");
             case(mon_phase)
-                0,2:if(dut.i_tinycnn8_npu.conv_done)mon_phase=mon_phase+1;
-                1:if(dut.i_tinycnn8_npu.pool_done)mon_phase=2;
-                3:if(dut.i_tinycnn8_npu.pool_done)mon_phase=5;
-                5:if(dut.i_tinycnn8_npu.conv_done)mon_active=0;
+                0,2:if(dut.g_core.i_tinycnn8_npu.conv_done)mon_phase=mon_phase+1;
+                1:if(dut.g_core.i_tinycnn8_npu.pool_done)mon_phase=2;
+                3:if(dut.g_core.i_tinycnn8_npu.pool_done)mon_phase=5;
+                5:if(dut.g_core.i_tinycnn8_npu.conv_done)mon_active=0;
             endcase
         end
     end

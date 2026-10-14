@@ -1,9 +1,5 @@
 # TinyCNN-8 首轮训练结果
 
-> 2026-10-14状态说明：本文保留此前训练与Flat RTL对拍记录。当前main（7569a43）
-> 已是GAP核，MMIO仍拒绝GAP参数提交。以下精度与Flat对拍记录不证明当前提交
-> 可部署该模型；当前行为见 [ARCHITECTURE.md](ARCHITECTURE.md)。
-
 日期：2026-10-08。配置与冻结决策见
 [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)。本页只记录实测结果，不把尚未通过的
 目标写成已完成事项。
@@ -195,10 +191,10 @@ INT8 混淆矩阵（rows=true, cols=prediction）：
 
 弱增强 INT8 逐类 recall 为 yes 96.30%、no 88.89%、up 93.58%、down 83.46%。
 
-此前Flat阶段的部署链记录为：导出器生成 Conv1=0、Conv2=9、FC=81 的 256×64-bit
+部署链已经同步切换为 Flatten：导出器生成 Conv1=0、Conv2=9、FC=81 的 256×64-bit
 权重镜像；Python 黄金模型按 Pool2 NHWC 顺序展开160个输入；RTL 顶层移除 GAP，
 直接执行 `FC(160→4)`。从测试集导出的100条真实语音已逐样本比较四个 raw INT32
 logit，Python 整数模型与 RTL 全部 bit-exact 通过。
 
-上述结论限定于当时的Flat实现。当前软件仍使用Flat，但main RTL使用GAP，
-训练包、黄金模型、MMIO与核尚未重新统一。
+因此 TinyCNN-8-Flat 现已成为训练、量化、部署包、黄金模型和生产 RTL 的统一基线；
+早期 GAP/六分类结果仅保留为实验历史。

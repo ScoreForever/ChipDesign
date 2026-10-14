@@ -18,4 +18,7 @@ foreach($script in $scripts){
     & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot $script)
     if($LASTEXITCODE -ne 0){throw "$script failed"}
 }
+Write-Output '=== run_tinycnn8_fused_test.py ==='
+& python (Join-Path $PSScriptRoot 'run_tinycnn8_fused_test.py')
+if($LASTEXITCODE -ne 0){throw 'run_tinycnn8_fused_test.py failed'}
 Write-Output 'ALL NPU RTL REGRESSIONS PASSED'

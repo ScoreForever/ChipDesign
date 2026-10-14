@@ -1,7 +1,7 @@
 # ChipDesign 合并差异清单（对账用）
 
 > 2026-10-14：本文保留对应阶段记录，不作为当前main的完整实现/验收说明。
-> 当前GAP核、Flat软件与MMIO接口差异见 [ARCHITECTURE.md](ARCHITECTURE.md)；最新FPGA结果见 [FPGA_DRC_CLOSURE.md](FPGA_DRC_CLOSURE.md)。
+> 此前GAP/Flat接口差异已由PR #5恢复Flat解决，最新架构见 [ARCHITECTURE.md](ARCHITECTURE.md)；最新FPGA结果见 [FPGA_DRC_CLOSURE.md](FPGA_DRC_CLOSURE.md)。
 
 **生成时间**：2026-10-07
 **最后更新**：2026-10-08（已修复 DMA 测试、清理两处死代码，见第三、五、七节）

@@ -1,5 +1,9 @@
 # FPGA 结构优化与验证（2026-10-14）
 
+> 历史配置说明：本文资源/周期/DRC证据属于7569a43的GAP配置。PR #5合并后默认
+> 核为融合Flat，保留SRAM/AXI和约束修复，但须重新综合验证，不能沿用这些PPA数字。
+> 原GAP容量测试现已适配为`tb_tinycnn8_capacity`。
+
 本文记录资源优化完成时的结果。后续配置/BRAM DRC 修正、SRAM 读延迟变化
 及最新资源结果见 [`FPGA_DRC_CLOSURE.md`](FPGA_DRC_CLOSURE.md)。
 

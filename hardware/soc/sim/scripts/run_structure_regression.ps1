@@ -41,15 +41,15 @@ try {
     & vlog -sv -modelsimini "$runPath/modelsim.ini" -work verify `
         -f hardware/soc/sim/filelists/chipdesign_soc.f `
         hardware/npu/tb/tb_requant_unit.sv `
-        hardware/npu/tb/tb_tinycnn8_gap_capacity.sv `
+        hardware/npu/tb/tb_tinycnn8_capacity.sv `
         hardware/soc/sim/tb/tb_axi_sram_pipeline.sv *> "$runPath/compile.log"
     if ($LASTEXITCODE -ne 0) {
         Get-Content "$runPath/compile.log" -Tail 25
         throw 'vlog failed'
     }
     Run-Test 'tb_requant_unit' 'requant' 'ALL REQUANT UNIT TESTS PASSED'
-    Run-Test 'tb_tinycnn8_gap_capacity' 'capacity_asymmetric' 'ALL GAP CAPACITY TESTS PASSED'
-    Run-Test 'tb_tinycnn8_gap_capacity' 'capacity_generic' 'ALL GAP CAPACITY TESTS PASSED' `
+    Run-Test 'tb_tinycnn8_capacity' 'capacity_asymmetric' 'ALL FLAT CAPACITY TESTS PASSED'
+    Run-Test 'tb_tinycnn8_capacity' 'capacity_generic' 'ALL FLAT CAPACITY TESTS PASSED' `
         @('-gACT_BANK_BYTES=4096', '-gACT_A_BANK_BYTES=4096')
     Run-Test 'chipdesign_soc_tb' 'soc' 'PASS: integrated SoC test OK'
     Run-Test 'chipdesign_dma_tb' 'dma' 'PASS: NPU DMA test OK'

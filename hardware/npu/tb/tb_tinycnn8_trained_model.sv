@@ -1,4 +1,7 @@
 `timescale 1ns/1ps
+`ifndef TINYCNN8_CORE
+`define TINYCNN8_CORE tinycnn8_npu_top
+`endif
 
 module tb_tinycnn8_trained_model;
     localparam ARRAY_ROWS=4,ARRAY_COLS=8,SHIFT_WIDTH=6;
@@ -29,7 +32,7 @@ module tb_tinycnn8_trained_model;
     reg [255:0] bias_word,mult_word;
     reg [47:0] shift_word;
 
-    tinycnn8_npu_top dut(
+    `TINYCNN8_CORE dut(
         .clk(clk),.rst(rst),.start_valid(start_valid),.start_ready(start_ready),
         .class_count(class_count),.busy(busy),.done(done),.logits(logits),
         .host_activation_we(host_activation_we),.host_activation_addr(host_activation_addr),

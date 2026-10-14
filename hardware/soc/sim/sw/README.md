@@ -2,8 +2,7 @@
 
 当前TinyCNN-8 SoC回归使用 `gen_hex.py` 直接生成
 `chipdesign_npu_test.hex`。该程序通过正式完整NPU MMIO接口装载零模型并运行
-一次全零集成smoke，不依赖RISC-V GCC。当前核执行GAP，但MMIO无法提交
-GAP参数，因此该程序不能作为非零模型部署验收。生成结果必须与仓库中的hex逐行一致。
+一次端到端推理，不依赖RISC-V GCC。生成结果必须与仓库中的hex逐行一致。
 
 ```powershell
 D:\conda\envs\ml\python.exe hardware/soc/sim/sw/gen_hex.py `
