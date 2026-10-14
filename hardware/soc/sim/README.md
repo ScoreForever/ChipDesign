@@ -32,3 +32,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all
 ```
 
 旧的Lab3测试文件仍保留作课程参考，但不是当前TinyCNN-8生产回归入口。
+
+## Linux / Xcelium
+
+在仓库根目录、已配置 `xrun` 的环境中执行：
+
+```sh
+python3 hardware/soc/sim/scripts/run_structure_regression.py --output /path/to/new-empty-results
+```
+
+运行与 Windows 结构回归对应的 7 项测试，分别保存日志和 `summary.json`。
+2026-10-14 soc 服务器融合 Flat 配置的执行结果见
+[EDA 部署记录](../../../docs/SOC_EDA_DEPLOYMENT.md)。

@@ -92,5 +92,6 @@ python hardware/npu/scripts/run_tinycnn8_fused_test.py \
 - 真实结果：`/data/home2/guoyiz/ChipDesign/work/real-speech-validation/`
 - 模型实验：`/data/home2/guoyiz/ChipDesign/work/model-accuracy-expanded/`
 
-没有重跑整SoC的ModelSim、Vivado综合或上板。原Windows PowerShell真实向量入口默认
+随后已在soc服务器用Xcelium重跑整SoC及7项结构回归，详见
+[EDA部署记录](SOC_EDA_DEPLOYMENT.md)。仍未重跑当前融合版Vivado综合或上板。原Windows PowerShell真实向量入口默认
 仍是分层参考；验证当前融合默认核心应使用上述双核心Python入口。
