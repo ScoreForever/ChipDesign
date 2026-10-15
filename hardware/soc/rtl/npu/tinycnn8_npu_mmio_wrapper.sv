@@ -102,6 +102,12 @@ module tinycnn8_npu_mmio_wrapper #(
     logic        addr_in_input;
     logic        addr_in_weight;
     logic        addr_in_parameters;
+    logic        addr_in_packed_input;
+    logic [31:0] packed_data;
+    logic [15:0] packed_addr;
+    logic [1:0]  packed_remaining;
+    logic        packed_tail;
+    wire packed_active = (packed_remaining != 0) || packed_tail;
 
     assign addr_off = addr_i[15:0];
     assign addr_in_input = (addr_off >= 16'h1000) &&
@@ -111,6 +117,10 @@ module tinycnn8_npu_mmio_wrapper #(
     assign addr_in_parameters = (addr_off >= 16'h3000) &&
                                 (addr_off <= 16'h33ff);
     assign input_index = (addr_off - 16'h1000) >> 2;
+    // Additive, write-only LE window: 80 words for the production 320 bytes.
+    // Native host is byte-wide; allow four clocks between packed writes.
+    assign addr_in_packed_input = (addr_off >= 16'h1800) &&
+                                 (addr_off < 16'h1800 + (INPUT_BYTES/4)*4);
     assign weight_index = (addr_off - 16'h2000) >> 3;
     assign parameter_layer_index = addr_off[9:8];
     assign parameter_suboffset = addr_off[7:0];
@@ -248,6 +258,10 @@ module tinycnn8_npu_mmio_wrapper #(
             dma_irq_en_reg        <= 1'b0;
             dma_start_pulse       <= 1'b0;
             dma_clear_done_pulse  <= 1'b0;
+            packed_data          <= '0;
+            packed_addr          <= '0;
+            packed_remaining     <= '0;
+            packed_tail          <= 1'b0;
         end else begin
             npu_start_pulse      <= 1'b0;
             host_activation_we   <= 1'b0;
@@ -255,6 +269,15 @@ module tinycnn8_npu_mmio_wrapper #(
             host_parameter_we    <= 1'b0;
             dma_start_pulse      <= 1'b0;
             dma_clear_done_pulse <= 1'b0;
+            packed_tail <= (packed_remaining != 0);
+            if (packed_remaining != 0) begin
+                host_activation_we <= 1'b1;
+                host_activation_addr <= packed_addr;
+                host_activation_data <= packed_data[7:0];
+                packed_data <= packed_data >> 8;
+                packed_addr <= packed_addr + 1'b1;
+                packed_remaining <= packed_remaining - 1'b1;
+            end
 
             if (npu_done)
                 done_latched <= 1'b1;
@@ -269,12 +292,12 @@ module tinycnn8_npu_mmio_wrapper #(
                         error_code <= 8'd0;
                     end
                     if (wdata_i[0]) begin
-                        if (npu_start_ready) begin
+                        if (npu_start_ready && !packed_active) begin
                             npu_start_pulse <= 1'b1;
                             done_latched <= 1'b0;
                         end else begin
                             error_latched <= 1'b1;
-                            error_code <= (npu_busy || npu_start_pulse) ? 8'd2 : 8'd1;
+                            error_code <= (npu_busy || npu_start_pulse || packed_active) ? 8'd2 : 8'd1;
                         end
                     end
                 end else if (addr_off == 16'h0008) begin
@@ -299,8 +322,24 @@ module tinycnn8_npu_mmio_wrapper #(
                         16'h0410: dma_clear_done_pulse <= wdata_i[1];
                         default: ;
                     endcase
+                end else if (addr_in_packed_input) begin
+                    if (npu_busy || npu_start_pulse || packed_remaining != 0) begin
+                        error_latched <= 1'b1;
+                        error_code <= 8'd2;
+                    end else if (addr_off[1:0] != 0) begin
+                        error_latched <= 1'b1;
+                        error_code <= 8'd3;
+                    end else begin
+                        host_activation_we <= 1'b1;
+                        host_activation_addr <= addr_off - 16'h1800;
+                        host_activation_data <= wdata_i[7:0];
+                        packed_data <= {8'd0, wdata_i[31:8]};
+                        packed_addr <= addr_off - 16'h1800 + 1'b1;
+                        packed_remaining <= 3;
+                        packed_tail <= 1'b1;
+                    end
                 end else if (addr_in_input) begin
-                    if (npu_busy || npu_start_pulse) begin
+                    if (npu_busy || npu_start_pulse || packed_remaining != 0) begin
                         error_latched <= 1'b1;
                         error_code <= 8'd2;
                     end else if (addr_off[1:0] != 2'b00) begin
@@ -411,6 +450,9 @@ module tinycnn8_npu_mmio_wrapper #(
             rdata_next = perf_peak_inflight;
         else if (addr_off == 16'h006c)
             rdata_next = {29'd0,npu_busy,perf_overflow,perf_valid};
+        // Serializer drain fence, including the final native host write.
+        else if (addr_off == 16'h0070)
+            rdata_next = {31'd0, packed_active};
         else if (addr_off == 16'h0400)
             rdata_next = dma_src_reg;
         else if (addr_off == 16'h0404)

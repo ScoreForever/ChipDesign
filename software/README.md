@@ -89,10 +89,26 @@ logit。分类精度使用 `fc_cmp_mult/shift` 在 CPU/黄金模型侧统一尺�
 
 ## 裸机 C 固件与整 SoC KWS workload
 
-`drivers/npu_mmio.h` 封装冻结的 MMIO ABI；`runtime/kws.c` 用 CPU 逐项写入
-241 个权重 word 和 Conv1/Conv2/FC 参数，逐帧装入 320 个 INT8 特征，轮询完成，
+`drivers/npu_mmio.h` 封装 MMIO ABI；`runtime/kws.c` 默认用 DMA 连续搬运
+482 个权重半字及每层连续的 16 个 bias/multiplier 字，INT8 shift 仍由 CPU
+逐项写入并 commit。模型每批装载一次，每帧用 DMA 搬运 80 字紧凑输入，
 回读四个 raw logit，再按部署包 `fc_cmp_mult/shift` 统一尺度并取 argmax。
-权重和参数仅装载一次，不使用 DMA。音频和 log-mel 前处理在离线完成，固件不运行 FFT。
+音频和 log-mel 前处理在离线完成，固件不运行 FFT。
+
+新增打包窗口 `0x70001800..0x7000193f`：对 `+4*k` 的对齐 32 位写
+按小端装入输入字节 `4*k..4*k+3`，读返回 0。单字节 host 端口用四拍
+展开，每次打包写至少间隔四拍；DMA 的单笔在途流程满足该间隔。
+新增只读 `0x70000070` bit0 表示展开尚未完成（包含最后一次 host 写），
+软件须等其为 0 再启动。展开中重叠写、过早启动及推理中写报错误 2，
+非对齐写报 3；原字节输入窗口、VERSION 和原错误码含义保持不变。
+
+DMA 寄存器偏移为 SRC `0x400`、DST `0x404`、LEN `0x408`（32 位字数）、
+CTRL `0x40c`（bit0 start、bit1 IRQ enable）、STATUS/CLEAR `0x410`
+（读 bit0 busy、bit1 done，写 bit1 清 done）。末写获得 grant 后仍等待响应，
+收到响应才完成并锁存 done/IRQ；CPU fence 仅用于启动前的内存排序。
+固件每次清 done、配置、启动、轮询 done、清 done，输入再等展开完成。
+当前启动代码没有中断向量，因此关闭 irq17，用有上限的 STATUS 轮询；
+NPU 完成也保持原轮询流程与 mcycle 分段口径。
 
 需要 Python 3.10、numpy、torch（仅合成包生成用）以及 RISC-V GCC。
 构建默认使用 `D:\tools\xpack-riscv-none-elf-gcc-15.2.0-1\bin\riscv-none-elf-`；
@@ -108,6 +124,21 @@ $py = 'D:\tools\venv-ml\Scripts\python.exe'
   --package build/kws_synthetic/package.npz `
   --inputs build/kws_synthetic/inputs.npy --output build/kws_workload
 ```
+
+`--use-dma 1`（默认）定义 `KWS_USE_DMA=1`；使用 `--use-dma 0` 和另一
+输出目录可构建原 CPU 装载路径。两种镜像保持相同数据布局、结果 schema
+和严格比对规则，manifest 记录 `use_dma`。比较性能应使用相同的 12 条输入
+分别跑整 SoC，再用下方比对命令核对全部 raw logit、类别和分段周期。
+课程 Lab 的原地址与 CPU 装载路径继续可用；共享 AXI、CPU、NPU 核和课程
+testbench 均无需改动。`chipdesign_dma_tb` 会同时检查末写响应延迟、LEN=1、
+连续传输及 clear_done，完成这些检查后才允许原 SoC DMA 测试报告 PASS。
+单元顶层 `tb_npu_dma_unit` 可独立运行；`tb_npu_dma_packed` 将 DMA 接到生产
+wrapper，需传 `+IMAGE=<workload.hex>`、`+MODEL_ADDR=<十六进制地址>`、
+`+INPUTS_ADDR=<十六进制地址>`（地址取 manifest，省略 `0x`）以及
+`+GOLDEN=<48个raw INT32十六进制字的文件，每行一个>`，黄金值须由同一部署包与12条
+输入通过 `golden_model.infer` 生成。它检查两个窗口边界、四拍展开、忙时拒绝、
+全部输入字节及12组logit；用 `FUSED_CORE=0/1` 分别运行。该测试不运行 CPU
+或 AXI，不能用其周期替代整 SoC 性能。
 
 也可直接使用训练部署包，并将 `export_rtl_vectors.py` 输出的 `inputs.hex` 传给
 `--inputs`，或传入形状为 `(N,320)` / `(N,20,16)` 的 INT8 `.npy`。
@@ -136,8 +167,8 @@ CPU 段计时使用 `mcycle` 低 32 位差值，包含函数和轮询开销。�
 性能寄存器读取与结果写入开销；模型装载单独计时，不计入每帧端到端时间。
 初始化、整批处理完毕和错误分别写 magic RUNNING/PASS/FAIL。
 错误值 1–6 分别为硬件错误、轮询超时、未就绪、版本不支持、profile 无效、栈底损坏。
-此无中断固件当前 GCC 的 `.su` 报告最深调用链为 112 字节；更换编译器后应复查
-栈报告和反汇编中的库函数，并核对仿真回报的栈水位。
+栈空间固定为 256 字节；应检查当前构建的 `.su` 报告和反汇编中的库函数，
+并核对整 SoC 仿真回报的动态栈水位。
 
 Windows 入口将当前硬件源码及选定 hex 打包上传到新的远端目录，使用 Xcelium，
 并在编译或仿真失败时仍尝试回收日志。需要配置好的免交互 SSH 和服务器 EDA 环境：

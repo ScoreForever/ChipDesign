@@ -1,6 +1,16 @@
 #include "kws.h"
 #include "npu_mmio.h"
 #include <limits.h>
+#ifndef KWS_USE_DMA
+#define KWS_USE_DMA 1
+#endif
+#if KWS_USE_DMA
+static int dma_copy(const void *src, unsigned offset, unsigned words) {
+    if (npu_read(NPU_DMA_STATUS) & NPU_DMA_BUSY) return KWS_NOT_READY;
+    npu_dma_start(src, NPU_BASE + offset, words);
+    return npu_dma_wait(1000000) ? KWS_TIMEOUT : KWS_OK;
+}
+#endif
 
 /* Mirrors tools/quantize.py, including negative rounding and saturation. */
 int32_t kws_scale(int32_t value, int32_t multiplier, int shift) {
@@ -48,17 +58,30 @@ int kws_load_model(const kws_model *model) {
     if (npu_read(NPU_STATUS) & NPU_BUSY) return KWS_NOT_READY;
     npu_write(NPU_CONTROL, NPU_CLEAR_DONE | NPU_CLEAR_ERROR);
     npu_write(NPU_CLASS_COUNT, 4);
+#if KWS_USE_DMA
+    int error = dma_copy(model->weights, NPU_WEIGHT, 482);
+    if (error) return error;
+#else
     for (unsigned i = 0; i < 241; ++i)
         npu_write_weight(i, model->weights[i][0], model->weights[i][1]);
+#endif
     for (unsigned group = 0; group < 3; ++group) {
         unsigned layer = group == 2 ? 3 : group;
         unsigned base = NPU_PARAMETER + layer * 0x100;
         const kws_parameters *p = &model->parameters[group];
+#if KWS_USE_DMA
+        /* bias and mult are contiguous INT32 arrays; shifts remain INT8. */
+        error = dma_copy(p->bias, base, 16);
+        if (error) return error;
+        for (unsigned lane = 0; lane < 8; ++lane)
+            npu_write(base + 0x40 + 4 * lane, (uint32_t)(int32_t)p->shift[lane]);
+#else
         for (unsigned lane = 0; lane < 8; ++lane) {
             npu_write(base + 4 * lane, p->bias[lane]);
             npu_write(base + 0x20 + 4 * lane, p->mult[lane]);
             npu_write(base + 0x40 + 4 * lane, (uint32_t)(int32_t)p->shift[lane]);
         }
+#endif
         npu_write(base + 0x60, 1);
         if (idle()) return KWS_HW_ERROR;
     }
@@ -67,6 +90,18 @@ int kws_load_model(const kws_model *model) {
 int kws_load_input(const int8_t input[320]) {
     int error = idle();
     if (error) return error;
+#if KWS_USE_DMA
+    /* Keep the unaligned caller fallback; workload frames are word aligned. */
+    if (!((uintptr_t)input & 3u)) {
+        error = dma_copy(input, NPU_INPUT_PACKED, 80);
+        if (error) return error;
+        unsigned limit = 1000000;
+        while (npu_read(NPU_INPUT_PENDING))
+            if (!--limit) return KWS_TIMEOUT;
+        return idle();
+    }
+    for (unsigned i = 0; i < 320; ++i) npu_write_input(i, input[i]);
+#else
     if ((uintptr_t)input & 3u) {
         for (unsigned i = 0; i < 320; ++i) npu_write_input(i, input[i]);
     } else {
@@ -85,6 +120,7 @@ int kws_load_input(const int8_t input[320]) {
             dst += 4;
         }
     }
+#endif
     return idle();
 }
 int kws_start_wait(uint32_t poll_limit) {

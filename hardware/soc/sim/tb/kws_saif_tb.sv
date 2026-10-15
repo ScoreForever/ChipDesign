@@ -13,8 +13,14 @@ module kws_saif_tb;
   always @(posedge workload.clk_i) begin
     cycle = cycle + 1;
     if (workload.dut.ndmreset_n && !complete) begin
+      // CPU loading starts at the legacy input window. For DMA, start at
+      // the destination configuration for packed input, before CTRL/start
+      // and the first SRAM read, so all input-transfer bus activity is kept.
+      // Weight/parameter DMA destinations do not match this input address.
       if (!recording && workload.dut.npu_req && workload.dut.npu_we &&
-          workload.dut.npu_addr == 32'h70001000) begin
+          (workload.dut.npu_addr == 32'h70001000 ||
+           (workload.dut.npu_addr == 32'h70000404 &&
+            workload.dut.npu_wdata == 32'h70001800))) begin
         recording = 1;
         first_cycle = cycle;
         $dumpon;
