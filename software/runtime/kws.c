@@ -1,0 +1,177 @@
+#include "kws.h"
+#include "npu_mmio.h"
+#include <limits.h>
+#if KWS_USE_DMA
+static int dma_copy(const void *src, unsigned offset, unsigned words) {
+    if (npu_read(NPU_DMA_STATUS) & NPU_DMA_BUSY) return KWS_NOT_READY;
+    npu_dma_start(src, NPU_BASE + offset, words);
+    return npu_dma_wait(1000000) ? KWS_TIMEOUT : KWS_OK;
+}
+#endif
+
+/* Mirrors tools/quantize.py, including negative rounding and saturation. */
+int32_t kws_scale(int32_t value, int32_t multiplier, int shift) {
+    if (shift > 0) {
+        if (value > (INT32_MAX >> shift)) value = INT32_MAX;
+        else if (value < (INT32_MIN >> shift)) value = INT32_MIN;
+        else value = (int32_t)((uint32_t)value << shift);
+    }
+    int32_t high;
+    if (value == INT32_MIN && multiplier == INT32_MIN) high = INT32_MAX;
+    else {
+        uint32_t low, upper;
+#if defined(__riscv) && __riscv_xlen == 32
+        __asm__("mulh %0, %2, %3\n\tmul %1, %2, %3"
+                : "=&r"(upper), "=r"(low) : "r"(value), "r"(multiplier));
+#else
+        uint64_t product = (uint64_t)((int64_t)value * multiplier);
+        low = (uint32_t)product;
+        upper = (uint32_t)(product >> 32);
+#endif
+        /* floor((product + 2^30) / 2^31) also implements the negative
+         * nudge followed by truncation toward zero. Use unsigned halves
+         * so the carry and doubled high word cannot overflow signed C. */
+        uint32_t rounded = low + 0x40000000u;
+        upper += rounded < low;
+        high = (int32_t)((upper << 1) | (rounded >> 31));
+    }
+    if (shift < 0) {
+        unsigned exponent = (unsigned)-shift;
+        uint32_t mask = (1u << exponent) - 1;
+        uint32_t threshold = (mask >> 1) + (high < 0);
+        high = (high >> exponent) + (((uint32_t)high & mask) > threshold);
+    }
+    return high;
+}
+
+static int idle(void) {
+    uint32_t status = npu_read(NPU_STATUS);
+    if (status & NPU_ERROR) return KWS_HW_ERROR;
+    return status & NPU_BUSY ? KWS_NOT_READY : KWS_OK;
+}
+int kws_load_model(const kws_model *model) {
+    uint32_t version = npu_read(NPU_VERSION);
+    if (version != 0x00020002 && version != 0x00020001) return KWS_BAD_VERSION;
+    if (npu_read(NPU_STATUS) & NPU_BUSY) return KWS_NOT_READY;
+    npu_write(NPU_CONTROL, NPU_CLEAR_DONE | NPU_CLEAR_ERROR);
+    npu_write(NPU_CLASS_COUNT, 4);
+#if KWS_USE_DMA
+    int error = dma_copy(model->weights, NPU_WEIGHT, 482);
+    if (error) return error;
+#else
+    for (unsigned i = 0; i < 241; ++i)
+        npu_write_weight(i, model->weights[i][0], model->weights[i][1]);
+#endif
+    for (unsigned group = 0; group < 3; ++group) {
+        unsigned layer = group == 2 ? 3 : group;
+        unsigned base = NPU_PARAMETER + layer * 0x100;
+        const kws_parameters *p = &model->parameters[group];
+#if KWS_USE_DMA
+        /* bias and mult are contiguous INT32 arrays; shifts remain INT8. */
+        error = dma_copy(p->bias, base, 16);
+        if (error) return error;
+        for (unsigned lane = 0; lane < 8; ++lane)
+            npu_write(base + 0x40 + 4 * lane, (uint32_t)(int32_t)p->shift[lane]);
+#else
+        for (unsigned lane = 0; lane < 8; ++lane) {
+            npu_write(base + 4 * lane, p->bias[lane]);
+            npu_write(base + 0x20 + 4 * lane, p->mult[lane]);
+            npu_write(base + 0x40 + 4 * lane, (uint32_t)(int32_t)p->shift[lane]);
+        }
+#endif
+        npu_write(base + 0x60, 1);
+        if (idle()) return KWS_HW_ERROR;
+    }
+    return idle();
+}
+int kws_input_begin(const int8_t input[320]) {
+    int error = idle();
+    if (error) return error;
+#if KWS_USE_DMA
+    /* Keep the unaligned caller fallback; workload frames are word aligned. */
+    if (!((uintptr_t)input & 3u)) {
+        if (npu_read(NPU_DMA_STATUS) & NPU_DMA_BUSY) return KWS_NOT_READY;
+        npu_dma_start(input, NPU_BASE + NPU_INPUT_PACKED, 80);
+        return KWS_OK;
+    }
+    for (unsigned i = 0; i < 320; ++i) npu_write_input(i, input[i]);
+#else
+    if ((uintptr_t)input & 3u) {
+        for (unsigned i = 0; i < 320; ++i) npu_write_input(i, input[i]);
+    } else {
+        const uint8_t *src = __builtin_assume_aligned(input, 4);
+        volatile uint32_t *dst = (volatile uint32_t *)(uintptr_t)(NPU_BASE + NPU_INPUT);
+        for (unsigned i = 0; i < 80; ++i) {
+            uint32_t word;
+            /* Fixed-size memcpy permits an aligned lw without violating
+             * the effective type of the caller's INT8 array. RV32 is LE. */
+            __builtin_memcpy(&word, src, sizeof word);
+            dst[0] = word & 0xffu;
+            dst[1] = (word >> 8) & 0xffu;
+            dst[2] = (word >> 16) & 0xffu;
+            dst[3] = word >> 24;
+            src += 4;
+            dst += 4;
+        }
+    }
+#endif
+    return idle();
+}
+int kws_input_finish(const int8_t input[320]) {
+#if KWS_USE_DMA
+    if (!((uintptr_t)input & 3u)) {
+        if (npu_dma_wait(1000000)) return KWS_TIMEOUT;
+        unsigned limit = 1000000;
+        while (npu_read(NPU_INPUT_PENDING))
+            if (!--limit) return KWS_TIMEOUT;
+        return idle();
+    }
+#else
+    (void)input;
+#endif
+    /* Synchronous fallback already checked idle at the end of begin. */
+    return KWS_OK;
+}
+int kws_load_input(const int8_t input[320]) {
+    int error = kws_input_begin(input);
+    return error ? error : kws_input_finish(input);
+}
+int kws_start_wait_timed(uint32_t poll_limit, uint32_t *start_cycle) {
+    uint32_t status = npu_read(NPU_STATUS);
+    if (status & NPU_ERROR) return KWS_HW_ERROR;
+    if (!(status & NPU_READY)) return KWS_NOT_READY;
+    if (start_cycle) {
+#if defined(__riscv)
+        uint32_t value;
+        __asm__ volatile(".option push\n.option arch, +zicsr\ncsrr %0, 0xb00\n.option pop"
+                         : "=r"(value) :: "memory");
+        *start_cycle = value;
+#else
+        *start_cycle = 0;
+#endif
+    }
+    npu_write(NPU_CONTROL, NPU_START);
+    while (poll_limit--) {
+        status = npu_read(NPU_STATUS);
+        if (status & NPU_ERROR) return KWS_HW_ERROR;
+        if (status & NPU_DONE) return KWS_OK;
+    }
+    return KWS_TIMEOUT;
+}
+int kws_start_wait(uint32_t poll_limit) {
+    return kws_start_wait_timed(poll_limit, 0);
+}
+int kws_read_result(const kws_model *model, int32_t raw[4], uint32_t *prediction) {
+    uint32_t status = npu_read(NPU_STATUS);
+    if (status & NPU_ERROR) return KWS_HW_ERROR;
+    if (!(status & NPU_DONE)) return KWS_NOT_READY;
+    int32_t best = INT32_MIN;
+    *prediction = 0;
+    for (unsigned c = 0; c < 4; ++c) {
+        raw[c] = (int32_t)npu_read(NPU_LOGIT + 4 * c);
+        int32_t score = kws_scale(raw[c], model->cmp_mult[c], model->cmp_shift[c]);
+        if (score > best) { best = score; *prediction = c; }
+    }
+    npu_write(NPU_CONTROL, NPU_CLEAR_DONE);
+    return idle();
+}

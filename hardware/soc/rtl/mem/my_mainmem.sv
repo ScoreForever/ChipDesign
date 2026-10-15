@@ -3,8 +3,7 @@
 module my_mainmem #(
     parameter int ADDR_W = 11,
     parameter int DATA_W = 32,
-    parameter INIT_FILE = "hardware/soc/sim/tb/lab3_test1.hex",
-    parameter PIPELINED = 0
+    parameter INIT_FILE = "soc/sim/tb/lab3_test1.hex"
 ) (
     input  logic              clk_i,
     input  logic              rst_ni,
@@ -19,11 +18,9 @@ module my_mainmem #(
   sram_ff #(
       .AddrWidth(ADDR_W),
       .DataWidth(DATA_W),
-      .INIT_FILE(INIT_FILE),
-      .PIPELINED(PIPELINED)
+      .INIT_FILE(INIT_FILE)
   ) i_mainmem (
       .clk_i (clk_i),
-      .rst_ni(rst_ni),
       .req_i (req_i),
       .wen_i (be_i & {4{we_i}}),
       .addr_i(addr_i[ADDR_W+1:2]),

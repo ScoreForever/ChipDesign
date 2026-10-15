@@ -50,3 +50,9 @@ python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
 当前融合核的[真实语音与逐周期验证](docs/FUSED_SPEECH_VALIDATION.md)，以及
 保持RTL兼容的[模型准确率实验](docs/MODEL_ACCURACY_OPTIMIZATION.md)包含2026-10-14
 的agi实测、复现入口和证据边界。
+
+存储配置：默认（流片配置）主存一路使用课程提供的 `axi2mem` / `my_mainmem` / `sram_ff`，
+实例路径保持 `i_mainmem/i_mainmem`，便于替换为课程 SRAM 宏。EGo1 构建定义
+`CHIPDESIGN_FPGA_MEM`，改用 `hardware/fpga/rtl/` 下 3 拍读流水的 FPGA 专用模块。
+结构回归、KWS workload、SAIF 与剖析脚本的 Linux 入口用 `--config asic|fpga` 选择
+（默认 `asic`），remote PowerShell 入口用 `-Config asic|fpga`；FPGA 功耗分析请用 `fpga`。

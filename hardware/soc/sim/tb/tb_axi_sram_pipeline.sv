@@ -8,13 +8,25 @@ module tb_axi_sram_pipeline;
     wire req,we;
     wire [31:0] addr,wdata,rdata;
     wire [3:0] be;
-    axi2mem #(.AXI_ID_WIDTH(4),.AXI_ADDR_WIDTH(32),.AXI_DATA_WIDTH(32),
+    generate if (READ_LATENCY == 3) begin : g_fpga
+    fpga_axi2mem_lat #(.AXI_ID_WIDTH(4),.AXI_ADDR_WIDTH(32),.AXI_DATA_WIDTH(32),
               .AXI_USER_WIDTH(1),.READ_LATENCY(READ_LATENCY)) adapter(
         .clk_i(clk),.rst_ni(rst_n),.slave(bus),.req_o(req),.we_o(we),
         .addr_o(addr),.be_o(be),.user_o(),.data_o(wdata),.user_i(1'b0),.data_i(rdata));
-    my_mainmem #(.INIT_FILE(""),.PIPELINED(READ_LATENCY==3)) mem(
+    fpga_mainmem_pipelined #(.INIT_FILE(""),.PIPELINED(READ_LATENCY==3)) mem(
         .clk_i(clk),.rst_ni(rst_n),.req_i(req),.we_i(we),.be_i(be),
         .addr_i(addr),.wdata_i(wdata),.rdata_o(rdata));
+    end else if (READ_LATENCY == 1) begin : g_course
+    axi2mem #(.AXI_ID_WIDTH(4),.AXI_ADDR_WIDTH(32),.AXI_DATA_WIDTH(32),
+              .AXI_USER_WIDTH(1)) adapter(
+        .clk_i(clk),.rst_ni(rst_n),.slave(bus),.req_o(req),.we_o(we),
+        .addr_o(addr),.be_o(be),.user_o(),.data_o(wdata),.user_i(1'b0),.data_i(rdata));
+    my_mainmem #(.INIT_FILE("")) mem(
+        .clk_i(clk),.rst_ni(rst_n),.req_i(req),.we_i(we),.be_i(be),
+        .addr_i(addr),.wdata_i(wdata),.rdata_o(rdata));
+    end else begin : g_invalid
+        initial $fatal(1,"READ_LATENCY must be 1 or 3");
+    end endgenerate
     reg [31:0] expected[0:2047];
     integer reads=0,writes=0;
     task write_burst;
@@ -54,7 +66,7 @@ module tb_axi_sram_pipeline;
     endtask
     task read_burst;
         input integer base,count;
-        integer i;
+        integer i, wait_edges;
         reg [31:0] held_data;
         reg held_last;
         begin
@@ -62,7 +74,12 @@ module tb_axi_sram_pipeline;
             @(posedge clk);while(!bus.ar_ready) @(posedge clk);
             @(negedge clk);bus.ar_valid=0;
             for(i=0;i<count;i=i+1) begin
-                while(!bus.r_valid) @(negedge clk);
+                wait_edges=1;
+                while(!bus.r_valid) begin
+                    @(negedge clk);wait_edges=wait_edges+1;
+                end
+                if(wait_edges != READ_LATENCY)
+                    $fatal(1,"expected read latency=%0d actual=%0d",READ_LATENCY,wait_edges);
                 held_data=bus.r_data;held_last=bus.r_last;
                 if(held_data!==expected[base+i] || held_last!==(i==count-1) ||
                    bus.r_id!==4'd5 || bus.r_resp!==0)

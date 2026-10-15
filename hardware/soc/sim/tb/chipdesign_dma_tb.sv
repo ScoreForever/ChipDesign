@@ -10,6 +10,8 @@
 // SRAM is 32-bit / word; the magic region starts at word index 0x7F8.
 
 module chipdesign_dma_tb;
+  wire dma_checks_finished;
+  npu_dma_checks dma_checks(dma_checks_finished);
 
   localparam int unsigned MAGIC_WORD     = 32'h0000_07F8;
   localparam logic [31:0] STATUS_RUNNING = 32'h1234_5678;
@@ -63,6 +65,7 @@ module chipdesign_dma_tb;
       cycle_count = cycle_count + 1;
 
       if (magic_status == STATUS_PASS) begin
+        wait(dma_checks_finished);
         $display("[%0t] PASS: NPU DMA test OK after %0d cycles",
                  $time, cycle_count);
         $finish;

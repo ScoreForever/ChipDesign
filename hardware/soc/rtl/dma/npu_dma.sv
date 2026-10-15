@@ -94,17 +94,18 @@ module npu_dma #(
                 we_o    = 1'b1;
                 addr_o  = dst_q;
                 wdata_o = data_q;
-                if (gnt_i) begin
-                    if (cnt_q == 1)
-                        state_d = DMA_DONE;
-                    else
-                        state_d = DMA_WRITE_WAIT;
-                end
+                // Grant accepts the request; only valid acknowledges the write.
+                if (gnt_i)
+                    state_d = DMA_WRITE_WAIT;
             end
 
             DMA_WRITE_WAIT: begin
-                if (valid_i)
-                    state_d = DMA_READ;
+                if (valid_i) begin
+                    if (cnt_q == 0)
+                        state_d = DMA_DONE;
+                    else
+                        state_d = DMA_READ;
+                end
             end
 
             DMA_DONE: begin
