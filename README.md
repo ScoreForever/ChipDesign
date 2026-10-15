@@ -46,3 +46,7 @@ python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
 
 系统模型、量化、模块分工、MMIO接口和软硬件边界见
 `docs/ARCHITECTURE.md`。
+
+当前融合核的[真实语音与逐周期验证](docs/FUSED_SPEECH_VALIDATION.md)，以及
+保持RTL兼容的[模型准确率实验](docs/MODEL_ACCURACY_OPTIMIZATION.md)包含2026-10-14
+的agi实测、复现入口和证据边界。

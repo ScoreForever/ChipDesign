@@ -111,6 +111,13 @@ python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
 
 ## 5. 后续方向
 
+2026-10-14新增验收：优化训练包在agi上完成100条真实语音融合/分层对拍，
+400个raw logits、80,000个池化字节和280,600个采样边沿全部通过；
+10项事件故障注入按预期被拒绝。参见
+[真实语音与逐周期验证](../../docs/FUSED_SPEECH_VALIDATION.md)。
+现有`run_tinycnn8_fused_test.py`也会执行独立事件检查。
+
+
 1. Vivado 综合拿到 LUT/FF/DSP/WNS，确认面积收益，并决定 bank 读口的流水级。
 2. 累加器收窄到 24 位，multiplier 收窄到 16 位（每个 lane 用 1 个 DSP48）。需要导出工具加位宽检查。
 3. 层描述符接口：把 sequencer 里的固定参数开放给软件，配合汇编器和 golden 模型。

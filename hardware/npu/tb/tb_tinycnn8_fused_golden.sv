@@ -47,6 +47,10 @@ module tb_tinycnn8_fused_golden;
     string data_dir;
     integer classes=6,index,lane,layer,run,run_cycles,errors=0;
 
+`ifdef TINYCNN8_FUSED_EVENTS
+    `include "hardware/npu/tb/fused_event_trace.svh"
+`endif
+
     function [7:0] act_byte(input integer addr);
         case(addr%8)
             0:act_byte=dut.g_act_banks[0].mem[addr/8];

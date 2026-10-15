@@ -42,6 +42,23 @@ module tb_tinycnn8_trained_model;
         .host_parameter_tile(host_parameter_tile),.host_bias_data(host_bias_data),
         .host_multiplier_data(host_multiplier_data),.host_shift_data(host_shift_data));
 
+`ifdef TINYCNN8_FUSED_EVENTS
+    `include "hardware/npu/tb/fused_event_trace.svh"
+    reg [7:0] expected_pool1[0:63999],expected_pool2[0:15999];
+    function [7:0] act_byte(input integer addr);
+        case(addr%8)
+            0:act_byte=dut.g_act_banks[0].mem[addr/8];
+            1:act_byte=dut.g_act_banks[1].mem[addr/8];
+            2:act_byte=dut.g_act_banks[2].mem[addr/8];
+            3:act_byte=dut.g_act_banks[3].mem[addr/8];
+            4:act_byte=dut.g_act_banks[4].mem[addr/8];
+            5:act_byte=dut.g_act_banks[5].mem[addr/8];
+            6:act_byte=dut.g_act_banks[6].mem[addr/8];
+            default:act_byte=dut.g_act_banks[7].mem[addr/8];
+        endcase
+    endfunction
+`endif
+
     task write_activation;
         input integer addr;
         input [7:0] value;
@@ -79,6 +96,10 @@ module tb_tinycnn8_trained_model;
         if(sample_count<1 || sample_count>100)$fatal(1,"bad sample count %0d",sample_count);
         $readmemh({vector_dir,"/inputs.hex"},input_vectors,0,sample_count*320-1);
         $readmemh({vector_dir,"/logits.hex"},expected_logits,0,sample_count*4-1);
+`ifdef TINYCNN8_FUSED_EVENTS
+        $readmemh({vector_dir,"/pool1.hex"},expected_pool1,0,sample_count*640-1);
+        $readmemh({vector_dir,"/pool2.hex"},expected_pool2,0,sample_count*160-1);
+`endif
 
         repeat(3)@(posedge clk);@(negedge clk);rst=0;
         for(index=0;index<256;index=index+1)write_weight(index,weight_vectors[index]);
@@ -108,11 +129,21 @@ module tb_tinycnn8_trained_model;
             @(posedge clk);@(negedge clk);start_valid=0;cycles=0;
             while(!done)begin @(posedge clk);cycles=cycles+1;
                 if(cycles>100000)$fatal(1,"timeout sample=%0d",sample);end
+            @(negedge clk);
+`ifdef TINYCNN8_FUSED_EVENTS
+            for(index=0;index<640;index=index+1)
+                if(act_byte(320+index)!==expected_pool1[sample*640+index])
+                    $fatal(1,"sample=%0d pool1 index=%0d mismatch",sample,index);
+            for(index=0;index<160;index=index+1)
+                if(act_byte(index)!==expected_pool2[sample*160+index])
+                    $fatal(1,"sample=%0d pool2 index=%0d mismatch",sample,index);
+`endif
             for(lane=0;lane<4;lane=lane+1)
                 if(logits[lane*32 +: 32]!==expected_logits[sample*4+lane])
                     $fatal(1,"sample=%0d logit=%0d expected=%0d actual=%0d",
                         sample,lane,$signed(expected_logits[sample*4+lane]),
                         $signed(logits[lane*32 +: 32]));
+            $display("SPEECH_RESULT sample=%0d logits=%h",sample,logits);
         end
         $display("ALL TRAINED FLATTEN RTL VECTORS PASSED samples=%0d",sample_count);
         $finish;
