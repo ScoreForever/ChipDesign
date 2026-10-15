@@ -1,6 +1,8 @@
+[CmdletBinding()]
+param([ValidateSet('asic', 'fpga')][string]$Config = 'asic')
 $ErrorActionPreference = 'Stop'
 $rootDir = (Resolve-Path (Join-Path $PSScriptRoot '../../../..')).Path
-$runDir = Join-Path $rootDir ('work/structure_regression_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
+$runDir = Join-Path $rootDir ('build/structure_regression_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
 New-Item -ItemType Directory -Path $runDir | Out-Null
 $runPath = $runDir.Replace('\', '/')
 $libraryPath = "$runPath/library"
@@ -38,7 +40,9 @@ try {
 Push-Location $rootDir
 try {
     New-Item -ItemType Directory -Path 'hardware/soc/sim/out' -Force | Out-Null
-    & vlog -sv -modelsimini "$runPath/modelsim.ini" -work verify `
+    $defines = @()
+    if ($Config -eq 'fpga') { $defines += '+define+CHIPDESIGN_FPGA_MEM' }
+    & vlog @defines -sv -modelsimini "$runPath/modelsim.ini" -work verify `
         -f hardware/soc/sim/filelists/chipdesign_soc.f `
         hardware/npu/tb/tb_requant_unit.sv `
         hardware/npu/tb/tb_tinycnn8_capacity.sv `

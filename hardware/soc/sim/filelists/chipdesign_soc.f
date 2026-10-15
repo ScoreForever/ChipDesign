@@ -72,6 +72,9 @@ hardware/cpu/cpu_cv32e40p/rtl/cv32e40p_cs_registers.sv
 hardware/cpu/cpu_cv32e40p/rtl/cv32e40p_core.sv
 hardware/cpu/cpu_cv32e40p/rtl/cv32e40p_top.sv
 hardware/soc/rtl/mem/my_mainmem.sv
+hardware/fpga/rtl/fpga_sram_pipelined.sv
+hardware/fpga/rtl/fpga_mainmem_pipelined.sv
+hardware/fpga/rtl/fpga_axi2mem_lat.sv
 hardware/soc/rtl/dma/npu_dma.sv
 hardware/npu/rtl/ws_pe.sv
 hardware/npu/rtl/ws_systolic_array.sv

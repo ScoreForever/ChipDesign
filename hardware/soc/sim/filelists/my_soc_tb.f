@@ -68,6 +68,9 @@ cpu_cv32e40p/rtl/cv32e40p_cs_registers.sv
 cpu_cv32e40p/rtl/cv32e40p_core.sv
 cpu_cv32e40p/rtl/cv32e40p_top.sv
 soc/rtl/mem/my_mainmem.sv
+fpga/rtl/fpga_sram_pipelined.sv
+fpga/rtl/fpga_mainmem_pipelined.sv
+fpga/rtl/fpga_axi2mem_lat.sv
 simple_npu/rtl/simple_npu_pe.sv
 simple_npu/rtl/simple_npu_core.sv
 simple_npu/rtl/simple_npu_top.sv

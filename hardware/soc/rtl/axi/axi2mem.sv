@@ -21,9 +21,7 @@ module axi2mem #(
     parameter int unsigned AXI_ID_WIDTH      = 10,
     parameter int unsigned AXI_ADDR_WIDTH    = 64,
     parameter int unsigned AXI_DATA_WIDTH    = 64,
-    parameter int unsigned AXI_USER_WIDTH    = 10,
-    // Number of clock edges from a memory request to stable read data.
-    parameter int unsigned READ_LATENCY      = 1
+    parameter int unsigned AXI_USER_WIDTH    = 10
 )(
     input logic                         clk_i,    // Clock
     input logic                         rst_ni,  // Asynchronous reset active low
@@ -55,9 +53,7 @@ module axi2mem #(
     } ax_req_t;
 
     // Registers
-    enum logic [2:0] { IDLE, READ, WRITE, SEND_B, WAIT_WVALID, WAIT_READ } state_d, state_q;
-    localparam WAIT_WIDTH = (READ_LATENCY <= 1) ? 1 : $clog2(READ_LATENCY);
-    logic [WAIT_WIDTH-1:0] read_wait_d, read_wait_q;
+    enum logic [2:0] { IDLE, READ, WRITE, SEND_B, WAIT_WVALID }  state_d, state_q;
     ax_req_t                   ax_req_d, ax_req_q;
     logic [AXI_ADDR_WIDTH-1:0] req_addr_d, req_addr_q;
     logic [7:0]                cnt_d, cnt_q;
@@ -97,7 +93,6 @@ module axi2mem #(
         ax_req_d   = ax_req_q;
         req_addr_d = req_addr_q;
         cnt_d      = cnt_q;
-        read_wait_d = read_wait_q;
         // Memory default assignments
         data_o = slave.w_data;
         user_o = slave.w_user;
@@ -135,8 +130,7 @@ module axi2mem #(
                     slave.ar_ready = 1'b1;
                     // sample ax
                     ax_req_d       = {slave.ar_id, slave.ar_addr, slave.ar_len, slave.ar_size, slave.ar_burst};
-                    state_d        = (READ_LATENCY > 1) ? WAIT_READ : READ;
-                    read_wait_d    = READ_LATENCY - 1;
+                    state_d        = READ;
                     //  we can request the first address, this saves us time
                     req_o          = 1'b1;
                     addr_o         = slave.ar_addr;
@@ -178,19 +172,9 @@ module axi2mem #(
                 end
             end
 
-            WAIT_READ: begin
-                // One request is in flight. Do not expose RVALID until all
-                // synchronous RAM stages have captured this beat's data.
-                if (read_wait_q == 1)
-                    state_d = READ;
-                else
-                    read_wait_d = read_wait_q - 1'b1;
-            end
-
             READ: begin
-                // Legacy RAM repeats the current read while RREADY is low.
-                // Pipelined RAM holds its output, so request only the next beat.
-                req_o  = (READ_LATENCY == 1);
+                // keep request to memory high
+                req_o  = 1'b1;
                 addr_o = req_addr_q;
                 // send the response
                 slave.r_valid = 1'b1;
@@ -226,10 +210,6 @@ module axi2mem #(
                         state_d = IDLE;
                         // we already got everything
                         req_o = 1'b0;
-                    end else if (READ_LATENCY > 1) begin
-                        req_o = 1'b1;
-                        state_d = WAIT_READ;
-                        read_wait_d = READ_LATENCY - 1;
                     end
                     // save the request address for the next cycle
                     req_addr_d = addr_o;
@@ -309,13 +289,11 @@ module axi2mem #(
             ax_req_q  <= '0;
             req_addr_q <= '0;
             cnt_q      <= '0;
-            read_wait_q <= '0;
         end else begin
             state_q    <= state_d;
             ax_req_q   <= ax_req_d;
             req_addr_q <= req_addr_d;
             cnt_q      <= cnt_d;
-            read_wait_q <= read_wait_d;
         end
     end
 endmodule

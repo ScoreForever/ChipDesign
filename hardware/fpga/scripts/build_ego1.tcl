@@ -128,7 +128,7 @@ if {[catch {
         }
     }
     set_property include_dirs $includes [current_fileset]
-    set_property verilog_define {SYNTHESIS} [current_fileset]
+    set_property verilog_define {SYNTHESIS CHIPDESIGN_FPGA_MEM} [current_fileset]
     read_verilog -sv $sources
     read_verilog -sv [file join $repo hardware/fpga/fpga_top.sv]
     read_xdc [file join $repo hardware/fpga/ego1_pins.xdc]

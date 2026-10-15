@@ -23,13 +23,14 @@ CASES = [
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--config', choices=('asic', 'fpga'), default='asic')
     args = parser.parse_args()
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=True)
     if any(output.iterdir()):
         parser.error('--output must be empty to preserve prior evidence')
     (ROOT / 'hardware/soc/sim/out').mkdir(parents=True, exist_ok=True)
-    summary = {'tool': 'xrun', 'cases': [], 'passed': False}
+    summary = {'tool': 'xrun', 'config': args.config, 'cases': [], 'passed': False}
     for name, top, marker, generics in CASES:
         command = ['xrun', '-64bit', '-sv', '-timescale', '1ns/1ps',
                    '-f', 'hardware/soc/sim/filelists/chipdesign_soc.f',
@@ -38,6 +39,8 @@ def main():
                    'hardware/soc/sim/tb/tb_axi_sram_pipeline.sv',
                    '-top', top, '-xmlibdirname', str(output / (name + '_db')),
                    '-l', str(output / (name + '.log')), *generics]
+        if args.config == 'fpga':
+            command.append('+define+CHIPDESIGN_FPGA_MEM')
         with (output / (name + '_console.log')).open('w') as log:
             result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, timeout=600)
         content = (output / (name + '_console.log')).read_text()

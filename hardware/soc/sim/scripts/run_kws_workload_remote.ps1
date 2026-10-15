@@ -3,6 +3,7 @@
 param(
     [string]$HostName = $env:SSH_HOST,
     [string]$RemoteDir = '',
+    [ValidateSet('asic', 'fpga')][string]$Config = 'asic',
     [string]$WorkloadDir = 'build/kws_workload',
     [ValidateRange(1, 86400)][int]$TimeoutSeconds = 300,
     [ValidateRange(1, 86400)][int]$CompileTimeoutSeconds = 600
@@ -135,7 +136,7 @@ rm -- hardware.tar.gz
     $command = @'
 set -eu
 cd -- "$1"
-exec bash hardware/soc/sim/scripts/run_kws_workload_linux.sh --output "$2" --timeout "$3" --compile-timeout "$4" --firmware "$1/$5/workload.hex"
+exec bash hardware/soc/sim/scripts/run_kws_workload_linux.sh --output "$2" --timeout "$3" --compile-timeout "$4" --firmware "$1/$5/workload.hex" --config "$6"
 '@
     Write-Output "Running KWS workload on $HostName; local logs: $runDir"
     # Log retrieval is attempted even when compilation or simulation fails.
@@ -145,7 +146,7 @@ exec bash hardware/soc/sim/scripts/run_kws_workload_linux.sh --output "$2" --tim
         $result = Invoke-Native -Program ssh -Stage regression -InputScript $command -Arguments @(
             '-o', 'BatchMode=yes', '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=3',
             $HostName, 'bash', '-s', '--', $remoteRoot, $remoteOutput,
-            [string]$TimeoutSeconds, [string]$CompileTimeoutSeconds, $workloadRelative)
+            [string]$TimeoutSeconds, [string]$CompileTimeoutSeconds, $workloadRelative, $Config)
         $simExit = $result.ExitCode
     } finally {
         $result = Invoke-Native -Program scp -Stage download -Arguments @('-o', 'BatchMode=yes',

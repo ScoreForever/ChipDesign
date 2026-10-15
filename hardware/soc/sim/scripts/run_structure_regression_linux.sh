@@ -7,8 +7,10 @@ test_timeout=120
 compile_timeout=600
 sim=xcelium
 output=""
+config=asic
 while (($#)); do
     case "$1" in
+        --config) config=${2:?}; shift 2 ;;
         --sim) sim=${2:?}; shift 2 ;;
         --timeout) test_timeout=${2:?}; shift 2 ;;
         --compile-timeout) compile_timeout=${2:?}; shift 2 ;;
@@ -16,6 +18,7 @@ while (($#)); do
         *) echo "Unknown argument: $1" >&2; exit 2 ;;
     esac
 done
+case "$config" in asic|fpga) ;; *) echo 'Config must be asic or fpga' >&2; exit 2 ;; esac
 case "$sim" in
     xcelium) simulator=xrun ;;
     vcs) simulator=vcs ;;
@@ -30,6 +33,7 @@ output=$(realpath -m -- "$output")
 case "$output" in "$root/build/"*) ;; *) echo 'Output must be inside the worktree build directory' >&2; exit 2 ;; esac
 mkdir -- "$output"
 exec > >(tee "$output/regression.log") 2>&1
+echo "Memory config: $config"
 echo "Logs: $output"
 echo "Simulator: $sim"
 if ! command -v "$simulator" >/dev/null && [[ -f /opt/eda/env.sh ]]; then
@@ -48,6 +52,10 @@ fi
 
 # Convert ModelSim +header entries to source files; keep order and include paths.
 filelist="$output/chipdesign_soc_linux.f"
+: > "$filelist"
+if [[ $config == fpga ]]; then
+    printf '+define+CHIPDESIGN_FPGA_MEM\n' >> "$filelist"
+fi
 while IFS= read -r line || [[ -n $line ]]; do
     line=${line%$'\r'}
     [[ -n $line ]] || continue
@@ -56,7 +64,7 @@ while IFS= read -r line || [[ -n $line ]]; do
         +*.svh) printf '"%s/%s"\n' "$root" "${line#+}" ;;
         *) printf '"%s/%s"\n' "$root" "$line" ;;
     esac
-done < "$root/hardware/soc/sim/filelists/chipdesign_soc.f" > "$filelist"
+done < "$root/hardware/soc/sim/filelists/chipdesign_soc.f" >> "$filelist"
 for tb in hardware/npu/tb/tb_requant_unit.sv hardware/npu/tb/tb_tinycnn8_capacity.sv hardware/soc/sim/tb/tb_axi_sram_pipeline.sv; do
     printf '"%s/%s"\n' "$root" "$tb" >> "$filelist"
 done

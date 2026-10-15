@@ -3,6 +3,7 @@
 param(
     [string]$HostName = $env:SSH_HOST,
     [string]$RemoteDir = '',
+    [ValidateSet('asic', 'fpga')][string]$Config = 'asic',
     [ValidateSet('xcelium', 'vcs')][string]$Simulator = 'xcelium',
     [ValidateRange(1, 86400)][int]$TimeoutSeconds = 120,
     [ValidateRange(1, 86400)][int]$CompileTimeoutSeconds = 600
@@ -125,7 +126,7 @@ rm -- hardware.tar.gz
     $command = @'
 set -eu
 cd -- "$1"
-exec bash hardware/soc/sim/scripts/run_structure_regression_linux.sh --output "$2" --timeout "$3" --compile-timeout "$4" --sim "$5"
+exec bash hardware/soc/sim/scripts/run_structure_regression_linux.sh --output "$2" --timeout "$3" --compile-timeout "$4" --sim "$5" --config "$6"
 '@
     Write-Output "Running $Simulator on $HostName; local logs: $runDir"
     # Log retrieval is attempted even when compilation or simulation fails.
@@ -135,7 +136,7 @@ exec bash hardware/soc/sim/scripts/run_structure_regression_linux.sh --output "$
         $result = Invoke-Native -Program ssh -Stage regression -InputScript $command -Arguments @(
             '-o', 'BatchMode=yes', '-o', 'ServerAliveInterval=15', '-o', 'ServerAliveCountMax=3',
             $HostName, 'bash', '-s', '--', $remoteRoot, $remoteOutput,
-            [string]$TimeoutSeconds, [string]$CompileTimeoutSeconds, $Simulator)
+            [string]$TimeoutSeconds, [string]$CompileTimeoutSeconds, $Simulator, $Config)
         $simExit = $result.ExitCode
     } finally {
         $result = Invoke-Native -Program scp -Stage download -Arguments @('-o', 'BatchMode=yes',

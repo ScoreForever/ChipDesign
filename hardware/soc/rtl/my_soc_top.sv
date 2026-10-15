@@ -406,9 +406,14 @@ module my_soc_top #(
   logic [3:0]  sram_be;
   logic [31:0] sram_rdata;
 
+  // Keep the course SRAM hierarchy unchanged for macro replacement.
+`ifdef CHIPDESIGN_FPGA_MEM
+  fpga_mainmem_pipelined #(
+      .PIPELINED(1),
+`else
   my_mainmem #(
-      .INIT_FILE(INIT_FILE),
-      .PIPELINED(1)
+`endif
+      .INIT_FILE(INIT_FILE)
   ) i_mainmem (
       .clk_i  (clk_i),
       .rst_ni (ndmreset_n),
@@ -420,12 +425,16 @@ module my_soc_top #(
       .rdata_o(sram_rdata)
   );
 
+`ifdef CHIPDESIGN_FPGA_MEM
+  fpga_axi2mem_lat #(
+      .READ_LATENCY  (3),
+`else
   axi2mem #(
+`endif
       .AXI_ID_WIDTH   (4),
       .AXI_ADDR_WIDTH (32),
       .AXI_DATA_WIDTH (32),
-      .AXI_USER_WIDTH (1),
-      .READ_LATENCY  (3)
+      .AXI_USER_WIDTH (1)
   ) i_axi2sram (
       .clk_i  (clk_i),
       .rst_ni (ndmreset_n),

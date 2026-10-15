@@ -3,8 +3,10 @@
 set -euo pipefail
 root=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../../../.." && pwd)
 firmware=""; output=""; compile_timeout=600; test_timeout=300
+config=asic
 while (($#)); do
     case "$1" in
+        --config) config=${2:?}; shift 2 ;;
         --firmware) firmware=${2:?}; shift 2 ;;
         --output) output=${2:?}; shift 2 ;;
         --timeout) test_timeout=${2:?}; shift 2 ;;
@@ -12,6 +14,7 @@ while (($#)); do
         *) echo "Unknown argument: $1" >&2; exit 2 ;;
     esac
 done
+case "$config" in asic|fpga) ;; *) echo 'Config must be asic or fpga' >&2; exit 2 ;; esac
 [[ $test_timeout =~ ^[1-9][0-9]*$ && $compile_timeout =~ ^[1-9][0-9]*$ ]] || exit 2
 firmware=$(realpath -e -- "${firmware:?--firmware is required}")
 output=$(realpath -m -- "${output:-$root/build/kws_sim_$(date +%Y%m%d_%H%M%S)}")
@@ -20,6 +23,7 @@ case "$output" in "$root/build/"*) ;; *) echo 'Output must be in build/' >&2; ex
 mkdir -p -- "$root/build"
 mkdir -- "$output"
 exec > >(tee "$output/regression.log") 2>&1
+echo "Memory config: $config"
 if ! command -v xrun >/dev/null && [[ -f /opt/eda/env.sh ]]; then
     set +u
     source /opt/eda/env.sh
@@ -29,6 +33,10 @@ command -v xrun >/dev/null
 command -v timeout >/dev/null
 xrun -version > "$output/simulator_version.log" 2>&1
 filelist="$output/workload.f"
+: > "$filelist"
+if [[ $config == fpga ]]; then
+    printf '+define+CHIPDESIGN_FPGA_MEM\n' >> "$filelist"
+fi
 while IFS= read -r line || [[ -n $line ]]; do
     line=${line%$'\r'}
     [[ -n $line ]] || continue
@@ -38,7 +46,7 @@ while IFS= read -r line || [[ -n $line ]]; do
         +*.svh) printf '"%s/%s"\n' "$root" "${line#+}" ;;
         *) printf '"%s/%s"\n' "$root" "$line" ;;
     esac
-done < "$root/hardware/soc/sim/filelists/chipdesign_soc.f" > "$filelist"
+done < "$root/hardware/soc/sim/filelists/chipdesign_soc.f" >> "$filelist"
 printf '"%s/hardware/soc/sim/tb/kws_workload_tb.sv"\n' "$root" >> "$filelist"
 active_pid=""
 cleanup() {
