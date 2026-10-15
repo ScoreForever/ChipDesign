@@ -88,23 +88,6 @@ module my_soc_top #(
   logic           instr_rvalid;
   logic [31:0]    instr_addr;
   logic [31:0]    instr_rdata;
-  logic           instr_ext_req, instr_ext_gnt, instr_ext_rvalid;
-  logic [31:0]    instr_ext_rdata;
-  logic           imem_req, imem_gnt, imem_rvalid;
-  logic [31:0]    imem_rdata;
-
-  instr_fetch_router #(
-      .SRAM_BASE(SRAM_BASE), .SRAM_LENGTH(SRAM_LENGTH)
-  ) i_instr_fetch_router (
-      .clk_i(clk_i), .rst_ni(ndmreset_n),
-      .req_i(instr_req), .addr_i(instr_addr),
-      .gnt_o(instr_gnt), .rvalid_o(instr_rvalid), .rdata_o(instr_rdata),
-      .imem_req_o(imem_req), .imem_gnt_i(imem_gnt),
-      .imem_rvalid_i(imem_rvalid), .imem_rdata_i(imem_rdata),
-      .ext_req_o(instr_ext_req), .ext_gnt_i(instr_ext_gnt),
-      .ext_rvalid_i(instr_ext_rvalid), .ext_rdata_i(instr_ext_rdata)
-  );
-
   logic           data_req;
   logic           data_gnt;
   logic           data_rvalid;
@@ -206,18 +189,18 @@ module my_soc_top #(
   ) i_axi_adapter_instr (
       .clk_i                 (clk_i),
       .rst_ni                (ndmreset_n),
-      .req_i                 (instr_ext_req),
+      .req_i                 (instr_req),
       .type_i                (1'b0),
       .amo_i                 (4'b0000),
-      .gnt_o                 (instr_ext_gnt),
+      .gnt_o                 (instr_gnt),
       .addr_i                (instr_addr),
       .we_i                  (1'b0),
       .wdata_i               ('0),
       .be_i                  (4'b1111),
       .size_i                (2'b10),
       .id_i                  (4'b0001),
-      .valid_o               (instr_ext_rvalid),
-      .rdata_o               (instr_ext_rdata),
+      .valid_o               (instr_rvalid),
+      .rdata_o               (instr_rdata),
       .id_o                  (),
       .critical_word_o       (),
       .critical_word_valid_o (),
@@ -434,10 +417,7 @@ module my_soc_top #(
       .be_i   (sram_be),
       .addr_i (sram_addr),
       .wdata_i(sram_wdata),
-      .rdata_o(sram_rdata),
-      .imem_req_i(imem_req), .imem_addr_i(instr_addr),
-      .imem_gnt_o(imem_gnt), .imem_rvalid_o(imem_rvalid),
-      .imem_rdata_o(imem_rdata)
+      .rdata_o(sram_rdata)
   );
 
   axi2mem #(

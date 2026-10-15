@@ -11,11 +11,6 @@ module sram_ff #(
     input  wire [AddrWidth-1:0]     addr_i,
     input  wire [DataWidth-1:0]     data_i,
     output wire [DataWidth-1:0]     data_o,
-    input  wire                     imem_req_i,
-    input  wire [AddrWidth-1:0]      imem_addr_i,
-    output wire                     imem_gnt_o,
-    output reg                      imem_rvalid_o,
-    output reg [DataWidth-1:0]       imem_rdata_o,
     input  wire                     rst_ni
 );
 
@@ -61,51 +56,6 @@ module sram_ff #(
         assign data_o = data_out_reg;
     end endgenerate
     
-    // Port B is a synchronous, read-only BRAM port. Stall on both a new
-    // data-side write and a write at the RAM edge (the data port may pipeline).
-    // This avoids undefined cross-port read/write collision behavior, including
-    // partial writes, without adding a combinational read or forwarding mux.
-    wire imem_collision =
-        (req_i && rst_ni && (|wen_i) && addr_i == imem_addr_i) ||
-        (ram_req && (|ram_wen) && ram_addr == imem_addr_i);
-    assign imem_gnt_o = rst_ni && imem_req_i && !imem_collision;
-    wire imem_ram_req;
-    wire [AddrWidth-1:0] imem_ram_addr;
-    generate if (PIPELINED) begin : g_imem_pipeline
-        // Isolate every BRAM-facing input from asynchronous CPU reset logic.
-        // With the data port also pipelined, the collision check at grant
-        // excludes writes that will coincide with this read at the next edge.
-        reg req_q;
-        reg [AddrWidth-1:0] addr_q;
-        reg valid_q;
-        always @(posedge clk_i) begin
-            req_q <= imem_gnt_o;
-            if (imem_gnt_o) addr_q <= imem_addr_i;
-        end
-        assign imem_ram_req = req_q;
-        assign imem_ram_addr = addr_q;
-        // Protocol validity resets independently of the BRAM-facing registers.
-        always @(posedge clk_i or negedge rst_ni) begin
-            if (!rst_ni) begin
-                valid_q <= 1'b0;
-                imem_rvalid_o <= 1'b0;
-            end else begin
-                valid_q <= imem_gnt_o;
-                imem_rvalid_o <= valid_q;
-            end
-        end
-    end else begin : g_imem_legacy
-        assign imem_ram_req = imem_gnt_o;
-        assign imem_ram_addr = imem_addr_i;
-        always @(posedge clk_i or negedge rst_ni) begin
-            if (!rst_ni) imem_rvalid_o <= 1'b0;
-            else imem_rvalid_o <= imem_gnt_o;
-        end
-    end endgenerate
-    always @(posedge clk_i) begin
-        if (imem_ram_req) imem_rdata_o <= memory[imem_ram_addr];
-    end
-
     // 初始化内存：只在仿真时用 $readmemh 从 hex 预载程序。
     // 综合（上板）时程序由 JTAG/OpenOCD 在运行时写入 SRAM，这里不能执行 $readmemh，
     // 否则 Vivado 会因相对路径找不到文件而报 [Synth 8-4445]。
