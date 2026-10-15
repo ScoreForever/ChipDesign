@@ -1,10 +1,16 @@
 param(
     [string]$VivadoRoot = $env:XILINX_VIVADO,
-    [int]$Jobs = 4
+    [int]$Jobs = 4,
+    [ValidateRange(1, 500)][double]$FrequencyMHz = 50,
+    [string]$OutputDir = ''
 )
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
-$outputDir = Join-Path $repoRoot ('build/fpga_ego1_' + (Get-Date -Format 'yyyyMMdd_HHmmss_fff'))
+if (!$OutputDir) { $OutputDir = Join-Path $repoRoot ('build/fpga_ego1_' + (Get-Date -Format 'yyyyMMdd_HHmmss_fff')) }
+$outputDir = [IO.Path]::GetFullPath($OutputDir)
+$buildRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot 'build')) + [IO.Path]::DirectorySeparatorChar
+if (!$outputDir.StartsWith($buildRoot, [StringComparison]::OrdinalIgnoreCase)) { throw 'OutputDir must be inside build/' }
+if (Test-Path -LiteralPath $outputDir) { throw 'OutputDir must be new' }
 New-Item -ItemType Directory -Path $outputDir | Out-Null
 $logPath = Join-Path $outputDir 'vivado.log'
 $summaryPath = Join-Path $outputDir 'summary.md'
@@ -25,7 +31,11 @@ try {
     Write-Host "Build output: $outputDir"
     Push-Location $outputDir
     try {
-        & $vivado -mode batch -source (Join-Path $PSScriptRoot 'build_ego1.tcl') -log $logPath -journal (Join-Path $outputDir 'vivado.jou') -tclargs $repoRoot $outputDir $Jobs
+        $buildArgs = @($repoRoot, $outputDir, $Jobs)
+        if ($PSBoundParameters.ContainsKey('FrequencyMHz')) {
+            $buildArgs += $FrequencyMHz.ToString('0.000', [Globalization.CultureInfo]::InvariantCulture)
+        }
+        & $vivado -mode batch -source (Join-Path $PSScriptRoot 'build_ego1.tcl') -log $logPath -journal (Join-Path $outputDir 'vivado.jou') -tclargs @buildArgs
         $exitCode = $LASTEXITCODE
     } finally { Pop-Location }
 } catch {

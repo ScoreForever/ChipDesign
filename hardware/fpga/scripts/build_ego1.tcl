@@ -2,6 +2,12 @@
 set repo [file normalize [lindex $argv 0]]
 set out [file normalize [lindex $argv 1]]
 set jobs [lindex $argv 2]
+set frequency_mhz 50
+set ppa_mode [expr {[llength $argv] > 3}]
+if {[llength $argv] > 3} { set frequency_mhz [lindex $argv 3] }
+if {![string is double -strict $frequency_mhz] || $frequency_mhz <= 0} {
+    error "Output frequency must be positive MHz"
+}
 set stage setup
 set last_stage none
 set bram_status "Not run"
@@ -55,13 +61,13 @@ proc bram_guard {label} {
 }
 
 proc summary {} {
-    global out stage last_stage result failure utilization_file timing_values mainmem_status mainmem_cells bram_status route_override
+    global out stage last_stage result failure utilization_file timing_values mainmem_status mainmem_cells bram_status route_override frequency_mhz
     set f [open [file join $out summary.md] w]
     puts $f "# EGo1 build summary\n"
     puts $f "Result: $result"
     puts $f "Stage: $stage; last completed stage: $last_stage"
     puts $f "Part: xc7a35tcsg324-1; top: fpga_top; default fused NPU"
-    puts $f "Clocking Wizard: 100 MHz input, 50 MHz output, locked enabled, reset disabled"
+    puts $f "Clocking Wizard: 100 MHz input, [format %g $frequency_mhz] MHz output, locked enabled, reset disabled"
     puts $f "Log: vivado.log"
     if {$failure ne ""} { puts $f "\nFailure: $failure" }
     puts $f "\n## Resources (latest available stage)\n"
@@ -104,7 +110,7 @@ if {[catch {
     set stage clock_ip
     file mkdir [file join $out ip]
     create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name clk_wiz_0 -dir [file join $out ip]
-    set_property -dict [list CONFIG.PRIM_IN_FREQ {100.000} CONFIG.CLKOUT1_REQUESTED_OUT_FREQ {50.000} CONFIG.USE_RESET {false} CONFIG.USE_LOCKED {true}] [get_ips clk_wiz_0]
+    set_property -dict [list CONFIG.PRIM_IN_FREQ {100.000} CONFIG.CLKOUT1_REQUESTED_OUT_FREQ $frequency_mhz CONFIG.USE_RESET {false} CONFIG.USE_LOCKED {true}] [get_ips clk_wiz_0]
     generate_target all [get_ips clk_wiz_0]
     synth_ip [get_ips clk_wiz_0]
     set stage read_sources
@@ -163,6 +169,17 @@ if {[catch {
     write_checkpoint -force [file join $out route.dcp]
     reports route
     bram_guard route
+    if {$ppa_mode} {
+        # Actual MMCM clock period, rather than the requested wizard frequency.
+        set soc_clock [get_clocks -of_objects [get_pins u_clk_wiz/clk_out1]]
+        if {[llength $soc_clock] != 1} { error "Expected one SoC clock" }
+        set metrics [open [file join $out route_metrics.tsv] w]
+        puts $metrics "requested_mhz	$frequency_mhz"
+        puts $metrics "period_ns	[get_property PERIOD $soc_clock]"
+        puts $metrics "wns_ns	[lindex $timing_values 0]"
+        puts $metrics "whs_ns	[lindex $timing_values 2]"
+        close $metrics
+    }
     set last_stage route
     set stage write_bitstream
     write_bitstream -force [file join $out fpga_top.bit]
