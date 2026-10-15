@@ -93,3 +93,4 @@ hardware/soc/rtl/my_npu_subsystem.sv
 hardware/soc/rtl/my_soc_top.sv
 hardware/soc/sim/tb/chipdesign_soc_tb.sv
 hardware/soc/sim/tb/chipdesign_dma_tb.sv
+hardware/soc/rtl/instr_fetch_router.sv

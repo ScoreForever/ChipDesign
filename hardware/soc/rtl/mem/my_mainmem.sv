@@ -13,7 +13,12 @@ module my_mainmem #(
     input  logic [3:0]        be_i,
     input  logic [31:0]       addr_i,
     input  logic [DATA_W-1:0] wdata_i,
-    output logic [DATA_W-1:0] rdata_o
+    output logic [DATA_W-1:0] rdata_o,
+    input  logic              imem_req_i,
+    input  logic [31:0]       imem_addr_i,
+    output logic              imem_gnt_o,
+    output logic              imem_rvalid_o,
+    output logic [DATA_W-1:0] imem_rdata_o
 );
 
   sram_ff #(
@@ -28,7 +33,12 @@ module my_mainmem #(
       .wen_i (be_i & {4{we_i}}),
       .addr_i(addr_i[ADDR_W+1:2]),
       .data_i(wdata_i),
-      .data_o(rdata_o)
+      .data_o(rdata_o),
+      .imem_req_i(imem_req_i),
+      .imem_addr_i(imem_addr_i[ADDR_W+1:2]),
+      .imem_gnt_o(imem_gnt_o),
+      .imem_rvalid_o(imem_rvalid_o),
+      .imem_rdata_o(imem_rdata_o)
   );
 
 endmodule
