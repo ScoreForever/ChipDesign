@@ -1,9 +1,6 @@
 #include "kws.h"
 #include "npu_mmio.h"
 #include <limits.h>
-#ifndef KWS_USE_DMA
-#define KWS_USE_DMA 1
-#endif
 #if KWS_USE_DMA
 static int dma_copy(const void *src, unsigned offset, unsigned words) {
     if (npu_read(NPU_DMA_STATUS) & NPU_DMA_BUSY) return KWS_NOT_READY;
@@ -87,18 +84,15 @@ int kws_load_model(const kws_model *model) {
     }
     return idle();
 }
-int kws_load_input(const int8_t input[320]) {
+int kws_input_begin(const int8_t input[320]) {
     int error = idle();
     if (error) return error;
 #if KWS_USE_DMA
     /* Keep the unaligned caller fallback; workload frames are word aligned. */
     if (!((uintptr_t)input & 3u)) {
-        error = dma_copy(input, NPU_INPUT_PACKED, 80);
-        if (error) return error;
-        unsigned limit = 1000000;
-        while (npu_read(NPU_INPUT_PENDING))
-            if (!--limit) return KWS_TIMEOUT;
-        return idle();
+        if (npu_read(NPU_DMA_STATUS) & NPU_DMA_BUSY) return KWS_NOT_READY;
+        npu_dma_start(input, NPU_BASE + NPU_INPUT_PACKED, 80);
+        return KWS_OK;
     }
     for (unsigned i = 0; i < 320; ++i) npu_write_input(i, input[i]);
 #else
@@ -123,10 +117,39 @@ int kws_load_input(const int8_t input[320]) {
 #endif
     return idle();
 }
-int kws_start_wait(uint32_t poll_limit) {
+int kws_input_finish(const int8_t input[320]) {
+#if KWS_USE_DMA
+    if (!((uintptr_t)input & 3u)) {
+        if (npu_dma_wait(1000000)) return KWS_TIMEOUT;
+        unsigned limit = 1000000;
+        while (npu_read(NPU_INPUT_PENDING))
+            if (!--limit) return KWS_TIMEOUT;
+        return idle();
+    }
+#else
+    (void)input;
+#endif
+    /* Synchronous fallback already checked idle at the end of begin. */
+    return KWS_OK;
+}
+int kws_load_input(const int8_t input[320]) {
+    int error = kws_input_begin(input);
+    return error ? error : kws_input_finish(input);
+}
+int kws_start_wait_timed(uint32_t poll_limit, uint32_t *start_cycle) {
     uint32_t status = npu_read(NPU_STATUS);
     if (status & NPU_ERROR) return KWS_HW_ERROR;
     if (!(status & NPU_READY)) return KWS_NOT_READY;
+    if (start_cycle) {
+#if defined(__riscv)
+        uint32_t value;
+        __asm__ volatile(".option push\n.option arch, +zicsr\ncsrr %0, 0xb00\n.option pop"
+                         : "=r"(value) :: "memory");
+        *start_cycle = value;
+#else
+        *start_cycle = 0;
+#endif
+    }
     npu_write(NPU_CONTROL, NPU_START);
     while (poll_limit--) {
         status = npu_read(NPU_STATUS);
@@ -134,6 +157,9 @@ int kws_start_wait(uint32_t poll_limit) {
         if (status & NPU_DONE) return KWS_OK;
     }
     return KWS_TIMEOUT;
+}
+int kws_start_wait(uint32_t poll_limit) {
+    return kws_start_wait_timed(poll_limit, 0);
 }
 int kws_read_result(const kws_model *model, int32_t raw[4], uint32_t *prediction) {
     uint32_t status = npu_read(NPU_STATUS);

@@ -3,7 +3,7 @@ ENTRY(_start)
 MEMORY { SRAM (rwx) : ORIGIN = 0x80000000, LENGTH = 8K }
 __stack_top = 0x80001fe0;
 __stack_bottom = __stack_top - 256;
-__results = __stack_bottom - (16 + SAMPLE_COUNT * 40);
+__results = __stack_bottom - (16 + SAMPLE_COUNT * 44);
 SECTIONS {
     .text : { *(.text.init) *(.text .text.*) } > SRAM
     .rodata : { . = ALIGN(4); *(.rodata .rodata.*) } > SRAM

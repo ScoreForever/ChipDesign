@@ -22,6 +22,8 @@ def main():
     p.add_argument('--output', default='build/kws_workload')
     p.add_argument('--use-dma', type=int, choices=(0, 1), default=1,
                    help='KWS_USE_DMA compile switch (default: 1)')
+    p.add_argument('--pipeline', type=int, choices=(0, 1), default=1,
+                   help='KWS_PIPELINE compile switch (default: 1; requires DMA)')
     p.add_argument('--tool-prefix', default=r'D:\tools\xpack-riscv-none-elf-gcc-15.2.0-1\bin\riscv-none-elf-')
     args = p.parse_args()
     pkg, inputs = load_package(args.package), load_inputs(args.inputs)
@@ -46,7 +48,10 @@ def main():
             raise RuntimeError(result.stdout + result.stderr)
         return result
     # Even an empty program cannot fit more frames, results and stack than this.
-    ceiling = (0x1fe0 - 256 - 16) // (320 + 40)
+    ceiling = (0x1fe0 - 256 - 16) // (320 + 44)
+    # Discard stack reports from previous builds before producing LTO reports.
+    for report in out.glob("*.su"):
+        report.unlink()
     attempts = []
     for count in range(min(len(inputs), ceiling), 1, -1):
         (out / 'workload_data.h').write_text(
@@ -56,10 +61,11 @@ def main():
         (out / 'workload_data.c').write_text('#include "workload_data.h"\n'
             f'const kws_model workload_model = {model};\n'
             f'const int8_t workload_inputs[SAMPLE_COUNT][320] = {initializer(inputs[:count])};\n')
-        result = run('gcc', ['-march=rv32imc', '-mabi=ilp32', '-Os', '-g',
+        result = run('gcc', ['-march=rv32imc', '-mabi=ilp32', '-Os', '-g', '-flto',
             '-ffreestanding', '-fno-builtin', '-fno-tree-loop-distribute-patterns',
             '-msmall-data-limit=0', '-mno-relax', '-fstack-usage', '-nostdlib', '-static',
             '-Wall', '-Wextra', '-Werror', '-DKWS_USE_DMA=' + str(args.use_dma),
+            '-DKWS_PIPELINE=' + str(args.pipeline),
             '-I' + str(ROOT / 'software/drivers'),
             '-I' + str(ROOT / 'software/runtime'), '-I' + str(out),
             fw / 'startup.S', fw / 'main.c', ROOT / 'software/runtime/kws.c', out / 'workload_data.c',
@@ -90,10 +96,11 @@ def main():
                                             for i in range(0, 8192, 4)), encoding='ascii')
     np.save(out / 'inputs.npy', inputs[:count])
     np.savez(out / 'package.npz', **pkg)
-    manifest = dict(schema=1, count=count, available_inputs=len(inputs), use_dma=args.use_dma,
+    manifest = dict(schema=2, count=count, available_inputs=len(inputs), use_dma=args.use_dma,
+        pipeline=int(args.pipeline and args.use_dma),
         image_bytes=len((out / 'workload.bin').read_bytes()),
         image_end=hex(symbols['__image_end']), results_address=hex(symbols['__results']),
-        results_bytes=16 + 40 * count, stack_bytes=256, stack_bottom=hex(symbols['__stack_bottom']),
+        results_bytes=16 + 44 * count, stack_bytes=256, stack_bottom=hex(symbols['__stack_bottom']),
         stack_top=hex(symbols['__stack_top']), magic_address='0x80001fe0',
         model_address=hex(symbols['workload_model']), inputs_address=hex(symbols['workload_inputs']),
         toolchain=run('gcc', ['--version']).stdout.splitlines()[0],

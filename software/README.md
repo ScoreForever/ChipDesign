@@ -92,7 +92,10 @@ logit。分类精度使用 `fc_cmp_mult/shift` 在 CPU/黄金模型侧统一尺�
 `drivers/npu_mmio.h` 封装 MMIO ABI；`runtime/kws.c` 默认用 DMA 连续搬运
 482 个权重半字及每层连续的 16 个 bias/multiplier 字，INT8 shift 仍由 CPU
 逐项写入并 commit。模型每批装载一次，每帧用 DMA 搬运 80 字紧凑输入，
-回读四个 raw logit，再按部署包 `fc_cmp_mult/shift` 统一尺度并取 argmax。
+默认开启帧间流水（`KWS_PIPELINE=1`）：第 i 帧完成后先启动下一帧输入 DMA，
+再回读当前帧四个 raw logit，按部署包 `fc_cmp_mult/shift` 统一尺度并取 argmax。
+下一帧 start 前有界等待 DMA done 和 `INPUT_PENDING=0`；末帧不再装载输入。
+空闲输入写只改激活存储，保留 done、logit 和冻结的 profile，直到清除或下一次 start。
 音频和 log-mel 前处理在离线完成，固件不运行 FFT。
 
 新增打包窗口 `0x70001800..0x7000193f`：对 `+4*k` 的对齐 32 位写
@@ -112,7 +115,8 @@ NPU 完成也保持原轮询流程与 mcycle 分段口径。
 
 需要 Python 3.10、numpy、torch（仅合成包生成用）以及 RISC-V GCC。
 构建默认使用 `D:\tools\xpack-riscv-none-elf-gcc-15.2.0-1\bin\riscv-none-elf-`；
-其他位置可用 `--tool-prefix` 指定。编译参数为 `-march=rv32imc -mabi=ilp32 -Os`。
+其他位置可用 `--tool-prefix` 指定。编译参数为 `-march=rv32imc -mabi=ilp32 -Os -flto`，
+链接优化用于将 12 帧及新增计时放入 8 KiB。
 CSR 指令局部启用汇编器的 Zicsr 支持；启动时清 `mcountinhibit`，启用 CPU 周期计数。
 
 在仓库根目录运行，先生成可复现的合成包及随机输入：
@@ -126,8 +130,10 @@ $py = 'D:\tools\venv-ml\Scripts\python.exe'
 ```
 
 `--use-dma 1`（默认）定义 `KWS_USE_DMA=1`；使用 `--use-dma 0` 和另一
-输出目录可构建原 CPU 装载路径。两种镜像保持相同数据布局、结果 schema
-和严格比对规则，manifest 记录 `use_dma`。比较性能应使用相同的 12 条输入
+输出目录可构建原 CPU 装载路径，此时关闭流水。`--pipeline 0` 定义
+`KWS_PIPELINE=0`，恢复逐帧装载→计算→读回的串行顺序；默认 `--pipeline 1`。
+两种镜像使用 schema 2 和相同的严格比对规则，manifest 记录 `use_dma/pipeline`。
+比较性能应使用相同的 12 条输入
 分别跑整 SoC，再用下方比对命令核对全部 raw logit、类别和分段周期。
 课程 Lab 的原地址与 CPU 装载路径继续可用；共享 AXI、CPU、NPU 核和课程
 testbench 均无需改动。`chipdesign_dma_tb` 会同时检查末写响应延迟、LEN=1、
@@ -156,15 +162,21 @@ SRAM 布局按以下顺序排列，具体地址以每次构建的 manifest 为�
 | 区域 | 说明 |
 |---|---|
 | `0x80000000` 起 | 启动代码、C 代码、输入和模型只读数据 |
-| `__results` | 固定结果区，16 字节头部 + 每帧 40 字节 |
+| `__results` | 固定结果区，16 字节头部 + 每帧 44 字节（schema 2） |
 | `0x80001ee0..0x80001fdf` | 256 字节栈；启动填充水位标记，完成时检查栈底 |
-| `0x80001fe0..0x80001fff` | magic 状态、结果指针、schema=1、硬件错误码及保留字 |
+| `0x80001fe0..0x80001fff` | magic 状态、结果指针、schema=2、硬件错误码、整批周期、流水开关及保留字 |
 
 结果头部依次是 `count/model_cycles/error/stack_used` 四个 UINT32；每帧依次为
 四个 INT32 raw logit、UINT32 类别、输入装载周期、start→done CPU 周期、
-读回/argmax/清 done 周期、NPU `PERF_TOTAL`、单帧端到端 CPU 周期。
+读回/argmax/清 done 周期、NPU `PERF_TOTAL`、单帧端到端 CPU 周期、start 前采样的
+mcycle 低 32 位。magic 的 `+0x10/+0x14` 分别存整批周期及实际流水开关。
 CPU 段计时使用 `mcycle` 低 32 位差值，包含函数和轮询开销。端到端时间还包含
 性能寄存器读取与结果写入开销；模型装载单独计时，不计入每帧端到端时间。
+流水模式的输入段从 DMA 启动前计到 DMA 和展开均完成的等待返回，包含与上一帧
+读回重叠的时间；单帧端到端仍从该帧输入开始计到结果读回完成，不能相加作为吞吐。
+日志 `steady` 为相邻两帧 start 前同一位置的 mcycle 差值（首帧为 0，不计入统计）；
+`batch` 从首帧输入前计到末帧读回及结果写入完成，包含流水填充和排空，不含模型装载。
+SAIF 首帧窗口在流水模式下会包含重叠的下一帧 DMA；测单帧活动请用 `--pipeline 0`。
 初始化、整批处理完毕和错误分别写 magic RUNNING/PASS/FAIL。
 错误值 1–6 分别为硬件错误、轮询超时、未就绪、版本不支持、profile 无效、栈底损坏。
 栈空间固定为 256 字节；应检查当前构建的 `.su` 报告和反汇编中的库函数，
@@ -196,6 +208,8 @@ bash hardware/soc/sim/scripts/run_kws_workload_linux.sh \
 新 testbench 使用 50 MHz 时钟，输出 `KWS_HEADER/KWS_SAMPLE/KWS_PASS` 机器可读记录。
 比对脚本校验制品哈希、完整样本序列、四个 raw logit 和统一尺度后的类别，输出每段
 周期的 min/mean/max、50 MHz 下的微秒数，以及逐帧 CPU 与 NPU 周期对照。
+解析器同时支持旧 schema 1 与 schema 2；后者增加 `steady` 和 `batch` 汇总，
+继续逐样本检查全部四个 raw logit，不能用类别一致掩盖 1 LSB 差异。
 只有完整 SoC 的真实日志通过此比对才算动态验收；单独的 firmware PASS 不代表逐位通过。
 
 不依赖仿真的解析器自测：

@@ -1,6 +1,7 @@
 `timescale 1ns/1ps
 // Passive capture of the first input-load through result-read/clear window.
-// Model setup and subsequent frames are excluded; firmware checks remain active.
+// Model setup is excluded. Pipelined firmware includes the overlapping next
+// input DMA in this window; use --pipeline 0 for isolated-frame activity.
 module kws_saif_tb;
   kws_workload_tb workload();
   bit recording = 0, complete = 0, cleared = 0, awaiting_status = 0;

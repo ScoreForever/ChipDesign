@@ -1,6 +1,12 @@
 #ifndef KWS_H
 #define KWS_H
 #include <stdint.h>
+#ifndef KWS_USE_DMA
+#define KWS_USE_DMA 1
+#endif
+#ifndef KWS_PIPELINE
+#define KWS_PIPELINE 1
+#endif
 
 typedef struct {
     int32_t bias[8];
@@ -18,7 +24,11 @@ enum { KWS_OK = 0, KWS_HW_ERROR = 1, KWS_TIMEOUT = 2,
        KWS_STACK_OVERFLOW = 6 };
 int kws_load_model(const kws_model *model);
 int kws_load_input(const int8_t input[320]);
+/* Pair begin/finish with the same input; do not start NPU before finish. */
+int kws_input_begin(const int8_t input[320]);
+int kws_input_finish(const int8_t input[320]);
 int kws_start_wait(uint32_t poll_limit);
+int kws_start_wait_timed(uint32_t poll_limit, uint32_t *start_cycle);
 int kws_read_result(const kws_model *model, int32_t raw[4], uint32_t *prediction);
 int32_t kws_scale(int32_t value, int32_t multiplier, int shift);
 #endif
