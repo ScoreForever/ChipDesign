@@ -1,0 +1,183 @@
+# Recover a PPA point in a fresh process; acceptance matches build_ego1.tcl.
+# Arguments: repository, point directory, checkpoint, requested MHz, recovery log.
+set repo [file normalize [lindex $argv 0]]
+set out [file normalize [lindex $argv 1]]
+set checkpoint [file normalize [lindex $argv 2]]
+set frequency_mhz [lindex $argv 3]
+set recovery_log [file normalize [lindex $argv 4]]
+set ppa_mode 1
+set checkpoint_stage [file rootname [file tail $checkpoint]]
+if {$checkpoint_stage ni {synth opt place route}} { error "Unsupported checkpoint: $checkpoint" }
+set stage setup
+set last_stage none
+set bram_status "Not run"
+set mainmem_cells {}
+set mainmem_status "Not measured"
+set timing_values {}
+set utilization_file ""
+set route_override "Not applied"
+set result FAILED
+set failure ""
+
+proc read_text {path} {
+    set f [open $path r]
+    set value [read $f]
+    close $f
+    return $value
+}
+
+proc reports {label} {
+    global out utilization_file timing_values mainmem_cells mainmem_status
+    set utilization_file [file join $out ${label}_utilization.rpt]
+    report_utilization -file $utilization_file
+    report_utilization -hierarchical -file [file join $out ${label}_utilization_hierarchical.rpt]
+    set timing_file [file join $out ${label}_timing_summary.rpt]
+    report_timing_summary -delay_type min_max -report_unconstrained -file $timing_file
+    report_drc -file [file join $out ${label}_drc.rpt]
+    report_methodology -file [file join $out ${label}_methodology.rpt]
+    set timing_values {}
+    # The design timing table has WNS/TNS/failing/total/WHS/THS columns.
+    if {[regexp {WNS\(ns\)[^\n]*\n[^\n]*\n\s*([-+0-9.]+)\s+([-+0-9.]+)\s+\d+\s+\d+\s+([-+0-9.]+)} [read_text $timing_file] -> wns tns whs]} {
+        set timing_values [list $wns $tns $whs]
+    }
+    set mainmem_cells [get_cells -quiet -hierarchical -filter {NAME =~ u_soc/i_mainmem/i_mainmem/* && REF_NAME =~ RAMB*}]
+    set mainmem36 [get_cells -quiet -hierarchical -filter {NAME =~ u_soc/i_mainmem/i_mainmem/* && REF_NAME =~ RAMB36*}]
+    if {[llength $mainmem_cells] == 2 && [llength $mainmem36] == 2} {
+        set mainmem_status "PASS: 8 KiB main SRAM maps to 2 RAMB36 primitives"
+    } else {
+        set mainmem_status "FAIL: expected 2 RAMB36; found [llength $mainmem36] RAMB36 / [llength $mainmem_cells] RAMB primitives"
+    }
+}
+
+proc bram_guard {label} {
+    global repo out bram_status
+    set bram_status "FAILED at $label"
+    set guard_failed [catch {source [file join $repo hardware/fpga/check_bram_drc.tcl]} guard_error guard_options]
+    if {[info exists critical_bram_checks]} {
+        report_drc -name chipdesign_bram_guard -checks $critical_bram_checks -file [file join $out ${label}_bram_guard.rpt]
+    }
+    if {$guard_failed} { return -options $guard_options $guard_error }
+    set bram_status "PASS at $label: CFGBVS-1, REQP-1839, RBOR-1"
+}
+
+proc summary {} {
+    global out stage last_stage result failure utilization_file timing_values mainmem_status mainmem_cells bram_status route_override frequency_mhz recovery_log
+    set f [open [file join $out summary.md] w]
+    puts $f "# EGo1 build summary\n"
+    puts $f "Result: $result"
+    puts $f "Stage: $stage; last completed stage: $last_stage"
+    puts $f "Part: xc7a35tcsg324-1; top: fpga_top; default fused NPU"
+    puts $f "Clocking Wizard: 100 MHz input, [format %g $frequency_mhz] MHz output, locked enabled, reset disabled"
+    puts $f "Log: $recovery_log"
+    if {$failure ne ""} { puts $f "\nFailure: $failure" }
+    puts $f "\n## Resources (latest available stage)\n"
+    puts $f "| Resource | Used | Available | Utilization (%) |"
+    puts $f "|---|---:|---:|---:|"
+    set resource_count 0
+    set seen_resources {}
+    if {$utilization_file ne "" && [file exists $utilization_file]} {
+        foreach line [split [read_text $utilization_file] \n] {
+            set cols [split $line |]
+            if {[llength $cols] < 7} { continue }
+            set name [string trim [lindex $cols 1]]
+            if {[regexp {^(Slice LUTs|CLB LUTs|Slice Registers|CLB Registers|Block RAM Tile|DSPs|DSP48E1|MMCME2_ADV|MMCM)(\*|$)} $name]} {
+                if {[lsearch -exact $seen_resources $name] >= 0} { continue }
+                lappend seen_resources $name
+                puts $f "| $name | [string trim [lindex $cols 2]] | [string trim [lindex $cols 5]] | [string trim [lindex $cols 6]] |"
+                incr resource_count
+            }
+        }
+    }
+    if {$resource_count == 0} { puts $f "\nResources unavailable; see failure and log." }
+    puts $f "\n## Timing (latest available stage)\n"
+    if {[llength $timing_values] == 3} {
+        lassign $timing_values wns tns whs
+        puts $f "WNS: $wns ns; TNS: $tns ns; WHS: $whs ns"
+    } else { puts $f "WNS/TNS/WHS unavailable." }
+    puts $f "\n## Main SRAM mapping\n\n$mainmem_status"
+    foreach cell $mainmem_cells { puts $f "- $cell ([get_property REF_NAME $cell])" }
+    puts $f "\n## Configuration/BRAM DRC\n\n$bram_status"
+    puts $f "\n## JTAG clock routing\n\n$route_override"
+    close $f
+}
+
+if {[catch {
+    cd $out
+    # Reduce concurrency after a tool crash (including 0xC0000374 heap corruption).
+    # This is a recovery precaution, not a claim that threading caused the crash.
+    set_param general.maxThreads 1
+    set stage open_checkpoint
+    open_checkpoint $checkpoint
+    set last_stage $checkpoint_stage
+    if {$checkpoint_stage in {place route}} {
+        set tck_net [get_nets -of_objects [get_ports tck_i]]
+        if {[llength $tck_net] == 1 && [get_property CLOCK_DEDICATED_ROUTE $tck_net] eq "FALSE"} {
+            set route_override "CLOCK_DEDICATED_ROUTE FALSE on $tck_net (retained from checkpoint)"
+        }
+    }
+    if {$checkpoint_stage eq "synth"} {
+        set stage opt
+        opt_design
+        write_checkpoint -force [file join $out opt.dcp]
+        reports opt
+        bram_guard opt
+        set last_stage opt
+    }
+    if {$checkpoint_stage in {synth opt}} {
+        set stage place
+        if {[catch {place_design} place_error place_options]} {
+            # Retry only the documented non-dedicated JTAG clock pin failure.
+            set place_log [read_text $recovery_log]
+            if {![regexp {ERROR: \[Place 30-574\]} $place_log] || ![string match "*tck_i*" $place_log]} {
+                return -options $place_options $place_error
+            }
+            close_design
+            open_checkpoint [file join $out opt.dcp]
+            set tck_net [get_nets -of_objects [get_ports tck_i]]
+            if {[llength $tck_net] != 1} { error "Cannot identify the JTAG clock input net" }
+            set_property CLOCK_DEDICATED_ROUTE FALSE $tck_net
+            set route_override "CLOCK_DEDICATED_ROUTE FALSE on $tck_net after Place 30-574 (E15 is not a dedicated clock pin)"
+            place_design
+        }
+        write_checkpoint -force [file join $out place.dcp]
+        reports place
+        set last_stage place
+    }
+    set stage route
+    if {$checkpoint_stage ne "route"} { route_design }
+    write_checkpoint -force [file join $out route.dcp]
+    reports route
+    bram_guard route
+    if {$ppa_mode} {
+        # Actual MMCM clock period, rather than the requested wizard frequency.
+        set soc_clock [get_clocks -of_objects [get_pins u_clk_wiz/clk_out1]]
+        if {[llength $soc_clock] != 1} { error "Expected one SoC clock" }
+        set metrics [open [file join $out route_metrics.tsv] w]
+        puts $metrics "requested_mhz	$frequency_mhz"
+        puts $metrics "period_ns	[get_property PERIOD $soc_clock]"
+        puts $metrics "wns_ns	[lindex $timing_values 0]"
+        puts $metrics "whs_ns	[lindex $timing_values 2]"
+        close $metrics
+    }
+    set last_stage route
+    set stage write_bitstream
+    write_bitstream -force [file join $out fpga_top.bit]
+    set last_stage write_bitstream
+    set stage acceptance
+    if {[llength $timing_values] != 3} { error "No timing metrics available" }
+    lassign $timing_values wns tns whs
+    if {$wns < 0 || $whs < 0} { error "Timing failed: WNS=$wns ns, WHS=$whs ns" }
+    if {![string match "PASS:*" $mainmem_status]} { error $mainmem_status }
+    # Implemented DRCs and write_bitstream gate resource overflow and routing.
+    set result PASS
+    set stage complete
+} failure options]} {
+    puts stderr "ERROR: EGo1 build failed at $stage: $failure; log: $recovery_log"
+    puts stderr [dict get $options -errorinfo]
+    summary
+    exit 1
+}
+set failure ""
+summary
+puts "PASS EGo1 build; summary: [file join $out summary.md]"
+exit 0
