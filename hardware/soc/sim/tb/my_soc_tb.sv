@@ -32,7 +32,7 @@ module my_soc_tb;
   logic td_i;
   logic td_o;
 
-  my_soc_top dut (
+  my_soc_cpu_reference dut (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
       .tck_i (tck_i),

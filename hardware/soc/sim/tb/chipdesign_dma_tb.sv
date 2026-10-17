@@ -26,7 +26,7 @@ module chipdesign_dma_tb;
   logic td_i;
   logic td_o;
 
-  my_soc_top #(
+  my_soc_cpu_reference #(
       .INIT_FILE("hardware/soc/sim/sw/chipdesign_dma_test.hex")
   ) dut (
       .clk_i (clk_i),

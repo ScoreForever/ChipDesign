@@ -93,7 +93,7 @@ hardware/npu/rtl/requant_lane.sv
 hardware/npu/rtl/tinycnn8_npu_fused.sv
 hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv
 hardware/soc/rtl/my_npu_subsystem.sv
-hardware/soc/rtl/my_soc_top.sv
+hardware/soc/rtl/my_soc_cpu_reference.sv
 hardware/soc/sim/tb/chipdesign_soc_tb.sv
 hardware/soc/sim/tb/chipdesign_dma_tb.sv
 hardware/soc/sim/tb/tb_npu_dma_unit.sv

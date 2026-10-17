@@ -8,7 +8,7 @@ module kws_workload_tb;
   int unsigned timeout_cycles = 5_000_000;
   int unsigned cycle_count, base_word, count, schema, header_words, sample_words, sample_base;
   localparam int MAGIC_WORD = 'h7f8;
-  my_soc_top #(.INIT_FILE("")) dut (
+  my_soc_cpu_reference #(.INIT_FILE("")) dut (
     .clk_i(clk_i), .rst_ni(rst_ni),
     .tck_i(1'b0), .tms_i(1'b0), .td_i(1'b0), .td_o(td_o)
   );

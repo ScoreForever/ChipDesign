@@ -12,7 +12,7 @@ if {$mapped} {
     }
     set_db library $::env(EDA_TARGET_LIBS)
 }
-set fh [open hardware/soc/sim/filelists/chipdesign_soc.f r]
+set fh [open hardware/soc/sim/filelists/chipdesign_nocpu.f r]
 set sources {}
 foreach line [split [read $fh] \n] {
     set line [string trim $line]

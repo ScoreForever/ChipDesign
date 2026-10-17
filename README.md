@@ -1,5 +1,10 @@
 # ChipDesign
 
+本分支默认 FPGA 系统已改为 **无 CPU：专用 JTAG 主机接口 → 硬件控制器 → 融合 NPU**。
+模型/输入完整性、模型更新、忙时保护、结果快照、超时恢复和空闲存储读回均已实现。
+接口、使用方法、验证和综合结果见 [无 CPU 控制系统](docs/CPU_LESS_CONTROL.md)。
+旧 CPU 系统保留为 `my_soc_cpu_reference`，供历史测试和对照使用。
+
 The group's repo for "Full-Stack Design and Practice of Advanced Chips" course
 of Peking University.
 
@@ -7,8 +12,8 @@ of Peking University.
 
 - `hardware/npu/` — 完整四分类 KWS-TinyCNN-8-Flat INT8 NPU、基础计算单元和
   Icarus兼容的自检回归。
-- `hardware/soc/` — Integrated SoC with `cv32e40p` CPU, AXI crossbar, bootram,
-  SRAM, JTAG debug, and the NPU behind an MMIO wrapper (ModelSim).
+- `hardware/soc/` — CPU-less JTAG controller and native NPU integration;
+  the former CV32E40P/AXI/MMIO system remains as a reference.
 
 ## Quick start
 
@@ -32,7 +37,13 @@ same compute core. [Measured results and trade-offs](docs/kws_tinycnn8_tiled/REP
 [reproduction details](hardware/npu/sim/README_tinycnn8.md) describe the fixed
 behavioral-memory contract. It does not establish trained KWS accuracy or PPA.
 
-Run the integrated SoC (ModelSim):
+Run the CPU-less controller, JTAG pin and Python host API regression (Icarus):
+
+```sh
+python hardware/soc/sim/scripts/run_nocpu.py --output build/nocpu_regression
+```
+
+Run the legacy CPU reference SoC (ModelSim):
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_soc.ps1

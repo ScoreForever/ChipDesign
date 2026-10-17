@@ -29,7 +29,8 @@ module tinycnn8_npu_fused #(
     parameter SHIFT_WIDTH=6,
     parameter OPT_GATHER_LOAD=0,     // accepted for drop-in compatibility; unused
     parameter OPT_SPATIAL_TILE=0,    // accepted for drop-in compatibility; unused
-    parameter SPATIAL_TILE=16        // accepted for drop-in compatibility; unused
+    parameter SPATIAL_TILE=16,       // accepted for drop-in compatibility; unused
+    parameter DEBUG_READBACK=0      // optional idle-only physical storage inspection
 ) (
     input wire clk,input wire rst,
     input wire start_valid,output wire start_ready,
@@ -55,7 +56,10 @@ module tinycnn8_npu_fused #(
     output reg [31:0] perf_matrix_retires,
     output reg [31:0] perf_peak_inflight,
     output reg perf_overflow,
-    output reg perf_valid
+    output reg perf_valid,
+    input wire debug_read_en,
+    input wire [15:0] debug_read_addr,
+    output reg [31:0] debug_read_data
 );
     generate if (ARRAY_ROWS != 4 || ARRAY_COLS < 1 || (8 % ARRAY_COLS) != 0)
     begin : invalid_shape
@@ -123,6 +127,56 @@ module tinycnn8_npu_fused #(
             if (act_we && act_waddr[2:0] == bank)
                 mem[act_waddr[ACT_ADDR_W-1:3]] <= act_wdata;
     end endgenerate
+
+    // Debug uses the existing activation read ports, never a mirror RAM.
+    // Byte address map: weights 0000..07ff; activations 1000..13ff;
+    // parameters 2000+layer*100 (bias +00, multiplier +20, shift +40);
+    // live logits 3000..301f. Caller validates addresses and idle ownership.
+    wire debug_active = DEBUG_READBACK && debug_read_en && !running;
+    integer dbg_lane, dbg_tile, dbg_byte;
+    reg [255:0] dbg_vector;
+    always @* begin
+        debug_read_data = 0;
+        dbg_vector = 0;
+        dbg_lane = debug_read_addr[4:2] % ARRAY_COLS;
+        dbg_tile = debug_read_addr[4:2] / ARRAY_COLS;
+        if (debug_active) begin
+            case (debug_read_addr[15:12])
+                0: debug_read_data = debug_read_addr[2] ?
+                    (weight_mem[debug_read_addr[10:3]] >> 32) :
+                    weight_mem[debug_read_addr[10:3]];
+                1: begin
+                    for (dbg_byte = 0; dbg_byte < 4; dbg_byte = dbg_byte + 1)
+                        debug_read_data[dbg_byte*8 +: 8] =
+                            act_bank_rdata[(debug_read_addr[2:0] + dbg_byte) & 7];
+                end
+                2: begin
+                    case (debug_read_addr[9:8])
+                        0: case (debug_read_addr[7:5])
+                            0: dbg_vector = bias_conv1[dbg_tile];
+                            1: dbg_vector = mult_conv1[dbg_tile];
+                            2: debug_read_data = {{(32-SHIFT_WIDTH){shift_conv1[dbg_tile][dbg_lane*SHIFT_WIDTH+SHIFT_WIDTH-1]}},
+                                shift_conv1[dbg_tile][dbg_lane*SHIFT_WIDTH +: SHIFT_WIDTH]};
+                            default: ;
+                        endcase
+                        1: case (debug_read_addr[7:5])
+                            0: dbg_vector = bias_conv2[dbg_tile];
+                            1: dbg_vector = mult_conv2[dbg_tile];
+                            2: debug_read_data = {{(32-SHIFT_WIDTH){shift_conv2[dbg_tile][dbg_lane*SHIFT_WIDTH+SHIFT_WIDTH-1]}},
+                                shift_conv2[dbg_tile][dbg_lane*SHIFT_WIDTH +: SHIFT_WIDTH]};
+                            default: ;
+                        endcase
+                        3: if (debug_read_addr[7:5] == 0) dbg_vector = bias_fc[dbg_tile];
+                        default: ;
+                    endcase
+                    if (debug_read_addr[7:5] < 2)
+                        debug_read_data = dbg_vector[dbg_lane*32 +: 32];
+                end
+                3: debug_read_data = logits[debug_read_addr[4:2]*32 +: 32];
+                default: ;
+            endcase
+        end
+    end
 
     // ------------------------------------------------------------------
     // Weight loader: fills the idle PE bank for group instance m while
@@ -196,7 +250,8 @@ module tinycnn8_npu_fused #(
             base_calc = P2_BASE + 4*issue_g;
             act_lane_valid = 4'b1111;
         end
-        act_read_base = base_calc[ACT_ADDR_W-1:0];
+        act_read_base = (debug_active && debug_read_addr[15:12] == 1) ?
+            debug_read_addr[ACT_ADDR_W-1:0] : base_calc[ACT_ADDR_W-1:0];
         for (lane_i = 0; lane_i < ARRAY_ROWS; lane_i = lane_i + 1)
             issue_act[lane_i*8 +: 8] = act_lane_valid[lane_i] ?
                 act_bank_rdata[(act_read_base + lane_i) & 7] : 8'd0;
@@ -316,7 +371,7 @@ module tinycnn8_npu_fused #(
                 if (start_valid && start_ready) begin
                     running <= 1'b1; phase <= PH_C1; cfg_class_count <= class_count;
                     logits <= 0;
-                    begin_layer();
+                    begin_layer;
                 end
             end else begin
                 // Weight loader.
@@ -408,7 +463,7 @@ module tinycnn8_npu_fused #(
                         running <= 1'b0; done <= 1'b1;
                     end else begin
                         phase <= phase + 1'b1;
-                        begin_layer();
+                        begin_layer;
                     end
                 end
             end

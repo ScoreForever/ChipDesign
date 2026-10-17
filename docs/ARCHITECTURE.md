@@ -1,5 +1,9 @@
 # KWS TinyCNN-8-Flat 芯片系统架构与软硬件边界
 
+> 2026-10-17：本分支默认 SoC 已切换为无 CPU JTAG 控制系统，见
+> [CPU_LESS_CONTROL.md](CPU_LESS_CONTROL.md)。本文的 CPU/AXI/MMIO 部分描述保留的
+> `my_soc_cpu_reference`；模型数学定义仍适用，新控制地址与旧 MMIO ABI 不兼容。
+
 本文按PR #5与main冲突解决后的实现核对，更新于2026-10-14。
 默认使用融合Flat核；分层Flat核保留为参考。此前7569a43的GAP/Flat接口不一致
 已通过恢复160输入FC和0/9/81权重布局解决。旧GAP模块保留独立测试。

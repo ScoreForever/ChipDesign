@@ -1,6 +1,17 @@
 # SoC 仿真
 
-生产SoC仿真入口为 `filelists/chipdesign_soc.f` 和
+本分支默认无 CPU 系统使用 `filelists/chipdesign_nocpu.f`，从根目录运行：
+
+```sh
+python hardware/soc/sim/scripts/run_nocpu.py --output build/nocpu_regression
+```
+
+包含生命周期/读回/恢复、真实 JTAG 引脚和 Python 主机命令回放测试。
+协议与证据见 [CPU_LESS_CONTROL.md](../../../docs/CPU_LESS_CONTROL.md)。
+以下入口及 CPU 固件/SAIF 工作负载用于保留的 `my_soc_cpu_reference`，
+不代表无 CPU 系统的端到端延迟或功耗。
+
+旧 CPU 参考 SoC 仿真入口为 `filelists/chipdesign_soc.f` 和
 `scripts/run_soc.ps1`。它编译CPU、AXI、SRAM、DMA、完整TinyCNN-8-Flat NPU及
 `chipdesign_soc_tb`。
 

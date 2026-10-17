@@ -2,7 +2,8 @@ param(
     [string]$VivadoRoot = $env:XILINX_VIVADO,
     [int]$Jobs = 4,
     [ValidateRange(1, 500)][double]$FrequencyMHz = 50,
-    [string]$OutputDir = ''
+    [string]$OutputDir = '',
+    [switch]$SynthesisOnly
 )
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../..'))
@@ -32,9 +33,10 @@ try {
     Push-Location $outputDir
     try {
         $buildArgs = @($repoRoot, $outputDir, $Jobs)
-        if ($PSBoundParameters.ContainsKey('FrequencyMHz')) {
+        if ($PSBoundParameters.ContainsKey('FrequencyMHz') -or $SynthesisOnly) {
             $buildArgs += $FrequencyMHz.ToString('0.000', [Globalization.CultureInfo]::InvariantCulture)
         }
+        if ($SynthesisOnly) { $buildArgs += 'synth_only' }
         & $vivado -mode batch -source (Join-Path $PSScriptRoot 'build_ego1.tcl') -log $logPath -journal (Join-Path $outputDir 'vivado.jou') -tclargs @buildArgs
         $exitCode = $LASTEXITCODE
     } finally { Pop-Location }

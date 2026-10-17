@@ -1,5 +1,9 @@
 # SoC 综合入口
 
+本分支 DC/Genus 入口已选择 `chipdesign_nocpu.f` 和无 CPU `my_soc_top`。
+FPGA 默认使用 `hardware/fpga/scripts/build_nocpu.py`，详见
+[CPU_LESS_CONTROL.md](../../../docs/CPU_LESS_CONTROL.md)。
+
 从仓库根目录运行。服务器先 `source /opt/eda/env.sh`。
 
 ```sh
@@ -24,7 +28,8 @@ genus -no_gui -batch -files hardware/soc/synth/scripts/synth_genus.tcl > "$EDA_R
 `dc_shell-xg-t -f hardware/soc/synth/scripts/synth_dc.tcl`；无库时仅 generic elaboration。
 本次 soc 的 DC 报 DCSH-1，尚未实测该流程；Genus 映射分支也尚未实测。
 
-约束模板仅描述 JTAG 不活动的功能场景。最终约束还需具体复位策略、JTAG 场景、
-时钟域关系、驱动/负载以及系统 I/O 预算。现有 CPU clock gate 是 FPGA 直通实现，
-主 SRAM 是可推断存储；ASIC 交付还需技术相关 clock gate 和 SRAM macro 适配。
+当前约束模板包含功能时钟、异步 JTAG 时钟和双域 I/O 预算；JTAG 周期默认
+1000 ns，可用 `EDA_JTAG_CLOCK_NS` 修改。最终约束仍需板级复位、驱动/负载、
+bundled-data CDC 物理延迟预算等签核。无 CPU 系统不再使用共享主 SRAM；
+NPU 本地可推断存储若用于 ASIC 交付，仍需工艺存储宏适配。
 这些脚本不替代 FPGA Vivado 流程，也不是时序签核结果。

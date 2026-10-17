@@ -75,5 +75,5 @@ simple_npu/rtl/simple_npu_pe.sv
 simple_npu/rtl/simple_npu_core.sv
 simple_npu/rtl/simple_npu_top.sv
 soc/rtl/my_npu_subsystem.sv
-soc/rtl/my_soc_top.sv
+soc/rtl/my_soc_cpu_reference.sv
 soc/sim/tb/my_soc_tb.sv

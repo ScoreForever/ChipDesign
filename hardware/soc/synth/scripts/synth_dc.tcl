@@ -17,7 +17,7 @@ if {$mapped} {
     set_app_var link_library [concat [list *] $target_library]
 }
 define_design_lib WORK -path "$result_dir/work"
-set fh [open hardware/soc/sim/filelists/chipdesign_soc.f r]
+set fh [open hardware/soc/sim/filelists/chipdesign_nocpu.f r]
 set sources {}
 foreach line [split [read $fh] \n] {
     set line [string trim $line]

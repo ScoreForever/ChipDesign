@@ -1,5 +1,13 @@
 # ChipDesign SoC 集成
 
+**本分支默认系统为无 CPU 的 JTAG 硬件控制器。** 新源文件列表为
+`sim/filelists/chipdesign_nocpu.f`；详细命令 ABI、主机客户端、读回接口、验证和
+FPGA 综合数据见 [CPU_LESS_CONTROL.md](../../docs/CPU_LESS_CONTROL.md)。
+运行 `python hardware/soc/sim/scripts/run_nocpu.py --output build/nocpu_regression` 验证。
+
+以下内容描述保留的 `my_soc_cpu_reference` 和旧 MMIO 系统，
+由 `chipdesign_soc.f` 继续编译，未进入默认 FPGA 顶层。
+
 本目录包含 CV32E40P CPU、AXI 互连、BootRAM、SRAM、JTAG Debug、DMA 和
 完整 KWS-TinyCNN-8 NPU 的片上系统。
 
