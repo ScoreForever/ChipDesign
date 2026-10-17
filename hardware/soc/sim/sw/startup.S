@@ -1,5 +1,5 @@
 #################################################################################
-# Description: Startup code for cv32e40p SoC (rv32imc, runs from SRAM @ 0x80000000)
+# Description: Startup code for PicoRV32 SoC (rv32imc, runs from SRAM @ 0x80000000)
 #################################################################################
 
 .section .text.init

@@ -6,7 +6,7 @@ module kws_access_profile_tb;
   wire reset_n = workload.dut.ndmreset_n;
   longint unsigned cycle = 0;
   always @(posedge clk) cycle <= cycle + 1;
-  initial $display("ACCESS_META schema=1 period_ns=20 sample=posedge_pre_nba");
+  initial $display("ACCESS_META schema=2 period_ns=20 sample=posedge_pre_nba");
 
   kws_access_obi_probe #(.PORT("I")) instruction_probe (
     clk, reset_n, cycle, workload.dut.instr_req, workload.dut.instr_gnt,
@@ -17,18 +17,20 @@ module kws_access_profile_tb;
     workload.dut.data_valid, workload.dut.data_we, workload.dut.data_addr,
     workload.dut.data_wdata, workload.dut.data_rdata);
 
-  for (genvar i=0; i<4; i++) begin : ports
-    kws_access_axi_probe #(.PORT((i==0 ? "S0" : i==1 ? "S1" : i==2 ? "S2" : "S3"))) ingress (
+  for (genvar i=0; i<3; i++) begin : ingress_ports
+    kws_access_axi_probe #(.PORT((i==0 ? "S0" : i==1 ? "S1" : "S2"))) ingress (
       clk, reset_n, cycle, workload.dut.slave[i]);
+  end
+  for (genvar i=0; i<4; i++) begin : egress_ports
     kws_access_axi_probe #(.PORT((i==0 ? "M0" : i==1 ? "M1" : i==2 ? "M2" : "M3"))) egress (
       clk, reset_n, cycle, workload.dut.master[i]);
   end
 
   // ID acceptance is a pipeline observation, not an architectural retire.
   always @(posedge clk) if (reset_n) begin
-    if (workload.dut.i_cpu.core_i.id_valid && workload.dut.i_cpu.core_i.is_decoding)
+    if (workload.dut.i_cpu.core.dbg_next)
       $display("ACCESS_ID cycle=%0d time_ps=%0t pc=%08h insn=%08h", cycle, $time,
-        workload.dut.i_cpu.core_i.pc_id, workload.dut.i_cpu.core_i.instr_rdata_id);
+        workload.dut.i_cpu.core.dbg_insn_addr, workload.dut.i_cpu.core.dbg_insn_opcode);
     if (workload.dut.boot_req)
       $display("ACCESS_MEM cycle=%0d port=M0 we=%0d addr=%08h data=%08h", cycle,
         workload.dut.boot_we, workload.dut.boot_addr, workload.dut.boot_rdata);

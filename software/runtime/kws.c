@@ -1,6 +1,5 @@
 #include "kws.h"
 #include "npu_mmio.h"
-#include <limits.h>
 #if KWS_USE_DMA
 static int dma_copy(const void *src, unsigned offset, unsigned words) {
     if (npu_read(NPU_DMA_STATUS) & NPU_DMA_BUSY) return KWS_NOT_READY;
@@ -143,7 +142,7 @@ int kws_start_wait_timed(uint32_t poll_limit, uint32_t *start_cycle) {
     if (start_cycle) {
 #if defined(__riscv)
         uint32_t value;
-        __asm__ volatile(".option push\n.option arch, +zicsr\ncsrr %0, 0xb00\n.option pop"
+        __asm__ volatile(".option push\n.option arch, +zicsr\ncsrr %0, 0xc00\n.option pop"
                          : "=r"(value) :: "memory");
         *start_cycle = value;
 #else

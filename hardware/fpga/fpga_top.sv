@@ -42,7 +42,7 @@ module fpga_top (
   assign rst_sys_n = rst_sync_q[1];
 
   // ---------------- 你在 Lab 3 完成的 SoC ----------------
-  my_soc_top u_soc (
+  my_soc_top #(.CPU_BOOT_HOLD(1)) u_soc (
       .clk_i  (clk_sys),
       .rst_ni (rst_sys_n),
       .tck_i  (tck_i),

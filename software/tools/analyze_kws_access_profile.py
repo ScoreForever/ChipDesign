@@ -27,7 +27,8 @@ def require(condition, message):
 def parse(text):
     require(not re.search(r'FAIL:|TIMEOUT|\*(?:E|F|SE),|^\s*(?:Fatal:|Error:)', text, re.M),
             'simulation reports a failure')
-    require(text.count('ACCESS_META schema=1 period_ns=20 sample=posedge_pre_nba') == 1,
+    metadata = re.findall(r'^ACCESS_META schema=([12]) period_ns=20 sample=posedge_pre_nba$', text, re.M)
+    require(len(metadata) == 1,
             'missing/duplicate or unsupported ACCESS_META')
     passed = re.findall(r'^KWS_PASS count=(\d+)\s*$', text, re.M)
     require(len(passed) == 1, 'missing/duplicate KWS_PASS')
@@ -40,6 +41,8 @@ def parse(text):
             continue
         kind, fields = line.split(' ', 1)
         event = {'kind': kind}
+        if metadata[0] == '2':
+            event['unified_cpu'] = True
         for field in fields.split():
             key, value = field.split('=', 1)
             event[key] = (value if key == 'data' and re.search('[xzXZ]', value)
@@ -80,7 +83,9 @@ def axi_channels(events):
 
 def transactions(events):
     channels = axi_channels(events)
-    require(not any(channels[port, ch] for port in ('S2','S3') for ch in ('AW','AR')),
+    unified = any(e.get('unified_cpu') for e in events)
+    auxiliary = ('S1', 'S2') if unified else ('S2', 'S3')
+    require(not any(channels[port, ch] for port in auxiliary for ch in ('AW','AR')),
             'profiler expects baseline CPU-only traffic; DMA/debug traffic is unsupported')
     # W has no ID: pair by AW order at each port. Responses pair by AXI ID FIFO.
     bus = defaultdict(deque)
@@ -114,8 +119,8 @@ def transactions(events):
         addr, write = req['addr'], req['we']
         require(req['cycle'] <= grant['cycle'] <= resp['cycle'], 'OBI event ordering')
         require((addr, write) == (grant['addr'], grant['we']), 'OBI request changed')
-        source = 0 if port == 'I' else 1
-        sid = 1 if port == 'I' else 2
+        source = 0 if unified or port == 'I' else 1
+        sid = 0 if unified else (1 if port == 'I' else 2)
         if 0x80000000 <= addr < 0x80002000:
             target = 1
         elif 0x70000000 <= addr < 0x70004000:

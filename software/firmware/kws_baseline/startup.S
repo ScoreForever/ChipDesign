@@ -2,10 +2,7 @@
 .global _start
 _start:
     la sp, __stack_top
-    .option push
-    .option arch, +zicsr
-    csrw 0x320, zero
-    .option pop
+    # PicoRV32 cycle counters are always enabled; no mcountinhibit CSR.
     la t0, __stack_bottom
     li t2, 0xa5a5a5a5
 1:  bgeu t0, sp, 2f

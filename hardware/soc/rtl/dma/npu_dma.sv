@@ -3,7 +3,7 @@
 //
 // The DMA has a simple memory-like configuration slave (SRC/DST/LEN/CTRL/STATUS)
 // and a simple memory-like master interface that is intended to connect to an
-// axi_adapter (as used by the cv32e40p data/instr interfaces).
+// axi_adapter for the DMA and JTAG system-bus access).
 //
 // Transfer semantics:
 //   - copies LEN 32-bit words from SRC to DST

@@ -7,7 +7,7 @@ of Peking University.
 
 - `hardware/npu/` — 完整四分类 KWS-TinyCNN-8-Flat INT8 NPU、基础计算单元和
   Icarus兼容的自检回归。
-- `hardware/soc/` — Integrated SoC with `cv32e40p` CPU, AXI crossbar, bootram,
+- `hardware/soc/` — Integrated SoC with PicoRV32 RV32IMC CPU, AXI crossbar, bootram,
   SRAM, JTAG debug, and the NPU behind an MMIO wrapper (ModelSim).
 
 ## Quick start
@@ -56,3 +56,5 @@ python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
 `CHIPDESIGN_FPGA_MEM`，改用 `hardware/fpga/rtl/` 下 3 拍读流水的 FPGA 专用模块。
 结构回归、KWS workload、SAIF 与剖析脚本的 Linux 入口用 `--config asic|fpga` 选择
 （默认 `asic`），remote PowerShell 入口用 `-Config asic|fpga`；FPGA 功耗分析请用 `fpga`。
+
+CPU integration, firmware/JTAG compatibility, and regression: [PicoRV32](hardware/cpu/picorv32/README.md).

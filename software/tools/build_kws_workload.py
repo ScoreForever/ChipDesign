@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 import subprocess
+import shutil
+import tempfile
 import numpy as np
 from kws_workload_common import ROOT, build_directory, load_inputs, load_package
 
@@ -25,9 +27,21 @@ def main():
     p.add_argument('--pipeline', type=int, choices=(0, 1), default=1,
                    help='KWS_PIPELINE compile switch (default: 1; requires DMA)')
     p.add_argument('--tool-prefix', default=r'D:\tools\xpack-riscv-none-elf-gcc-15.2.0-1\bin\riscv-none-elf-')
+    p.add_argument('--library-dir', action='append', default=[],
+                   help='additional target library directory, e.g. a relocated Vivado GCC multilib')
     args = p.parse_args()
+    destination = build_directory(args.output)
+    # GCC LTO on Windows cannot create .ltrans files in Unicode paths.
+    with tempfile.TemporaryDirectory(prefix='chipdesign-kws-') as temporary:
+        try:
+            build(args, Path(temporary))
+        finally:
+            shutil.copytree(temporary, destination, dirs_exist_ok=True)
+    print(f'Workload artifacts: {destination}')
+
+
+def build(args, out):
     pkg, inputs = load_package(args.package), load_inputs(args.inputs)
-    out = build_directory(args.output)
     if len(inputs) < 2:
         raise ValueError('at least two inputs are required')
     fw = ROOT / 'software/firmware/kws_baseline'
@@ -43,7 +57,7 @@ def main():
                            initializer(pkg['fc_cmp_mult']), initializer(pkg['fc_cmp_shift'])]) + '}'
     def run(tool, arguments, check=True):
         result = subprocess.run([args.tool_prefix + tool, *map(str, arguments)],
-                                capture_output=True, text=True)
+                                capture_output=True, text=True, encoding='utf-8', errors='replace')
         if check and result.returncode:
             raise RuntimeError(result.stdout + result.stderr)
         return result
@@ -70,7 +84,8 @@ def main():
             '-I' + str(ROOT / 'software/runtime'), '-I' + str(out),
             fw / 'startup.S', fw / 'main.c', ROOT / 'software/runtime/kws.c', out / 'workload_data.c',
             '-T' + str(fw / 'linker.ld'), '-Wl,--defsym,SAMPLE_COUNT=' + str(count),
-            '-Wl,-Map=' + str(out / 'workload.map'), '-o', out / 'workload.elf', '-lgcc'], check=False)
+            '-Wl,--build-id=none', '-Wl,-Map=' + str(out / 'workload.map'), '-o', out / 'workload.elf',
+            *['-L' + directory for directory in args.library_dir], '-lgcc'], check=False)
         attempts.append({'count': count, 'exit': result.returncode, 'diagnostics': result.stderr})
         if result.returncode == 0:
             break

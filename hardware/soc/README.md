@@ -1,6 +1,6 @@
 # ChipDesign SoC 集成
 
-本目录包含 CV32E40P CPU、AXI 互连、BootRAM、SRAM、JTAG Debug、DMA 和
+本目录包含 PicoRV32 RV32IMC CPU、AXI 互连、BootRAM、SRAM、JTAG Debug、DMA 和
 完整 KWS-TinyCNN-8 NPU 的片上系统。
 
 模型架构、量化规则、模块分工、MMIO寄存器和软硬件职责边界以
@@ -76,3 +76,5 @@ SoC使用SystemVerilog interface和断言，不能用Icarus编译整个SoC；Ica
 
 主SRAM保持三拍读取和AXI `READ_LATENCY=3`。分层参考的MMIO实例激活容量640/2560 B，
 融合核使用1 KiB。GAP参数缺口通过恢复Flat网络解决；layer2仍保留并拒绝commit。
+
+本分支已替换为 PicoRV32；统一 CPU 访存、调试 SBA、DMA 共三个 AXI 主端口。启动、CSR、中断和 JTAG 能力差异见 [CPU 集成说明](../cpu/picorv32/README.md)。

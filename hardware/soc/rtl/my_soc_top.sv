@@ -2,7 +2,8 @@
 `include "axi/assign.svh"
 
 module my_soc_top #(
-    parameter INIT_FILE = "hardware/soc/sim/sw/chipdesign_npu_test.hex"
+    parameter INIT_FILE = "hardware/soc/sim/sw/chipdesign_npu_test.hex",
+    parameter bit CPU_BOOT_HOLD = 0
 ) (
     input   logic   clk_i,
     input   logic   rst_ni,
@@ -30,7 +31,7 @@ module my_soc_top #(
       .AXI_DATA_WIDTH (32),
       .AXI_ID_WIDTH   (2),
       .AXI_USER_WIDTH (1)
-  ) slave[3:0]();
+  ) slave[2:0]();
 
   AXI_BUS #(
       .AXI_ADDR_WIDTH (32),
@@ -40,7 +41,7 @@ module my_soc_top #(
   ) master[3:0]();
 
   localparam axi_pkg::xbar_cfg_t AXI_XBAR_CFG = '{
-      NoSlvPorts:         4,
+      NoSlvPorts:         3,
       NoMstPorts:         4,
       MaxMstTrans:        1,
       MaxSlvTrans:        1,
@@ -83,160 +84,48 @@ module my_soc_top #(
       .default_mst_port_i    ('0)
   );
 
-  logic           instr_req;
-  logic           instr_gnt;
-  logic           instr_rvalid;
-  logic [31:0]    instr_addr;
-  logic [31:0]    instr_rdata;
-  logic           data_req;
-  logic           data_gnt;
-  logic           data_rvalid;
-  logic           data_we;
-  logic [3:0]     data_be;
-  logic [31:0]    data_addr;
-  logic [31:0]    data_wdata;
-  logic [31:0]    data_rdata;
-  logic           data_valid;
-  logic           debug_req_valid;
-  logic           debug_req_ready;
-  dm::dmi_req_t   debug_req;
-  logic           debug_resp_valid;
-  logic           debug_resp_ready;
-  dm::dmi_resp_t  debug_resp;
-  logic           debug_req_irq;
-  logic           npu_irq;
-  logic           dma_irq;
-  localparam logic [31:0] DM_HALT_ADDR      = dm::HaltAddress[31:0];
-  localparam logic [31:0] DM_EXCEPTION_ADDR = dm::ExceptionAddress[31:0];
+  logic debug_req_valid, debug_req_ready, debug_resp_valid, debug_resp_ready;
+  dm::dmi_req_t debug_req;
+  dm::dmi_resp_t debug_resp;
+  logic npu_irq, dma_irq;
+  logic cpu_run, cpu_stopped, cpu_trap;
+  wire cpu_mem_valid, cpu_mem_ready, cpu_mem_instr;
+  wire [31:0] cpu_mem_addr, cpu_mem_wdata, cpu_mem_rdata;
+  wire [3:0] cpu_mem_wstrb;
 
-  cv32e40p_top #(
-      .COREV_PULP      (0),
-      .COREV_CLUSTER   (0),
-      .FPU             (0),
-      .FPU_ADDMUL_LAT  (0),
-      .FPU_OTHERS_LAT  (0),
-      .ZFINX           (0),
-      .NUM_MHPMCOUNTERS(0)
-  ) i_cpu (
-      .clk_i               (clk_i),
-      .rst_ni              (ndmreset_n),
-      .pulp_clock_en_i     ('0),
-      .scan_cg_en_i        ('0),
-      .boot_addr_i         (BOOT_BASE),
-      .mtvec_addr_i        (BOOT_BASE),
-      .dm_halt_addr_i      (DM_HALT_ADDR),
-      .hart_id_i           ('0),
-      .dm_exception_addr_i (DM_EXCEPTION_ADDR),
-      .instr_req_o         (instr_req),
-      .instr_gnt_i         (instr_gnt),
-      .instr_rvalid_i      (instr_rvalid),
-      .instr_addr_o        (instr_addr),
-      .instr_rdata_i       (instr_rdata),
-      .data_req_o          (data_req),
-      .data_gnt_i          (data_gnt),
-      .data_rvalid_i       (data_valid),
-      .data_we_o           (data_we),
-      .data_be_o           (data_be),
-      .data_addr_o         (data_addr),
-      .data_wdata_o        (data_wdata),
-      .data_rdata_i        (data_rdata),
-      .irq_i               ({14'b0, dma_irq, npu_irq, 16'b0}),
-      .irq_ack_o           (),
-      .irq_id_o            (),
-      .debug_req_i         (debug_req_irq),
-      .debug_havereset_o   (),
-      .debug_running_o     (),
-      .debug_halted_o      (),
-      .fetch_enable_i      (1'b1),
-      .core_sleep_o        ()
+  `AXI_TYPEDEF_ALL(axi, logic [31:0], logic [3:0], logic [31:0], logic [3:0], logic)
+  axi_req_t cpu_axi_req, dm_axi_m_req, dma_axi_req;
+  axi_resp_t cpu_axi_resp, dm_axi_m_resp, dma_axi_resp;
+
+  // Unified CPU instruction/data, JTAG system-bus access, and DMA.
+  `AXI_ASSIGN_FROM_REQ(slave[0], cpu_axi_req)
+  `AXI_ASSIGN_TO_RESP(cpu_axi_resp, slave[0])
+  `AXI_ASSIGN_FROM_REQ(slave[1], dm_axi_m_req)
+  `AXI_ASSIGN_TO_RESP(dm_axi_m_resp, slave[1])
+  `AXI_ASSIGN_FROM_REQ(slave[2], dma_axi_req)
+  `AXI_ASSIGN_TO_RESP(dma_axi_resp, slave[2])
+
+  picorv32_soc #(.axi_req_t(axi_req_t), .axi_rsp_t(axi_resp_t), .RESET_PC(BOOT_BASE)) i_cpu (
+      .clk_i(clk_i), .rst_ni(ndmreset_n), .run_i(cpu_run),
+      .irq_i({14'b0, dma_irq, npu_irq, 16'b0}),
+      .stopped_o(cpu_stopped), .trap_o(cpu_trap),
+      .axi_req_o(cpu_axi_req), .axi_rsp_i(cpu_axi_resp),
+      .mem_valid(cpu_mem_valid), .mem_ready(cpu_mem_ready), .mem_instr(cpu_mem_instr),
+      .mem_addr(cpu_mem_addr), .mem_wdata(cpu_mem_wdata), .mem_rdata(cpu_mem_rdata),
+      .mem_wstrb(cpu_mem_wstrb)
   );
 
-  `AXI_TYPEDEF_ALL(axi,
-                   logic [31:0],
-                   logic [3:0],
-                   logic [31:0],
-                   logic [3:0],
-                   logic)
-
-  axi_req_t  instr_axi_req;
-  axi_resp_t instr_axi_resp;
-  axi_req_t  data_axi_req;
-  axi_resp_t data_axi_resp;
-  axi_req_t  dm_axi_m_req;
-  axi_resp_t dm_axi_m_resp;
-  axi_req_t  dma_axi_req;
-  axi_resp_t dma_axi_resp;
-
-  `AXI_ASSIGN_FROM_REQ(slave[0], instr_axi_req)
-  `AXI_ASSIGN_TO_RESP(instr_axi_resp, slave[0])
-  `AXI_ASSIGN_FROM_REQ(slave[1], data_axi_req)
-  `AXI_ASSIGN_TO_RESP(data_axi_resp, slave[1])
-  `AXI_ASSIGN_FROM_REQ(slave[2], dm_axi_m_req)
-  `AXI_ASSIGN_TO_RESP(dm_axi_m_resp, slave[2])
-  `AXI_ASSIGN_FROM_REQ(slave[3], dma_axi_req)
-  `AXI_ASSIGN_TO_RESP(dma_axi_resp, slave[3])
-
-  assign data_valid = data_rvalid | data_axi_resp.b_valid;
-
-  axi_adapter #(
-      .ADDR_WIDTH         (32),
-      .DATA_WIDTH         (32),
-      .AXI_DATA_WIDTH     (32),
-      .AXI_ID_WIDTH       (4),
-      .MAX_OUTSTANDING_AW (7),
-      .axi_req_t          (axi_req_t),
-      .axi_rsp_t          (axi_resp_t)
-  ) i_axi_adapter_instr (
-      .clk_i                 (clk_i),
-      .rst_ni                (ndmreset_n),
-      .req_i                 (instr_req),
-      .type_i                (1'b0),
-      .amo_i                 (4'b0000),
-      .gnt_o                 (instr_gnt),
-      .addr_i                (instr_addr),
-      .we_i                  (1'b0),
-      .wdata_i               ('0),
-      .be_i                  (4'b1111),
-      .size_i                (2'b10),
-      .id_i                  (4'b0001),
-      .valid_o               (instr_rvalid),
-      .rdata_o               (instr_rdata),
-      .id_o                  (),
-      .critical_word_o       (),
-      .critical_word_valid_o (),
-      .axi_req_o             (instr_axi_req),
-      .axi_resp_i            (instr_axi_resp)
-  );
-
-  axi_adapter #(
-      .ADDR_WIDTH         (32),
-      .DATA_WIDTH         (32),
-      .AXI_DATA_WIDTH     (32),
-      .AXI_ID_WIDTH       (4),
-      .MAX_OUTSTANDING_AW (7),
-      .axi_req_t          (axi_req_t),
-      .axi_rsp_t          (axi_resp_t)
-  ) i_axi_adapter_data (
-      .clk_i                 (clk_i),
-      .rst_ni                (ndmreset_n),
-      .req_i                 (data_req),
-      .type_i                (1'b0),
-      .amo_i                 (4'b0000),
-      .gnt_o                 (data_gnt),
-      .addr_i                (data_addr),
-      .we_i                  (data_we),
-      .wdata_i               (data_wdata),
-      .be_i                  (data_be),
-      .size_i                (2'b10),
-      .id_i                  (4'b0010),
-      .valid_o               (data_rvalid),
-      .rdata_o               (data_rdata),
-      .id_o                  (),
-      .critical_word_o       (),
-      .critical_word_valid_o (),
-      .axi_req_o             (data_axi_req),
-      .axi_resp_i            (data_axi_resp)
-  );
+  // Legacy passive probe names: grant/response both denote native completion.
+  wire instr_req = cpu_mem_valid && cpu_mem_instr;
+  wire instr_gnt = cpu_mem_ready && cpu_mem_instr;
+  wire instr_rvalid = instr_req && instr_gnt;
+  wire [31:0] instr_addr = cpu_mem_addr, instr_rdata = cpu_mem_rdata;
+  wire data_req = cpu_mem_valid && !cpu_mem_instr;
+  wire data_gnt = cpu_mem_ready && !cpu_mem_instr;
+  wire data_valid = data_req && data_gnt;
+  wire data_we = |cpu_mem_wstrb;
+  wire [31:0] data_addr = cpu_mem_addr, data_wdata = cpu_mem_wdata;
+  wire [31:0] data_rdata = cpu_mem_rdata;
 
   dmi_jtag i_dmi_jtag (
       .clk_i           (clk_i),
@@ -310,8 +199,8 @@ module my_soc_top #(
       .testmode_i       (1'b0),
       .ndmreset_o       (ndmreset),
       .dmactive_o       (),
-      .debug_req_o      (debug_req_irq),
-      .unavailable_i    ('0),
+      .debug_req_o      (),
+      .unavailable_i    (1'b1), // PicoRV32 has no RISC-V Debug Mode; SBA remains available
       .hartinfo_i       (hartinfo),
       .slave_req_i      (dm_slave_req),
       .slave_we_i       (dm_slave_we),
@@ -370,16 +259,40 @@ module my_soc_top #(
   logic        boot_we;
   logic [31:0] boot_addr;
   logic [31:0] boot_wdata;
-  logic [31:0] boot_rdata;
+  logic [31:0] boot_rdata, boot_ram_rdata, boot_control_rdata;
+  logic [3:0] boot_be;
+  logic boot_control_read;
+  wire boot_is_control = boot_addr[15:2] == 14'h000f;
+  wire boot_is_status = boot_addr[15:2] == 14'h000e;
+
+  // 0x0001003c bit0: run (0 resets CPU, 1 restarts at BootRAM).
+  // 0x00010038 bits0/1/2: stopped / trap / requested run.
+  // Bus fabric and SRAM remain live while the CPU is held in reset.
+  always_ff @(posedge clk_i or negedge ndmreset_n) begin
+    if (!ndmreset_n) begin
+      cpu_run <= !CPU_BOOT_HOLD;
+      boot_control_read <= 0;
+      boot_control_rdata <= 0;
+    end else begin
+      if (boot_req && boot_we && boot_is_control && boot_be[0])
+        cpu_run <= boot_wdata[0];
+      if (boot_req && !boot_we) begin
+        boot_control_read <= boot_is_control || boot_is_status;
+        boot_control_rdata <= boot_is_control ? {31'b0, cpu_run} :
+            {29'b0, cpu_run, cpu_trap, cpu_stopped};
+      end
+    end
+  end
+  assign boot_rdata = boot_control_read ? boot_control_rdata : boot_ram_rdata;
 
   bootram i_bootram (
       .clk_i (clk_i),
       .rst_ni(rst_ni),
       .req_i (boot_req),
-      .wen_i (boot_we),
+      .wen_i (boot_we && !boot_is_control && !boot_is_status),
       .addr_i(boot_addr[5:2]),
       .data_i(boot_wdata),
-      .data_o(boot_rdata)
+      .data_o(boot_ram_rdata)
   );
 
   axi2mem #(
@@ -394,7 +307,7 @@ module my_soc_top #(
       .req_o  (boot_req),
       .we_o   (boot_we),
       .addr_o (boot_addr),
-      .be_o   (),
+      .be_o   (boot_be),
       .data_o (boot_wdata),
       .data_i (boot_rdata)
   );

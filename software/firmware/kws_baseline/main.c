@@ -5,7 +5,7 @@
 typedef struct {
     int32_t raw[4];
     uint32_t prediction, input_cycles, compute_cycles, read_cycles, perf_total, total_cycles;
-    uint32_t start_cycle; /* mcycle sampled immediately before NPU start. */
+    uint32_t start_cycle; /* cycle sampled immediately before NPU start. */
 } sample_result;
 typedef struct {
     uint32_t count, model_cycles, error, stack_used;
@@ -15,7 +15,7 @@ extern workload_result __results;
 extern uint32_t __stack_bottom[], __stack_top[];
 static inline uint32_t cycles(void) {
     uint32_t value;
-    __asm__ volatile(".option push\n.option arch, +zicsr\ncsrr %0, 0xb00\n.option pop"
+    __asm__ volatile(".option push\n.option arch, +zicsr\ncsrr %0, 0xc00\n.option pop"
                      : "=r"(value) :: "memory");
     return value;
 }

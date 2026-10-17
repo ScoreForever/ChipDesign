@@ -5,8 +5,8 @@ from pathlib import Path
 from analyze_kws_access_profile import ROOT, analyze
 
 
-def fixture():
-    lines = ['ACCESS_META schema=1 period_ns=20 sample=posedge_pre_nba',
+def fixture(schema=1):
+    lines = [f'ACCESS_META schema={schema} period_ns=20 sample=posedge_pre_nba',
              'ACCESS_IMAGE sha256='+hashlib.sha256(b'00000000\n').hexdigest()]
     counters = {}
     def emit(kind, **fields):
@@ -23,7 +23,7 @@ def fixture():
                  event=event, addr=addr, data=data, id=id, resp=0, len=0,last=1)
     def transaction(port, addr, we, cycle):
         seq = sequence(port)
-        source, sid = (0,1) if port=='I' else (1,2)
+        source, sid = (0,0) if schema == 2 else ((0,1) if port=='I' else (1,2))
         target = 3 if addr < 0x80000000 else 1
         mid = sid | (source<<2)
         s, m = f'S{source}', f'M{target}'
@@ -83,6 +83,11 @@ def main():
     assert r['target_response_wait']==1 and r['adapter_response_wait']==1
     assert r['aw_w_join']==0 and r['xbar_w']==2
     checks=1
+    unified, unified_symbols = fixture(schema=2)
+    unified_rows, unified_phases, unified_iterations, unified_incomplete = analyze(unified, unified_symbols)
+    assert len(unified_rows) == len(rows) and len(unified_phases) == len(phases)
+    assert len(unified_iterations) == len(iterations) and not unified_incomplete
+    checks += 1
     def reject(bad, syms=symbols):
         nonlocal checks
         try:

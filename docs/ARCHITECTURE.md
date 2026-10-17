@@ -13,7 +13,7 @@
   -> CPU：统一四类 logit 尺度、argmax、可选拒绝阈值和业务逻辑
 ```
 
-SoC 包含 CV32E40P CPU、AXI、BootRAM、8 KiB 主 SRAM、DMA、调试模块和
+SoC 包含 PicoRV32 RV32IMC CPU、AXI、BootRAM、8 KiB 主 SRAM、DMA、调试模块和
 NPU。NPU 不负责采样、FFT/log-mel、训练、Softmax 或业务判断。
 
 ## 2. 冻结模型
@@ -209,3 +209,9 @@ ModelSim动态回归属于部署验收项。本次合并可执行验证与未运
 本次本地验证：融合21个golden用例共33,936次比较（每次2,805周期），
 两种MMIO核心选择及分层容量640/2560、4096/4096均通过；完整分层调度回归
 通过，共224,292次逐元素比较。融合与分层回归已接入GitHub Actions。
+
+## PicoRV32 分支迁移（2026-10-17）
+
+片上 CPU 已更换为 PicoRV32，CPU 取指和数据共用一个 AXI 主端口，与调试 SBA、DMA 构成三主四从互连。NPU 数据通路、存储地址和 MMIO ABI 保持不变。C 运行时改读 cycle（0xc00），移除 mcountinhibit 写入。
+
+FPGA 上电先保持 CPU 复位，通过 JTAG DMI SBA 装载程序后写 0x0001003c=1 启动；写 0 会复位 CPU 并排空已接受的总线访问，0x00010038 可读 stopped/trap/run。保留 JTAG 系统总线访问，不支持原 CV32E40P 的 hart halt/resume、抽象寄存器访问和单步。中断为 Pico 自定义 ABI，原有轮询固件不启用它。详细配置、许可证和复现命令见 hardware/cpu/picorv32/README.md。
