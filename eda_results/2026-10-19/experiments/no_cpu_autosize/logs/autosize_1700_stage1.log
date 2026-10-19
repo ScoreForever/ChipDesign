@@ -1,0 +1,1398 @@
+
+Cadence Innovus(TM) Implementation System.
+Copyright 2021 Cadence Design Systems, Inc. All rights reserved worldwide.
+
+Version:	v21.16-s078_1, built Wed Dec 7 12:07:06 PST 2022
+Options:	-execute source ../scripts/lab4_stage01_floorplan_io.tcl -log autosize_1700_stage1.log -overwrite 
+Date:		Sun Oct 18 12:22:10 2026
+Host:		tc-01a0e839f839 (x86_64 w/Linux 6.12.0-211.54.1.el10_2.x86_64) (24cores*48cpus*Intel(R) Xeon(R) Platinum 8160 CPU @ 2.10GHz 33792KB)
+OS:		AlmaLinux release 8.10 (Cerulean Leopard)
+
+License:
+		[12:22:10.350018] Configured Lic search path (21.01-s002): /opt/eda/Cadence/license/license.dat:/opt/eda/Synopsys/scl/2021.03/admin/license/Synopsys.dat
+
+		invs	Innovus Implementation System	21.1	checkout succeeded
+		8 CPU jobs allowed with the current license(s). Use setMultiCpuUsage to set your required CPU count.
+**WARN: (IMPSYT-1507):	The display is invalid and will start in no window mode
+Change the soft stacksize limit to 0.2%RAM (32 mbytes). Set global soft_stack_size_limit to change the value.
+
+**INFO:  MMMC transition support version v31-84 
+
+<CMD> set_global _enable_mmmc_by_default_flow      $CTE::mmmc_default
+<CMD> suppressMessage ENCEXT-2799
+Executing cmd 'source ../scripts/lab4_stage01_floorplan_io.tcl' ...
+<CMD> set init_gnd_net VSS
+<CMD> set init_pwr_net VDD
+<CMD> set init_verilog ../../syn/my_soc_top/my_soc_top_postsyn.v
+<CMD> set init_lef_file {/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Back_End/lef/tcb018gbwp7t_270a/lef/tcb018gbwp7t_6lm.lef /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/tpd018nv_6lm.lef /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/antenna_6lm.lef /lec/pdk/tsmc180/tpb018v_180a/TSMCHOME/digital/Back_End/lef/tpb018v_180a/cup/6lm/lef/tpb018v_6lm.lef}
+<CMD> set init_mmmc_file ../scripts/pnr_mmmc.tcl
+<CMD> set init_top_cell my_soc_top
+<CMD> set init_design_uniquify 1
+<CMD> setLibraryUnit -cap 1pf -time 1ns
+<CMD> set_global timing_derate_spatial_distance_unit 1nm
+<CMD> init_design
+#% Begin Load MMMC data ... (date=10/18 12:22:35, mem=783.4M)
+#% End Load MMMC data ... (date=10/18 12:22:35, total cpu=0:00:00.0, real=0:00:00.0, peak res=784.0M, current mem=784.0M)
+rc_tt_1p80v_25c
+
+Loading LEF file /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Back_End/lef/tcb018gbwp7t_270a/lef/tcb018gbwp7t_6lm.lef ...
+Set DBUPerIGU to M2 pitch 1120.
+
+Loading LEF file /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/tpd018nv_6lm.lef ...
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/tpd018nv_6lm.lef at line 7147.
+
+Loading LEF file /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/antenna_6lm.lef ...
+**WARN: (IMPLF-58):	MACRO 'PDDW0204CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0204SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0408CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0408SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0812CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0812SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW1216CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW1216SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0204CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0204SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0408CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0408SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0812CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0812SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW1216CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW1216SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0204CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0204SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0408CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0408SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (EMS-27):	Message (IMPLF-58) has exceeded the current message display limit of 20.
+To increase the message display limit, refer to the product command reference manual.
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/antenna_6lm.lef at line 3372.
+
+Loading LEF file /lec/pdk/tsmc180/tpb018v_180a/TSMCHOME/digital/Back_End/lef/tpb018v_180a/cup/6lm/lef/tpb018v_6lm.lef ...
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /lec/pdk/tsmc180/tpb018v_180a/TSMCHOME/digital/Back_End/lef/tpb018v_180a/cup/6lm/lef/tpb018v_6lm.lef at line 313.
+**WARN: (IMPLF-61):	41 duplicated MACRO definitions have been found in the LEF file(s). Their content except DENSITY and PIN ANTENNA* data, and certain properties, have been ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-61' for more detail.
+**WARN: (IMPLF-200):	Pin 'VSSPST' in macro 'PVSS2CDG' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'AVSS' in macro 'PVSS2ANA' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'AVSS' in macro 'PVSS1ANA' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'AVDD' in macro 'PVDD2ANA' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'I' in macro 'ANTENNABWP7T' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+
+##  Check design process and node:  
+##  Both design process and tech node are not set.
+
+Loading view definition file from ../scripts/pnr_mmmc.tcl
+Reading lib_tt_1p80v_25c timing library '/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib' ...
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAPBWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP8BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP64BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP4BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP32BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP16BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'ANTENNABWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+Read 560 cells in library 'tcb018gbwp7ttc' 
+*** End library_loading (cpu=0.02min, real=0.02min, mem=43.0M, fe_cpu=0.72min, fe_real=0.43min, fe_mem=1033.6M) ***
+#% Begin Load netlist data ... (date=10/18 12:22:36, mem=809.7M)
+*** Begin netlist parsing (mem=1033.6M) ***
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR4D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR4D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR4D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR4D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR3D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR3D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR3D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR3D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR3D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR3D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR2D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR2D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR2D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR2D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR2D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR2D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XNR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XNR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (EMS-27):	Message (IMPVL-159) has exceeded the current message display limit of 20.
+To increase the message display limit, refer to the product command reference manual.
+Created 560 new cells from 1 timing libraries.
+Reading netlist ...
+Backslashed names will retain backslash and a trailing blank character.
+Reading verilog netlist '../../syn/my_soc_top/my_soc_top_postsyn.v'
+
+*** Memory Usage v#1 (Current mem = 1079.645M, initial mem = 484.910M) ***
+*** End netlist parsing (cpu=0:00:00.8, real=0:00:01.0, mem=1079.6M) ***
+#% End Load netlist data ... (date=10/18 12:22:37, total cpu=0:00:00.8, real=0:00:01.0, peak res=872.8M, current mem=872.8M)
+Set top cell to my_soc_top.
+Hooked 560 DB cells to tlib cells.
+Starting recursive module instantiation check.
+No recursion found.
+Building hierarchical netlist for Cell my_soc_top ...
+*** Netlist is unique.
+** info: there are 2010 modules.
+** info: there are 87605 stdCell insts.
+
+*** Memory Usage v#1 (Current mem = 1170.059M, initial mem = 484.910M) ***
+**WARN: (IMPFP-3961):	The techSite 'corner' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'pad' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'dcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'ccore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcoreExt7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+Start create_tracks
+Generated pitch 1.12 in METAL6 is different from 0.9 defined in technology file in preferred direction.
+Extraction setup Started 
+Initializing multi-corner RC extraction with 1 active RC Corners ...
+Reading Capacitance Table File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Back_End/lef/tcb018gbwp7t_270a/techfiles/captable/t018lo_1p6m_typical.captable ...
+Importing multi-corner RC tables ... 
+Summary of Active RC-Corners : 
+ 
+ Analysis View: func_tt_1p80v_25c
+    RC-Corner Name        : rc_tt_1p80v_25c
+    RC-Corner Index       : 0
+    RC-Corner Temperature : 25 Celsius
+    RC-Corner Cap Table   : '/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Back_End/lef/tcb018gbwp7t_270a/techfiles/captable/t018lo_1p6m_typical.captable'
+    RC-Corner PreRoute Res Factor         : 1
+    RC-Corner PreRoute Cap Factor         : 1
+    RC-Corner PostRoute Res Factor        : 1 {1 1 1}
+    RC-Corner PostRoute Cap Factor        : 1 {1 1 1}
+    RC-Corner PostRoute XCap Factor       : 1 {1 1 1}
+    RC-Corner PreRoute Clock Res Factor   : 1	[Derived from postRoute_res (effortLevel low)]
+    RC-Corner PreRoute Clock Cap Factor   : 1	[Derived from postRoute_cap (effortLevel low)]
+    RC-Corner PostRoute Clock Cap Factor  : 1 {1 1 1} 	[Derived from postRoute_cap (effortLevel low)]
+    RC-Corner PostRoute Clock Res Factor  : 1 {1 1 1} 	[Derived from postRoute_res (effortLevel low)]
+    RC-Corner PostRoute Clock coupling capacitance Factor : 1 {1 1 1} 
+Updating RC grid for preRoute extraction ...
+Initializing multi-corner capacitance tables ... 
+Initializing multi-corner resistance tables ...
+*Info: initialize multi-corner CTS.
+Reading timing constraints file '../../config/constraints_my_soc_top.sdc' ...
+Current (total cpu=0:00:45.4, real=0:00:28.0, peak res=1192.6M, current mem=1192.6M)
+**WARN: (TCLCMD-1461):	Skipped unsupported command: set_units (File ../../config/constraints_my_soc_top.sdc, Line 2).
+
+**WARN: (TCLCMD-1461):	Skipped unsupported command: set_units (File ../../config/constraints_my_soc_top.sdc, Line 3).
+
+my_soc_top
+INFO (CTE): Reading of timing constraints file ../../config/constraints_my_soc_top.sdc completed, with 2 WARNING
+Ending "Constraint file reading stats" (total cpu=0:00:00.1, real=0:00:00.0, peak res=1213.3M, current mem=1213.3M)
+Current (total cpu=0:00:45.5, real=0:00:28.0, peak res=1213.3M, current mem=1213.3M)
+Total number of combinational cells: 377
+Total number of sequential cells: 160
+Total number of tristate cells: 7
+Total number of level shifter cells: 0
+Total number of power gating cells: 0
+Total number of isolation cells: 0
+Total number of power switch cells: 0
+Total number of pulse generator cells: 0
+Total number of always on buffers: 0
+Total number of retention cells: 0
+Total number of physical cells: 16
+List of usable buffers: BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T CKBD0BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T CKBD10BWP7T CKBD12BWP7T CKBD1BWP7T CKBD2BWP7T CKBD3BWP7T CKBD4BWP7T CKBD6BWP7T CKBD8BWP7T DEL015BWP7T DEL02BWP7T DEL01BWP7T
+Total number of usable buffers: 24
+List of unusable buffers: GBUFFD1BWP7T GBUFFD3BWP7T GBUFFD2BWP7T GBUFFD8BWP7T
+Total number of unusable buffers: 4
+List of usable inverters: CKND0BWP7T CKND10BWP7T CKND12BWP7T CKND1BWP7T CKND2BWP7T CKND3BWP7T CKND4BWP7T CKND6BWP7T CKND8BWP7T INVD0BWP7T INVD10BWP7T INVD12BWP7T INVD1BWP7T INVD2BWP7T INVD1P5BWP7T INVD2P5BWP7T INVD3BWP7T INVD4BWP7T INVD5BWP7T INVD6BWP7T INVD8BWP7T
+Total number of usable inverters: 21
+List of unusable inverters: GINVD2BWP7T GINVD1BWP7T GINVD3BWP7T GINVD8BWP7T
+Total number of unusable inverters: 4
+List of identified usable delay cells: DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T
+Total number of identified usable delay cells: 5
+List of identified unusable delay cells:
+Total number of identified unusable delay cells: 0
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPLF-58            41  MACRO '%s' has been found in the databas...
+WARNING   IMPLF-61             1  %d duplicated MACRO definitions have bee...
+WARNING   IMPLF-200            5  Pin '%s' in macro '%s' has no ANTENNAGAT...
+WARNING   IMPFP-3961           6  The techSite '%s' has no related standar...
+WARNING   IMPVL-159         1120  Pin '%s' of cell '%s' is defined in LEF ...
+WARNING   TCLCMD-1461          2  Skipped unsupported command: %s          
+WARNING   TECHLIB-302          7  No function defined for cell '%s'. The c...
+*** Message Summary: 1182 warning(s), 0 error(s)
+
+<CMD> setMultiCpuUsage -localCpu 16
+<CMD> setDesignMode -process 180 -congEffort auto -earlyClockFlow false -expressRoute false -flowEffort standard -powerEffort low -bottomRoutingLayer METAL2 -topRoutingLayer METAL6
+##  Process: 180           (User Set)               
+##     Node: (not set)                           
+
+##  Check design process and node:  
+##  Design tech node is not set.
+
+Applying the recommended capacitance filtering threshold values for 180nm process node: total_c_th=5, relative_c_th=0.03 and coupling_c_th=3.
+	These values will be used by all post-route extraction engines, including TQuantus, IQuantus and Quantus QRC extraction.
+	For postRoute effortLevel low extraction, the coupling_c_th value will be used only when the -capFilterMode parameter of the setExtractRCMode command is set to relAndCoup or relOrCoup. Default value of -capFilterMode parameter in postRoute extraction effortLevel low is relOnly.
+	The accuracy mode for postRoute effortLevel low extraction will be set to 'standard'.
+	Default value for EffortLevel(-effortLevel option of the setExtractRCMode) in postRoute extraction mode is 'low'.
+<CMD> setAnalysisMode -analysisType onChipVariation -aocv false -cppr both -usefulSkew true
+<CMD> setDelayCalMode -accuracy_level 0 -advanced_pincap_mode false -equivalent_waveform_model propagation -SIAware false
+<CMD> setOptMode -allEndPoints true -checkRoutingCongestion false -fixFanoutLoad true -fixHoldAllowOverlap auto -fixHoldAllowResizing true -fixHoldAllowSetupTnsDegrade true -fixHoldOnExcludedClockNets true -fixSISlew true -highEffortOptCells {DEL015BWP7T DEL01BWP7T DEL02BWP7T DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T} -holdFixingCells {DEL015BWP7T DEL01BWP7T DEL02BWP7T DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T} -holdTargetSlack 0 -honorDensityScreenInOpt false -honorFence true -leakageToDynamicRatio 1 -maxDensity 0.75 -multiBitFlopOpt false -postRouteAreaReclaim none -postRouteSetupRecovery auto -powerEffort none -reclaimArea default -restruct true -setupTargetSlackForReclaim 0 -setupTargetSlack 0 -timeDesignNumPaths 50 -unfixClkInstForOpt true -usefulSkew true -usefulSkewCCOpt extreme -usefulSkewPostRoute true -usefulSkewPreCTS true -verbose true
+**INFO: Hold fixing will be done using "DEL015BWP7T DEL01BWP7T DEL02BWP7T DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T" only.
+setAnalysisMode -usefulSkew already set.
+<CMD> setPlaceMode -place_design_floorplan_mode false -place_design_refine_place true -place_detail_activity_power_driven false -place_detail_check_cut_spacing false -place_detail_check_route false -place_detail_color_aware_legal false -place_detail_eco_max_distance 0 -place_detail_irdrop_aware_effort none -place_detail_legalization_inst_gap 2 -place_detail_use_check_drc false -place_detail_use_no_diffusion_one_site_filler false -place_global_activity_power_driven false -place_global_activity_power_driven_effort standard -place_global_clock_power_driven true -place_global_clock_power_driven_effort low -place_global_cong_effort auto -place_global_max_density -1 -place_global_place_io_pins false -place_global_timing_effort medium -place_global_fast_cts false
+<CMD> setUsefulSkewMode -maxAllowedDelay 2.0 -noBoundary false -useCells {BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T}
+<CMD> setSIMode -enable_logical_correlation true -enable_glitch_propagation true -enable_double_clocking_check true -individual_attacker_simulation_filtering true
+<CMD> setAddRingMode -avoid_short true
+addRing command will avoid shorts while creating rings.
+<CMD> setTieHiLoMode -cell {TIEHBWP7T TIELBWP7T} -maxFanout 8
+<CMD> set_ccopt_property update_io_latency true
+<CMD> set_ccopt_property force_update_io_latency true
+<CMD> set_ccopt_property enable_all_views_for_io_latency_update true
+<CMD> set_ccopt_property max_fanout 16
+<CMD> set_ccopt_property effort high
+<CMD> set_ccopt_property buffer_cells {CKBD0BWP7T CKBD10BWP7T CKBD12BWP7T CKBD1BWP7T CKBD2BWP7T CKBD3BWP7T CKBD4BWP7T CKBD6BWP7T CKBD8BWP7T}
+<CMD> set_ccopt_property inverter_cells {INVD0BWP7T INVD10BWP7T INVD12BWP7T INVD1BWP7T INVD1P5BWP7T INVD2BWP7T INVD2P5BWP7T INVD3BWP7T INVD4BWP7T INVD5BWP7T INVD6BWP7T INVD8BWP7T}
+<CMD> set_ccopt_property clock_gating_cells {CKLNQD1BWP7T CKLNQD2BWP7T CKLNQD4BWP7T CKLNQD6BWP7T CKLNQD8BWP7T CKLHQD1BWP7T CKLHQD2BWP7T CKLHQD4BWP7T CKLHQD6BWP7T CKLHQD8BWP7T}
+<CMD> set_ccopt_property primary_delay_corner tt_1p80v_25c
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+<CMD> set_ccopt_property target_skew 0.15
+<CMD> set_ccopt_property target_max_trans -net_type leaf 0.5
+<CMD> set_ccopt_property target_max_trans -net_type top 0.5
+<CMD> set_ccopt_property target_max_trans -net_type trunk 0.5
+<CMD> setNanoRouteMode -drouteFixAntenna true -drouteUseMultiCutViaEffort low -routeAntennaCellName ANTENNABWP7T -routeDesignRouteClockNetsFirst true -routeInsertAntennaDiode true -routeReserveSpaceForMultiCut false -routeWithLithoDriven false -routeWithTimingDriven true
+<CMD> setFillerMode -diffCellViol true -ecoMode true -fitGap true -minHole true -scheme locationFirst
+<CMD> set_global timing_aocv_analysis_mode combine_launch_capture
+<CMD> set_global timing_set_clock_source_to_output_as_data true
+<CMD> get_message -id GLOBAL-100 -suppress
+<CMD> get_message -id GLOBAL-100 -suppress
+<CMD> set timing_aocv_use_cell_depth_for_net false
+<CMD> get_message -id GLOBAL-100 -suppress
+<CMD> get_message -id GLOBAL-100 -suppress
+<CMD> set timing_disable_lib_pulsewidth_checks false
+<CMD> floorPlan -site core7T -s 1700.0 1700.0 150.0 150.0 150.0 150.0
+**WARN: (IMPFP-4026):	Adjusting core to 'Left' to 150.080000 due to track/row misalignment. To force the value, specify the -noSnapToGrid option or use fpiSetSnapRule command to specify the die/core to different grid.
+**WARN: (IMPFP-4026):	Adjusting core to 'Bottom' to 150.080000 due to track/row misalignment. To force the value, specify the -noSnapToGrid option or use fpiSetSnapRule command to specify the die/core to different grid.
+**WARN: (IMPFP-4026):	Adjusting core to 'Right' to 150.080000 due to track/row misalignment. To force the value, specify the -noSnapToGrid option or use fpiSetSnapRule command to specify the die/core to different grid.
+**WARN: (IMPFP-4026):	Adjusting core to 'Top' to 150.080000 due to track/row misalignment. To force the value, specify the -noSnapToGrid option or use fpiSetSnapRule command to specify the die/core to different grid.
+**WARN: (IMPFP-3961):	The techSite 'corner' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'pad' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'dcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'ccore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcoreExt7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+Start create_tracks
+Generated pitch 1.12 in METAL6 is different from 0.9 defined in technology file in preferred direction.
+**WARN: (IMPFP-325):	Floorplan of the design is resized. All current floorplan objects are automatically derived based on specified new floorplan. This may change blocks, fixed standard cells, existing routes and blockages.
+<CMD> saveDesign ../my_soc_top/backup/my_soc_top_prePad.enc
+#% Begin save design ... (date=10/18 12:22:39, mem=1241.9M)
+% Begin Save ccopt configuration ... (date=10/18 12:22:39, mem=1241.9M)
+% End Save ccopt configuration ... (date=10/18 12:22:39, total cpu=0:00:00.0, real=0:00:00.0, peak res=1243.2M, current mem=1243.2M)
+% Begin Save netlist data ... (date=10/18 12:22:39, mem=1243.2M)
+Writing Binary DB to ../my_soc_top/backup/my_soc_top_prePad.enc.dat/vbin/my_soc_top.v.bin in multi-threaded mode...
+% End Save netlist data ... (date=10/18 12:22:39, total cpu=0:00:00.4, real=0:00:00.0, peak res=1299.7M, current mem=1247.9M)
+Saving symbol-table file in separate thread ...
+Saving congestion map file in separate thread ...
+Saving congestion map file ../my_soc_top/backup/my_soc_top_prePad.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Save AAE data ... (date=10/18 12:22:39, mem=1250.1M)
+Saving AAE Data ...
+% End Save AAE data ... (date=10/18 12:22:39, total cpu=0:00:00.0, real=0:00:00.0, peak res=1250.1M, current mem=1250.1M)
+Saving preference file ../my_soc_top/backup/my_soc_top_prePad.enc.dat/gui.pref.tcl ...
+Saving mode setting ...
+Saving global file ...
+Saving Drc markers ...
+... No Drc file written since there is no markers found.
+Saving special route data file in separate thread ...
+Saving PG Conn data in separate thread ...
+Saving placement file in separate thread ...
+Saving route file in separate thread ...
+Saving property file in separate thread ...
+Saving property file ../my_soc_top/backup/my_soc_top_prePad.enc.dat/my_soc_top.prop
+** Saving stdCellPlacement_binary (version# 2) ...
+TAT_INFO: ::saveSpecialRoute REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: savePGConnFile REAL = 0 : CPU = 0 : MEM = 0.
+Save Adaptive View Pruning View Names to Binary file
+*** Completed saveProperty (cpu=0:00:00.1 real=0:00:00.0 mem=1531.1M) ***
+TAT_INFO: ::savePlace REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveRoute (cpu=0:00:00.2 real=0:00:01.0 mem=1531.1M) ***
+TAT_INFO: ::saveRoute REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveAnnotationAndProp REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveSymbolTable REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::saveCongMap REAL = 1 : CPU = 0 : MEM = 0.
+% Begin Save power constraints data ... (date=10/18 12:22:42, mem=1277.7M)
+% End Save power constraints data ... (date=10/18 12:22:42, total cpu=0:00:00.0, real=0:00:00.0, peak res=1277.9M, current mem=1277.9M)
+rc_tt_1p80v_25c
+Generated self-contained design my_soc_top_prePad.enc.dat
+#% End save design ... (date=10/18 12:22:43, total cpu=0:00:02.5, real=0:00:04.0, peak res=1299.7M, current mem=1278.9M)
+*** Message Summary: 0 warning(s), 0 error(s)
+
+<CMD> addInst -physical -cell PCORNER -inst corner_bottom_left -loc {0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'corner_bottom_left' is placed at (0, 0) which is outside of core box.
+<CMD> addInst -physical -cell PCORNER -inst corner_bottom_right -loc {1885.32 0} -ori MY -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'corner_bottom_right' is placed at (3770640, 0) which is outside of core box.
+<CMD> addInst -physical -cell PCORNER -inst corner_top_left -loc {0 1885.32} -ori MX -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'corner_top_left' is placed at (0, 3770640) which is outside of core box.
+<CMD> addInst -physical -cell PCORNER -inst corner_top_right -loc {1885.32 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'corner_top_right' is placed at (3770640, 3770640) which is outside of core box.
+<CMD> create_library_set -name lib_tt_io -timing [concat $proj(library_set,tt_1p80v_25c) $io_tt_lib]
+Reading lib_tt_io timing library '/lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib' ...
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS3CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS2CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS2ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS1CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS1ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD2POC'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD2CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD2ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD1CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD1ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PRCUT'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+Read 45 cells in library 'tpd018nvtc' 
+<CMD> create_delay_corner -name delay_tt_io -library_set lib_tt_io \
+    -rc_corner rc_tt_1p80v_25c
+<CMD> create_analysis_view -name func_tt_io -constraint_mode func \
+    -delay_corner delay_tt_io
+<CMD> set_analysis_view -setup {func_tt_io} -hold {func_tt_io}
+**WARN: (IMPCTE-104):	The constraint mode of this inactive view 'func_tt_io' has been modified and may need to be reanalyzed to ensure proper timing results. To reanalyze timing for this view make the view active using 'set_analysis_view' and run timing analysis.
+Type 'man IMPCTE-104' for more detail.
+Extraction setup Started 
+Initializing multi-corner RC extraction with 1 active RC Corners ...
+Reading Capacitance Table File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Back_End/lef/tcb018gbwp7t_270a/techfiles/captable/t018lo_1p6m_typical.captable ...
+Importing multi-corner RC tables ... 
+Summary of Active RC-Corners : 
+ 
+ Analysis View: func_tt_io
+    RC-Corner Name        : rc_tt_1p80v_25c
+    RC-Corner Index       : 0
+    RC-Corner Temperature : 25 Celsius
+    RC-Corner Cap Table   : '/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Back_End/lef/tcb018gbwp7t_270a/techfiles/captable/t018lo_1p6m_typical.captable'
+    RC-Corner PreRoute Res Factor         : 1
+    RC-Corner PreRoute Cap Factor         : 1
+    RC-Corner PostRoute Res Factor        : 1 {1 1 1}
+    RC-Corner PostRoute Cap Factor        : 1 {1 1 1}
+    RC-Corner PostRoute XCap Factor       : 1 {1 1 1}
+    RC-Corner PreRoute Clock Res Factor   : 1	[Derived from postRoute_res (effortLevel low)]
+    RC-Corner PreRoute Clock Cap Factor   : 1	[Derived from postRoute_cap (effortLevel low)]
+    RC-Corner PostRoute Clock Cap Factor  : 1 {1 1 1} 	[Derived from postRoute_cap (effortLevel low)]
+    RC-Corner PostRoute Clock Res Factor  : 1 {1 1 1} 	[Derived from postRoute_res (effortLevel low)]
+    RC-Corner PostRoute Clock coupling capacitance Factor : 1 {1 1 1} 
+Updating RC grid for preRoute extraction ...
+Initializing multi-corner capacitance tables ... 
+Initializing multi-corner resistance tables ...
+*Info: initialize multi-corner CTS.
+Reading timing constraints file '/tmp/innovus_temp_1434761_tc-01a0e839f839_<course-account>_BkWHld/.mmmczNyfXt/modes/func/func.sdc' ...
+Current (total cpu=0:00:50.3, real=0:00:35.0, peak res=1299.8M, current mem=1242.5M)
+my_soc_top
+INFO (CTE): Constraints read successfully.
+Ending "Constraint file reading stats" (total cpu=0:00:00.1, real=0:00:00.0, peak res=1256.3M, current mem=1256.3M)
+Current (total cpu=0:00:50.4, real=0:00:35.0, peak res=1299.8M, current mem=1256.3M)
+Total number of combinational cells: 377
+Total number of sequential cells: 160
+Total number of tristate cells: 7
+Total number of level shifter cells: 0
+Total number of power gating cells: 0
+Total number of isolation cells: 0
+Total number of power switch cells: 0
+Total number of pulse generator cells: 0
+Total number of always on buffers: 0
+Total number of retention cells: 0
+Total number of physical cells: 16
+List of usable buffers: BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T CKBD0BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T CKBD10BWP7T CKBD12BWP7T CKBD1BWP7T CKBD2BWP7T CKBD3BWP7T CKBD4BWP7T CKBD6BWP7T CKBD8BWP7T DEL015BWP7T DEL02BWP7T DEL01BWP7T
+Total number of usable buffers: 24
+List of unusable buffers: GBUFFD1BWP7T GBUFFD3BWP7T GBUFFD2BWP7T GBUFFD8BWP7T
+Total number of unusable buffers: 4
+List of usable inverters: CKND0BWP7T CKND10BWP7T CKND12BWP7T CKND1BWP7T CKND2BWP7T CKND3BWP7T CKND4BWP7T CKND6BWP7T CKND8BWP7T INVD0BWP7T INVD10BWP7T INVD12BWP7T INVD1BWP7T INVD2BWP7T INVD1P5BWP7T INVD2P5BWP7T INVD3BWP7T INVD4BWP7T INVD5BWP7T INVD6BWP7T INVD8BWP7T
+Total number of usable inverters: 21
+List of unusable inverters: GINVD2BWP7T GINVD1BWP7T GINVD3BWP7T GINVD8BWP7T
+Total number of unusable inverters: 4
+List of identified usable delay cells: DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T
+Total number of identified usable delay cells: 5
+List of identified unusable delay cells:
+Total number of identified unusable delay cells: 0
+<CMD> addInst -cell PDDW0204CDG -inst i_pad_clk -loc {130.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_clk' is placed at (260000, 3770640) which is outside of core box.
+<CMD> addInst -cell PDDW0204CDG -inst i_pad_rst_n -loc {1810.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_rst_n' is placed at (3620000, 3770640) which is outside of core box.
+<CMD> addInst -cell PDDW0204CDG -inst i_pad_irq -loc {1624.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_irq' is placed at (3248000, 3770640) which is outside of core box.
+<CMD> addInst -cell PDDW0204CDG -inst i_pad_tck -loc {130.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_tck' is placed at (260000, 0) which is outside of core box.
+<CMD> addInst -cell PDDW0204CDG -inst i_pad_tms -loc {298.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_tms' is placed at (596000, 0) which is outside of core box.
+<CMD> addInst -cell PDDW0204CDG -inst i_pad_tdi -loc {1642.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_tdi' is placed at (3284000, 0) which is outside of core box.
+<CMD> addInst -cell PDDW0204CDG -inst i_pad_tdo -loc {1810.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_tdo' is placed at (3620000, 0) which is outside of core box.
+<CMD> addNet clk_i_pad
+<CMD> detachModulePort - clk_i
+<CMD> attachModulePort - clk_i clk_i_pad
+<CMD> attachTerm i_pad_clk PAD clk_i_pad
+<CMD> attachTerm i_pad_clk C n_1
+<CMD> attachTerm i_pad_clk OEN 1'b1
+<CMD> attachTerm i_pad_clk IE 1'b1
+<CMD> attachTerm i_pad_clk PE 1'b0
+<CMD> attachTerm i_pad_clk DS 1'b0
+<CMD> attachTerm i_pad_clk I 1'b0
+<CMD> addNet rst_ni_pad
+<CMD> detachModulePort - rst_ni
+<CMD> attachModulePort - rst_ni rst_ni_pad
+<CMD> attachTerm i_pad_rst_n PAD rst_ni_pad
+<CMD> attachTerm i_pad_rst_n C n_2
+<CMD> attachTerm i_pad_rst_n OEN 1'b1
+<CMD> attachTerm i_pad_rst_n IE 1'b1
+<CMD> attachTerm i_pad_rst_n PE 1'b0
+<CMD> attachTerm i_pad_rst_n DS 1'b0
+<CMD> attachTerm i_pad_rst_n I 1'b0
+<CMD> addNet tck_i_pad
+<CMD> detachModulePort - tck_i
+<CMD> attachModulePort - tck_i tck_i_pad
+<CMD> attachTerm i_pad_tck PAD tck_i_pad
+<CMD> attachTerm i_pad_tck C n_3
+<CMD> attachTerm i_pad_tck OEN 1'b1
+<CMD> attachTerm i_pad_tck IE 1'b1
+<CMD> attachTerm i_pad_tck PE 1'b0
+<CMD> attachTerm i_pad_tck DS 1'b0
+<CMD> attachTerm i_pad_tck I 1'b0
+<CMD> addNet tms_i_pad
+<CMD> detachModulePort - tms_i
+<CMD> attachModulePort - tms_i tms_i_pad
+<CMD> attachTerm i_pad_tms PAD tms_i_pad
+<CMD> attachTerm i_pad_tms C n_4
+<CMD> attachTerm i_pad_tms OEN 1'b1
+<CMD> attachTerm i_pad_tms IE 1'b1
+<CMD> attachTerm i_pad_tms PE 1'b0
+<CMD> attachTerm i_pad_tms DS 1'b0
+<CMD> attachTerm i_pad_tms I 1'b0
+<CMD> addNet td_i_pad
+<CMD> detachModulePort - td_i
+<CMD> attachModulePort - td_i td_i_pad
+<CMD> attachTerm i_pad_tdi PAD td_i_pad
+<CMD> attachTerm i_pad_tdi C n_5
+<CMD> attachTerm i_pad_tdi OEN 1'b1
+<CMD> attachTerm i_pad_tdi IE 1'b1
+<CMD> attachTerm i_pad_tdi PE 1'b0
+<CMD> attachTerm i_pad_tdi DS 1'b0
+<CMD> attachTerm i_pad_tdi I 1'b0
+<CMD> addNet td_o_pad
+<CMD> detachModulePort - td_o
+<CMD> attachModulePort - td_o td_o_pad
+<CMD> attachTerm i_pad_tdo PAD td_o_pad
+<CMD> attachTerm i_pad_tdo I n_6
+<CMD> attachTerm i_pad_tdo OEN 1'b0
+<CMD> attachTerm i_pad_tdo IE 1'b0
+<CMD> attachTerm i_pad_tdo PE 1'b0
+<CMD> attachTerm i_pad_tdo DS 1'b0
+<CMD> addNet irq_o_pad
+<CMD> detachModulePort - irq_o
+<CMD> attachModulePort - irq_o irq_o_pad
+<CMD> attachTerm i_pad_irq PAD irq_o_pad
+<CMD> attachTerm i_pad_irq I n_7
+<CMD> attachTerm i_pad_irq OEN 1'b0
+<CMD> attachTerm i_pad_irq IE 1'b0
+<CMD> attachTerm i_pad_irq PE 1'b0
+<CMD> attachTerm i_pad_irq DS 1'b0
+<CMD> saveNetlist ../my_soc_top/my_soc_top_io_connected.v
+Writing Netlist "../my_soc_top/my_soc_top_io_connected.v" ...
+<CMD> saveDesign ../my_soc_top/backup/my_soc_top_postSignalPad_fixed.enc
+#% Begin save design ... (date=10/18 12:22:45, mem=1262.5M)
+% Begin Save ccopt configuration ... (date=10/18 12:22:45, mem=1262.5M)
+% End Save ccopt configuration ... (date=10/18 12:22:45, total cpu=0:00:00.0, real=0:00:00.0, peak res=1262.8M, current mem=1262.8M)
+% Begin Save netlist data ... (date=10/18 12:22:45, mem=1262.8M)
+Writing Binary DB to ../my_soc_top/backup/my_soc_top_postSignalPad_fixed.enc.dat/vbin/my_soc_top.v.bin in multi-threaded mode...
+% End Save netlist data ... (date=10/18 12:22:46, total cpu=0:00:00.4, real=0:00:01.0, peak res=1315.8M, current mem=1265.4M)
+Saving symbol-table file in separate thread ...
+Saving congestion map file in separate thread ...
+Saving congestion map file ../my_soc_top/backup/my_soc_top_postSignalPad_fixed.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Save AAE data ... (date=10/18 12:22:46, mem=1265.9M)
+Saving AAE Data ...
+% End Save AAE data ... (date=10/18 12:22:46, total cpu=0:00:00.0, real=0:00:00.0, peak res=1265.9M, current mem=1265.9M)
+**WARN: (IMPCTE-104):	The constraint mode of this inactive view 'func_tt_1p80v_25c' has been modified and may need to be reanalyzed to ensure proper timing results. To reanalyze timing for this view make the view active using 'set_analysis_view' and run timing analysis.
+Type 'man IMPCTE-104' for more detail.
+Saving preference file ../my_soc_top/backup/my_soc_top_postSignalPad_fixed.enc.dat/gui.pref.tcl ...
+Saving mode setting ...
+Saving global file ...
+Saving Drc markers ...
+... No Drc file written since there is no markers found.
+Saving special route data file in separate thread ...
+Saving PG Conn data in separate thread ...
+Saving placement file in separate thread ...
+Saving route file in separate thread ...
+Saving property file in separate thread ...
+** Saving stdCellPlacement_binary (version# 2) ...
+Saving property file ../my_soc_top/backup/my_soc_top_postSignalPad_fixed.enc.dat/my_soc_top.prop
+TAT_INFO: ::saveSpecialRoute REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: savePGConnFile REAL = 0 : CPU = 0 : MEM = 0.
+Save Adaptive View Pruning View Names to Binary file
+*** Completed saveProperty (cpu=0:00:00.1 real=0:00:00.0 mem=1579.7M) ***
+TAT_INFO: ::savePlace REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveRoute (cpu=0:00:00.2 real=0:00:00.0 mem=1579.7M) ***
+TAT_INFO: ::saveRoute REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveAnnotationAndProp REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveSymbolTable REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::saveCongMap REAL = 0 : CPU = 0 : MEM = 0.
+% Begin Save power constraints data ... (date=10/18 12:22:49, mem=1290.3M)
+% End Save power constraints data ... (date=10/18 12:22:49, total cpu=0:00:00.0, real=0:00:00.0, peak res=1290.3M, current mem=1290.3M)
+rc_tt_1p80v_25c
+Generated self-contained design my_soc_top_postSignalPad_fixed.enc.dat
+#% End save design ... (date=10/18 12:22:50, total cpu=0:00:02.5, real=0:00:05.0, peak res=1315.8M, current mem=1288.6M)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPCTE-104           1  The constraint mode of this inactive vie...
+*** Message Summary: 1 warning(s), 0 error(s)
+
+<CMD> addInst -cell PVSS1CDG -inst i_pad_N_vss_1 -loc {317.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_N_vss_1' is placed at (634000, 3770640) which is outside of core box.
+<CMD> addInst -cell PVSS1CDG -inst i_pad_N_vss_2 -loc {503.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_N_vss_2' is placed at (1006000, 3770640) which is outside of core box.
+<CMD> addInst -cell PVSS2CDG -inst i_pad_N_vssio -loc {690.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_N_vssio' is placed at (1380000, 3770640) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_N_vdd_1 -loc {877.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_N_vdd_1' is placed at (1754000, 3770640) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_N_vdd_2 -loc {1064.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_N_vdd_2' is placed at (2128000, 3770640) which is outside of core box.
+<CMD> addInst -cell PVDD2CDG -inst i_pad_N_vddio -loc {1250.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_N_vddio' is placed at (2500000, 3770640) which is outside of core box.
+<CMD> addInst -cell PVDD2POC -inst i_pad_N_poc -loc {1437.0 1885.32} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_N_poc' is placed at (2874000, 3770640) which is outside of core box.
+<CMD> addInst -cell PVSS1CDG -inst i_pad_S_vss_1 -loc {466.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_S_vss_1' is placed at (932000, 0) which is outside of core box.
+<CMD> addInst -cell PVSS1CDG -inst i_pad_S_vss_2 -loc {634.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_S_vss_2' is placed at (1268000, 0) which is outside of core box.
+<CMD> addInst -cell PVSS2CDG -inst i_pad_S_vssio -loc {802.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_S_vssio' is placed at (1604000, 0) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_S_vdd_1 -loc {970.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_S_vdd_1' is placed at (1940000, 0) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_S_vdd_2 -loc {1138.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_S_vdd_2' is placed at (2276000, 0) which is outside of core box.
+<CMD> addInst -cell PVDD2CDG -inst i_pad_S_vddio -loc {1306.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_S_vddio' is placed at (2612000, 0) which is outside of core box.
+<CMD> addInst -cell PVDD2POC -inst i_pad_S_poc -loc {1474.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_S_poc' is placed at (2948000, 0) which is outside of core box.
+<CMD> addInst -cell PVSS1CDG -inst i_pad_W_vss_1 -loc {0 130.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_W_vss_1' is placed at (0, 260000) which is outside of core box.
+<CMD> addInst -cell PVSS1CDG -inst i_pad_W_vss_2 -loc {0 410.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_W_vss_2' is placed at (0, 820000) which is outside of core box.
+<CMD> addInst -cell PVSS2CDG -inst i_pad_W_vssio -loc {0 690.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_W_vssio' is placed at (0, 1380000) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_W_vdd_1 -loc {0 970.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_W_vdd_1' is placed at (0, 1940000) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_W_vdd_2 -loc {0 1250.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_W_vdd_2' is placed at (0, 2500000) which is outside of core box.
+<CMD> addInst -cell PVDD2CDG -inst i_pad_W_vddio -loc {0 1530.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_W_vddio' is placed at (0, 3060000) which is outside of core box.
+<CMD> addInst -cell PVDD2POC -inst i_pad_W_poc -loc {0 1810.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_W_poc' is placed at (0, 3620000) which is outside of core box.
+<CMD> addInst -cell PVSS1CDG -inst i_pad_E_vss_1 -loc {1885.32 130.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_E_vss_1' is placed at (3770640, 260000) which is outside of core box.
+<CMD> addInst -cell PVSS1CDG -inst i_pad_E_vss_2 -loc {1885.32 410.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_E_vss_2' is placed at (3770640, 820000) which is outside of core box.
+<CMD> addInst -cell PVSS2CDG -inst i_pad_E_vssio -loc {1885.32 690.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_E_vssio' is placed at (3770640, 1380000) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_E_vdd_1 -loc {1885.32 970.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_E_vdd_1' is placed at (3770640, 1940000) which is outside of core box.
+<CMD> addInst -cell PVDD1CDG -inst i_pad_E_vdd_2 -loc {1885.32 1250.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_E_vdd_2' is placed at (3770640, 2500000) which is outside of core box.
+<CMD> addInst -cell PVDD2CDG -inst i_pad_E_vddio -loc {1885.32 1530.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_E_vddio' is placed at (3770640, 3060000) which is outside of core box.
+<CMD> addInst -cell PVDD2POC -inst i_pad_E_poc -loc {1885.32 1810.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_pad_E_poc' is placed at (3770640, 3620000) which is outside of core box.
+<CMD> saveIoFile -locations -includeCellName ../my_soc_top/my_soc_top_io_beforeFiller.io
+Dumping IO Instances of cell my_soc_top
+Dumping FTerm of cell my_soc_top to file
+<CMD> loadIoFile ../my_soc_top/io_registration_tmp.io -noAdjustDieSize -specifiedIosOnly
+Reading IO assignment file "../my_soc_top/io_registration_tmp.io" ...
+<CMD> saveIoFile -locations -includeCellName ../my_soc_top/my_soc_top_io_registered.io
+Dumping IO Instances of cell my_soc_top
+<CMD> defOut ../my_soc_top/my_soc_top_io_registered.def
+Writing DEF file '../my_soc_top/my_soc_top_io_registered.def', current time is Sun Oct 18 12:22:50 2026 ...
+unitPerMicron=2000, dbgMicronPerDBU=0.000500, unitPerDBU=1.000000
+DEF file '../my_soc_top/my_soc_top_io_registered.def' is written, current time is Sun Oct 18 12:22:50 2026 ...
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_clk -loc {130.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_clk' is placed at (260000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_rst_n -loc {1810.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_rst_n' is placed at (3620000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_irq -loc {1624.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_irq' is placed at (3248000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_tck -loc {130.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_tck' is placed at (260000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_tms -loc {298.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_tms' is placed at (596000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_tdi -loc {1642.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_tdi' is placed at (3284000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_tdo -loc {1810.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_tdo' is placed at (3620000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_N_vss_1 -loc {317.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_N_vss_1' is placed at (634000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_N_vss_2 -loc {503.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_N_vss_2' is placed at (1006000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_N_vssio -loc {690.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_N_vssio' is placed at (1380000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_N_vdd_1 -loc {877.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_N_vdd_1' is placed at (1754000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_N_vdd_2 -loc {1064.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_N_vdd_2' is placed at (2128000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_N_vddio -loc {1250.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_N_vddio' is placed at (2500000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_N_poc -loc {1437.0 1927.16} -ori R180 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_N_poc' is placed at (2874000, 3854320) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_S_vss_1 -loc {466.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_S_vss_1' is placed at (932000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_S_vss_2 -loc {634.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_S_vss_2' is placed at (1268000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_S_vssio -loc {802.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_S_vssio' is placed at (1604000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_S_vdd_1 -loc {970.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_S_vdd_1' is placed at (1940000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_S_vdd_2 -loc {1138.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_S_vdd_2' is placed at (2276000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_S_vddio -loc {1306.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_S_vddio' is placed at (2612000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_S_poc -loc {1474.0 0} -ori R0 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_S_poc' is placed at (2948000, 0) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_W_vss_1 -loc {0 130.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_W_vss_1' is placed at (0, 260000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_W_vss_2 -loc {0 410.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_W_vss_2' is placed at (0, 820000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_W_vssio -loc {0 690.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_W_vssio' is placed at (0, 1380000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_W_vdd_1 -loc {0 970.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_W_vdd_1' is placed at (0, 1940000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_W_vdd_2 -loc {0 1250.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_W_vdd_2' is placed at (0, 2500000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_W_vddio -loc {0 1530.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_W_vddio' is placed at (0, 3060000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_W_poc -loc {0 1810.0} -ori R270 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_W_poc' is placed at (0, 3620000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_E_vss_1 -loc {1927.16 130.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_E_vss_1' is placed at (3854320, 260000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_E_vss_2 -loc {1927.16 410.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_E_vss_2' is placed at (3854320, 820000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_E_vssio -loc {1927.16 690.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_E_vssio' is placed at (3854320, 1380000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_E_vdd_1 -loc {1927.16 970.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_E_vdd_1' is placed at (3854320, 1940000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_E_vdd_2 -loc {1927.16 1250.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_E_vdd_2' is placed at (3854320, 2500000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_E_vddio -loc {1927.16 1530.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_E_vddio' is placed at (3854320, 3060000) which is outside of core box.
+<CMD> addInst -physical -cell PAD60LU_OBV -inst i_bond_E_poc -loc {1927.16 1810.0} -ori R90 -place_status fixed -dontSnapToPlacementGrid
+**WARN: (IMPSYC-6308):	Instance 'i_bond_E_poc' is placed at (3854320, 3620000) which is outside of core box.
+<CMD> defOut ../my_soc_top/my_soc_top_preIOFiller.def
+Writing DEF file '../my_soc_top/my_soc_top_preIOFiller.def', current time is Sun Oct 18 12:22:50 2026 ...
+unitPerMicron=2000, dbgMicronPerDBU=0.000500, unitPerDBU=1.000000
+DEF file '../my_soc_top/my_soc_top_preIOFiller.def' is written, current time is Sun Oct 18 12:22:51 2026 ...
+<CMD> addNet VDDPST -power
+<CMD> addNet VSSPST -ground
+<CMD> globalNetConnect VDD -type pgpin -pin VDD -all -verbose
+87613 new pwr-pin connections were made to global net 'VDD'.
+<CMD> globalNetConnect VSS -type pgpin -pin VSS -all -verbose
+87613 new gnd-pin connections were made to global net 'VSS'.
+<CMD> attachTerm i_pad_N_vddio VDDPST VDDPST
+<CMD> attachTerm i_pad_N_poc VDDPST VDDPST
+<CMD> attachTerm i_pad_N_vssio VSSPST VSSPST
+<CMD> attachTerm i_pad_S_vddio VDDPST VDDPST
+<CMD> attachTerm i_pad_S_poc VDDPST VDDPST
+<CMD> attachTerm i_pad_S_vssio VSSPST VSSPST
+<CMD> attachTerm i_pad_W_vddio VDDPST VDDPST
+<CMD> attachTerm i_pad_W_poc VDDPST VDDPST
+<CMD> attachTerm i_pad_W_vssio VSSPST VSSPST
+<CMD> attachTerm i_pad_E_vddio VDDPST VDDPST
+<CMD> attachTerm i_pad_E_poc VDDPST VDDPST
+<CMD> attachTerm i_pad_E_vssio VSSPST VSSPST
+<CMD> saveNetlist ../my_soc_top/my_soc_top_pg_bound.v -phys
+Writing Netlist "../my_soc_top/my_soc_top_pg_bound.v" ...
+Warning (Quiet mode): There are 1498 nets not connected to  global special net.
+**WARN: (IMPVL-503):	Logical pg nets are not connected to global pg nets.
+Type 'man IMPVL-503' for more detail.
+Warning (Quiet mode): There are 36 terms not connected to  global special net.
+**WARN: (IMPVL-504):	Tie-hi/low terms are not connected to global pg nets.
+Pwr name (VDDPST).
+Pwr name (VDD).
+Gnd name (VSSPST).
+Gnd name (VSS).
+2 Pwr names and 2 Gnd names.
+hnet i_control/weight_addr[8] is used as the assign for net i_control/weight_addr[8] in hinst i_control/i_controller
+hnet i_control/weight_addr[9] is used as the assign for net i_control/weight_addr[9] in hinst i_control/i_controller
+hnet i_control/weight_addr[10] is used as the assign for net i_control/weight_addr[10] in hinst i_control/i_controller
+hnet i_control/weight_addr[11] is used as the assign for net i_control/weight_addr[11] in hinst i_control/i_controller
+hnet i_control/weight_addr[12] is used as the assign for net i_control/weight_addr[12] in hinst i_control/i_controller
+hnet i_control/weight_addr[13] is used as the assign for net i_control/weight_addr[13] in hinst i_control/i_controller
+hnet i_control/weight_addr[14] is used as the assign for net i_control/weight_addr[14] in hinst i_control/i_controller
+hnet i_control/weight_addr[15] is used as the assign for net i_control/weight_addr[15] in hinst i_control/i_controller
+hnet i_control/activation_addr[9] is used as the assign for net i_control/activation_addr[9] in hinst i_control/i_controller
+hnet i_control/activation_addr[10] is used as the assign for net i_control/activation_addr[10] in hinst i_control/i_controller
+hnet i_control/activation_addr[11] is used as the assign for net i_control/activation_addr[11] in hinst i_control/i_controller
+hnet i_control/activation_addr[12] is used as the assign for net i_control/activation_addr[12] in hinst i_control/i_controller
+hnet i_control/activation_addr[13] is used as the assign for net i_control/activation_addr[13] in hinst i_control/i_controller
+hnet i_control/activation_addr[14] is used as the assign for net i_control/activation_addr[14] in hinst i_control/i_controller
+hnet i_control/activation_addr[15] is used as the assign for net i_control/activation_addr[15] in hinst i_control/i_controller
+hnet rsp_error[4] is used as the assign for net rsp_error[4] in hinst i_control/i_controller
+hnet i_control/i_npu/rq_out_data[7] is used as the assign for net i_control/i_npu/rq_out_data[7] in hinst i_control/i_npu/requant
+hnet i_control/perf_peak[9] is used as the assign for net i_control/perf_peak[9] in hinst i_control/i_npu
+hnet i_control/perf_peak[10] is used as the assign for net i_control/perf_peak[10] in hinst i_control/i_npu
+hnet i_control/perf_peak[11] is used as the assign for net i_control/perf_peak[11] in hinst i_control/i_npu
+hnet i_control/perf_peak[12] is used as the assign for net i_control/perf_peak[12] in hinst i_control/i_npu
+hnet i_control/perf_peak[13] is used as the assign for net i_control/perf_peak[13] in hinst i_control/i_npu
+hnet i_control/perf_peak[14] is used as the assign for net i_control/perf_peak[14] in hinst i_control/i_npu
+hnet i_control/perf_peak[15] is used as the assign for net i_control/perf_peak[15] in hinst i_control/i_npu
+hnet i_control/perf_peak[16] is used as the assign for net i_control/perf_peak[16] in hinst i_control/i_npu
+hnet i_control/perf_peak[17] is used as the assign for net i_control/perf_peak[17] in hinst i_control/i_npu
+hnet i_control/perf_peak[18] is used as the assign for net i_control/perf_peak[18] in hinst i_control/i_npu
+hnet i_control/perf_peak[19] is used as the assign for net i_control/perf_peak[19] in hinst i_control/i_npu
+hnet i_control/perf_peak[20] is used as the assign for net i_control/perf_peak[20] in hinst i_control/i_npu
+hnet i_control/perf_peak[21] is used as the assign for net i_control/perf_peak[21] in hinst i_control/i_npu
+hnet i_control/perf_peak[22] is used as the assign for net i_control/perf_peak[22] in hinst i_control/i_npu
+hnet i_control/perf_peak[23] is used as the assign for net i_control/perf_peak[23] in hinst i_control/i_npu
+hnet i_control/perf_peak[24] is used as the assign for net i_control/perf_peak[24] in hinst i_control/i_npu
+hnet i_control/perf_peak[25] is used as the assign for net i_control/perf_peak[25] in hinst i_control/i_npu
+hnet i_control/perf_peak[26] is used as the assign for net i_control/perf_peak[26] in hinst i_control/i_npu
+hnet i_control/perf_peak[27] is used as the assign for net i_control/perf_peak[27] in hinst i_control/i_npu
+hnet i_control/perf_peak[28] is used as the assign for net i_control/perf_peak[28] in hinst i_control/i_npu
+hnet i_control/perf_peak[29] is used as the assign for net i_control/perf_peak[29] in hinst i_control/i_npu
+hnet i_control/perf_peak[30] is used as the assign for net i_control/perf_peak[30] in hinst i_control/i_npu
+hnet i_control/perf_peak[31] is used as the assign for net i_control/perf_peak[31] in hinst i_control/i_npu
+hnet i_control/perf_layers[32] is used as the assign for net i_control/perf_layers[32] in hinst i_control/i_npu
+hnet i_control/perf_layers[33] is used as the assign for net i_control/perf_layers[33] in hinst i_control/i_npu
+hnet i_control/perf_layers[34] is used as the assign for net i_control/perf_layers[34] in hinst i_control/i_npu
+hnet i_control/perf_layers[35] is used as the assign for net i_control/perf_layers[35] in hinst i_control/i_npu
+hnet i_control/perf_layers[36] is used as the assign for net i_control/perf_layers[36] in hinst i_control/i_npu
+hnet i_control/perf_layers[37] is used as the assign for net i_control/perf_layers[37] in hinst i_control/i_npu
+hnet i_control/perf_layers[38] is used as the assign for net i_control/perf_layers[38] in hinst i_control/i_npu
+hnet i_control/perf_layers[39] is used as the assign for net i_control/perf_layers[39] in hinst i_control/i_npu
+hnet i_control/perf_layers[40] is used as the assign for net i_control/perf_layers[40] in hinst i_control/i_npu
+hnet i_control/perf_layers[41] is used as the assign for net i_control/perf_layers[41] in hinst i_control/i_npu
+hnet i_control/perf_layers[42] is used as the assign for net i_control/perf_layers[42] in hinst i_control/i_npu
+hnet i_control/perf_layers[43] is used as the assign for net i_control/perf_layers[43] in hinst i_control/i_npu
+hnet i_control/perf_layers[44] is used as the assign for net i_control/perf_layers[44] in hinst i_control/i_npu
+hnet i_control/perf_layers[45] is used as the assign for net i_control/perf_layers[45] in hinst i_control/i_npu
+hnet i_control/perf_layers[46] is used as the assign for net i_control/perf_layers[46] in hinst i_control/i_npu
+hnet i_control/perf_layers[47] is used as the assign for net i_control/perf_layers[47] in hinst i_control/i_npu
+hnet i_control/perf_layers[48] is used as the assign for net i_control/perf_layers[48] in hinst i_control/i_npu
+hnet i_control/perf_layers[49] is used as the assign for net i_control/perf_layers[49] in hinst i_control/i_npu
+hnet i_control/perf_layers[50] is used as the assign for net i_control/perf_layers[50] in hinst i_control/i_npu
+hnet i_control/perf_layers[51] is used as the assign for net i_control/perf_layers[51] in hinst i_control/i_npu
+hnet i_control/perf_layers[52] is used as the assign for net i_control/perf_layers[52] in hinst i_control/i_npu
+hnet i_control/perf_layers[53] is used as the assign for net i_control/perf_layers[53] in hinst i_control/i_npu
+hnet i_control/perf_layers[54] is used as the assign for net i_control/perf_layers[54] in hinst i_control/i_npu
+hnet i_control/perf_layers[55] is used as the assign for net i_control/perf_layers[55] in hinst i_control/i_npu
+hnet i_control/perf_layers[56] is used as the assign for net i_control/perf_layers[56] in hinst i_control/i_npu
+hnet i_control/perf_layers[57] is used as the assign for net i_control/perf_layers[57] in hinst i_control/i_npu
+hnet i_control/perf_layers[58] is used as the assign for net i_control/perf_layers[58] in hinst i_control/i_npu
+hnet i_control/perf_layers[59] is used as the assign for net i_control/perf_layers[59] in hinst i_control/i_npu
+hnet i_control/perf_layers[60] is used as the assign for net i_control/perf_layers[60] in hinst i_control/i_npu
+hnet i_control/perf_layers[61] is used as the assign for net i_control/perf_layers[61] in hinst i_control/i_npu
+hnet i_control/perf_layers[62] is used as the assign for net i_control/perf_layers[62] in hinst i_control/i_npu
+hnet i_control/perf_layers[63] is used as the assign for net i_control/perf_layers[63] in hinst i_control/i_npu
+hnet i_control/perf_layers[96] is used as the assign for net i_control/perf_layers[96] in hinst i_control/i_npu
+hnet i_control/perf_layers[97] is used as the assign for net i_control/perf_layers[97] in hinst i_control/i_npu
+hnet i_control/perf_layers[98] is used as the assign for net i_control/perf_layers[98] in hinst i_control/i_npu
+hnet i_control/perf_layers[99] is used as the assign for net i_control/perf_layers[99] in hinst i_control/i_npu
+hnet i_control/perf_layers[100] is used as the assign for net i_control/perf_layers[100] in hinst i_control/i_npu
+hnet i_control/perf_layers[101] is used as the assign for net i_control/perf_layers[101] in hinst i_control/i_npu
+hnet i_control/perf_layers[102] is used as the assign for net i_control/perf_layers[102] in hinst i_control/i_npu
+hnet i_control/perf_layers[103] is used as the assign for net i_control/perf_layers[103] in hinst i_control/i_npu
+hnet i_control/perf_layers[104] is used as the assign for net i_control/perf_layers[104] in hinst i_control/i_npu
+hnet i_control/perf_layers[105] is used as the assign for net i_control/perf_layers[105] in hinst i_control/i_npu
+hnet i_control/perf_layers[106] is used as the assign for net i_control/perf_layers[106] in hinst i_control/i_npu
+hnet i_control/perf_layers[107] is used as the assign for net i_control/perf_layers[107] in hinst i_control/i_npu
+hnet i_control/perf_layers[108] is used as the assign for net i_control/perf_layers[108] in hinst i_control/i_npu
+hnet i_control/perf_layers[109] is used as the assign for net i_control/perf_layers[109] in hinst i_control/i_npu
+hnet i_control/perf_layers[110] is used as the assign for net i_control/perf_layers[110] in hinst i_control/i_npu
+hnet i_control/perf_layers[111] is used as the assign for net i_control/perf_layers[111] in hinst i_control/i_npu
+hnet i_control/perf_layers[112] is used as the assign for net i_control/perf_layers[112] in hinst i_control/i_npu
+hnet i_control/perf_layers[113] is used as the assign for net i_control/perf_layers[113] in hinst i_control/i_npu
+hnet i_control/perf_layers[114] is used as the assign for net i_control/perf_layers[114] in hinst i_control/i_npu
+hnet i_control/perf_layers[115] is used as the assign for net i_control/perf_layers[115] in hinst i_control/i_npu
+hnet i_control/perf_layers[116] is used as the assign for net i_control/perf_layers[116] in hinst i_control/i_npu
+hnet i_control/perf_layers[117] is used as the assign for net i_control/perf_layers[117] in hinst i_control/i_npu
+hnet i_control/perf_layers[118] is used as the assign for net i_control/perf_layers[118] in hinst i_control/i_npu
+hnet i_control/perf_layers[119] is used as the assign for net i_control/perf_layers[119] in hinst i_control/i_npu
+hnet i_control/perf_layers[120] is used as the assign for net i_control/perf_layers[120] in hinst i_control/i_npu
+hnet i_control/perf_layers[121] is used as the assign for net i_control/perf_layers[121] in hinst i_control/i_npu
+hnet i_control/perf_layers[122] is used as the assign for net i_control/perf_layers[122] in hinst i_control/i_npu
+hnet i_control/perf_layers[123] is used as the assign for net i_control/perf_layers[123] in hinst i_control/i_npu
+hnet i_control/perf_layers[124] is used as the assign for net i_control/perf_layers[124] in hinst i_control/i_npu
+hnet i_control/perf_layers[125] is used as the assign for net i_control/perf_layers[125] in hinst i_control/i_npu
+hnet i_control/perf_layers[126] is used as the assign for net i_control/perf_layers[126] in hinst i_control/i_npu
+hnet i_control/perf_layers[127] is used as the assign for net i_control/perf_layers[127] in hinst i_control/i_npu
+hnet i_control/perf_layers[128] is used as the assign for net i_control/perf_layers[128] in hinst i_control/i_npu
+hnet i_control/perf_layers[129] is used as the assign for net i_control/perf_layers[129] in hinst i_control/i_npu
+hnet i_control/perf_layers[130] is used as the assign for net i_control/perf_layers[130] in hinst i_control/i_npu
+hnet i_control/perf_layers[131] is used as the assign for net i_control/perf_layers[131] in hinst i_control/i_npu
+hnet i_control/perf_layers[132] is used as the assign for net i_control/perf_layers[132] in hinst i_control/i_npu
+hnet i_control/perf_layers[133] is used as the assign for net i_control/perf_layers[133] in hinst i_control/i_npu
+hnet i_control/perf_layers[134] is used as the assign for net i_control/perf_layers[134] in hinst i_control/i_npu
+hnet i_control/perf_layers[135] is used as the assign for net i_control/perf_layers[135] in hinst i_control/i_npu
+hnet i_control/perf_layers[136] is used as the assign for net i_control/perf_layers[136] in hinst i_control/i_npu
+hnet i_control/perf_layers[137] is used as the assign for net i_control/perf_layers[137] in hinst i_control/i_npu
+hnet i_control/perf_layers[138] is used as the assign for net i_control/perf_layers[138] in hinst i_control/i_npu
+hnet i_control/perf_layers[139] is used as the assign for net i_control/perf_layers[139] in hinst i_control/i_npu
+hnet i_control/perf_layers[140] is used as the assign for net i_control/perf_layers[140] in hinst i_control/i_npu
+hnet i_control/perf_layers[141] is used as the assign for net i_control/perf_layers[141] in hinst i_control/i_npu
+hnet i_control/perf_layers[142] is used as the assign for net i_control/perf_layers[142] in hinst i_control/i_npu
+hnet i_control/perf_layers[143] is used as the assign for net i_control/perf_layers[143] in hinst i_control/i_npu
+hnet i_control/perf_layers[144] is used as the assign for net i_control/perf_layers[144] in hinst i_control/i_npu
+hnet i_control/perf_layers[145] is used as the assign for net i_control/perf_layers[145] in hinst i_control/i_npu
+hnet i_control/perf_layers[146] is used as the assign for net i_control/perf_layers[146] in hinst i_control/i_npu
+hnet i_control/perf_layers[147] is used as the assign for net i_control/perf_layers[147] in hinst i_control/i_npu
+hnet i_control/perf_layers[148] is used as the assign for net i_control/perf_layers[148] in hinst i_control/i_npu
+hnet i_control/perf_layers[149] is used as the assign for net i_control/perf_layers[149] in hinst i_control/i_npu
+hnet i_control/perf_layers[150] is used as the assign for net i_control/perf_layers[150] in hinst i_control/i_npu
+hnet i_control/perf_layers[151] is used as the assign for net i_control/perf_layers[151] in hinst i_control/i_npu
+hnet i_control/perf_layers[152] is used as the assign for net i_control/perf_layers[152] in hinst i_control/i_npu
+hnet i_control/perf_layers[153] is used as the assign for net i_control/perf_layers[153] in hinst i_control/i_npu
+hnet i_control/perf_layers[154] is used as the assign for net i_control/perf_layers[154] in hinst i_control/i_npu
+hnet i_control/perf_layers[155] is used as the assign for net i_control/perf_layers[155] in hinst i_control/i_npu
+hnet i_control/perf_layers[156] is used as the assign for net i_control/perf_layers[156] in hinst i_control/i_npu
+hnet i_control/perf_layers[157] is used as the assign for net i_control/perf_layers[157] in hinst i_control/i_npu
+hnet i_control/perf_layers[158] is used as the assign for net i_control/perf_layers[158] in hinst i_control/i_npu
+hnet i_control/perf_layers[159] is used as the assign for net i_control/perf_layers[159] in hinst i_control/i_npu
+hnet i_control/weight_addr[8] is used as the assign for net i_control/weight_addr[8] in hinst i_control/i_controller
+hnet i_control/weight_addr[9] is used as the assign for net i_control/weight_addr[9] in hinst i_control/i_controller
+hnet i_control/weight_addr[10] is used as the assign for net i_control/weight_addr[10] in hinst i_control/i_controller
+hnet i_control/weight_addr[11] is used as the assign for net i_control/weight_addr[11] in hinst i_control/i_controller
+hnet i_control/weight_addr[12] is used as the assign for net i_control/weight_addr[12] in hinst i_control/i_controller
+hnet i_control/weight_addr[13] is used as the assign for net i_control/weight_addr[13] in hinst i_control/i_controller
+hnet i_control/weight_addr[14] is used as the assign for net i_control/weight_addr[14] in hinst i_control/i_controller
+hnet i_control/weight_addr[15] is used as the assign for net i_control/weight_addr[15] in hinst i_control/i_controller
+hnet i_control/activation_addr[9] is used as the assign for net i_control/activation_addr[9] in hinst i_control/i_controller
+hnet i_control/activation_addr[10] is used as the assign for net i_control/activation_addr[10] in hinst i_control/i_controller
+hnet i_control/activation_addr[11] is used as the assign for net i_control/activation_addr[11] in hinst i_control/i_controller
+hnet i_control/activation_addr[12] is used as the assign for net i_control/activation_addr[12] in hinst i_control/i_controller
+hnet i_control/activation_addr[13] is used as the assign for net i_control/activation_addr[13] in hinst i_control/i_controller
+hnet i_control/activation_addr[14] is used as the assign for net i_control/activation_addr[14] in hinst i_control/i_controller
+hnet i_control/activation_addr[15] is used as the assign for net i_control/activation_addr[15] in hinst i_control/i_controller
+hnet rsp_error[4] is used as the assign for net rsp_error[4] in hinst i_control/i_controller
+hnet i_control/i_npu/rq_out_data[7] is used as the assign for net i_control/i_npu/rq_out_data[7] in hinst i_control/i_npu/requant
+hnet i_control/perf_peak[9] is used as the assign for net i_control/perf_peak[9] in hinst i_control/i_npu
+hnet i_control/perf_peak[10] is used as the assign for net i_control/perf_peak[10] in hinst i_control/i_npu
+hnet i_control/perf_peak[11] is used as the assign for net i_control/perf_peak[11] in hinst i_control/i_npu
+hnet i_control/perf_peak[12] is used as the assign for net i_control/perf_peak[12] in hinst i_control/i_npu
+hnet i_control/perf_peak[13] is used as the assign for net i_control/perf_peak[13] in hinst i_control/i_npu
+hnet i_control/perf_peak[14] is used as the assign for net i_control/perf_peak[14] in hinst i_control/i_npu
+hnet i_control/perf_peak[15] is used as the assign for net i_control/perf_peak[15] in hinst i_control/i_npu
+hnet i_control/perf_peak[16] is used as the assign for net i_control/perf_peak[16] in hinst i_control/i_npu
+hnet i_control/perf_peak[17] is used as the assign for net i_control/perf_peak[17] in hinst i_control/i_npu
+hnet i_control/perf_peak[18] is used as the assign for net i_control/perf_peak[18] in hinst i_control/i_npu
+hnet i_control/perf_peak[19] is used as the assign for net i_control/perf_peak[19] in hinst i_control/i_npu
+hnet i_control/perf_peak[20] is used as the assign for net i_control/perf_peak[20] in hinst i_control/i_npu
+hnet i_control/perf_peak[21] is used as the assign for net i_control/perf_peak[21] in hinst i_control/i_npu
+hnet i_control/perf_peak[22] is used as the assign for net i_control/perf_peak[22] in hinst i_control/i_npu
+hnet i_control/perf_peak[23] is used as the assign for net i_control/perf_peak[23] in hinst i_control/i_npu
+hnet i_control/perf_peak[24] is used as the assign for net i_control/perf_peak[24] in hinst i_control/i_npu
+hnet i_control/perf_peak[25] is used as the assign for net i_control/perf_peak[25] in hinst i_control/i_npu
+hnet i_control/perf_peak[26] is used as the assign for net i_control/perf_peak[26] in hinst i_control/i_npu
+hnet i_control/perf_peak[27] is used as the assign for net i_control/perf_peak[27] in hinst i_control/i_npu
+hnet i_control/perf_peak[28] is used as the assign for net i_control/perf_peak[28] in hinst i_control/i_npu
+hnet i_control/perf_peak[29] is used as the assign for net i_control/perf_peak[29] in hinst i_control/i_npu
+hnet i_control/perf_peak[30] is used as the assign for net i_control/perf_peak[30] in hinst i_control/i_npu
+hnet i_control/perf_peak[31] is used as the assign for net i_control/perf_peak[31] in hinst i_control/i_npu
+hnet i_control/perf_layers[32] is used as the assign for net i_control/perf_layers[32] in hinst i_control/i_npu
+hnet i_control/perf_layers[33] is used as the assign for net i_control/perf_layers[33] in hinst i_control/i_npu
+hnet i_control/perf_layers[34] is used as the assign for net i_control/perf_layers[34] in hinst i_control/i_npu
+hnet i_control/perf_layers[35] is used as the assign for net i_control/perf_layers[35] in hinst i_control/i_npu
+hnet i_control/perf_layers[36] is used as the assign for net i_control/perf_layers[36] in hinst i_control/i_npu
+hnet i_control/perf_layers[37] is used as the assign for net i_control/perf_layers[37] in hinst i_control/i_npu
+hnet i_control/perf_layers[38] is used as the assign for net i_control/perf_layers[38] in hinst i_control/i_npu
+hnet i_control/perf_layers[39] is used as the assign for net i_control/perf_layers[39] in hinst i_control/i_npu
+hnet i_control/perf_layers[40] is used as the assign for net i_control/perf_layers[40] in hinst i_control/i_npu
+hnet i_control/perf_layers[41] is used as the assign for net i_control/perf_layers[41] in hinst i_control/i_npu
+hnet i_control/perf_layers[42] is used as the assign for net i_control/perf_layers[42] in hinst i_control/i_npu
+hnet i_control/perf_layers[43] is used as the assign for net i_control/perf_layers[43] in hinst i_control/i_npu
+hnet i_control/perf_layers[44] is used as the assign for net i_control/perf_layers[44] in hinst i_control/i_npu
+hnet i_control/perf_layers[45] is used as the assign for net i_control/perf_layers[45] in hinst i_control/i_npu
+hnet i_control/perf_layers[46] is used as the assign for net i_control/perf_layers[46] in hinst i_control/i_npu
+hnet i_control/perf_layers[47] is used as the assign for net i_control/perf_layers[47] in hinst i_control/i_npu
+hnet i_control/perf_layers[48] is used as the assign for net i_control/perf_layers[48] in hinst i_control/i_npu
+hnet i_control/perf_layers[49] is used as the assign for net i_control/perf_layers[49] in hinst i_control/i_npu
+hnet i_control/perf_layers[50] is used as the assign for net i_control/perf_layers[50] in hinst i_control/i_npu
+hnet i_control/perf_layers[51] is used as the assign for net i_control/perf_layers[51] in hinst i_control/i_npu
+hnet i_control/perf_layers[52] is used as the assign for net i_control/perf_layers[52] in hinst i_control/i_npu
+hnet i_control/perf_layers[53] is used as the assign for net i_control/perf_layers[53] in hinst i_control/i_npu
+hnet i_control/perf_layers[54] is used as the assign for net i_control/perf_layers[54] in hinst i_control/i_npu
+hnet i_control/perf_layers[55] is used as the assign for net i_control/perf_layers[55] in hinst i_control/i_npu
+hnet i_control/perf_layers[56] is used as the assign for net i_control/perf_layers[56] in hinst i_control/i_npu
+hnet i_control/perf_layers[57] is used as the assign for net i_control/perf_layers[57] in hinst i_control/i_npu
+hnet i_control/perf_layers[58] is used as the assign for net i_control/perf_layers[58] in hinst i_control/i_npu
+hnet i_control/perf_layers[59] is used as the assign for net i_control/perf_layers[59] in hinst i_control/i_npu
+hnet i_control/perf_layers[60] is used as the assign for net i_control/perf_layers[60] in hinst i_control/i_npu
+hnet i_control/perf_layers[61] is used as the assign for net i_control/perf_layers[61] in hinst i_control/i_npu
+hnet i_control/perf_layers[62] is used as the assign for net i_control/perf_layers[62] in hinst i_control/i_npu
+hnet i_control/perf_layers[63] is used as the assign for net i_control/perf_layers[63] in hinst i_control/i_npu
+hnet i_control/perf_layers[96] is used as the assign for net i_control/perf_layers[96] in hinst i_control/i_npu
+hnet i_control/perf_layers[97] is used as the assign for net i_control/perf_layers[97] in hinst i_control/i_npu
+hnet i_control/perf_layers[98] is used as the assign for net i_control/perf_layers[98] in hinst i_control/i_npu
+hnet i_control/perf_layers[99] is used as the assign for net i_control/perf_layers[99] in hinst i_control/i_npu
+hnet i_control/perf_layers[100] is used as the assign for net i_control/perf_layers[100] in hinst i_control/i_npu
+hnet i_control/perf_layers[101] is used as the assign for net i_control/perf_layers[101] in hinst i_control/i_npu
+hnet i_control/perf_layers[102] is used as the assign for net i_control/perf_layers[102] in hinst i_control/i_npu
+hnet i_control/perf_layers[103] is used as the assign for net i_control/perf_layers[103] in hinst i_control/i_npu
+hnet i_control/perf_layers[104] is used as the assign for net i_control/perf_layers[104] in hinst i_control/i_npu
+hnet i_control/perf_layers[105] is used as the assign for net i_control/perf_layers[105] in hinst i_control/i_npu
+hnet i_control/perf_layers[106] is used as the assign for net i_control/perf_layers[106] in hinst i_control/i_npu
+hnet i_control/perf_layers[107] is used as the assign for net i_control/perf_layers[107] in hinst i_control/i_npu
+hnet i_control/perf_layers[108] is used as the assign for net i_control/perf_layers[108] in hinst i_control/i_npu
+hnet i_control/perf_layers[109] is used as the assign for net i_control/perf_layers[109] in hinst i_control/i_npu
+hnet i_control/perf_layers[110] is used as the assign for net i_control/perf_layers[110] in hinst i_control/i_npu
+hnet i_control/perf_layers[111] is used as the assign for net i_control/perf_layers[111] in hinst i_control/i_npu
+hnet i_control/perf_layers[112] is used as the assign for net i_control/perf_layers[112] in hinst i_control/i_npu
+hnet i_control/perf_layers[113] is used as the assign for net i_control/perf_layers[113] in hinst i_control/i_npu
+hnet i_control/perf_layers[114] is used as the assign for net i_control/perf_layers[114] in hinst i_control/i_npu
+hnet i_control/perf_layers[115] is used as the assign for net i_control/perf_layers[115] in hinst i_control/i_npu
+hnet i_control/perf_layers[116] is used as the assign for net i_control/perf_layers[116] in hinst i_control/i_npu
+hnet i_control/perf_layers[117] is used as the assign for net i_control/perf_layers[117] in hinst i_control/i_npu
+hnet i_control/perf_layers[118] is used as the assign for net i_control/perf_layers[118] in hinst i_control/i_npu
+hnet i_control/perf_layers[119] is used as the assign for net i_control/perf_layers[119] in hinst i_control/i_npu
+hnet i_control/perf_layers[120] is used as the assign for net i_control/perf_layers[120] in hinst i_control/i_npu
+hnet i_control/perf_layers[121] is used as the assign for net i_control/perf_layers[121] in hinst i_control/i_npu
+hnet i_control/perf_layers[122] is used as the assign for net i_control/perf_layers[122] in hinst i_control/i_npu
+hnet i_control/perf_layers[123] is used as the assign for net i_control/perf_layers[123] in hinst i_control/i_npu
+hnet i_control/perf_layers[124] is used as the assign for net i_control/perf_layers[124] in hinst i_control/i_npu
+hnet i_control/perf_layers[125] is used as the assign for net i_control/perf_layers[125] in hinst i_control/i_npu
+hnet i_control/perf_layers[126] is used as the assign for net i_control/perf_layers[126] in hinst i_control/i_npu
+hnet i_control/perf_layers[127] is used as the assign for net i_control/perf_layers[127] in hinst i_control/i_npu
+hnet i_control/perf_layers[128] is used as the assign for net i_control/perf_layers[128] in hinst i_control/i_npu
+hnet i_control/perf_layers[129] is used as the assign for net i_control/perf_layers[129] in hinst i_control/i_npu
+hnet i_control/perf_layers[130] is used as the assign for net i_control/perf_layers[130] in hinst i_control/i_npu
+hnet i_control/perf_layers[131] is used as the assign for net i_control/perf_layers[131] in hinst i_control/i_npu
+hnet i_control/perf_layers[132] is used as the assign for net i_control/perf_layers[132] in hinst i_control/i_npu
+hnet i_control/perf_layers[133] is used as the assign for net i_control/perf_layers[133] in hinst i_control/i_npu
+hnet i_control/perf_layers[134] is used as the assign for net i_control/perf_layers[134] in hinst i_control/i_npu
+hnet i_control/perf_layers[135] is used as the assign for net i_control/perf_layers[135] in hinst i_control/i_npu
+hnet i_control/perf_layers[136] is used as the assign for net i_control/perf_layers[136] in hinst i_control/i_npu
+hnet i_control/perf_layers[137] is used as the assign for net i_control/perf_layers[137] in hinst i_control/i_npu
+hnet i_control/perf_layers[138] is used as the assign for net i_control/perf_layers[138] in hinst i_control/i_npu
+hnet i_control/perf_layers[139] is used as the assign for net i_control/perf_layers[139] in hinst i_control/i_npu
+hnet i_control/perf_layers[140] is used as the assign for net i_control/perf_layers[140] in hinst i_control/i_npu
+hnet i_control/perf_layers[141] is used as the assign for net i_control/perf_layers[141] in hinst i_control/i_npu
+hnet i_control/perf_layers[142] is used as the assign for net i_control/perf_layers[142] in hinst i_control/i_npu
+hnet i_control/perf_layers[143] is used as the assign for net i_control/perf_layers[143] in hinst i_control/i_npu
+hnet i_control/perf_layers[144] is used as the assign for net i_control/perf_layers[144] in hinst i_control/i_npu
+hnet i_control/perf_layers[145] is used as the assign for net i_control/perf_layers[145] in hinst i_control/i_npu
+hnet i_control/perf_layers[146] is used as the assign for net i_control/perf_layers[146] in hinst i_control/i_npu
+hnet i_control/perf_layers[147] is used as the assign for net i_control/perf_layers[147] in hinst i_control/i_npu
+hnet i_control/perf_layers[148] is used as the assign for net i_control/perf_layers[148] in hinst i_control/i_npu
+hnet i_control/perf_layers[149] is used as the assign for net i_control/perf_layers[149] in hinst i_control/i_npu
+hnet i_control/perf_layers[150] is used as the assign for net i_control/perf_layers[150] in hinst i_control/i_npu
+hnet i_control/perf_layers[151] is used as the assign for net i_control/perf_layers[151] in hinst i_control/i_npu
+hnet i_control/perf_layers[152] is used as the assign for net i_control/perf_layers[152] in hinst i_control/i_npu
+hnet i_control/perf_layers[153] is used as the assign for net i_control/perf_layers[153] in hinst i_control/i_npu
+hnet i_control/perf_layers[154] is used as the assign for net i_control/perf_layers[154] in hinst i_control/i_npu
+hnet i_control/perf_layers[155] is used as the assign for net i_control/perf_layers[155] in hinst i_control/i_npu
+hnet i_control/perf_layers[156] is used as the assign for net i_control/perf_layers[156] in hinst i_control/i_npu
+hnet i_control/perf_layers[157] is used as the assign for net i_control/perf_layers[157] in hinst i_control/i_npu
+hnet i_control/perf_layers[158] is used as the assign for net i_control/perf_layers[158] in hinst i_control/i_npu
+hnet i_control/perf_layers[159] is used as the assign for net i_control/perf_layers[159] in hinst i_control/i_npu
+<CMD> saveDesign ../my_soc_top/backup/my_soc_top_postPGConnect.enc
+#% Begin save design ... (date=10/18 12:22:52, mem=1297.9M)
+% Begin Save ccopt configuration ... (date=10/18 12:22:52, mem=1297.9M)
+% End Save ccopt configuration ... (date=10/18 12:22:52, total cpu=0:00:00.0, real=0:00:00.0, peak res=1298.1M, current mem=1298.1M)
+% Begin Save netlist data ... (date=10/18 12:22:52, mem=1298.1M)
+Writing Binary DB to ../my_soc_top/backup/my_soc_top_postPGConnect.enc.dat/vbin/my_soc_top.v.bin in multi-threaded mode...
+% End Save netlist data ... (date=10/18 12:22:52, total cpu=0:00:00.4, real=0:00:00.0, peak res=1350.2M, current mem=1301.6M)
+Saving symbol-table file in separate thread ...
+Saving congestion map file in separate thread ...
+Saving congestion map file ../my_soc_top/backup/my_soc_top_postPGConnect.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Save AAE data ... (date=10/18 12:22:52, mem=1301.9M)
+Saving AAE Data ...
+% End Save AAE data ... (date=10/18 12:22:52, total cpu=0:00:00.0, real=0:00:00.0, peak res=1301.9M, current mem=1301.9M)
+**WARN: (IMPCTE-104):	The constraint mode of this inactive view 'func_tt_1p80v_25c' has been modified and may need to be reanalyzed to ensure proper timing results. To reanalyze timing for this view make the view active using 'set_analysis_view' and run timing analysis.
+Type 'man IMPCTE-104' for more detail.
+Saving preference file ../my_soc_top/backup/my_soc_top_postPGConnect.enc.dat/gui.pref.tcl ...
+Saving mode setting ...
+Saving global file ...
+Saving Drc markers ...
+... No Drc file written since there is no markers found.
+Saving special route data file in separate thread ...
+Saving PG file in separate thread ...
+Saving placement file in separate thread ...
+Saving route file in separate thread ...
+Saving property file in separate thread ...
+Saving property file ../my_soc_top/backup/my_soc_top_postPGConnect.enc.dat/my_soc_top.prop
+Saving PG file ../my_soc_top/backup/my_soc_top_postPGConnect.enc.dat/my_soc_top.pg.gz, version#2, (Created by Innovus v21.16-s078_1 on Sun Oct 18 12:22:54 2026)
+** Saving stdCellPlacement_binary (version# 2) ...
+TAT_INFO: ::saveSpecialRoute REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveProperty (cpu=0:00:00.1 real=0:00:00.0 mem=1606.3M) ***
+Save Adaptive View Pruning View Names to Binary file
+*** Completed savePGFile (cpu=0:00:00.1 real=0:00:01.0 mem=1606.3M) ***
+TAT_INFO: ::savePGFile REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::savePlace REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveRoute (cpu=0:00:00.2 real=0:00:01.0 mem=1606.3M) ***
+TAT_INFO: ::saveRoute REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveAnnotationAndProp REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveSymbolTable REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::saveCongMap REAL = 1 : CPU = 0 : MEM = 0.
+% Begin Save power constraints data ... (date=10/18 12:22:55, mem=1303.7M)
+% End Save power constraints data ... (date=10/18 12:22:55, total cpu=0:00:00.0, real=0:00:00.0, peak res=1303.7M, current mem=1303.7M)
+rc_tt_1p80v_25c
+Generated self-contained design my_soc_top_postPGConnect.enc.dat
+#% End save design ... (date=10/18 12:22:56, total cpu=0:00:02.5, real=0:00:04.0, peak res=1350.2M, current mem=1302.4M)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPCTE-104           1  The constraint mode of this inactive vie...
+*** Message Summary: 1 warning(s), 0 error(s)
+
+<CMD> addIoFiller -cell {PFILLER20 PFILLER10 PFILLER5 PFILLER1 PFILLER05 PFILLER0005} -prefix IOF_TOP -side top -fillerOrient R180
+Added 54 of filler cell 'PFILLER20' on top side.
+Added 2 of filler cell 'PFILLER10' on top side.
+Added 11 of filler cell 'PFILLER5' on top side.
+Added 15 of filler cell 'PFILLER1' on top side.
+Added 0 of filler cell 'PFILLER05' on top side.
+Added 64 of filler cell 'PFILLER0005' on top side.
+<CMD> addIoFiller -cell {PFILLER20 PFILLER10 PFILLER5 PFILLER1 PFILLER05 PFILLER0005} -prefix IOF_BOTTOM -side bottom -fillerOrient R0
+Added 50 of filler cell 'PFILLER20' on bottom side.
+Added 2 of filler cell 'PFILLER10' on bottom side.
+Added 12 of filler cell 'PFILLER5' on bottom side.
+Added 30 of filler cell 'PFILLER1' on bottom side.
+Added 0 of filler cell 'PFILLER05' on bottom side.
+Added 64 of filler cell 'PFILLER0005' on bottom side.
+<CMD> addIoFiller -cell {PFILLER20 PFILLER10 PFILLER5 PFILLER1 PFILLER05 PFILLER0005} -prefix IOF_LEFT -side left -fillerOrient R270
+Added 66 of filler cell 'PFILLER20' on left side.
+Added 2 of filler cell 'PFILLER10' on left side.
+Added 2 of filler cell 'PFILLER5' on left side.
+Added 0 of filler cell 'PFILLER1' on left side.
+Added 0 of filler cell 'PFILLER05' on left side.
+Added 64 of filler cell 'PFILLER0005' on left side.
+<CMD> addIoFiller -cell {PFILLER20 PFILLER10 PFILLER5 PFILLER1 PFILLER05 PFILLER0005} -prefix IOF_RIGHT -side right -fillerOrient R90
+Added 66 of filler cell 'PFILLER20' on right side.
+Added 2 of filler cell 'PFILLER10' on right side.
+Added 2 of filler cell 'PFILLER5' on right side.
+Added 0 of filler cell 'PFILLER1' on right side.
+Added 0 of filler cell 'PFILLER05' on right side.
+Added 64 of filler cell 'PFILLER0005' on right side.
+<CMD> saveDesign ../my_soc_top/backup/my_soc_top_postIOFiller.enc
+#% Begin save design ... (date=10/18 12:22:56, mem=1302.7M)
+% Begin Save ccopt configuration ... (date=10/18 12:22:56, mem=1302.7M)
+% End Save ccopt configuration ... (date=10/18 12:22:56, total cpu=0:00:00.0, real=0:00:00.0, peak res=1302.9M, current mem=1302.9M)
+% Begin Save netlist data ... (date=10/18 12:22:56, mem=1302.9M)
+Writing Binary DB to ../my_soc_top/backup/my_soc_top_postIOFiller.enc.dat/vbin/my_soc_top.v.bin in multi-threaded mode...
+% End Save netlist data ... (date=10/18 12:22:56, total cpu=0:00:00.4, real=0:00:00.0, peak res=1307.9M, current mem=1307.9M)
+Saving symbol-table file in separate thread ...
+Saving congestion map file in separate thread ...
+Saving congestion map file ../my_soc_top/backup/my_soc_top_postIOFiller.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Save AAE data ... (date=10/18 12:22:56, mem=1308.1M)
+Saving AAE Data ...
+% End Save AAE data ... (date=10/18 12:22:56, total cpu=0:00:00.0, real=0:00:01.0, peak res=1308.1M, current mem=1308.1M)
+**WARN: (IMPCTE-104):	The constraint mode of this inactive view 'func_tt_1p80v_25c' has been modified and may need to be reanalyzed to ensure proper timing results. To reanalyze timing for this view make the view active using 'set_analysis_view' and run timing analysis.
+Type 'man IMPCTE-104' for more detail.
+Saving preference file ../my_soc_top/backup/my_soc_top_postIOFiller.enc.dat/gui.pref.tcl ...
+Saving mode setting ...
+Saving global file ...
+Saving Drc markers ...
+... No Drc file written since there is no markers found.
+Saving special route data file in separate thread ...
+Saving PG file in separate thread ...
+Saving placement file in separate thread ...
+Saving route file in separate thread ...
+Saving property file in separate thread ...
+Saving PG file ../my_soc_top/backup/my_soc_top_postIOFiller.enc.dat/my_soc_top.pg.gz, version#2, (Created by Innovus v21.16-s078_1 on Sun Oct 18 12:22:59 2026)
+Saving property file ../my_soc_top/backup/my_soc_top_postIOFiller.enc.dat/my_soc_top.prop
+** Saving stdCellPlacement_binary (version# 2) ...
+TAT_INFO: ::saveSpecialRoute REAL = 0 : CPU = 0 : MEM = 0.
+Save Adaptive View Pruning View Names to Binary file
+*** Completed saveProperty (cpu=0:00:00.1 real=0:00:00.0 mem=1625.1M) ***
+*** Completed savePGFile (cpu=0:00:00.1 real=0:00:00.0 mem=1625.1M) ***
+TAT_INFO: ::savePGFile REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::savePlace REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveRoute (cpu=0:00:00.3 real=0:00:00.0 mem=1625.1M) ***
+TAT_INFO: ::saveRoute REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveAnnotationAndProp REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveSymbolTable REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::saveCongMap REAL = 1 : CPU = 0 : MEM = 0.
+% Begin Save power constraints data ... (date=10/18 12:23:00, mem=1309.2M)
+% End Save power constraints data ... (date=10/18 12:23:00, total cpu=0:00:00.0, real=0:00:00.0, peak res=1309.2M, current mem=1309.2M)
+rc_tt_1p80v_25c
+Generated self-contained design my_soc_top_postIOFiller.enc.dat
+#% End save design ... (date=10/18 12:23:00, total cpu=0:00:02.5, real=0:00:04.0, peak res=1309.5M, current mem=1309.5M)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPCTE-104           1  The constraint mode of this inactive vie...
+*** Message Summary: 1 warning(s), 0 error(s)
+
+<CMD> checkFPlan -reportUtil -outFile ../my_soc_top/my_soc_top_floorplan_check.rpt
+Checking routing tracks.....
+Checking other grids.....
+Checking FINFET Grid is on Manufacture Grid.....
+Checking core/die box is on Grid.....
+Checking snap rule ......
+Checking Row is on grid......
+Checking AreaIO row.....
+Checking row out of die ...
+Checking routing blockage.....
+Checking components.....
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_clk and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_clk and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_clk not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_rst_n and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_rst_n and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_rst_n not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_irq and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_irq and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_irq not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tck and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tck and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_tck not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tms and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tms and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_tms not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tdi and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tdi and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_tdi not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tdo and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_tdo and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_tdo not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_N_vss_1 and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_N_vss_1 and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_N_vss_1 not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_N_vss_2 and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_N_vss_2 and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_N_vss_2 not snapped to row-site.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_N_vssio and snapping rules are not checked since it's width is not multiple of default tech site's width.
+**WARN: (IMPFP-10013):	Halo should be created around block i_bond_N_vssio and snapping rules are not checked since it's height is not multiple of default tech site's height.
+Instance i_bond_N_vssio not snapped to row-site.
+**WARN: (EMS-27):	Message (IMPFP-10013) has exceeded the current message display limit of 20.
+To increase the message display limit, refer to the product command reference manual.
+Instance i_bond_N_vdd_1 not snapped to row-site.
+Instance i_bond_N_vdd_2 not snapped to row-site.
+Instance i_bond_N_vddio not snapped to row-site.
+Instance i_bond_N_poc not snapped to row-site.
+Instance i_bond_S_vss_1 not snapped to row-site.
+Instance i_bond_S_vss_2 not snapped to row-site.
+Instance i_bond_S_vssio not snapped to row-site.
+Instance i_bond_S_vdd_1 not snapped to row-site.
+Instance i_bond_S_vdd_2 not snapped to row-site.
+Instance i_bond_S_vddio not snapped to row-site.
+Instance i_bond_S_poc not snapped to row-site.
+Instance i_bond_W_vss_1 not snapped to row-site.
+Instance i_bond_W_vss_2 not snapped to row-site.
+Instance i_bond_W_vssio not snapped to row-site.
+Instance i_bond_W_vdd_1 not snapped to row-site.
+Instance i_bond_W_vdd_2 not snapped to row-site.
+Instance i_bond_W_vddio not snapped to row-site.
+Instance i_bond_W_poc not snapped to row-site.
+Instance i_bond_E_vss_1 not snapped to row-site.
+Instance i_bond_E_vss_2 not snapped to row-site.
+Instance i_bond_E_vssio not snapped to row-site.
+Instance i_bond_E_vdd_1 not snapped to row-site.
+Instance i_bond_E_vdd_2 not snapped to row-site.
+Instance i_bond_E_vddio not snapped to row-site.
+Instance i_bond_E_poc not snapped to row-site.
+Checking IO Pads out of die...
+Checking constraints (guide/region/fence).....
+
+Checking Preroutes.....
+No. of regular pre-routes not on tracks : 0 
+
+Reporting Utilizations.....
+
+Core utilization  = 81.491524
+Effective Utilizations
+Extracting standard cell pins and blockage ...... 
+Pin and blockage extraction finished
+Extracting macro/IO cell pins and blockage ...... 
+Pin and blockage extraction finished
+Total CPU(s) requested: 16
+Total CPU(s) enabled with current License(s): 8
+Current free CPU(s): 8
+Additional license(s) checked out: 1 Innovus_CPU_Opt license(s) for 8 CPU(s)
+[12:23:02.003360] periodic Lic check successful
+[12:23:02.003360] Feature usage summary:
+[12:23:02.016464]  Innovus_CPU_Opt  
+[12:23:02.417391]   Innovus_Impl_System  
+
+Total CPU(s) now enabled: 16
+Multithreaded Timing Analysis is initialized with 16 threads
+
+Estimated cell power/ground rail width = 0.490 um
+Average module density = 0.816.
+Density for the design = 0.816.
+       = stdcell_area 1073045 sites (2355548 um^2) / alloc_area 1314588 sites (2885784 um^2).
+Pin Density = 0.2682.
+            = total # of pins 352577 / total area 1314588.
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPFP-10013         70  Halo should be created around block %s a...
+*** Message Summary: 70 warning(s), 0 error(s)
+
+<CMD> saveDesign ../my_soc_top/backup/my_soc_top_postMacroPlace.enc
+#% Begin save design ... (date=10/18 12:23:02, mem=1442.2M)
+% Begin Save ccopt configuration ... (date=10/18 12:23:02, mem=1442.2M)
+% End Save ccopt configuration ... (date=10/18 12:23:02, total cpu=0:00:00.0, real=0:00:00.0, peak res=1442.5M, current mem=1442.5M)
+% Begin Save netlist data ... (date=10/18 12:23:02, mem=1442.5M)
+Writing Binary DB to ../my_soc_top/backup/my_soc_top_postMacroPlace.enc.dat/vbin/my_soc_top.v.bin in multi-threaded mode...
+% End Save netlist data ... (date=10/18 12:23:03, total cpu=0:00:00.4, real=0:00:01.0, peak res=1502.3M, current mem=1441.5M)
+Saving symbol-table file in separate thread ...
+Saving congestion map file in separate thread ...
+Saving congestion map file ../my_soc_top/backup/my_soc_top_postMacroPlace.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Save AAE data ... (date=10/18 12:23:03, mem=1441.9M)
+Saving AAE Data ...
+% End Save AAE data ... (date=10/18 12:23:03, total cpu=0:00:00.0, real=0:00:00.0, peak res=1441.9M, current mem=1441.9M)
+**WARN: (IMPCTE-104):	The constraint mode of this inactive view 'func_tt_1p80v_25c' has been modified and may need to be reanalyzed to ensure proper timing results. To reanalyze timing for this view make the view active using 'set_analysis_view' and run timing analysis.
+Type 'man IMPCTE-104' for more detail.
+Saving preference file ../my_soc_top/backup/my_soc_top_postMacroPlace.enc.dat/gui.pref.tcl ...
+Saving mode setting ...
+Saving global file ...
+Saving Drc markers ...
+... No Drc file written since there is no markers found.
+Saving special route data file in separate thread ...
+Saving PG file in separate thread ...
+Saving placement file in separate thread ...
+Saving property file in separate thread ...
+Saving PG file ../my_soc_top/backup/my_soc_top_postMacroPlace.enc.dat/my_soc_top.pg.gz, version#2, (Created by Innovus v21.16-s078_1 on Sun Oct 18 12:23:05 2026)
+Saving property file ../my_soc_top/backup/my_soc_top_postMacroPlace.enc.dat/my_soc_top.prop
+** Saving stdCellPlacement_binary (version# 2) ...
+TAT_INFO: ::saveSpecialRoute REAL = 0 : CPU = 0 : MEM = 0.
+Save Adaptive View Pruning View Names to Binary file
+*** Completed saveProperty (cpu=0:00:00.1 real=0:00:00.0 mem=2144.8M) ***
+*** Completed savePGFile (cpu=0:00:00.2 real=0:00:00.0 mem=2144.8M) ***
+TAT_INFO: ::savePGFile REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::savePlace REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveRoute (cpu=0:00:00.2 real=0:00:00.0 mem=2144.8M) ***
+TAT_INFO: ::saveRoute REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveAnnotationAndProp REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveSymbolTable REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::saveCongMap REAL = 0 : CPU = 0 : MEM = 0.
+% Begin Save power constraints data ... (date=10/18 12:23:06, mem=1442.7M)
+% End Save power constraints data ... (date=10/18 12:23:06, total cpu=0:00:00.0, real=0:00:00.0, peak res=1442.7M, current mem=1442.7M)
+rc_tt_1p80v_25c
+Generated self-contained design my_soc_top_postMacroPlace.enc.dat
+#% End save design ... (date=10/18 12:23:07, total cpu=0:00:02.6, real=0:00:05.0, peak res=1502.3M, current mem=1443.0M)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPCTE-104           1  The constraint mode of this inactive vie...
+*** Message Summary: 1 warning(s), 0 error(s)
+
+<CMD> createPGPin VDD -net VDD -geom METAL4 887.0 1998.32 897.0 1999.32
+<CMD> createPGPin VSS -net VSS -geom METAL4 327.0 1998.32 337.0 1999.32
+<CMD> createPGPin VDDPST -net VDDPST -geom METAL4 1260.0 1998.32 1270.0 1999.32
+<CMD> createPGPin VSSPST -net VSSPST -geom METAL4 700.0 1998.32 710.0 1999.32
+<CMD> defOut ../my_soc_top/my_soc_top_physicalPins.def
+Writing DEF file '../my_soc_top/my_soc_top_physicalPins.def', current time is Sun Oct 18 12:23:07 2026 ...
+unitPerMicron=2000, dbgMicronPerDBU=0.000500, unitPerDBU=1.000000
+DEF file '../my_soc_top/my_soc_top_physicalPins.def' is written, current time is Sun Oct 18 12:23:07 2026 ...
+<CMD> saveDesign ../my_soc_top/backup/my_soc_top_postPhysicalPins.enc
+#% Begin save design ... (date=10/18 12:23:07, mem=1443.4M)
+% Begin Save ccopt configuration ... (date=10/18 12:23:07, mem=1443.4M)
+% End Save ccopt configuration ... (date=10/18 12:23:07, total cpu=0:00:00.0, real=0:00:00.0, peak res=1443.6M, current mem=1443.6M)
+% Begin Save netlist data ... (date=10/18 12:23:07, mem=1443.6M)
+Writing Binary DB to ../my_soc_top/backup/my_soc_top_postPhysicalPins.enc.dat/vbin/my_soc_top.v.bin in multi-threaded mode...
+% End Save netlist data ... (date=10/18 12:23:07, total cpu=0:00:00.4, real=0:00:00.0, peak res=1443.6M, current mem=1443.6M)
+Saving symbol-table file in separate thread ...
+Saving congestion map file in separate thread ...
+Saving congestion map file ../my_soc_top/backup/my_soc_top_postPhysicalPins.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Save AAE data ... (date=10/18 12:23:07, mem=1443.6M)
+Saving AAE Data ...
+% End Save AAE data ... (date=10/18 12:23:07, total cpu=0:00:00.0, real=0:00:00.0, peak res=1443.6M, current mem=1443.6M)
+**WARN: (IMPCTE-104):	The constraint mode of this inactive view 'func_tt_1p80v_25c' has been modified and may need to be reanalyzed to ensure proper timing results. To reanalyze timing for this view make the view active using 'set_analysis_view' and run timing analysis.
+Type 'man IMPCTE-104' for more detail.
+Saving preference file ../my_soc_top/backup/my_soc_top_postPhysicalPins.enc.dat/gui.pref.tcl ...
+Saving mode setting ...
+Saving global file ...
+Saving Drc markers ...
+... No Drc file written since there is no markers found.
+Saving special route data file in separate thread ...
+Saving PG file in separate thread ...
+Saving placement file in separate thread ...
+Saving route file in separate thread ...
+Saving property file in separate thread ...
+Saving PG file ../my_soc_top/backup/my_soc_top_postPhysicalPins.enc.dat/my_soc_top.pg.gz, version#2, (Created by Innovus v21.16-s078_1 on Sun Oct 18 12:23:09 2026)
+Saving property file ../my_soc_top/backup/my_soc_top_postPhysicalPins.enc.dat/my_soc_top.prop
+** Saving stdCellPlacement_binary (version# 2) ...
+TAT_INFO: ::saveSpecialRoute REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveProperty (cpu=0:00:00.1 real=0:00:00.0 mem=2147.5M) ***
+Save Adaptive View Pruning View Names to Binary file
+*** Completed savePGFile (cpu=0:00:00.2 real=0:00:01.0 mem=2147.5M) ***
+TAT_INFO: ::savePGFile REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::savePlace REAL = 0 : CPU = 0 : MEM = 0.
+*** Completed saveRoute (cpu=0:00:00.3 real=0:00:01.0 mem=2147.5M) ***
+TAT_INFO: ::saveRoute REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveAnnotationAndProp REAL = 0 : CPU = 0 : MEM = 0.
+TAT_INFO: ::db::saveSymbolTable REAL = 1 : CPU = 0 : MEM = 0.
+TAT_INFO: ::saveCongMap REAL = 1 : CPU = 0 : MEM = 0.
+% Begin Save power constraints data ... (date=10/18 12:23:11, mem=1444.0M)
+% End Save power constraints data ... (date=10/18 12:23:11, total cpu=0:00:00.0, real=0:00:00.0, peak res=1444.0M, current mem=1444.0M)
+rc_tt_1p80v_25c
+Generated self-contained design my_soc_top_postPhysicalPins.enc.dat
+#% End save design ... (date=10/18 12:23:11, total cpu=0:00:02.6, real=0:00:04.0, peak res=1444.0M, current mem=1443.3M)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPCTE-104           1  The constraint mode of this inactive vie...
+*** Message Summary: 1 warning(s), 0 error(s)
+
+
+*** Memory Usage v#1 (Current mem = 2092.531M, initial mem = 484.910M) ***
+*** Message Summary: 1356 warning(s), 0 error(s)
+
+--- Ending "Innovus" (totcpu=0:01:08, real=0:01:01, mem=2092.5M) ---

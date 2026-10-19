@@ -30,6 +30,21 @@ ChipDesign.pdf
 .arch_spec.py
 .build_arch.py
 
+# ASIC implementation products that are too large, tool-generated, or may
+# contain foundry/IP layout data.  Publish reports and checksums instead.
+*.enc
+*.enc.dat
+*.gds
+*.gds.gz
+*.def
+*.spef
+*.spef.gz
+xcelium.d/
+INCA_libs/
+
+# Local report-rendering scratch space.
+tmp/
+
 # Dataset / training artifacts
 data/
 software/train/runs/

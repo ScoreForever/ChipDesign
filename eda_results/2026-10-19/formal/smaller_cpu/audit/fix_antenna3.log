@@ -1,0 +1,1180 @@
+
+Cadence Innovus(TM) Implementation System.
+Copyright 2021 Cadence Design Systems, Inc. All rights reserved worldwide.
+
+Version:	v21.16-s078_1, built Wed Dec 7 12:07:06 PST 2022
+Options:	-execute source ../scripts/fix_antenna3.tcl -log fix_antenna3.log -overwrite 
+Date:		Sun Oct 18 09:24:12 2026
+Host:		tc-01a0e839f839 (x86_64 w/Linux 6.12.0-211.54.1.el10_2.x86_64) (24cores*48cpus*Intel(R) Xeon(R) Platinum 8160 CPU @ 2.10GHz 33792KB)
+OS:		AlmaLinux release 8.10 (Cerulean Leopard)
+
+License:
+		[09:24:12.350098] Configured Lic search path (21.01-s002): /opt/eda/Cadence/license/license.dat:/opt/eda/Synopsys/scl/2021.03/admin/license/Synopsys.dat
+
+		invs	Innovus Implementation System	21.1	checkout succeeded
+		8 CPU jobs allowed with the current license(s). Use setMultiCpuUsage to set your required CPU count.
+**WARN: (IMPSYT-1507):	The display is invalid and will start in no window mode
+Change the soft stacksize limit to 0.2%RAM (32 mbytes). Set global soft_stack_size_limit to change the value.
+
+**INFO:  MMMC transition support version v31-84 
+
+<CMD> set_global _enable_mmmc_by_default_flow      $CTE::mmmc_default
+<CMD> suppressMessage ENCEXT-2799
+Executing cmd 'source ../scripts/fix_antenna3.tcl' ...
+<CMD> restoreDesign /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat my_soc_top
+#% Begin load design ... (date=10/18 09:24:33, mem=782.4M)
+Loading design 'my_soc_top' saved by 'Innovus' '21.16-s078_1' on 'Sun Oct 18 09:07:57 2026'.
+% Begin Load MMMC data ... (date=10/18 09:24:33, mem=787.3M)
+% End Load MMMC data ... (date=10/18 09:24:33, total cpu=0:00:00.0, real=0:00:00.0, peak res=788.4M, current mem=788.4M)
+rc_tt_1p80v_25c
+
+Loading LEF file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/tcb018gbwp7t_6lm.lef ...
+Set DBUPerIGU to M2 pitch 1120.
+
+Loading LEF file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/tpd018nv_6lm.lef ...
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/tpd018nv_6lm.lef at line 7147.
+
+Loading LEF file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/antenna_6lm.lef ...
+**WARN: (IMPLF-58):	MACRO 'PDDW0204CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0204SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0408CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0408SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0812CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW0812SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW1216CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDDW1216SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0204CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0204SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0408CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0408SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0812CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW0812SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW1216CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PDUW1216SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0204CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0204SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0408CDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (IMPLF-58):	MACRO 'PRDW0408SCDG' has been found in the database. Its content except DENSITY and PIN ANTENNA* data, and certain properties, will be ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-58' for more detail.
+**WARN: (EMS-27):	Message (IMPLF-58) has exceeded the current message display limit of 20.
+To increase the message display limit, refer to the product command reference manual.
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/antenna_6lm.lef at line 3372.
+
+Loading LEF file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/tpb018v_6lm.lef ...
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/tpb018v_6lm.lef at line 313.
+
+Loading LEF file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/RA1SHD_2048x32M8.vclef ...
+WARNING (LEFPARS-2007): NAMESCASESENSITIVE statement is obsolete in version 5.6 and later.
+The LEF parser will ignore this statement.
+To avoid this warning in the future, remove this statement from the LEF file with version 5.6 or later. See file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/RA1SHD_2048x32M8.vclef at line 12.
+**WARN: (IMPLF-63):	The layer 'METAL7' referenced in OBS in macro 'RA1SHD_2048x32M8' is not found in the database. The obstruction geometries specified on the layer are being ignored. A layer must be defined in the LEF technology LAYER section before it can be referenced from a macro. Review the LEF files specified in the init_lef_file variable to see if the layer does not exist or is specified after the one that defines the macro.
+Type 'man IMPLF-63' for more detail.
+**WARN: (IMPLF-63):	The layer 'METAL8' referenced in OBS in macro 'RA1SHD_2048x32M8' is not found in the database. The obstruction geometries specified on the layer are being ignored. A layer must be defined in the LEF technology LAYER section before it can be referenced from a macro. Review the LEF files specified in the init_lef_file variable to see if the layer does not exist or is specified after the one that defines the macro.
+Type 'man IMPLF-63' for more detail.
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/RA1SHD_2048x32M8.vclef at line 5731.
+
+Loading LEF file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/RA1SHD_2048x32M8_ant.lef ...
+WARNING (LEFPARS-2001): No VERSION statement found, using the default value 5.8. See file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/lef/RA1SHD_2048x32M8_ant.lef at line 153.
+**WARN: (IMPLF-61):	42 duplicated MACRO definitions have been found in the LEF file(s). Their content except DENSITY and PIN ANTENNA* data, and certain properties, have been ignored.
+Review the LEF files specified in the init_lef_file variable and remove redundant definitions.
+Type 'man IMPLF-61' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[0]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[10]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[11]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[12]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[13]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[14]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[15]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[16]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[17]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[18]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[19]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[1]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[20]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[21]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[22]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[23]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[24]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[25]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[26]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (IMPLF-201):	Pin 'Q[27]' in macro 'RA1SHD_2048x32M8' has no ANTENNADIFFAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-201' for more detail.
+**WARN: (EMS-27):	Message (IMPLF-201) has exceeded the current message display limit of 20.
+To increase the message display limit, refer to the product command reference manual.
+**WARN: (IMPLF-200):	Pin 'VSSPST' in macro 'PVSS2CDG' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'AVSS' in macro 'PVSS2ANA' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'AVSS' in macro 'PVSS1ANA' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'AVDD' in macro 'PVDD2ANA' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+**WARN: (IMPLF-200):	Pin 'I' in macro 'ANTENNABWP7T' has no ANTENNAGATEAREA value defined. The library data is incomplete and some process antenna rules will not be checked correctly.
+Type 'man IMPLF-200' for more detail.
+
+##  Check design process and node:  
+##  Both design process and tech node are not set.
+
+Loading view definition file from /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/viewDefinition.tcl
+Reading lib_tt_io timing library '/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib' ...
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAPBWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP8BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP64BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP4BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP32BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'DCAP16BWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'ANTENNABWP7T'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib)
+Read 560 cells in library 'tcb018gbwp7ttc' 
+Reading lib_tt_io timing library '/home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib' ...
+Read 1 cells in library 'sramsp_tsmc_cl018hv' 
+Reading lib_tt_io timing library '/lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib' ...
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS3CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS2CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS2ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS1CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVSS1ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD2POC'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD2CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD2ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD1CDG'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PVDD1ANA'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+**WARN: (TECHLIB-302):	No function defined for cell 'PRCUT'. The cell will only be used for analysis. (File /lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib)
+Read 45 cells in library 'tpd018nvtc' 
+*** End library_loading (cpu=0.02min, real=0.03min, mem=42.0M, fe_cpu=0.70min, fe_real=0.38min, fe_mem=1039.7M) ***
+% Begin Load netlist data ... (date=10/18 09:24:35, mem=813.6M)
+*** Begin netlist parsing (mem=1039.7M) ***
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR4D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR4D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR4D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR4D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR3D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR3D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR3D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR3D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR3D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR3D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR2D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR2D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR2D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR2D1BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XOR2D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XOR2D0BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VSS' of cell 'XNR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (IMPVL-159):	Pin 'VDD' of cell 'XNR4D2BWP7T' is defined in LEF but not in the timing library.
+Type 'man IMPVL-159' for more detail.
+**WARN: (EMS-27):	Message (IMPVL-159) has exceeded the current message display limit of 20.
+To increase the message display limit, refer to the product command reference manual.
+Pin 'VSS' of cell 'PVSS3CDG' is declared as power/ground in LEF but as signal in timing library.  Treat it as power/ground.
+Pin 'VSS' of cell 'PVSS1CDG' is declared as power/ground in LEF but as signal in timing library.  Treat it as power/ground.
+Pin 'VDD' of cell 'PVDD1CDG' is declared as power/ground in LEF but as signal in timing library.  Treat it as power/ground.
+Created 606 new cells from 3 timing libraries.
+Reading netlist ...
+Backslashed names will retain backslash and a trailing blank character.
+Reading verilogBinary netlist '/home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/vbin/my_soc_top.v.bin'
+
+*** Memory Usage v#1 (Current mem = 1091.707M, initial mem = 492.910M) ***
+*** End netlist parsing (cpu=0:00:00.3, real=0:00:00.0, mem=1091.7M) ***
+% End Load netlist data ... (date=10/18 09:24:35, total cpu=0:00:00.4, real=0:00:00.0, peak res=871.2M, current mem=871.2M)
+Set top cell to my_soc_top.
+Hooked 606 DB cells to tlib cells.
+6 empty module found.
+Starting recursive module instantiation check.
+No recursion found.
+Building hierarchical netlist for Cell my_soc_top ...
+*** Netlist is unique.
+** info: there are 2543 modules.
+** info: there are 97120 stdCell insts.
+** info: there are 34 Pad insts.
+** info: there are 1 macros.
+
+*** Memory Usage v#1 (Current mem = 1223.121M, initial mem = 492.910M) ***
+*info: set bottom ioPad orient R0
+Initializing I/O assignment ...
+Adjusting Core to Left to: 150.4400. Core to Bottom to: 150.4400.
+**WARN: (IMPFP-3961):	The techSite 'corner' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'pad' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'dcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'ccore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcoreExt7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+Start create_tracks
+Generated pitch 1.12 in METAL6 is different from 0.9 defined in technology file in preferred direction.
+Loading preference file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/gui.pref.tcl ...
+##  Process: 180           (User Set)               
+##     Node: (not set)                           
+
+##  Check design process and node:  
+##  Design tech node is not set.
+
+Applying the recommended capacitance filtering threshold values for 180nm process node: total_c_th=5, relative_c_th=0.03 and coupling_c_th=3.
+	These values will be used by all post-route extraction engines, including TQuantus, IQuantus and Quantus QRC extraction.
+	For postRoute effortLevel low extraction, the coupling_c_th value will be used only when the -capFilterMode parameter of the setExtractRCMode command is set to relAndCoup or relOrCoup. Default value of -capFilterMode parameter in postRoute extraction effortLevel low is relOnly.
+	The accuracy mode for postRoute effortLevel low extraction will be set to 'standard'.
+	Default value for EffortLevel(-effortLevel option of the setExtractRCMode) in postRoute extraction mode is 'low'.
+**INFO: Hold fixing will be done using "DEL015BWP7T DEL01BWP7T DEL02BWP7T DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T" only.
+setAnalysisMode -usefulSkew already set.
+**WARN: (IMPOPT-3602):	The specified path group name reg2cgate is not defined.
+Type 'man IMPOPT-3602' for more detail.
+Effort level <high> specified for reg2cgate path_group
+Slack adjustment of -0 applied on reg2cgate path_group
+**WARN: (IMPOPT-3602):	The specified path group name reg2reg is not defined.
+Type 'man IMPOPT-3602' for more detail.
+Effort level <high> specified for reg2reg path_group
+Slack adjustment of -0 applied on reg2reg path_group
+Slack adjustment of -0 applied on <default> path group
+**WARN: (IMPOPT-3602):	The specified path group name tdgp_reg2reg_default is not defined.
+Type 'man IMPOPT-3602' for more detail.
+Effort level <high> specified for tdgp_reg2reg_default path_group
+Slack adjustment of -0 applied on tdgp_reg2reg_default path_group
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: (IMPTCM-77):	Option "-drouteStartIteration" for command setNanoRouteMode is obsolete and will be removed in a future release. The obsolete option still works in this release but to avoid this warning and to ensure compatibility with future releases, remove the obsolete option from your script.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+**WARN: The setCCOptMode/set_ccopt_mode command is obsolete and will be removed in a future release. This command still works in this release, but to avoid this warning and to ensure compatibility with future releases, transition to set_ccopt_property.
+addRing command will avoid shorts while creating rings.
+addStripe will not allow jog to connect padcore ring and block ring.
+
+The power planner will not be remove floating stripes over blocks.
+Change floorplan default-technical-site to 'core7T'.
+*Info: initialize multi-corner CTS.
+Total number of combinational cells: 377
+Total number of sequential cells: 160
+Total number of tristate cells: 7
+Total number of level shifter cells: 0
+Total number of power gating cells: 0
+Total number of isolation cells: 0
+Total number of power switch cells: 0
+Total number of pulse generator cells: 0
+Total number of always on buffers: 0
+Total number of retention cells: 0
+Total number of physical cells: 16
+List of usable buffers: BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T CKBD0BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T CKBD10BWP7T CKBD12BWP7T CKBD1BWP7T CKBD2BWP7T CKBD3BWP7T CKBD4BWP7T CKBD6BWP7T CKBD8BWP7T DEL015BWP7T DEL02BWP7T DEL01BWP7T GBUFFD1BWP7T GBUFFD3BWP7T GBUFFD2BWP7T GBUFFD8BWP7T
+Total number of usable buffers: 28
+List of unusable buffers:
+Total number of unusable buffers: 0
+List of usable inverters: CKND0BWP7T CKND10BWP7T CKND12BWP7T CKND1BWP7T CKND2BWP7T CKND3BWP7T CKND4BWP7T CKND6BWP7T CKND8BWP7T GINVD2BWP7T GINVD1BWP7T GINVD3BWP7T GINVD8BWP7T INVD0BWP7T INVD10BWP7T INVD12BWP7T INVD1BWP7T INVD2BWP7T INVD1P5BWP7T INVD2P5BWP7T INVD3BWP7T INVD4BWP7T INVD5BWP7T INVD6BWP7T INVD8BWP7T
+Total number of usable inverters: 25
+List of unusable inverters:
+Total number of unusable inverters: 0
+List of identified usable delay cells: DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T
+Total number of identified usable delay cells: 5
+List of identified unusable delay cells:
+Total number of identified unusable delay cells: 0
+Reading floorplan file - /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.fp.gz (mem = 1465.5M).
+% Begin Load floorplan data ... (date=10/18 09:24:37, mem=1234.4M)
+*info: reset 119939 existing net BottomPreferredLayer and AvoidDetour
+**WARN: (IMPDB-2078):	Output pin VSSPST of instance i_pad_E_vssio is connected to ground net FE_1B0_3.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is power.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_E_poc is connected to power net FE_1B1_7.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_E_vddio is connected to power net FE_1B1_6.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VSSPST of instance i_pad_W_vssio is connected to ground net FE_1B0_2.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is power.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_W_poc is connected to power net FE_1B1_5.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_W_vddio is connected to power net FE_1B1_4.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VSSPST of instance i_pad_S_vssio is connected to ground net FE_1B0_1.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is power.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_S_poc is connected to power net FE_1B1_3.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_S_vddio is connected to power net FE_1B1_2.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VSSPST of instance i_pad_N_vssio is connected to ground net FE_1B0.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is power.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_N_poc is connected to power net FE_1B1_1.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+**WARN: (IMPDB-2078):	Output pin VDDPST of instance i_pad_N_vddio is connected to power net FE_1B1.  Usually it is not right to connect an output signal pin to a P/G net, unless the pin is meant to be the driver of the net. This can create a short circuit if the output is ground.  Check the connectivity in the netlist.
+Deleting old partition specification.
+Set FPlanBox to (0 0 6200320 6200320)
+**WARN: (IMPFP-3961):	The techSite 'corner' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'pad' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'dcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'ccore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcoreExt7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+**WARN: (IMPFP-3961):	The techSite 'bcore7T' has no related standard cells in the LEF/OA library. The calculations for this site type cannot be made unless standard cell models of this type exist in the LEF/OA library. Ignore this warning if the SITE is not used by the library. Alternatively, remove the SITE definition for the LEF/OA library to avoid this message.
+Type 'man IMPFP-3961' for more detail.
+Start create_tracks
+Generated pitch 1.12 in METAL6 is different from 0.9 defined in technology file in preferred direction.
+ ... processed partition successfully.
+Reading binary special route file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.fp.spr.gz (Created by Innovus v21.16-s078_1 on Sun Oct 18 09:07:53 2026, version: 1)
+Convert 0 swires and 0 svias from compressed groups
+475 swires and 1068 svias were compressed
+475 swires and 630 svias were decompressed from small or sparse groups
+Ending "Read special route file" (total cpu=0:00:00.0, real=0:00:00.0, peak res=1236.0M, current mem=1236.0M)
+There are 645 io inst loaded
+There are 4007 nets with weight being set
+There are 4007 nets with bottomPreferredRoutingLayer being set
+There are 4007 nets with avoidDetour being set
+Extracting standard cell pins and blockage ...... 
+Pin and blockage extraction finished
+% End Load floorplan data ... (date=10/18 09:24:38, total cpu=0:00:00.2, real=0:00:01.0, peak res=1236.3M, current mem=1236.3M)
+Reading congestion map file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Load SymbolTable ... (date=10/18 09:24:38, mem=1236.4M)
+Suppress "**WARN ..." messages.
+Un-suppress "**WARN ..." messages.
+% End Load SymbolTable ... (date=10/18 09:24:39, total cpu=0:00:00.5, real=0:00:01.0, peak res=1270.6M, current mem=1270.6M)
+Loading place ...
+% Begin Load placement data ... (date=10/18 09:24:39, mem=1270.6M)
+Reading placement file - /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.place.gz.
+** Reading stdCellPlacement_binary (Created by Innovus v21.16-s078_1 on Sun Oct 18 09:07:53 2026, version# 2) ...
+Read Views for adaptive view pruning ...
+Read 0 views from Binary DB for adaptive view pruning
+*** Checked 2 GNC rules.
+*** applyConnectGlobalNets disabled.
+*** Completed restorePlace (cpu=0:00:00.8 real=0:00:00.0 mem=1572.2M) ***
+Total net length = 5.431e+06 (2.662e+06 2.769e+06) (ext = 0.000e+00)
+% End Load placement data ... (date=10/18 09:24:39, total cpu=0:00:00.8, real=0:00:00.0, peak res=1346.8M, current mem=1346.8M)
+Reading PG file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.pg.gz, version#2, (Created by Innovus v21.16-s078_1 on       Sun Oct 18 09:07:53 2026)
+*** Completed restorePGFile (cpu=0:00:00.1 real=0:00:01.0 mem=1574.2M) ***
+% Begin Load routing data ... (date=10/18 09:24:40, mem=1352.9M)
+Reading routing file - /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.route.gz.
+Reading Innovus routing data (Created by Innovus v21.16-s078_1 on Sun Oct 18 09:07:53 2026 Format: 20.1) ...
+*** Total 103452 nets are successfully restored.
+*** Completed restoreRoute (cpu=0:00:00.9 real=0:00:02.0 mem=1718.2M) ***
+% End Load routing data ... (date=10/18 09:24:42, total cpu=0:00:00.9, real=0:00:02.0, peak res=1496.9M, current mem=1496.9M)
+Loading Drc markers ...
+... 37 markers are loaded ...
+... 0 geometry drc markers are loaded ...
+... 1 antenna drc markers are loaded ...
+TAT_INFO: restoreCongMap REAL = 0 : CPU = 0 : MEM = 0.
+Reading property file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.prop
+*** Completed restoreProperty (cpu=0:00:00.1 real=0:00:00.0 mem=1723.2M) ***
+Reading dirtyarea snapshot file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.db.da.gz (Create by Innovus v21.16-s078_1 on Sun Oct 18 09:07:55 2026, version: 4).
+Extraction setup Started 
+Initializing multi-corner RC extraction with 1 active RC Corners ...
+Reading Capacitance Table File /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/mmmc/t018lo_1p6m_typical.captable ...
+Importing multi-corner RC tables ... 
+Summary of Active RC-Corners : 
+ 
+ Analysis View: func_tt_io
+    RC-Corner Name        : rc_tt_1p80v_25c
+    RC-Corner Index       : 0
+    RC-Corner Temperature : 25 Celsius
+    RC-Corner Cap Table   : '/home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/libs/mmmc/t018lo_1p6m_typical.captable'
+    RC-Corner PreRoute Res Factor         : 1
+    RC-Corner PreRoute Cap Factor         : 1
+    RC-Corner PostRoute Res Factor        : 1 {1 1 1}
+    RC-Corner PostRoute Cap Factor        : 1 {1 1 1}
+    RC-Corner PostRoute XCap Factor       : 1 {1 1 1}
+    RC-Corner PreRoute Clock Res Factor   : 1	[Derived from postRoute_res (effortLevel low)]
+    RC-Corner PreRoute Clock Cap Factor   : 1	[Derived from postRoute_cap (effortLevel low)]
+    RC-Corner PostRoute Clock Cap Factor  : 1 {1 1 1} 	[Derived from postRoute_cap (effortLevel low)]
+    RC-Corner PostRoute Clock Res Factor  : 1 {1 1 1} 	[Derived from postRoute_res (effortLevel low)]
+    RC-Corner PostRoute Clock coupling capacitance Factor : 1 {1 1 1} 
+Initializing multi-corner capacitance tables ... 
+Initializing multi-corner resistance tables ...
+Start generating vias ..
+#Skip building auto via since it is not turned on.
+Extracting standard cell pins and blockage ...... 
+Pin and blockage extraction finished
+Via generation completed.
+% Begin Load power constraints ... (date=10/18 09:24:46, mem=1543.3M)
+'set_default_switching_activity' finished successfully.
+** WARN:  (VOLTUS_POWR-3212): The 'set_power_analysis_mode -leakage_power_view |-dynamic_power_view|-analysis_view' will be obsolete in 18.20 release. Use 'set_analysis_view -leakage <> | -dynamic <>' to set leakage and dynamic power views.
+
+% End Load power constraints ... (date=10/18 09:24:46, total cpu=0:00:00.0, real=0:00:00.0, peak res=1549.9M, current mem=1549.9M)
+delay_tt_io tt_1p80v_25c
+% Begin load AAE data ... (date=10/18 09:24:47, mem=1590.0M)
+**WARN: (IMPESI-3388):	Glitch propagation was enabled without enabling the glitch reporting.  Enabling the glitch reporting because it is required when glitch propagation is enabled.  Fix the TCL by setting 'set_si_mode -enable_glitch_report true' to avoid this message.  To disable both, use 'set_si_mode -enable_glitch_propagation false -enable_glitch_report false'.
+AAE DB initialization (MEM=1854.19 CPU=0:00:00.2 REAL=0:00:00.0) 
+% End load AAE data ... (date=10/18 09:24:47, total cpu=0:00:00.8, real=0:00:00.0, peak res=1613.7M, current mem=1613.7M)
+Restoring CCOpt config...
+  Extracting original clock gating for jtag_clk...
+    clock_tree jtag_clk contains 244 sinks and 12 clock gates.
+  Extracting original clock gating for jtag_clk done.
+  Extracting original clock gating for core_clk...
+    clock_tree core_clk contains 42585 sinks and 1637 clock gates.
+  Extracting original clock gating for core_clk done.
+  The skew group core_clk/func was created. It contains 42585 sinks and 1 sources.
+  The skew group jtag_clk/func was created. It contains 244 sinks and 1 sources.
+**WARN: (IMPCCOPT-2332):	The property locked_originally is deprecated. It still works, but it may be removed in a future release.
+**WARN: (IMPCCOPT-2332):	The property locked_originally is deprecated. It still works, but it may be removed in a future release.
+**WARN: (IMPCCOPT-2332):	The property locked_originally is deprecated. It still works, but it may be removed in a future release.
+Restoring CCOpt config done.
+Total number of combinational cells: 377
+Total number of sequential cells: 160
+Total number of tristate cells: 7
+Total number of level shifter cells: 0
+Total number of power gating cells: 0
+Total number of isolation cells: 0
+Total number of power switch cells: 0
+Total number of pulse generator cells: 0
+Total number of always on buffers: 0
+Total number of retention cells: 0
+Total number of physical cells: 16
+List of usable buffers: BUFFD0BWP7T BUFFD10BWP7T BUFFD12BWP7T BUFFD1BWP7T BUFFD1P5BWP7T BUFFD2BWP7T BUFFD2P5BWP7T CKBD0BWP7T BUFFD3BWP7T BUFFD4BWP7T BUFFD5BWP7T BUFFD6BWP7T BUFFD8BWP7T CKBD10BWP7T CKBD12BWP7T CKBD1BWP7T CKBD2BWP7T CKBD3BWP7T CKBD4BWP7T CKBD6BWP7T CKBD8BWP7T DEL015BWP7T DEL02BWP7T DEL01BWP7T
+Total number of usable buffers: 24
+List of unusable buffers: GBUFFD1BWP7T GBUFFD3BWP7T GBUFFD2BWP7T GBUFFD8BWP7T
+Total number of unusable buffers: 4
+List of usable inverters: CKND0BWP7T CKND10BWP7T CKND12BWP7T CKND1BWP7T CKND2BWP7T CKND3BWP7T CKND4BWP7T CKND6BWP7T CKND8BWP7T INVD0BWP7T INVD10BWP7T INVD12BWP7T INVD1BWP7T INVD2BWP7T INVD1P5BWP7T INVD2P5BWP7T INVD3BWP7T INVD4BWP7T INVD5BWP7T INVD6BWP7T INVD8BWP7T
+Total number of usable inverters: 21
+List of unusable inverters: GINVD2BWP7T GINVD1BWP7T GINVD3BWP7T GINVD8BWP7T
+Total number of unusable inverters: 4
+List of identified usable delay cells: DEL0BWP7T DEL1BWP7T DEL2BWP7T DEL3BWP7T DEL4BWP7T
+Total number of identified usable delay cells: 5
+List of identified unusable delay cells:
+Total number of identified unusable delay cells: 0
+**WARN: (IMPCTE-107):	The following globals have been obsoleted since version . They will be removed in the next release. 
+timing_enable_separate_device_slew_effect_sensitivities
+#% End load design ... (date=10/18 09:24:49, total cpu=0:00:13.4, real=0:00:16.0, peak res=1716.1M, current mem=1687.6M)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPLF-58            42  MACRO '%s' has been found in the databas...
+WARNING   IMPLF-61             1  %d duplicated MACRO definitions have bee...
+WARNING   IMPLF-63             2  The layer '%s' referenced %s is not foun...
+WARNING   IMPLF-200            5  Pin '%s' in macro '%s' has no ANTENNAGAT...
+WARNING   IMPLF-201           32  Pin '%s' in macro '%s' has no ANTENNADIF...
+WARNING   IMPFP-3961          12  The techSite '%s' has no related standar...
+WARNING   IMPVL-159         1122  Pin '%s' of cell '%s' is defined in LEF ...
+WARNING   IMPDB-2078          12  Output pin %s of instance %s is connecte...
+WARNING   IMPESI-3388          1  Glitch propagation was enabled without e...
+WARNING   IMPOPT-3602          3  The specified path group name %s is not ...
+WARNING   IMPCCOPT-2332        3  The property %s is deprecated. It still ...
+WARNING   IMPCTE-107           1  The following globals have been obsolete...
+WARNING   IMPTCM-77            1  Option "%s" for command %s is obsolete a...
+WARNING   TECHLIB-302         18  No function defined for cell '%s'. The c...
+*** Message Summary: 1255 warning(s), 0 error(s)
+
+<CMD> setNanoRouteMode -drouteFixAntenna true -droutePostRouteSpreadWire false
+<CMD> selectNet {sram_wdata[0]}
+<CMD> editDelete -net {sram_wdata[0]} -type Signal
+<CMD> routeDesign -selected
+#routeDesign: cpu time = 00:00:00, elapsed time = 00:00:00, memory = 1687.63 (MB), peak = 1716.07 (MB)
+AAE_INFO: Pre Route call back at the beginning of routeDesign
+#**INFO: setDesignMode -flowEffort standard
+#**INFO: setDesignMode -powerEffort low
+**INFO: User settings:
+setNanoRouteMode -drouteFixAntenna                              true
+setNanoRouteMode -droutePostRouteSpreadWire                     false
+setNanoRouteMode -drouteStartIteration                          0
+setNanoRouteMode -drouteUseMinSpacingForBlockage                auto
+setNanoRouteMode -drouteUseMultiCutViaEffort                    low
+setNanoRouteMode -extractThirdPartyCompatible                   false
+setNanoRouteMode -grouteExpTdStdDelay                           31.8
+setNanoRouteMode -grouteExpTdUseTifTimingEngineForImportDesign  false
+setNanoRouteMode -routeAntennaCellName                          ANTENNABWP7T
+setNanoRouteMode -routeDesignRouteClockNetsFirst                true
+setNanoRouteMode -routeFillerInstPrefix                         FILLER
+setNanoRouteMode -routeInsertAntennaDiode                       true
+setNanoRouteMode -routeReInsertFillerCellList                   {FILL64BWP7T FILL32BWP7T FILL16BWP7T FILL8BWP7T FILL4BWP7T FILL2BWP7T FILL1BWP7T}
+setNanoRouteMode -routeReInsertFillerCellListFromFile           false
+setNanoRouteMode -routeReserveSpaceForMultiCut                  false
+setNanoRouteMode -routeSelectedNetOnly                          true
+setNanoRouteMode -routeStrictlyHonorNonDefaultRule              false
+setNanoRouteMode -routeWithEco                                  false
+setNanoRouteMode -routeWithLithoDriven                          false
+setNanoRouteMode -routeWithTimingDriven                         true
+setDesignMode -bottomRoutingLayer                               METAL2
+setDesignMode -congEffort                                       auto
+setDesignMode -earlyClockFlow                                   false
+setDesignMode -expressRoute                                     false
+setDesignMode -flowEffort                                       standard
+setDesignMode -powerEffort                                      low
+setDesignMode -process                                          180
+setDesignMode -propagateActivity                                true
+setDesignMode -topRoutingLayer                                  METAL6
+setExtractRCMode -coupled                                       false
+setExtractRCMode -coupling_c_th                                 3
+setExtractRCMode -effortLevel                                   low
+setExtractRCMode -engine                                        postRoute
+setExtractRCMode -minNetTermNrToBeInMem                         50
+setExtractRCMode -relative_c_th                                 0.03
+setExtractRCMode -total_c_th                                    5
+setDelayCalMode -accuracy_level                                 0
+setDelayCalMode -advanced_pincap_mode                           false
+setDelayCalMode -enable_high_fanout                             true
+setDelayCalMode -engine                                         aae
+setDelayCalMode -equivalent_waveform_model                      propagation
+setDelayCalMode -ignoreNetLoad                                  false
+setDelayCalMode -SIAware                                        false
+setDelayCalMode -socv_accuracy_mode                             low
+setSIMode -enable_double_clocking_check                         true
+setSIMode -enable_drv_with_delta_slew                           true
+setSIMode -enable_glitch_propagation                            true
+setSIMode -enable_logical_correlation                           true
+setSIMode -individual_attacker_simulation_filtering             true
+setSIMode -separate_delta_delay_on_data                         true
+
+#**INFO: multi-cut via swapping will be performed after routing.
+#**INFO: All auto set options tuned by routeDesign will be restored to their original settings on command completion.
+Begin checking placement ... (start mem=1931.3M, init mem=2159.8M)
+IO instance overlap:34
+*info: Placed = 376211         (Fixed = 53069)
+*info: Unplaced = 0           
+Placement Density:100.00%(7086975/7086975)
+Placement Density (including fixed std cells):100.00%(7375868/7375868)
+Finished checkPlace (total: cpu=0:00:04.8, real=0:00:05.0; vio checks: cpu=0:00:04.0, real=0:00:04.0; mem=2262.6M)
+
+changeUseClockNetStatus Option :  -noFixedNetWires 
+*** Changed status on (0) nets in Clock.
+*** End changeUseClockNetStatus (cpu=0:00:00.0, real=0:00:00.0, mem=2262.6M) ***
+#**INFO: auto set of droutePostRouteSwapVia to multiCut
+
+globalDetailRoute
+
+#Start globalDetailRoute on Sun Oct 18 09:24:55 2026
+#
+#Warning: design is detail-routed. Trial route is skipped!
+Initializing multi-corner capacitance tables ... 
+Initializing multi-corner resistance tables ...
+#num needed restored net=2
+#need_extraction net=0 (total=119941)
+#WARNING (NRDB-2120) Special net VSSPST is missing wiring shapes, will disable tie-net connections to this net.
+#WARNING (NRDB-2120) Special net VDDPST is missing wiring shapes, will disable tie-net connections to this net.
+#NanoRoute Version 21.16-s078_1 NR221206-1807/21_16-UB
+#Total number of trivial nets (e.g. < 2 pins) = 19632 (skipped).
+#Total number of nets with skipped attribute = 2 (skipped).
+#Total number of selected nets for routing = 1.
+#Total number of unselected nets (but routable) for routing = 100306 (skipped).
+#Total number of nets in the design = 119941.
+#1 routable net do not has any wires.
+#100308 skipped nets have only detail routed wires.
+#1 net will be global routed.
+#Start routing data preparation on Sun Oct 18 09:25:01 2026
+#
+#Minimum voltage of a net in the design = 0.000.
+#Maximum voltage of a net in the design = 3.300.
+#Voltage range [0.000 - 1.800] has 119925 nets.
+#Voltage range [1.800 - 3.300] has 1 net.
+#Voltage range [0.000 - 0.000] has 6 nets.
+#Voltage range [1.800 - 1.800] has 9 nets.
+#Build and mark too close pins for the same net.
+#Restoring pin access data from file /home/<course-account>/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_smaller_cpu/pnr/my_soc_top/backup/my_soc_top_postFiller.enc.dat/my_soc_top.apa ...
+#Done restoring pin access data
+#Initial pin access analysis.
+#Detail pin access analysis.
+# METAL1       H   Track-Pitch = 0.56000    Line-2-Via Pitch = 0.48500
+# METAL2       V   Track-Pitch = 0.56000    Line-2-Via Pitch = 0.56000
+# METAL3       H   Track-Pitch = 0.56000    Line-2-Via Pitch = 0.56000
+# METAL4       V   Track-Pitch = 0.56000    Line-2-Via Pitch = 0.56000
+# METAL5       H   Track-Pitch = 0.56000    Line-2-Via Pitch = 0.56000
+# METAL6       V   Track-Pitch = 1.12000    Line-2-Via Pitch = 0.95000
+#Bottom routing layer index=2(METAL2), bottom routing layer for shielding=2(METAL2), bottom shield layer=2(METAL2)
+#shield_bottom_stripe_layer=1(METAL1), shield_top_stripe_layer=6(METAL6)
+#pin_access_rlayer=2(METAL2)
+#shield_top_dpt_rlayer=-1 top_rlayer=6 top_trim_metal_rlayer=-1 rlayer_lowest=1 bottom_rlayer=2
+#enable_trim_layer_shield=F enable_dpt_layer_shield=F has_line_end_grid=F
+#cpu time = 00:00:00, elapsed time = 00:00:00, memory = 2110.02 (MB), peak = 2110.02 (MB)
+#Regenerating Ggrids automatically.
+#Auto generating G-grids with size=15 tracks, using layer METAL3's pitch = 0.56000.
+#Using automatically generated G-grids.
+#Done routing data preparation.
+#cpu time = 00:00:05, elapsed time = 00:00:05, memory = 2115.20 (MB), peak = 2115.20 (MB)
+#
+#Finished routing data preparation on Sun Oct 18 09:25:07 2026
+#
+#Cpu time = 00:00:05
+#Elapsed time = 00:00:05
+#Increased memory = 44.52 (MB)
+#Total memory = 2115.31 (MB)
+#Peak memory = 2115.31 (MB)
+#
+#
+#Start global routing on Sun Oct 18 09:25:07 2026
+#
+#
+#Start global routing initialization on Sun Oct 18 09:25:07 2026
+#
+#Number of eco nets is 0
+#
+#Start global routing data preparation on Sun Oct 18 09:25:07 2026
+#
+#Start routing resource analysis on Sun Oct 18 09:25:07 2026
+#
+#Routing resource analysis is done on Sun Oct 18 09:25:10 2026
+#
+#  Resource Analysis:
+#
+#               Routing  #Avail      #Track     #Total     %Gcell
+#  Layer      Direction   Track     Blocked      Gcell    Blocked
+#  --------------------------------------------------------------
+#  METAL2         V        2026        3510      137640    18.54%
+#  METAL3         H        2692        2844      137640    18.22%
+#  METAL4         V        2513        3023      137640    18.70%
+#  METAL5         H        3381        2155      137640     1.87%
+#  METAL6         V        2486         281      137640     1.60%
+#  --------------------------------------------------------------
+#  Total                  13100      43.68%      688200    11.79%
+#
+#  4007 nets (3.34%) with 1 preferred extra spacing.
+#
+#
+#
+#Global routing data preparation is done on Sun Oct 18 09:25:11 2026
+#
+#cpu time = 00:00:04, elapsed time = 00:00:04, memory = 2135.75 (MB), peak = 2135.75 (MB)
+#
+#
+#Global routing initialization is done on Sun Oct 18 09:25:11 2026
+#
+#cpu time = 00:00:04, elapsed time = 00:00:04, memory = 2137.93 (MB), peak = 2137.93 (MB)
+#
+#start global routing iteration 1...
+#cpu time = 00:00:00, elapsed time = 00:00:00, memory = 2138.87 (MB), peak = 2138.87 (MB)
+#
+#start global routing iteration 2...
+#cpu time = 00:00:01, elapsed time = 00:00:01, memory = 2138.91 (MB), peak = 2138.91 (MB)
+#
+#start global routing iteration 3...
+#cpu time = 00:00:01, elapsed time = 00:00:01, memory = 2145.26 (MB), peak = 2145.26 (MB)
+#
+#
+#Total number of trivial nets (e.g. < 2 pins) = 19632 (skipped).
+#Total number of nets with skipped attribute = 2 (skipped).
+#Total number of selected nets for routing = 1.
+#Total number of unselected nets (but routable) for routing = 100306 (skipped).
+#Total number of nets in the design = 119941.
+#
+#1 routable net has routed wires.
+#100308 skipped nets have only detail routed wires.
+#
+#Routed net constraints summary:
+#-----------------------------
+#        Rules   Unconstrained  
+#-----------------------------
+#      Default               1  
+#-----------------------------
+#        Total               1  
+#-----------------------------
+#
+#Routing constraints summary of the whole design:
+#------------------------------------------------
+#        Rules   Pref Extra Space   Unconstrained  
+#------------------------------------------------
+#      Default               4007           96302  
+#------------------------------------------------
+#        Total               4007           96302  
+#------------------------------------------------
+#
+#
+#  Congestion Analysis: (blocked Gcells are excluded)
+#
+#                 OverCon          
+#                  #Gcell    %Gcell
+#     Layer           (1)   OverCon
+#  --------------------------------
+#  METAL2        0(0.00%)   (0.00%)
+#  METAL3        0(0.00%)   (0.00%)
+#  METAL4        0(0.00%)   (0.00%)
+#  METAL5        0(0.00%)   (0.00%)
+#  METAL6        0(0.00%)   (0.00%)
+#  --------------------------------
+#     Total      0(0.00%)   (0.00%)
+#
+#  The worst congested Gcell overcon (routing demand over resource in number of tracks) = 1
+#  Overflow after GR: 0.00% H + 0.00% V
+#
+#Hotspot report including placement blocked areas
+[hotspot] +----------------+-------------------+-------------------+-------------------------------------+
+[hotspot] |      layer     |    max hotspot    |   total hotspot   |            hotspot bbox             |
+[hotspot] +----------------+-------------------+-------------------+-------------------------------------+
+[hotspot] |   METAL1(H)    |              1.57 |            105.44 |   784.00   219.52   846.72   282.24 |
+[hotspot] |   METAL2(V)    |              0.26 |              0.52 |    62.72   878.08   125.44   940.80 |
+[hotspot] |   METAL3(H)    |              0.00 |              0.00 |   (none)                            |
+[hotspot] |   METAL4(V)    |              0.00 |              0.00 |   (none)                            |
+[hotspot] |   METAL5(H)    |              0.00 |              0.00 |   (none)                            |
+[hotspot] |   METAL6(V)    |              0.00 |              0.00 |   (none)                            |
+[hotspot] +----------------+-------------------+-------------------+-------------------------------------+
+[hotspot] |      worst     | (METAL1)     1.57 | (METAL1)   105.44 |                                     |
+[hotspot] +----------------+-------------------+-------------------+-------------------------------------+
+[hotspot] |   all layers   |              0.00 |              0.00 |                                     |
+[hotspot] +----------------+-------------------+-------------------+-------------------------------------+
+Local HotSpot Analysis (blockage included) (3d): normalized congestion max/total hotspot area = 0.00/0.00 (area is in unit of 4 std-cell row bins)
+#Complete Global Routing.
+#Total number of nets with non-default rule or having extra spacing = 4007
+#Total wire length = 7099512 um.
+#Total half perimeter of net bounding box = 5677884 um.
+#Total wire length on LAYER METAL1 = 0 um.
+#Total wire length on LAYER METAL2 = 1736438 um.
+#Total wire length on LAYER METAL3 = 2250588 um.
+#Total wire length on LAYER METAL4 = 1469791 um.
+#Total wire length on LAYER METAL5 = 1107613 um.
+#Total wire length on LAYER METAL6 = 535081 um.
+#Total number of vias = 819573
+#Up-Via Summary (total 819573):
+#           
+#-----------------------
+# METAL1         369673
+# METAL2         306634
+# METAL3          99497
+# METAL4          32729
+# METAL5          11040
+#-----------------------
+#                819573 
+#
+#Max overcon = 0 track.
+#Total overcon = 0.00%.
+#Worst layer Gcell overcon rate = 0.00%.
+#
+#Global routing statistics:
+#Cpu time = 00:00:08
+#Elapsed time = 00:00:08
+#Increased memory = 28.50 (MB)
+#Total memory = 2143.82 (MB)
+#Peak memory = 2143.82 (MB)
+#
+#Finished global routing on Sun Oct 18 09:25:14 2026
+#
+#
+#cpu time = 00:00:00, elapsed time = 00:00:00, memory = 2132.89 (MB), peak = 2143.77 (MB)
+#Start Track Assignment.
+#Done with 1 horizontal wires in 12 hboxes and 3 vertical wires in 12 hboxes.
+#Done with 0 horizontal wires in 12 hboxes and 0 vertical wires in 12 hboxes.
+#Complete Track Assignment.
+#Total number of nets with non-default rule or having extra spacing = 4007
+#Total wire length = 7099508 um.
+#Total half perimeter of net bounding box = 5677884 um.
+#Total wire length on LAYER METAL1 = 0 um.
+#Total wire length on LAYER METAL2 = 1736434 um.
+#Total wire length on LAYER METAL3 = 2250588 um.
+#Total wire length on LAYER METAL4 = 1469791 um.
+#Total wire length on LAYER METAL5 = 1107613 um.
+#Total wire length on LAYER METAL6 = 535081 um.
+#Total number of vias = 819573
+#Up-Via Summary (total 819573):
+#           
+#-----------------------
+# METAL1         369673
+# METAL2         306634
+# METAL3          99497
+# METAL4          32729
+# METAL5          11040
+#-----------------------
+#                819573 
+#
+#cpu time = 00:00:02, elapsed time = 00:00:02, memory = 2147.47 (MB), peak = 2147.47 (MB)
+#
+#Routing data preparation, pin analysis, global routing and track assignment statistics:
+#Cpu time = 00:00:17
+#Elapsed time = 00:00:17
+#Increased memory = 76.87 (MB)
+#Total memory = 2147.55 (MB)
+#Peak memory = 2147.55 (MB)
+#Start reading timing information from file .timing_file_1230583.tif.gz ...
+#WARNING (NRCM-25) File .timing_file_1230583.tif.gz does not exist.
+#WARNING (NRDB-187) Cannot open file .timing_file_1230583.tif.gz.
+#WARNING (NRDB-121) No slack were found on nets, SI driven not effective.
+#
+#Start Detail Routing..
+#start initial detail routing ...
+#   Improving pin accessing ...
+#    elapsed time = 00:00:00, memory = 2149.97 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:00, memory = 2149.97 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:00, memory = 2165.03 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:01, memory = 2165.03 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:01, memory = 2165.03 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:01, memory = 2178.93 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:01, memory = 2178.93 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:01, memory = 2178.96 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:01, memory = 2178.96 (MB)
+#   Improving pin accessing ...
+#    elapsed time = 00:00:01, memory = 2178.96 (MB)
+#   number of violations = 0
+#230027 out of 376856 instances (61.0%) need to be verified(marked ipoed), dirty area = 50.1%.
+#   number of violations = 0
+#cpu time = 00:00:02, elapsed time = 00:00:02, memory = 2149.36 (MB), peak = 2170.15 (MB)
+#Complete Detail Routing.
+#Total number of nets with non-default rule or having extra spacing = 4007
+#Total wire length = 7099505 um.
+#Total half perimeter of net bounding box = 5677884 um.
+#Total wire length on LAYER METAL1 = 0 um.
+#Total wire length on LAYER METAL2 = 1736449 um.
+#Total wire length on LAYER METAL3 = 2250586 um.
+#Total wire length on LAYER METAL4 = 1469791 um.
+#Total wire length on LAYER METAL5 = 1107613 um.
+#Total wire length on LAYER METAL6 = 535066 um.
+#Total number of vias = 819567
+#Up-Via Summary (total 819567):
+#           
+#-----------------------
+# METAL1         369673
+# METAL2         306633
+# METAL3          99496
+# METAL4          32727
+# METAL5          11038
+#-----------------------
+#                819567 
+#
+#Total number of DRC violations = 0
+#Cpu time = 00:00:04
+#Elapsed time = 00:00:04
+#Increased memory = 1.82 (MB)
+#Total memory = 2149.38 (MB)
+#Peak memory = 2170.15 (MB)
+#
+#start routing for process antenna violation fix ...
+#cpu time = 00:00:01, elapsed time = 00:00:01, memory = 2147.05 (MB), peak = 2170.15 (MB)
+#
+#Total number of nets with non-default rule or having extra spacing = 4007
+#Total wire length = 7099505 um.
+#Total half perimeter of net bounding box = 5677884 um.
+#Total wire length on LAYER METAL1 = 0 um.
+#Total wire length on LAYER METAL2 = 1736449 um.
+#Total wire length on LAYER METAL3 = 2250586 um.
+#Total wire length on LAYER METAL4 = 1469791 um.
+#Total wire length on LAYER METAL5 = 1107613 um.
+#Total wire length on LAYER METAL6 = 535066 um.
+#Total number of vias = 819567
+#Up-Via Summary (total 819567):
+#           
+#-----------------------
+# METAL1         369673
+# METAL2         306633
+# METAL3          99496
+# METAL4          32727
+# METAL5          11038
+#-----------------------
+#                819567 
+#
+#Total number of DRC violations = 0
+#Total number of process antenna violations = 0
+#Total number of net violated process antenna rule = 0
+#
+#
+#Total number of nets with non-default rule or having extra spacing = 4007
+#Total wire length = 7099505 um.
+#Total half perimeter of net bounding box = 5677884 um.
+#Total wire length on LAYER METAL1 = 0 um.
+#Total wire length on LAYER METAL2 = 1736449 um.
+#Total wire length on LAYER METAL3 = 2250586 um.
+#Total wire length on LAYER METAL4 = 1469791 um.
+#Total wire length on LAYER METAL5 = 1107613 um.
+#Total wire length on LAYER METAL6 = 535066 um.
+#Total number of vias = 819567
+#Up-Via Summary (total 819567):
+#           
+#-----------------------
+# METAL1         369673
+# METAL2         306633
+# METAL3          99496
+# METAL4          32727
+# METAL5          11038
+#-----------------------
+#                819567 
+#
+#Total number of DRC violations = 0
+#Total number of process antenna violations = 0
+#Total number of net violated process antenna rule = 0
+#
+#
+#Start Post Route via swapping...
+#0.10% of area are rerouted by ECO routing.
+#   number of violations = 0
+#cpu time = 00:00:01, elapsed time = 00:00:01, memory = 2163.11 (MB), peak = 2170.15 (MB)
+#CELL_VIEW my_soc_top,init has no DRC violation.
+#Total number of DRC violations = 0
+#Total number of process antenna violations = 0
+#Total number of net violated process antenna rule = 0
+#No via is swapped.
+#Post Route via swapping is done.
+#Total number of nets with non-default rule or having extra spacing = 4007
+#Total wire length = 7099505 um.
+#Total half perimeter of net bounding box = 5677884 um.
+#Total wire length on LAYER METAL1 = 0 um.
+#Total wire length on LAYER METAL2 = 1736449 um.
+#Total wire length on LAYER METAL3 = 2250586 um.
+#Total wire length on LAYER METAL4 = 1469791 um.
+#Total wire length on LAYER METAL5 = 1107613 um.
+#Total wire length on LAYER METAL6 = 535066 um.
+#Total number of vias = 819567
+#Up-Via Summary (total 819567):
+#           
+#-----------------------
+# METAL1         369673
+# METAL2         306633
+# METAL3          99496
+# METAL4          32727
+# METAL5          11038
+#-----------------------
+#                819567 
+#
+#detailRoute Statistics:
+#Cpu time = 00:00:23
+#Elapsed time = 00:00:23
+#Increased memory = 15.63 (MB)
+#Total memory = 2163.19 (MB)
+#Peak memory = 2170.15 (MB)
+#
+#globalDetailRoute statistics:
+#Cpu time = 00:00:50
+#Elapsed time = 00:00:50
+#Increased memory = 2.36 (MB)
+#Total memory = 1906.54 (MB)
+#Peak memory = 2184.30 (MB)
+#Number of warnings = 5
+#Total number of warnings = 6
+#Number of fails = 0
+#Total number of fails = 0
+#Complete globalDetailRoute on Sun Oct 18 09:25:44 2026
+#
+#Default setup view is reset to func_tt_io.
+#Default setup view is reset to func_tt_io.
+AAE_INFO: Post Route call back at the end of routeDesign
+#routeDesign: cpu time = 00:00:55, elapsed time = 00:00:55, memory = 1882.77 (MB), peak = 2184.30 (MB)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   NRDB-2120            4  Special net %s is missing wiring shapes,...
+WARNING   NRDB-121             2  No slack were found on nets, SI driven n...
+WARNING   NRDB-187             2  Cannot open file %s.                     
+WARNING   NRCM-25              2  File %s does not exist.                  
+*** Message Summary: 5 warning(s), 0 error(s)
+
+<CMD> deselectAll
+<CMD> verifyProcessAntenna -report ../my_soc_top/my_soc_top_postAntennaFix3_antenna.rpt
+
+******* START VERIFY ANTENNA ********
+Report File: ../my_soc_top/my_soc_top_postAntennaFix3_antenna.rpt
+LEF Macro File: my_soc_top.antenna.lef
+5000 nets processed: 0 violations
+10000 nets processed: 0 violations
+15000 nets processed: 0 violations
+20000 nets processed: 0 violations
+25000 nets processed: 0 violations
+30000 nets processed: 0 violations
+35000 nets processed: 0 violations
+40000 nets processed: 0 violations
+45000 nets processed: 0 violations
+50000 nets processed: 0 violations
+55000 nets processed: 0 violations
+60000 nets processed: 0 violations
+65000 nets processed: 0 violations
+70000 nets processed: 0 violations
+75000 nets processed: 0 violations
+80000 nets processed: 0 violations
+85000 nets processed: 0 violations
+90000 nets processed: 0 violations
+95000 nets processed: 0 violations
+100000 nets processed: 0 violations
+105000 nets processed: 0 violations
+110000 nets processed: 0 violations
+115000 nets processed: 0 violations
+Verification Complete: 0 Violations
+******* DONE VERIFY ANTENNA ********
+(CPU Time: 0:00:06.7  MEM: 0.000M)
+
+<CMD> verify_drc -check_only default -limit 100000 -report ../my_soc_top/my_soc_top_postAntennaFix3_drc.rpt
+#-limit 100000                           # int, default=100000, user setting
+#-check_same_via_cell true               # bool, default=false, user setting
+#-report ../my_soc_top/my_soc_top_postAntennaFix3_drc.rpt # string, default="", user setting
+ *** Starting Verify DRC (MEM: 2315.4) ***
+
+  VERIFY DRC ...... Starting Verification
+  VERIFY DRC ...... Initializing
+  VERIFY DRC ...... Deleting Existing Violations
+  VERIFY DRC ...... Creating Sub-Areas
+  VERIFY DRC ...... Using new threading
+
+  Verification Complete : 0 Viols.
+
+ *** End Verify DRC (CPU: 0:00:34.7  ELAPSED TIME: 35.00  MEM: 256.1M) ***
+
+<CMD> verifyConnectivity -type regular -error 100000 -report ../my_soc_top/my_soc_top_postAntennaFix3_signal.rpt
+VERIFY_CONNECTIVITY use new engine.
+
+******** Start: VERIFY CONNECTIVITY ********
+Start Time: Sun Oct 18 09:26:26 2026
+
+Design Name: my_soc_top
+Database Units: 2000
+Design Boundary: (0.0000, 0.0000) (3100.1600, 3100.1600)
+Error Limit = 100000; Warning Limit = 50
+Check specified nets
+**WARN: (IMPVFC-97):	IO pin clk_i of net clk_i has not been assigned. Please make sure it is assigned and rerun verifyConnectivity.
+**WARN: (IMPVFC-97):	IO pin rst_ni of net rst_ni has not been assigned. Please make sure it is assigned and rerun verifyConnectivity.
+**WARN: (IMPVFC-97):	IO pin tck_i of net tck_i has not been assigned. Please make sure it is assigned and rerun verifyConnectivity.
+**WARN: (IMPVFC-97):	IO pin tms_i of net tms_i has not been assigned. Please make sure it is assigned and rerun verifyConnectivity.
+**WARN: (IMPVFC-97):	IO pin td_i of net td_i has not been assigned. Please make sure it is assigned and rerun verifyConnectivity.
+**WARN: (IMPVFC-97):	IO pin td_o of net td_o has not been assigned. Please make sure it is assigned and rerun verifyConnectivity.
+**** 09:26:26 **** Processed 5000 nets.
+**** 09:26:26 **** Processed 10000 nets.
+**** 09:26:27 **** Processed 15000 nets.
+**** 09:26:27 **** Processed 20000 nets.
+**** 09:26:27 **** Processed 25000 nets.
+**** 09:26:27 **** Processed 30000 nets.
+**** 09:26:27 **** Processed 35000 nets.
+**** 09:26:27 **** Processed 40000 nets.
+**** 09:26:28 **** Processed 45000 nets.
+**** 09:26:28 **** Processed 50000 nets.
+**** 09:26:28 **** Processed 55000 nets.
+**** 09:26:28 **** Processed 60000 nets.
+**** 09:26:28 **** Processed 65000 nets.
+**** 09:26:29 **** Processed 70000 nets.
+**** 09:26:29 **** Processed 75000 nets.
+**** 09:26:29 **** Processed 80000 nets.
+**** 09:26:29 **** Processed 85000 nets.
+**** 09:26:29 **** Processed 90000 nets.
+**** 09:26:29 **** Processed 95000 nets.
+**** 09:26:30 **** Processed 100000 nets.
+**** 09:26:30 **** Processed 105000 nets.
+**** 09:26:30 **** Processed 110000 nets.
+**** 09:26:30 **** Processed 115000 nets.
+Net VDDPST: no routing.
+Net VSSPST: no routing.
+
+Begin Summary 
+    2 Problem(s) (IMPVFC-98): Net has no global routing and no special routing.
+    2 total info(s) created.
+End Summary
+
+End Time: Sun Oct 18 09:26:30 2026
+Time Elapsed: 0:00:04.0
+
+******** End: VERIFY CONNECTIVITY ********
+  Verification Complete : 2 Viols.  0 Wrngs.
+  (CPU Time: 0:00:04.1  MEM: 0.000M)
+
+<CMD> saveDesign ../my_soc_top/backup/my_soc_top_postAntennaFix3.enc
+#% Begin save design ... (date=10/18 09:26:30, mem=1901.3M)
+% Begin Save ccopt configuration ... (date=10/18 09:26:30, mem=1901.3M)
+% End Save ccopt configuration ... (date=10/18 09:26:32, total cpu=0:00:01.5, real=0:00:01.0, peak res=1901.3M, current mem=1898.2M)
+% Begin Save netlist data ... (date=10/18 09:26:32, mem=1918.0M)
+Writing Binary DB to ../my_soc_top/backup/my_soc_top_postAntennaFix3.enc.dat/my_soc_top.v.bin in single-threaded mode...
+% End Save netlist data ... (date=10/18 09:26:32, total cpu=0:00:00.3, real=0:00:00.0, peak res=1918.0M, current mem=1918.0M)
+Saving symbol-table file ...
+Saving congestion map file ../my_soc_top/backup/my_soc_top_postAntennaFix3.enc.dat/my_soc_top.route.congmap.gz ...
+% Begin Save AAE data ... (date=10/18 09:26:34, mem=1921.1M)
+Saving AAE Data ...
+**WARN: (IMPESI-3388):	Glitch propagation was enabled without enabling the glitch reporting.  Enabling the glitch reporting because it is required when glitch propagation is enabled.  Fix the TCL by setting 'set_si_mode -enable_glitch_report true' to avoid this message.  To disable both, use 'set_si_mode -enable_glitch_propagation false -enable_glitch_report false'.
+AAE DB initialization (MEM=2338.47 CPU=0:00:00.1 REAL=0:00:00.0) 
+% End Save AAE data ... (date=10/18 09:26:34, total cpu=0:00:00.2, real=0:00:00.0, peak res=1937.2M, current mem=1937.2M)
+**WARN: (IMPCTE-104):	The constraint mode of this inactive view 'func_tt_1p80v_25c' has been modified and may need to be reanalyzed to ensure proper timing results. To reanalyze timing for this view make the view active using 'set_analysis_view' and run timing analysis.
+Type 'man IMPCTE-104' for more detail.
+Saving preference file ../my_soc_top/backup/my_soc_top_postAntennaFix3.enc.dat/gui.pref.tcl ...
+Saving mode setting ...
+Saving global file ...
+% Begin Save floorplan data ... (date=10/18 09:26:36, mem=1941.5M)
+Saving floorplan file ...
+Convert 0 swires and 0 svias from compressed groups
+% End Save floorplan data ... (date=10/18 09:26:36, total cpu=0:00:00.3, real=0:00:00.0, peak res=1941.9M, current mem=1941.9M)
+Saving PG file ../my_soc_top/backup/my_soc_top_postAntennaFix3.enc.dat/my_soc_top.pg.gz, version#2, (Created by Innovus v21.16-s078_1 on Sun Oct 18 09:26:36 2026)
+*** Completed savePGFile (cpu=0:00:00.2 real=0:00:01.0 mem=2346.6M) ***
+Saving Drc markers ...
+... 36 markers are saved ...
+... 0 geometry drc markers are saved ...
+... 0 antenna drc markers are saved ...
+% Begin Save placement data ... (date=10/18 09:26:37, mem=1935.9M)
+** Saving stdCellPlacement_binary (version# 2) ...
+Save Adaptive View Pruning View Names to Binary file
+% End Save placement data ... (date=10/18 09:26:38, total cpu=0:00:00.2, real=0:00:01.0, peak res=1935.9M, current mem=1935.9M)
+% Begin Save routing data ... (date=10/18 09:26:38, mem=1935.9M)
+Saving route file ...
+*** Completed saveRoute (cpu=0:00:00.8 real=0:00:01.0 mem=2341.6M) ***
+% End Save routing data ... (date=10/18 09:26:39, total cpu=0:00:00.9, real=0:00:01.0, peak res=1936.6M, current mem=1936.6M)
+Saving property file ../my_soc_top/backup/my_soc_top_postAntennaFix3.enc.dat/my_soc_top.prop
+*** Completed saveProperty (cpu=0:00:00.2 real=0:00:00.0 mem=2344.6M) ***
+#Saving pin access data to file ../my_soc_top/backup/my_soc_top_postAntennaFix3.enc.dat/my_soc_top.apa ...
+#
+% Begin Save power constraints data ... (date=10/18 09:26:40, mem=1937.1M)
+% End Save power constraints data ... (date=10/18 09:26:40, total cpu=0:00:00.0, real=0:00:00.0, peak res=1937.2M, current mem=1937.2M)
+rc_tt_1p80v_25c
+Generated self-contained design my_soc_top_postAntennaFix3.enc.dat
+#% End save design ... (date=10/18 09:26:41, total cpu=0:00:06.7, real=0:00:11.0, peak res=1941.9M, current mem=1937.8M)
+
+*** Summary of all messages that are not suppressed in this session:
+Severity  ID               Count  Summary                                  
+WARNING   IMPESI-3388          1  Glitch propagation was enabled without e...
+WARNING   IMPCTE-104           1  The constraint mode of this inactive vie...
+*** Message Summary: 2 warning(s), 0 error(s)
+
+
+*** Memory Usage v#1 (Current mem = 2381.949M, initial mem = 492.910M) ***
+*** Message Summary: 1268 warning(s), 0 error(s)
+
+--- Ending "Innovus" (totcpu=0:02:41, real=0:02:29, mem=2381.9M) ---
