@@ -4,6 +4,8 @@ open_checkpoint $input
 file mkdir $out
 source [file join [file dirname [info script]] ../../hardware/fpga/scripts/constrain_dmi_cdc.tcl]
 audit_dmi_cdc [file join $out dmi_constraints.tsv]
+source [file join [file dirname [info script]] ../../hardware/fpga/scripts/audit_jtag_io.tcl]
+audit_jtag_io [file join $out io_audit]
 report_methodology -file [file join $out route_methodology.rpt]
 report_cdc -details -file [file join $out cdc_details.rpt]
 report_clock_interaction -file [file join $out clock_interaction.rpt]

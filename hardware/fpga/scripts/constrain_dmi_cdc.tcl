@@ -37,6 +37,12 @@ proc constrain_dmi_cdc {} {
     set reset_pins [get_pins -of_objects $reset_cells -filter {REF_PIN_NAME == CLR}]
     if {[llength $reset_pins] != 4} {error "Expected four TCK reset synchronizer CLR pins"}
     set_false_path -to $reset_pins
+    # Physical pushbutton is asynchronous. Exclude only assertion into the
+    # two top-level reset synchronizer banks (system and LED TCK domains).
+    set button_regs [get_cells -hier -filter {NAME =~ rst_sync_q_reg* || NAME =~ tck_reset_q_reg*}]
+    set button_clr [get_pins -of_objects $button_regs -filter {REF_PIN_NAME == CLR}]
+    if {[llength $button_clr] != 4} {error "Expected four top-level reset synchronizer CLR pins"}
+    set_false_path -from [get_ports rst_ni] -to $button_clr
 }
 proc audit_dmi_cdc {path} {
     set f [open $path w]

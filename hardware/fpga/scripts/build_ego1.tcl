@@ -169,6 +169,8 @@ if {[catch {
     set stage route
     route_design
     audit_dmi_cdc [file join $out dmi_constraints.tsv]
+    source [file join $repo hardware/fpga/scripts/audit_jtag_io.tcl]
+    audit_jtag_io [file join $out io_audit]
     write_checkpoint -force [file join $out route.dcp]
     reports route
     bram_guard route

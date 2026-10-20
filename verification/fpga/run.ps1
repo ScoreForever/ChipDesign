@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Prepare','Program','Gdb','Board','Recovery','Rtl','Audit','Report','Run')]
+    [ValidateSet('Prepare','Program','Gdb','Board','Recovery','Link','Rtl','Audit','Report','Run')]
     [string]$Stage = 'Run',
     [Parameter(Mandatory)][string]$Output,
     [string]$Bitstream = '',
@@ -101,16 +101,25 @@ function Do-Stage([string]$Name) {
             $linuxRepo=Linux-Path $repo; $linuxOut=Linux-Path $out
             Invoke-Checked 'wsl.exe' @('-d',$Distro,'--exec','python3',"$linuxRepo/verification/fpga/workflow.py",'recovery','--output',$linuxOut,'--resets',"$Resets") (Join-Path $out 'recovery_console.log')
         }
+        Link {
+            Deployment-Identity
+            $linuxRepo=Linux-Path $repo; $linuxOut=Linux-Path $out
+            Invoke-Checked 'wsl.exe' @('-d',$Distro,'--exec','python3',"$linuxRepo/verification/fpga/link_check.py",'--output',$linuxOut) (Join-Path $out 'link_console.log')
+        }
         Rtl {
             $manifest=Join-Path $out 'manifest.json'
             if (!(Test-Path -LiteralPath $manifest)) { throw 'Prepare first.' }
             Invoke-Checked $Python @("$repo/hardware/npu/scripts/run_tinycnn8_fused_test.py",'--summary',"$out/rtl_fused_summary.json") (Join-Path $out 'rtl_fused.log')
             # Invoke through the current PowerShell executable to capture a native exit code.
             Invoke-Checked (Get-Process -Id $PID).Path @('-NoProfile','-File',"$repo/hardware/soc/sim/scripts/run_structure_regression.ps1",'-Config','fpga') (Join-Path $out 'rtl_soc.log')
+            Invoke-Checked $Python @("$repo/verification/fpga/test_report.py") (Join-Path $out 'evidence_tests.log')
+            Invoke-Checked (Get-Process -Id $PID).Path @('-NoProfile','-File',"$repo/verification/fpga/run_cdc_reset.ps1",'-Output',"$out/cdc_reset") (Join-Path $out 'cdc_reset.log')
             Json (Join-Path $out 'rtl_receipt.json') @{
                 status='PASS'; manifest_sha256=(Sha $manifest); completed_utc=[DateTime]::UtcNow.ToString('o')
                 fused_log_sha256=(Sha "$out/rtl_fused.log"); soc_log_sha256=(Sha "$out/rtl_soc.log")
                 fused_summary_sha256=(Sha "$out/rtl_fused_summary.json")
+                evidence_tests_sha256=(Sha "$out/evidence_tests.log"); cdc_reset_sha256=(Sha "$out/cdc_reset.log")
+                cdc_sim_sha256=(Sha "$out/cdc_reset/sim.log")
             }
         }
         Audit {
@@ -128,6 +137,7 @@ function Do-Stage([string]$Name) {
                 drc_sha256=(Sha "$audit/route_drc.rpt")
                 timing_json_sha256=(Sha "$audit/timing.json"); dmi_constraints_sha256=(Sha "$audit/dmi_constraints.tsv")
                 clock_interaction_sha256=(Sha "$audit/clock_interaction.rpt"); exceptions_sha256=(Sha "$audit/exceptions_coverage.rpt")
+                jtag_io_sha256=(Sha "$audit/io_audit/jtag_io.tsv")
                 build_identity_sha256=(Sha $buildIdentityPath)
                 completed_utc=[DateTime]::UtcNow.ToString('o')
             }
@@ -141,6 +151,6 @@ function Do-Stage([string]$Name) {
 Push-Location $repo
 try {
     if ($Stage -eq 'Run') {
-        foreach ($step in @('Gdb','Rtl','Board','Recovery','Audit','Report')) { Do-Stage $step }
+        foreach ($step in @('Gdb','Rtl','Board','Recovery','Link','Audit','Report')) { Do-Stage $step }
     } else { Do-Stage $Stage }
 } finally { Pop-Location }

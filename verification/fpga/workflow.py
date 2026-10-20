@@ -115,6 +115,9 @@ def prepare(args):
     checked([prefix+'objdump','-d',out/'validation.elf'],out/'validation.dump')
     sources=[Path(__file__),ROOT/'verification/fpga/report.py',ROOT/'verification/fpga/run.ps1',
         ROOT/'verification/fpga/audit_cdc.tcl',ROOT/'verification/fpga/gdb_check.gdb',
+        ROOT/'software/host/lab6_ft232h.cfg',ROOT/'software/host/lab6_cv32e40p.cfg',
+        ROOT/'scripts/lab6/run.sh',
+        ROOT/'verification/fpga/link_check.py',ROOT/'verification/fpga/test_report.py',ROOT/'verification/fpga/run_cdc_reset.ps1',
         fw/'start.S',fw/'validate.c',fw/'link.ld',ROOT/'software/drivers/npu_mmio.h',
         ROOT/'hardware/npu/tools/tinycnn8_golden.py',ROOT/'software/golden_model.py']
     # Freeze the hardware inputs too: a later source edit invalidates this run.
@@ -122,7 +125,7 @@ def prepare(args):
     snapshot=out/'source_snapshot';snapshot.mkdir()
     for source in sources:
         dest=snapshot/source.relative_to(ROOT);dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(source.read_bytes())
-    manifest=dict(schema=2,cases=cases,firmware_sha256=digest(out/'validation.bin'),
+    manifest=dict(schema=3,cases=cases,firmware_sha256=digest(out/'validation.bin'),
         prepared_utc=datetime.now(timezone.utc).isoformat(),
         model_package_sha256=digest(package),toolchain=checked([prefix+'gcc','--version']).splitlines()[0],
         commit=checked(['git','rev-parse','HEAD']).strip(),

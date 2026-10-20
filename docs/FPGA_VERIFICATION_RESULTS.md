@@ -1,6 +1,6 @@
 # FPGA 分层验证结果与边界
 
-> 下文为CDC修复前的历史基线。当前修复版结果见[修复与验收记录](FPGA_CDC_CLOSURE_20261020.md)和[最新机器汇总](../verification/fpga/results/2026-10-20-cdc/report.json)，剩余测试问题见[审查记录](FPGA_TEST_REVIEW_20261020.md)。旧CDC告警不再代表当前网表。
+> 下文为CDC修复前的历史基线。最新结果见[JTAG时序处理记录](JTAG_IO_TIMING.md)与[机器汇总](../verification/fpga/results/2026-10-20-jtag-io/report.json)，CDC修复经过见[历史记录](FPGA_CDC_CLOSURE_20261020.md)，剩余测试问题见[审查记录](FPGA_TEST_REVIEW_20261020.md)。旧告警不再代表当前网表。
 
 2026-10-20，验证对象为 `main@9d25b09` 加本地 TCK H16/J5第21脚约束，50MHz。
 本次未改 CPU/NPU/JTAG RTL。比特流 SHA256：`015e93fa87080f09380b687ffbdc8c5923483fc7e443555280c049a12e02a316`。

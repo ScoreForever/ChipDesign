@@ -1,12 +1,12 @@
 # main + H16 FPGA 验证工作流
 
 > 2026-10-20 后续修复见 [CDC 与门禁修复记录](../../docs/FPGA_CDC_CLOSURE_20261020.md)。
-> 当前执行器要求 schema=2 和同次构建的 `build_identity.json`。下方示例使用 CDC 修复后的新构建；schema=1 旧证据仅供历史追溯，不回填升级。TIMING-18 仍阻止完整签核。
+> 当前执行器要求 schema=3、同次构建的 `build_identity.json` 和有效外部IO路径审计。使用 `build/fpga_jtag_io_20261020_r2/`；schema=1/2旧证据仅供历史追溯。新约束在[已声明的短线接口模型](../../docs/JTAG_IO_TIMING.md)内关闭TIMING-18；物理传播/TMS输出包络尚非实测保证。
 
 本工作流把“生成向量 → 明确烧写对象 → CPU/GDB → RTL/板上比对 → 复位恢复 → 实现审计 → 汇总门禁”串起来。
 这是有限的定向和随机回归，不提供 RTL 穷尽证明。任何阶段失败、文件哈希变化、缺失用例都不能签核；功能通过也不能自动豁免 CDC。
 
-当前CDC修复版的[结果汇总](results/2026-10-20-cdc/report.md)和[机器汇总](results/2026-10-20-cdc/report.json)为功能PASS、实现BLOCKED（TIMING-18）。修复前的[历史快照](results/2026-10-20/report.md)另行保留。完整证据保存在本机build目录，未包含在仓库中；哈希及时间对应验证当时版本。
+最新外部IO版本的[结果汇总](results/2026-10-20-jtag-io/report.md)和[机器汇总](results/2026-10-20-jtag-io/report.json)单独保存。此前[CDC修复版](results/2026-10-20-cdc/report.md)与[最初历史快照](results/2026-10-20/report.md)保持原样。完整证据在本机build目录，未随Git发布。
 
 当前验证对象：以 `main` 提交 `9d25b0965ba4c190c4ec352d4f4b9b5b5920273b` 为基线，加本地 CDC 复位/约束修复，以及 **TCK → J5 第21脚 / H16**。
 TDI18、TDO19、TMS20、GND33/34、VREF35/36；第17脚留空。系统50MHz，TCK约束1MHz，测试适配器500kHz。
@@ -22,9 +22,9 @@ CPU/NPU计算逻辑未改，JTAG复位同步、同步链属性及约束已修改
 
 ```powershell
 $out = 'build/fpga_validation_' + (Get-Date -Format 'yyyyMMdd_HHmmss')
-$bit = 'build/fpga_cdc_closure_20261020_r2/fpga_top.bit'
-$dcp = 'build/fpga_cdc_closure_20261020_r2/route.dcp'
-$hash = 'daf0bdd6f7e264864b3203330848f612f1e13afe50e39d5b875673977f237929'
+$bit = 'build/fpga_jtag_io_20261020_r2/fpga_top.bit'
+$dcp = 'build/fpga_jtag_io_20261020_r2/route.dcp'
+$hash = 'd45dc5ee146f71a7247886d1eba462391ea139ba0de283db4d85122af848e368'
 
 ./verification/fpga/run.ps1 -Stage Prepare -Output $out -Soak 100
 ./verification/fpga/run.ps1 -Stage Program -Output $out -Bitstream $bit -BitstreamSha256 $hash -CableSerial '1234-tulA'
@@ -45,7 +45,7 @@ $hash = 'daf0bdd6f7e264864b3203330848f612f1e13afe50e39d5b875673977f237929'
 ./verification/fpga/run.ps1 -Stage Run -Output $out -Bitstream $bit -BitstreamSha256 $hash -Checkpoint $dcp
 ```
 
-`Run` 依次执行 Gdb、Rtl、Board、Recovery、Audit、Report。也能用 `-Stage` 单独执行尚未执行的阶段。
+`Run` 依次执行 Gdb、Rtl、Board、Recovery、Link、Audit、Report。Rtl包含原有两套回归、11项证据检查及停TCK/未决事务复位专项。Link检查10/100/500/1000kHz名义适配器设置，每档8轮随机SRAM与BootROM读写，恢复scratch并保持CPU暂停。也能用 `-Stage` 单独执行尚未执行的阶段。
 已有日志/结果目录会被拒绝覆盖，避免将不同运行混为一份。发现失败后保留证据，修复后使用新目录；不要手改失败结果。
 如果重新上电、重新配置FPGA或更改接线，先重新烧写，之后再运行全部板上阶段。程序装入易失SRAM，测试结束CPU保持halt。
 
@@ -78,15 +78,18 @@ CPU固件不包含预期输出，期望值只存在主机端。独立golden采�
 - `board/*.bin`、`board/summary.json`：逐组原始读回、logits、性能与负向/IRQ计数。
 - `recovery/`：全区内存模式、完整读回、备份和每轮复位恢复状态。
 - `rtl_*`：两个RTL回归的日志与绑定清单的运行记录。
+- `evidence_tests.log`、`cdc_reset/`：标准入口中的证据负向检查与专项复位仿真。
+- `link/summary.json`：四档JTAG名义频率的数据比较；不代表示波器频率/眼图测量。
 - `audit/`：route.dcp身份、CDC/时序/DRC/方法学报告。
+- `audit/io_audit/`：六组实际外部setup/hold路径、有效延迟值、等价边沿计数及最小slack。
 - `report.json/md`：对上述证据再次校验后生成的最终结果。
 
 `report.py` 退出码：0=声明范围内门禁通过；1=失败/证据不完整/身份不一致；2=功能证据通过但实现签核仍有阻塞。
-PowerShell遇到非0会抛错并停止。当前设计**预期返回2**，这不应通过屏蔽告警改为0。
+PowerShell遇到非0会抛错并停止。通过外部接口设计模型时`physical_status=PASS_WITH_ASSUMPTIONS`，不代表板级电气实测认证；若关键门禁未关闭则返回2，不能屏蔽告警改为0。
 重读已有结果可执行：
 
 ```powershell
-& 'C:/Users/Lenovo/.conda/envs/ai_env/python.exe' verification/fpga/report.py --output build/fpga_validation_cdc_20261020_r3
+& 'C:/Users/Lenovo/.conda/envs/ai_env/python.exe' verification/fpga/report.py --output build/fpga_validation_jtag_io_20261020
 ```
 
 ## 实现签核状态
@@ -94,7 +97,7 @@ PowerShell遇到非0会抛错并停止。当前设计**预期返回2**，这不�
 1. 已关闭旧网表 `CDC-7 Critical 23`：JTAG复位改为TCK域同步释放；新网表此项为0。
 2. 已关闭 `CDC-2 Warning 2`：应答同步级已标记 `ASYNC_REG`，新网表此项为0。
 3. 已关闭异步时钟组切断DMI最大延迟的问题：现按data/req/ack六组端点约束并检查实际路径，全部满足20ns上限；保留75条CDC-15握手结构告警可见，不等于协议形式证明。
-4. 仍未关闭 `TIMING-18`：外部IO延迟假设未完整表达，需要依据下载器、TCK采样边沿和板级路径建立输入/输出约束。LED等非时序接口也应作有依据的分类。
+4. `TIMING-18`已在声明的FT232H短线接口模型内归零：外部min/max及等价参考边沿、按键/LED分类均被审计。≤30cm直连、传播0..5ns、TMS输出包络等条件保留为假设；换线缆/适配器/采样边沿必须重建模型。
 
 后续修复仍应闭环：修复 → 新bit/dcp → 新烧写记录 → 全量工作流 → CDC/时序复审。测试本身的剩余缺口见[测试审查](../../docs/FPGA_TEST_REVIEW_20261020.md)。
 尚未开展形式证明/等价检查、完整CPU ISA符合性、功能/代码覆盖率收敛、布局后时序仿真、温压/电气裕量、物理按键/PLL丢锁测试及真实语音数据准确率。有限回归通过不能替代这些验证。

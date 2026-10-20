@@ -36,6 +36,26 @@ def verify_dmi_constraints(out, audit):
         require(int(row['endpoints'])==int(row['paths'])>0,'DMI paths cut or missing')
         require(math.isfinite(bound) and 0<bound<=20.001 and math.isfinite(slack) and slack>=0,'DMI effective timing invalid')
 
+def verify_jtag_io(out, audit):
+    path=out/'audit/io_audit/jtag_io.tsv'
+    require(sha(path)==audit['jtag_io_sha256'],'JTAG IO timing evidence changed')
+    with path.open() as f: rows=list(csv.DictReader(f,delimiter='\t'))
+    require(len(rows)==6 and {(r['port'],r['type']) for r in rows}==
+        {(p,t) for p in ('td_i','tms_i','td_o') for t in ('max','min')},'JTAG IO coverage incomplete')
+    for row in rows:
+        maximum=row['type']=='max'
+        delay=(41.0 if maximum else -20.0) if row['port']=='td_o' else (32.5 if maximum else -25.0)
+        actual=tuple(float(row[k]) for k in ('io_delay_ns','launch_edge_ns','capture_edge_ns'))
+        capture=1000.0 if maximum else 0.0
+        direct=(delay,500.0,capture)
+        equivalent=(delay+500,500.0,capture+500) if row['port']=='td_o' else (delay+500,0.0,capture)
+        require(all(math.isfinite(x) for x in actual) and any(all(abs(x-y)<0.001 for x,y in zip(actual,form)) for form in (direct,equivalent)),'JTAG IO delay/edge mismatch')
+        require(int(row['direct_paths'])>=0 and int(row['equivalent_paths'])>=0 and
+            int(row['direct_paths'])+int(row['equivalent_paths'])==int(row['paths']),'JTAG IO representation coverage mismatch')
+        slack=float(row['min_slack_ns'])
+        require(int(row['paths'])>0 and math.isfinite(slack) and slack>=0,'JTAG IO paths cut or timing failed')
+    return rows
+
 def verify_reset(out, item, expected):
     require(item['status']=='PASS' and item['jobs']==2,'Reset recovery incomplete')
     require(item['logits']==expected,'Reset golden mismatch')
@@ -52,7 +72,7 @@ def verify_reset(out, item, expected):
 
 def collect(out):
     manifest=load(out/'manifest.json'); mh=sha(out/'manifest.json')
-    require(manifest['schema']==2,'Legacy evidence lacks hardened receipts; preserve it and run a new validation directory')
+    require(manifest['schema']==3,'Legacy evidence lacks external IO audit; preserve it and run a new validation directory')
     for name,h in manifest['source_sha256'].items():
         require(sha(ROOT/name)==h,'Live source changed: '+name)
         require(sha(out/'source_snapshot'/name)==h,'Source snapshot changed: '+name)
@@ -111,6 +131,17 @@ def collect(out):
     require('PASS structure regression;' in read(out/'rtl_soc.log'),'SoC RTL incomplete')
     require(len(fused['units'])==7 and len(fused['negative_event_checks'])==10 and fused['element_comparisons']>0,'RTL coverage incomplete')
     require(len(fused['cases'])>=21 and len(set(fused['units']))==7,'RTL cases/units incomplete')
+    for file,key in (('evidence_tests.log','evidence_tests_sha256'),('cdc_reset.log','cdc_reset_sha256'),('cdc_reset/sim.log','cdc_sim_sha256')):
+        require(sha(out/file)==rtl[key],'Special regression log changed')
+    require('CDC_RESET_REGRESSION=PASS' in read(out/'cdc_reset.log') and 'PASS CDC reset:' in read(out/'cdc_reset/sim.log'),'CDC reset regression incomplete')
+    evidence=read(out/'evidence_tests.log');count=re.search(r'Ran (\d+) tests',evidence)
+    require(count and int(count[1])>=11 and re.search(r'(?m)^OK',evidence),'Evidence negative tests incomplete')
+    link=load(out/'link/summary.json')
+    require(link['status']=='PASS' and link['manifest_sha256']==mh,'Link sweep failed or incomplete')
+    require(len(link['cases'])==32 and {(c['khz'],c['trial']) for c in link['cases']}==
+        {(f,t) for f in (10,100,500,1000) for t in range(8)},'Link frequency coverage incomplete')
+    for c in link['cases']:
+        require(len(c['expected'])==16 and c['expected']==c['readback'] and c['bootrom']==[0x800002b7,0x28293,0x28067],'Link sweep data mismatch')
     audit=load(out/'audit/receipt.json')
     require(audit['manifest_sha256']==mh and audit['bitstream_sha256']==deployment['bitstream_sha256'],'Audit provenance mismatch')
     require(sha(audit['checkpoint'])==audit['checkpoint_sha256'],'Routed checkpoint changed')
@@ -120,6 +151,7 @@ def collect(out):
     for name,key in (('clock_interaction.rpt','clock_interaction_sha256'),('exceptions_coverage.rpt','exceptions_sha256')):
         require(sha(out/'audit'/name)==audit[key],'Constraint audit changed')
     verify_dmi_constraints(out,audit)
+    jtag_io=verify_jtag_io(out,audit)
     cdc={m[0]:dict(severity=m[1],count=int(m[2])) for m in re.findall(r'^(CDC-\d+)\s+(Critical|Warning|Info)\s+(\d+)\s+',read(out/'audit/cdc_details.rpt'),re.M)}
     require(bool(cdc),'CDC report not recognized')
     timing=verify_timing(out,audit);blocks=[]
@@ -132,13 +164,18 @@ def collect(out):
     methodology=read(out/'audit/route_methodology.rpt')
     if re.search(r'^\|[^\n]*Critical Warning',methodology,re.M): blocks.append('Critical methodology violations remain')
     if re.search(r'^\|\s*TIMING-18\s*\|',methodology,re.M): blocks.append('TIMING-18: external IO delay assumptions are incomplete')
-    return dict(status='BLOCKED' if blocks else 'PASS',functional_status='PASS',physical_status='BLOCKED' if blocks else 'PASS',
+    return dict(status='BLOCKED' if blocks else 'PASS',functional_status='PASS',physical_status='BLOCKED' if blocks else 'PASS_WITH_ASSUMPTIONS',
         commit=manifest['commit'],bitstream_sha256=deployment['bitstream_sha256'],manifest_sha256=mh,
         board_cases=len(board['cases']),board_jobs=total_jobs,firmware_checks=total_checks,irq_pending_clear_checks=irq_checks,
         sram_patterns=len(recovery['sram']),reset_cycles=len(resets),active_reset_cycles=sum(x['interrupted_active_workload'] for x in resets),
         recovery_jobs=sum(x['jobs'] for x in resets),rtl_units=len(fused['units']),rtl_cases=len(fused['cases']),
         rtl_element_comparisons=fused['element_comparisons'],rtl_negative_checker_tests=len(fused['negative_event_checks']),
-        timing=timing,cdc=cdc,blockers=blocks,limits=board['gaps']+[
+        timing=timing,cdc=cdc,jtag_io=jtag_io,link_frequencies_khz=[10,100,500,1000],
+        jtag_setup_min_ns=min(float(r['min_slack_ns']) for r in jtag_io if r['type']=='max'),
+        jtag_hold_min_ns=min(float(r['min_slack_ns']) for r in jtag_io if r['type']=='min'),
+        io_profile='FT232H nominal TCK<=1MHz, rising sample, <=30cm direct 3.3V wiring; propagation0..5ns and TMS output envelope are unmeasured assumptions; external edge guard20ns',
+        blockers=blocks,limits=board['gaps']+[
+            'External IO STA passes only under the declared short-wire timing envelope; TMS timing and propagation assumptions are not oscilloscope measurements or signal-integrity/PVT certification.',
             'IRQ pending/clear is observed through CPU mip; interrupt trap entry, ISR and mret are not exercised.',
             'Reset trials use DM ndmreset, not physical button/PLL loss or cycle-exact NPU busy timing.',
             'No post-route timing simulation, formal equivalence, exhaustive ISA compliance, voltage/temperature sweep or functional/code coverage closure.',
@@ -160,6 +197,9 @@ def main():
             f'- Recovery: {report["sram_patterns"]} full-SRAM patterns, {report["reset_cycles"]} resets ({report["active_reset_cycles"]} active-workload interruptions), {report["recovery_jobs"]} additional inference jobs.',
             f'- RTL: {report["rtl_units"]} unit runs, {report["rtl_cases"]} golden cases, {report["rtl_element_comparisons"]} element comparisons; SoC/DMA/SRAM structure regression PASS.',
             f'- Routed timing: WNS {report["timing"]["wns_ns"]} ns, WHS {report["timing"]["whs_ns"]} ns.',
+            f'- External JTAG paths: minimum setup {report["jtag_setup_min_ns"]} ns, hold {report["jtag_hold_min_ns"]} ns; effective min/max delays and equivalent clock edges checked.',
+            '- Nominal JTAG frequency sweep: 10/100/500/1000 kHz; 8 trials x16 random SRAM words and BootROM at each setting; scratch restored.',
+            '- IO timing scope: '+report['io_profile']+'. Electrical measurements remain outside this acceptance.',
             f'- Bitstream SHA256: `{report["bitstream_sha256"]}`.','', '## Unresolved signoff gates','']
         lines += ['- '+x for x in report['blockers']] or ['- None within the declared scope.']
         lines += ['', '## Coverage limits','']+['- '+x for x in report['limits']]

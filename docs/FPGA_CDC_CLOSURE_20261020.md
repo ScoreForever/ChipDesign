@@ -1,5 +1,7 @@
 # FPGA CDC 与证据门禁修复（2026-10-20）
 
+> 本文保留CDC修复阶段的历史记录。后续JTAG外部IO问题已按[短线接口模型](JTAG_IO_TIMING.md)补齐约束；最新源码使用schema=3。旧报告保持不变。
+
 新实现：`build/fpga_cdc_closure_20261020_r2/`。CPU/NPU 算法未改；JTAG 外部复位增加独立 TCK 域同步释放，保持 ndmreset 不复位调试传输。同步链标记 ASYNC_REG；TCK LED 同样使用同步释放复位。
 
 删除异步时钟组整体切断，改为两组 DMI mailbox 的 data/req/ack 六组端点约束。最大传播延迟取两域周期最小值（本配置20ns）；只对复位同步器的异步断言 CLR 引脚设 false path。实现与独立审计均查询实际 timing paths、有效 REQUIREMENT、路径数和 slack，路径被切断、遗漏或违例会报错。
