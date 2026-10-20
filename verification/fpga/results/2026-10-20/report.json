@@ -1,0 +1,68 @@
+{
+  "status": "BLOCKED",
+  "functional_status": "PASS",
+  "physical_status": "BLOCKED",
+  "commit": "9d25b0965ba4c190c4ec352d4f4b9b5b5920273b",
+  "bitstream_sha256": "015e93fa87080f09380b687ffbdc8c5923483fc7e443555280c049a12e02a316",
+  "manifest_sha256": "0202c8183da7e08d6d3041e9dd23c3f8f4a2e049014565c48b17f896e27610c1",
+  "board_cases": 43,
+  "board_jobs": 190,
+  "firmware_checks": 26365,
+  "irq_pending_clear_checks": 684,
+  "sram_patterns": 6,
+  "reset_cycles": 6,
+  "active_reset_cycles": 3,
+  "recovery_jobs": 12,
+  "rtl_units": 7,
+  "rtl_cases": 21,
+  "rtl_element_comparisons": 33936,
+  "rtl_negative_checker_tests": 10,
+  "timing": {
+    "wns_ns": 1.053,
+    "whs_ns": 0.009
+  },
+  "cdc": {
+    "CDC-2": {
+      "severity": "Warning",
+      "count": 2
+    },
+    "CDC-3": {
+      "severity": "Info",
+      "count": 2
+    },
+    "CDC-7": {
+      "severity": "Critical",
+      "count": 23
+    },
+    "CDC-15": {
+      "severity": "Warning",
+      "count": 258
+    }
+  },
+  "blockers": [
+    "CDC-7: 23 critical CDC paths require closure",
+    "CDC-2: acknowledge synchronizers lack ASYNC_REG properties",
+    "TIMING-18: external IO delay assumptions are incomplete",
+    "Asynchronous clock groups cut DMI bundled-data paths; cdc_2phase documented max-delay requirement has no explicit constraint"
+  ],
+  "limits": [
+    "Finite directed/random regression is not an exhaustive RTL proof.",
+    "Board comparison observes logits; intermediate layers are checked in RTL simulation.",
+    "Default trained-model frames are synthetic features, not real speech accuracy evidence.",
+    "CPU ISA completeness, pin-level electrical margins and arbitrary AXI interleavings are not established.",
+    "IRQ pending/clear is observed through CPU mip; interrupt trap entry, ISR and mret are not exercised.",
+    "Reset trials use DM ndmreset, not physical button/PLL loss or cycle-exact NPU busy timing.",
+    "No post-route timing simulation, formal equivalence, exhaustive ISA compliance, voltage/temperature sweep or functional/code coverage closure.",
+    "Bitstream/checkpoint association uses the selected accepted build, programming receipt and hashes; not physical configuration readback proof."
+  ],
+  "generated_utc": "2026-10-20T04:51:39.480655+00:00",
+  "reporter_sha256": "d5708f890deee145262291cc3e512d14a8bfb951b88c0a5e5d5ec816b42b9e9e",
+  "workflow_tools_sha256": {
+    "verification\\fpga\\run.ps1": "610060973dc904d60114bb4eeba1257cba84ddd00c6cba5b8b0fc1c64d28f940",
+    "verification\\fpga\\report.py": "d5708f890deee145262291cc3e512d14a8bfb951b88c0a5e5d5ec816b42b9e9e",
+    "verification\\fpga\\gdb_check.gdb": "afc1390a0229bb2b9d59e6dc64ddb6c460ad672f2d9dcb8796bcaaba71ab71d3",
+    "verification\\fpga\\audit_cdc.tcl": "abedac9e15058821743806e45ebeff3fa1dd2eb668b6dd61cc50fcc5f611f98b",
+    "verification\\fpga\\README.md": "2273829b766773ccbbad063f9c300e6cb51cc425217588d0a77a0478ec273c58",
+    "scripts\\lab6\\program_board.tcl": "fd7a25f7606e524fac9d9645f31695fafd1a210d0257e222a9e8ea565405d1eb"
+  }
+}

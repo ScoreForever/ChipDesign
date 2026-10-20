@@ -136,6 +136,8 @@ if {[catch {
     read_xdc [file join $repo hardware/fpga/ego1_configuration.xdc]
     set stage synth
     synth_design -top fpga_top -part xc7a35tcsg324-1
+    source [file join $repo hardware/fpga/scripts/constrain_dmi_cdc.tcl]
+    constrain_dmi_cdc
     write_checkpoint -force [file join $out synth.dcp]
     reports synth
     bram_guard synth
@@ -166,6 +168,7 @@ if {[catch {
     set last_stage place
     set stage route
     route_design
+    audit_dmi_cdc [file join $out dmi_constraints.tsv]
     write_checkpoint -force [file join $out route.dcp]
     reports route
     bram_guard route

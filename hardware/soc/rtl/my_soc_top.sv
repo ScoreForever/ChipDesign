@@ -16,6 +16,14 @@ module my_soc_top #(
 
   logic ndmreset;
   logic ndmreset_n;
+  logic rst_tck_n;
+
+  // The debug transport remains alive across ndmreset. External reset asserts
+  // immediately; release waits for four TCK edges, including after a stopped TCK.
+  rstgen i_rstgen_tck (
+      .clk_i(tck_i), .rst_ni(rst_ni), .test_mode_i(1'b0),
+      .rst_no(rst_tck_n), .init_no()
+  );
 
   rstgen i_rstgen_main (
       .clk_i       (clk_i),
@@ -251,7 +259,7 @@ module my_soc_top #(
       .dmi_resp_i      (debug_resp),
       .tck_i           (tck_i),
       .tms_i           (tms_i),
-      .trst_ni         (rst_ni),
+      .trst_ni         (rst_tck_n),
       .td_i            (td_i),
       .td_o            (td_o),
       .tdo_oe_o        ()

@@ -79,7 +79,8 @@ module cdc_2phase_src #(
 );
 
   (* dont_touch = "true" *)
-  logic req_src_q, ack_src_q, ack_q;
+  logic req_src_q;
+  (* ASYNC_REG = "TRUE" *) logic ack_src_q, ack_q;
   (* dont_touch = "true" *)
   T data_src_q;
 
@@ -130,7 +131,8 @@ module cdc_2phase_dst #(
 
   (* dont_touch = "true" *)
   (* async_reg = "true" *)
-  logic req_dst_q, req_q0, req_q1, ack_dst_q;
+  logic req_dst_q, req_q0, req_q1;
+  logic ack_dst_q;
   (* dont_touch = "true" *)
   T data_dst_q;
 
