@@ -1,7 +1,12 @@
 # 无 CPU 的 JTAG 主机控制系统
 
-日期：2026-10-17；分支：`exp/no_cpu`。本文描述本分支的默认实现。
+更新日期：2026-10-20；分支：`exp/no_cpu`。本文描述本分支的主机接口。
 旧 CV32E40P 系统保留为 `my_soc_cpu_reference`，不进入默认 FPGA 源文件列表。
+
+当前默认顶层已采用同步权重存储、tile16、18-bit PE 局部和与23-bit无偏部分和。
+ASIC 映射入口将权重存入一颗 8 KiB SRAM，激活仍保留 byte bank，并保留全部主机能力。
+核心仿真由 2805 变为 3028 周期（+7.95%），结果逐位一致；本轮没有新综合/后端结果。
+详见 [2026-10-20 面积优化与 EDA 交接](NOCPU_AREA_OPTIMIZATION_20261020.md)。
 
 ## 实现范围与结构
 
@@ -30,7 +35,7 @@ PC / 外部 MCU：音频前处理、输入量化、可选 logit 尺度统一和�
 | 任务控制 | 检查模型、输入、结果所有权、故障和 NPU ready；输入在启动时消费 |
 | 背压和所有权 | 单 outstanding；响应保持到接收；忙时不能改内存；未 ACK 的结果阻止新任务 |
 | 结果和通知 | 独立 8×INT32 快照、sticky done、任务序号；irq 为 done/fault 的锁存电平 |
-| 异常恢复 | 校验完整地址和对齐、传输顺序、参数、命令、状态；任务及扩展事务 watchdog；软复位 |
+| 异常恢复 | 校验完整地址和对齐、传输顺序、参数、命令、状态；任务、存储等待及扩展事务 watchdog；软复位 |
 | 可观测性 | ABI、能力、模型 ID、加载计数、提交 mask、错误地址、任务与核心周期、分阶段计数 |
 | 空闲只读查询 | 读取 NPU 实际权重、激活、已提交参数和 live logits；不维护镜像内存 |
 
@@ -47,7 +52,8 @@ JTAG 主机通过 STATUS 的 sticky done/fault 查询完成通知；JTAG 没有�
 - `software/host/nocpu_jtag.py`：OpenOCD Tcl RPC 客户端、部署包和向量装载、推理 API。
 
 融合核增加默认关闭的 `DEBUG_READBACK` 可选接口。查询激活复用已有 bank 读端口，
-查询参数和权重直接复用真实数组。旧 MMIO/独立核实例的默认行为不变。
+查询参数和权重直接复用真实存储；权重查询可等待同步读返回，无镜像 RAM。
+独立融合核/旧 MMIO 默认保留 FF 权重模式，无 CPU 生产顶层开启同步模式。
 同时把无参数 task 调用改为 `begin_layer;`，兼容本机旧 Icarus，不改变调度。
 
 ## JTAG 协议（ABI 1.0）
@@ -233,7 +239,7 @@ python hardware/fpga/scripts/build_nocpu.py --vivado-root D:/Project/Vivado/2025
 英文临时目录，完成后把报告、checkpoint、日志及精确源码 SHA256 复制回指定的新
 `build/` 目录。也可在英文路径用现有 `build_ego1.ps1 -SynthesisOnly`。
 
-本次实际通过的验证：
+2026-10-17 原版 `48958c0` 实际通过的验证（当前优化版见上方交接文档）：
 
 - 三组控制器测试：1/4/8 类，random/extreme/impulse，模型更新后换用另一组 random。
   每组 5,918 条命令、3,221 次读回检查。覆盖非零 logits、全部有效权重和参数、输入和
@@ -249,7 +255,7 @@ python hardware/fpga/scripts/build_nocpu.py --vivado-root D:/Project/Vivado/2025
 这些是 synthetic 非零向量验证，不替代真实训练部署包和板上 JTAG 验收。
 CI 已增加无 CPU 回归与主机 API 命令回放。
 
-## FPGA 综合结果
+## 2026-10-17 FPGA 综合结果（历史版本 48958c0）
 
 Vivado 2025.2，`fpga_top`，EGo1 `xc7a35tcsg324-1`，50 MHz，**仅综合后**。
 证据在 `build/nocpu_synth_20261017_v3/`，含 `provenance.json`、完整资源、时序、DRC、CDC 报告。
@@ -287,5 +293,6 @@ Vivado CDC 报告识别到两组 ASYNC_REG toggle 同步器和同步释放复位
 本次未布局布线、未生成/烧写 bitstream，未测量板上功耗或端到端 JTAG 吞吐。
 旧 CPU 固件/SAIF 工作负载仅用于 `my_soc_cpu_reference`，不能直接映射到新的无 CPU
 层次来估计功耗；后续功耗测量需要采集本控制器的真实 JTAG/推理活动。
-删除 CPU 不改变 NPU 内部 2,805 周期计算；1 MHz JTAG 的协议装载时间可能远大于
-56.1 us 核心计算，应分别衡量冷启动模型装载、每帧传输、计算和结果读取。
+历史删除 CPU 版的 NPU 为 2805 周期；当前默认 SRAM 优化版为 3028 周期，
+若满足50MHz则为60.56us。1 MHz JTAG 装载时间可能远大于核心计算，应分别衡量
+冷启动模型装载、每帧传输、计算和结果读取。上述 FPGA 资源数字不代表当前优化版。

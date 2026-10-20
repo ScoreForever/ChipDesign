@@ -1,7 +1,28 @@
 `timescale 1ns/1ps
 // CPU-less production system. Dedicated JTAG host -> controller -> native NPU.
 // The former CPU/AXI system is retained as my_soc_cpu_reference for comparison.
-module my_soc_top (
+module my_soc_top #(
+`ifdef NPU_WEIGHT_FF
+    parameter WEIGHT_SRAM=0,
+`else
+    parameter WEIGHT_SRAM=1,
+`endif
+`ifdef NPU_SPATIAL_TILE
+    parameter SPATIAL_TILE=`NPU_SPATIAL_TILE,
+`else
+    parameter SPATIAL_TILE=16,
+`endif
+`ifdef NPU_ARRAY_ACC_WIDTH
+    parameter ARRAY_ACC_WIDTH=`NPU_ARRAY_ACC_WIDTH,
+`else
+    parameter ARRAY_ACC_WIDTH=18,
+`endif
+`ifdef NPU_PSUM_WIDTH
+    parameter PSUM_WIDTH=`NPU_PSUM_WIDTH
+`else
+    parameter PSUM_WIDTH=23
+`endif
+) (
     input wire clk_i, rst_ni,
     input wire tck_i, tms_i, td_i,
     output wire td_o,
@@ -17,7 +38,8 @@ module my_soc_top (
         .cmd_addr_o(cmd_addr),.cmd_data_o(cmd_data),
         .rsp_valid_i(rsp_valid),.rsp_ready_o(rsp_ready),.rsp_error_i(rsp_error),.rsp_data_i(rsp_data)
     );
-    npu_control_subsystem i_control (
+    npu_control_subsystem #(.WEIGHT_SRAM(WEIGHT_SRAM),.SPATIAL_TILE(SPATIAL_TILE),
+        .ARRAY_ACC_WIDTH(ARRAY_ACC_WIDTH),.PSUM_WIDTH(PSUM_WIDTH)) i_control (
         .clk_i(clk_i),.rst_ni(rst_ni),.cmd_valid_i(cmd_valid),.cmd_ready_o(cmd_ready),
         .cmd_op_i(cmd_op),.cmd_addr_i(cmd_addr),.cmd_data_i(cmd_data),
         .rsp_valid_o(rsp_valid),.rsp_ready_i(rsp_ready),.rsp_error_o(rsp_error),.rsp_data_o(rsp_data),

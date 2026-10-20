@@ -6,12 +6,13 @@
 // eight logits. Conv1/Conv2 outputs are never materialized by this core, so
 // they are covered through the pooled tensors that depend on them.
 module tb_tinycnn8_fused_golden;
+    parameter WEIGHT_SRAM=0, SPATIAL_TILE=16, ARRAY_ACC_WIDTH=18, PSUM_WIDTH=23;
     localparam ARRAY_ROWS=4,ARRAY_COLS=8,SHIFT_WIDTH=6;
     localparam P1_BASE=320,P2_BASE=0;
     reg clk=0,rst=1,start_valid=0;
     reg [3:0] class_count=6;
     always #5 clk=~clk;
-    wire start_ready,busy,done;
+    wire start_ready,busy,done,host_weight_ready;
     wire [255:0] logits;
     reg host_activation_we=0,host_weight_we=0,host_parameter_we=0;
     reg [15:0] host_activation_addr=0,host_weight_addr=0;
@@ -25,12 +26,14 @@ module tb_tinycnn8_fused_golden;
     wire [6*32-1:0] perf_layer_cycles;
     wire perf_overflow,perf_valid;
 
-    tinycnn8_npu_fused #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS)) dut(
+    tinycnn8_npu_fused #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
+        .WEIGHT_SRAM(WEIGHT_SRAM),.SPATIAL_TILE(SPATIAL_TILE),
+        .ARRAY_ACC_WIDTH(ARRAY_ACC_WIDTH),.PSUM_WIDTH(PSUM_WIDTH)) dut(
         .clk(clk),.rst(rst),.start_valid(start_valid),.start_ready(start_ready),
         .class_count(class_count),.busy(busy),.done(done),.logits(logits),
         .host_activation_we(host_activation_we),.host_activation_addr(host_activation_addr),
         .host_activation_data(host_activation_data),.host_weight_we(host_weight_we),
-        .host_weight_addr(host_weight_addr),.host_weight_data(host_weight_data),
+        .host_weight_addr(host_weight_addr),.host_weight_data(host_weight_data),.host_weight_ready(host_weight_ready),
         .host_parameter_we(host_parameter_we),.host_parameter_layer(host_parameter_layer),
         .host_parameter_tile(host_parameter_tile),.host_bias_data(host_bias_data),
         .host_multiplier_data(host_multiplier_data),.host_shift_data(host_shift_data),
@@ -138,6 +141,7 @@ module tb_tinycnn8_fused_golden;
         for(index=0;index<256;index=index+1)begin
             @(negedge clk);host_weight_we=1;host_weight_addr=index;
             host_weight_data=weight_image[index];
+            while(!host_weight_ready) @(negedge clk);
         end
         @(negedge clk);host_weight_we=0;
         for(layer=0;layer<4;layer=layer+1)if(layer!=2)begin

@@ -83,7 +83,7 @@ def main():
             raise ValueError('unsupported fused quantization parameters')
     sources = [NPU/'rtl'/f'{name}.sv' for name in ('ws_pe', 'ws_systolic_array', 'matrix_unit',
                'vector_unit', 'requant_unit', 'conv_window_addr_gen', 'conv2d_engine',
-               'maxpool2x2_engine', 'tinycnn8_npu_top', 'fused_ws_array', 'requant_lane', 'tinycnn8_npu_fused')]
+               'maxpool2x2_engine', 'tinycnn8_npu_top', 'fused_ws_array', 'requant_lane', 'npu_weight_store', 'tinycnn8_npu_fused')]
     tb = NPU/'tb/tb_tinycnn8_trained_model.sv'
     results = {}
     for name in ('fused', 'layered'):

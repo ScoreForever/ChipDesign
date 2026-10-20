@@ -3,6 +3,8 @@
 本分支默认 FPGA 系统已改为 **无 CPU：专用 JTAG 主机接口 → 硬件控制器 → 融合 NPU**。
 模型/输入完整性、模型更新、忙时保护、结果快照、超时恢复和空闲存储读回均已实现。
 接口、使用方法、验证和综合结果见 [无 CPU 控制系统](docs/CPU_LESS_CONTROL.md)。
+2026-10-20 已增加权重 SRAM 与精确位宽优化，默认核心仿真为3028周期（原2805周期）；
+新版本尚未进行 EDA，交接说明见 [面积优化实验](docs/NOCPU_AREA_OPTIMIZATION_20261020.md)。
 旧 CPU 系统保留为 `my_soc_cpu_reference`，供历史测试和对照使用。
 
 The group's repo for "Full-Stack Design and Practice of Advanced Chips" course

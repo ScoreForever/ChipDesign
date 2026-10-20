@@ -90,6 +90,7 @@ hardware/npu/rtl/global_avg_pool_engine.sv
 hardware/npu/rtl/tinycnn8_npu_top.sv
 hardware/npu/rtl/fused_ws_array.sv
 hardware/npu/rtl/requant_lane.sv
+hardware/npu/rtl/npu_weight_store.sv
 hardware/npu/rtl/tinycnn8_npu_fused.sv
 hardware/soc/rtl/npu/tinycnn8_npu_mmio_wrapper.sv
 hardware/soc/rtl/my_npu_subsystem.sv

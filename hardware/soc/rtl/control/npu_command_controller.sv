@@ -20,12 +20,12 @@ module npu_command_controller #(
     output reg [3:0] class_count_o,
     output wire activation_we_o, output wire [15:0] activation_addr_o,
     output wire [7:0] activation_data_o,
-    output wire weight_we_o, output wire [15:0] weight_addr_o,
+    output wire weight_we_o, input wire weight_ready_i, output wire [15:0] weight_addr_o,
     output wire [63:0] weight_data_o,
     output wire parameter_we_o, output wire [1:0] parameter_layer_o,
     output wire [255:0] bias_o, multiplier_o, output wire [47:0] shift_o,
     output wire debug_en_o, output wire [15:0] debug_addr_o,
-    input wire [31:0] debug_data_i,
+    input wire [31:0] debug_data_i, input wire debug_valid_i,
     input wire [31:0] perf_total_i, perf_weight_rows_i, perf_issues_i,
     input wire [31:0] perf_retires_i, perf_peak_i,
     input wire [191:0] perf_layers_i,
@@ -149,6 +149,7 @@ module npu_command_controller #(
             case (state)
                 IDLE: if (cmd_valid_i && cmd_ready_o) begin
                     op <= cmd_op_i; addr <= cmd_addr_i; data <= cmd_data_i; state <= EXEC;
+                    ext_elapsed<=0;
                 end
                 EXEC: begin
                     if ((op == READ || op == WRITE || op == MODULE_READ || op == MODULE_WRITE) && addr[1:0] != 0)
@@ -161,7 +162,10 @@ module npu_command_controller #(
                                 reply(0,result_logits[addr[4:2]*32 +: 32]);
                             else if (inspect_address) begin
                                 if (owned) reply(E_BUSY,0);
-                                else reply(0,debug_data_i);
+                                else if (debug_valid_i) reply(0,debug_data_i);
+                                else if (ext_elapsed >= timeout_limit-1) begin
+                                    faulted<=1; core_reset_o<=1; reply(E_TIMEOUT,0);
+                                end else ext_elapsed<=ext_elapsed+1'b1;
                             end else case (addr)
                                 'h0000: reply(0,32'h0001_0000);
                                 'h0004: reply(0,{24'd0,faulted,input_loading,model_loading,
@@ -205,11 +209,13 @@ module npu_command_controller #(
                             end else if (addr >= 'h2000 && addr < 'h2800) begin
                                 if (!model_loading) reply(E_STATE,0);
                                 else if (!model_weight_write) reply(E_ORDER,0);
-                                else begin
+                                else if (!weight_count[0] || weight_ready_i) begin
                                     if (!weight_count[0]) weight_low <= data;
                                     weight_count <= weight_count + 1;
                                     reply(0,0);
-                                end
+                                end else if (ext_elapsed >= timeout_limit-1) begin
+                                    faulted<=1; core_reset_o<=1; reply(E_TIMEOUT,0);
+                                end else ext_elapsed<=ext_elapsed+1'b1;
                             end else if (addr >= 'h1000 && addr < 'h1140) begin
                                 if (!input_loading) reply(E_STATE,0);
                                 else if (addr != 'h1000 + {23'd0,input_count,2'b00} || input_count >= 80)

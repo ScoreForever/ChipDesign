@@ -24,7 +24,7 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[3]
 NPU = ROOT / "hardware/npu"
 RTL = NPU / "rtl"
-FUSED = [RTL / f"{name}.sv" for name in ("fused_ws_array", "requant_lane", "tinycnn8_npu_fused")]
+FUSED = [RTL / f"{name}.sv" for name in ("fused_ws_array", "requant_lane", "npu_weight_store", "tinycnn8_npu_fused")]
 LAYERED = [RTL / f"{name}.sv" for name in (
     "ws_pe", "ws_systolic_array", "matrix_unit", "vector_unit", "requant_unit",
     "conv_window_addr_gen", "conv2d_engine", "maxpool2x2_engine", "tinycnn8_npu_top")]

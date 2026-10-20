@@ -3,14 +3,26 @@ set result_dir $::env(EDA_RESULT_DIR)
 file mkdir $result_dir
 set_db init_hdl_search_path [list [pwd] "[pwd]/hardware/soc/rtl/include"]
 set mapped [info exists ::env(EDA_TARGET_LIBS)]
+source hardware/soc/synth/scripts/nocpu_area_config.tcl
 if {$mapped} {
     foreach key {EDA_CLOCK_NS EDA_IO_DELAY_NS EDA_CLOCK_UNCERTAINTY_NS} {
         if {![info exists ::env($key)]} {error "Missing $key for mapped synthesis"}
     }
-    foreach lib $::env(EDA_TARGET_LIBS) {
+    set target_libs $::env(EDA_TARGET_LIBS)
+    if {$use_weight_sram} {
+        set weight_lib /lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib
+        if {[info exists ::env(EDA_WEIGHT_SRAM_LIB)]} {set weight_lib $::env(EDA_WEIGHT_SRAM_LIB)}
+        if {![file isfile $weight_lib]} {
+            error "Missing weight SRAM Liberty; set EDA_WEIGHT_SRAM_LIB, or EDA_NPU_WEIGHT_SRAM=0 for the FF comparison"
+        }
+        if {[lsearch -exact $target_libs $weight_lib]<0} {lappend target_libs $weight_lib}
+        lappend hdl_defines NPU_USE_RA1SHD_WEIGHT
+        puts "NPU_WEIGHT_SRAM_LIB=$weight_lib"
+    }
+    foreach lib $target_libs {
         if {![file isfile $lib]} {error "Target library does not exist: $lib"}
     }
-    set_db library $::env(EDA_TARGET_LIBS)
+    set_db library $target_libs
 }
 set fh [open hardware/soc/sim/filelists/chipdesign_nocpu.f r]
 set sources {}
@@ -20,7 +32,7 @@ foreach line [split [read $fh] \n] {
     lappend sources $line
 }
 close $fh
-read_hdl -sv -define SYNTHESIS $sources
+read_hdl -sv -define $hdl_defines $sources
 if {!$mapped} {
     puts "EDA_RTL_READ_COMPLETE"
     exit

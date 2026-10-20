@@ -29,8 +29,11 @@ module tinycnn8_npu_fused #(
     parameter SHIFT_WIDTH=6,
     parameter OPT_GATHER_LOAD=0,     // accepted for drop-in compatibility; unused
     parameter OPT_SPATIAL_TILE=0,    // accepted for drop-in compatibility; unused
-    parameter SPATIAL_TILE=16,       // accepted for drop-in compatibility; unused
-    parameter DEBUG_READBACK=0      // optional idle-only physical storage inspection
+    parameter SPATIAL_TILE=16,      // 4, 8 or 16 positions, in complete 2x2 windows
+    parameter DEBUG_READBACK=0,     // optional idle-only physical storage inspection
+    parameter ARRAY_ACC_WIDTH=18,  // four INT8 products fit signed 18 bits
+    parameter PSUM_WIDTH=23,       // unbiased reduction, K <= 160
+    parameter WEIGHT_SRAM=0        // synchronous port; production SoC selects 1
 ) (
     input wire clk,input wire rst,
     input wire start_valid,output wire start_ready,
@@ -41,6 +44,7 @@ module tinycnn8_npu_fused #(
     input wire [ADDR_WIDTH-1:0] host_activation_addr,
     input wire [7:0] host_activation_data,
     input wire host_weight_we,
+    output wire host_weight_ready,
     input wire [ADDR_WIDTH-1:0] host_weight_addr,
     input wire [ARRAY_COLS*8-1:0] host_weight_data,
     input wire host_parameter_we,
@@ -59,11 +63,18 @@ module tinycnn8_npu_fused #(
     output reg perf_valid,
     input wire debug_read_en,
     input wire [15:0] debug_read_addr,
-    output reg [31:0] debug_read_data
+    output reg [31:0] debug_read_data,
+    output wire debug_read_valid
 );
     generate if (ARRAY_ROWS != 4 || ARRAY_COLS < 1 || (8 % ARRAY_COLS) != 0)
     begin : invalid_shape
         initial $fatal(1, "tinycnn8_npu_fused requires ARRAY_ROWS=4 and ARRAY_COLS dividing 8");
+    end endgenerate
+    generate if ((SPATIAL_TILE != 4 && SPATIAL_TILE != 8 && SPATIAL_TILE != 16) ||
+                 ARRAY_ACC_WIDTH < 18 || ARRAY_ACC_WIDTH > 32 ||
+                 PSUM_WIDTH < 23 || PSUM_WIDTH > 32)
+    begin : invalid_area_parameters
+        initial $fatal(1, "invalid fused tile or exact accumulator width");
     end endgenerate
 
     // ------------------------------------------------------------------
@@ -78,17 +89,19 @@ module tinycnn8_npu_fused #(
     localparam ACT_BANKS=8;
     localparam ACT_ROWS=ACT_BYTES/ACT_BANKS;
     localparam INPUT_BASE=0, P1_BASE=320, P2_BASE=0;
-    localparam TILE_POS=16;                       // four 2x2 windows
+    localparam TILE_POS=SPATIAL_TILE;
+    localparam TILE_W=$clog2(320/TILE_POS);
+    localparam WINDOWS=TILE_POS/4;
+    localparam WIN_W=(WINDOWS > 1) ? $clog2(WINDOWS) : 1;
     localparam LATENCY=ARRAY_ROWS+ARRAY_COLS-1;
     localparam [1:0] PH_C1=0, PH_C2=1, PH_FC=2;
     // Tag carried through the array: position, first/last group, oc tile, tile.
-    localparam TAG_W=5+1+1+4+5;
+    localparam TAG_W=5+1+1+4+TILE_W;
 
     reg running;
     reg [1:0] phase;
     reg [3:0] cfg_class_count;
 
-    reg [ARRAY_COLS*8-1:0] weight_mem[0:WEIGHT_WORDS-1];
     reg [ARRAY_COLS*32-1:0] bias_conv1[0:OCT_CONV-1];
     reg [ARRAY_COLS*32-1:0] bias_conv2[0:OCT_CONV-1];
     reg [ARRAY_COLS*32-1:0] bias_fc[0:OCT_CONV-1];
@@ -99,7 +112,8 @@ module tinycnn8_npu_fused #(
 
     // Per-phase layer descriptor.
     wire [5:0] layer_groups = (phase==PH_C1) ? 6'd3 : (phase==PH_C2) ? 6'd18 : 6'd40;
-    wire [4:0] layer_tiles = (phase==PH_C1) ? 5'd20 : (phase==PH_C2) ? 5'd5 : 5'd1;
+    wire [TILE_W-1:0] layer_tiles = (phase==PH_C1) ? (320/TILE_POS) :
+        (phase==PH_C2) ? (80/TILE_POS) : 1;
     wire [4:0] layer_tile_pos = (phase==PH_FC) ? 5'd1 : TILE_POS[4:0];
     wire [3:0] fc_oct = (cfg_class_count + ARRAY_COLS - 1) / ARRAY_COLS;
     wire [3:0] layer_oct = (phase==PH_FC) ? fc_oct : OCT_CONV[3:0];
@@ -143,8 +157,7 @@ module tinycnn8_npu_fused #(
         if (debug_active) begin
             case (debug_read_addr[15:12])
                 0: debug_read_data = debug_read_addr[2] ?
-                    (weight_mem[debug_read_addr[10:3]] >> 32) :
-                    weight_mem[debug_read_addr[10:3]];
+                    (debug_weight_data >> 32) : debug_weight_data;
                 1: begin
                     for (dbg_byte = 0; dbg_byte < 4; dbg_byte = dbg_byte + 1)
                         debug_read_data[dbg_byte*8 +: 8] =
@@ -188,22 +201,79 @@ module tinycnn8_npu_fused #(
     reg load_busy, load_more;
     reg [1:0] load_row;
     reg [5:0] load_g;
-    reg [4:0] load_tile;
+    reg [TILE_W-1:0] load_tile;
     reg [3:0] load_oct;
     wire load_bank = load_seq[0];
     wire load_start = running && load_more && !load_busy &&
         ((load_seq == issue_seq) || (load_seq == issue_seq + 1'b1)) &&
-        !bank_ready[load_bank] && (inflight[load_bank] == 0);
-    wire load_active = load_busy || load_start;
+        !bank_ready[load_bank] && (WEIGHT_SRAM || inflight[load_bank] == 0);
+    wire load_active;
     wire [1:0] load_row_now = load_busy ? load_row : 2'd0;
     reg [15:0] load_k;
     reg [15:0] load_addr;
     reg [ARRAY_COLS*8-1:0] load_data;
+    reg [2:0] load_request_row;
+    wire [15:0] request_k = (phase==PH_C1) ?
+        (3*load_g + load_request_row) : (4*load_g + load_request_row);
+    wire [15:0] request_addr = layer_weight_base + request_k*layer_oct + load_oct;
+    wire store_read_request, store_read_ready, store_read_valid;
+    // SRAM may prefetch into its response register while the previous group
+    // still owns the PE bank. Only the PE write waits for the final retire.
+    wire store_response_ready=!running || inflight[load_bank]==0;
+    wire [ARRAY_COLS*8-1:0] store_read_data;
+    reg debug_weight_pending, debug_weight_valid;
+    reg [ARRAY_COLS*8-1:0] debug_weight_saved;
+    wire [ARRAY_COLS*8-1:0] debug_weight_data;
+    wire debug_weight_request = debug_active && debug_read_addr[15:12]==0 &&
+        !debug_weight_pending && !debug_weight_valid;
+    assign store_read_request = running ?
+        ((load_busy || load_start) && load_request_row<ARRAY_ROWS) : debug_weight_request;
+    wire store_request_fire=store_read_request && store_read_ready;
+    assign debug_read_valid=debug_active &&
+        (debug_read_addr[15:12]!=0 || !WEIGHT_SRAM || debug_weight_valid);
+
+    generate if (WEIGHT_SRAM) begin : g_weight_sram
+        wire write_ready;
+        npu_weight_store #(.DATA_WIDTH(ARRAY_COLS*8),.WORDS(WEIGHT_WORDS)) storage (
+            .clk(clk),.rst(rst),.write_valid(host_weight_we && !running),.write_ready(write_ready),
+            .write_addr(host_weight_addr),.write_data(host_weight_data),
+            .read_request(store_read_request),.read_ready(store_read_ready),
+            .read_addr(running ? request_addr : {8'd0,debug_read_addr[10:3]}),
+            .read_valid(store_read_valid),.read_response_ready(store_response_ready),.read_data(store_read_data)
+        );
+        assign host_weight_ready=write_ready && !running;
+        assign load_active=running && store_read_valid && store_response_ready;
+        assign debug_weight_data=debug_weight_saved;
+    end else begin : g_weight_ff
+        reg [ARRAY_COLS*8-1:0] mem[0:WEIGHT_WORDS-1];
+        // Idle inspection and execution share the SAME physical read port.
+        wire [15:0] read_addr=(debug_active && debug_read_addr[15:12]==0) ?
+            {8'd0,debug_read_addr[10:3]} : load_addr;
+        assign store_read_data=mem[read_addr];
+        always @(posedge clk)
+            if (!rst && !running && host_weight_we) mem[host_weight_addr]<=host_weight_data;
+        assign host_weight_ready=!running && !rst;
+        assign load_active=load_busy || load_start;
+        assign debug_weight_data=store_read_data;
+        assign store_read_ready=1'b0;
+        assign store_read_valid=1'b0;
+    end endgenerate
+
+    always @(posedge clk) begin
+        if (rst || !debug_active) begin debug_weight_pending<=0; debug_weight_valid<=0; end
+        else if (WEIGHT_SRAM) begin
+            if (store_request_fire) debug_weight_pending<=1;
+            if (store_read_valid) begin
+                debug_weight_saved<=store_read_data;
+                debug_weight_valid<=1; debug_weight_pending<=0;
+            end
+        end
+    end
     always @* begin
         load_k = (phase==PH_C1) ? (3*load_g + load_row_now) : (4*load_g + load_row_now);
         load_addr = layer_weight_base + load_k*layer_oct + load_oct;
         load_data = (phase==PH_C1 && load_row_now==2'd3) ? {ARRAY_COLS*8{1'b0}} :
-                    weight_mem[load_addr];
+                    store_read_data;
     end
 
     // ------------------------------------------------------------------
@@ -212,11 +282,11 @@ module tinycnn8_npu_fused #(
     reg issue_more;
     reg [4:0] issue_p;
     reg [5:0] issue_g;
-    reg [4:0] issue_tile;
+    reg [TILE_W-1:0] issue_tile;
     reg [3:0] issue_oct;
     reg [7:0] lastgrp_inflight;
-    reg [3:0] win_ready;
-    reg [1:0] rd_win;
+    reg [WINDOWS-1:0] win_ready;
+    reg [WIN_W-1:0] rd_win;
     reg [3:0] rd_lane;
     reg [7:0] rq_count;
     wire issue_last_group = (issue_g == layer_groups - 1'b1);
@@ -228,7 +298,7 @@ module tinycnn8_npu_fused #(
     reg [3:0] act_lane_valid;
     reg [ARRAY_ROWS*8-1:0] issue_act;
     always @* begin
-        win_global = issue_tile*4 + (issue_p>>2);
+        win_global = issue_tile*WINDOWS + (issue_p>>2);
         act_lane_valid = 4'b0000;
         base_calc = 0;
         if (phase == PH_C1) begin
@@ -263,13 +333,20 @@ module tinycnn8_npu_fused #(
     wire out_valid, out_bank;
     wire [TAG_W-1:0] out_tag;
     wire [ARRAY_COLS*32-1:0] out_psum;
+    wire [ARRAY_COLS*ARRAY_ACC_WIDTH-1:0] array_psum;
+    genvar accum_lane;
+    generate for (accum_lane=0; accum_lane<ARRAY_COLS; accum_lane=accum_lane+1) begin : g_array_extend
+        assign out_psum[accum_lane*32 +: 32] =
+            {{(32-ARRAY_ACC_WIDTH){array_psum[accum_lane*ARRAY_ACC_WIDTH+ARRAY_ACC_WIDTH-1]}},
+              array_psum[accum_lane*ARRAY_ACC_WIDTH +: ARRAY_ACC_WIDTH]};
+    end endgenerate
     fused_ws_array #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
-        .ACC_WIDTH(32),.TAG_WIDTH(TAG_W)) array(
+        .ACC_WIDTH(ARRAY_ACC_WIDTH),.TAG_WIDTH(TAG_W)) array(
         .clk(clk),.rst(rst),
         .weight_we(load_active),.weight_bank(load_bank),.weight_row(load_row_now),
         .weight_data(load_data),
         .in_valid(issue_fire),.in_bank(issue_seq[0]),.in_act(issue_act),.in_tag(issue_tag),
-        .out_valid(out_valid),.out_bank(out_bank),.out_tag(out_tag),.out_psum(out_psum));
+        .out_valid(out_valid),.out_bank(out_bank),.out_tag(out_tag),.out_psum(array_psum));
 
     // ------------------------------------------------------------------
     // Retire: output-side accumulation, INT32 2x2 max, FC logits.
@@ -278,19 +355,35 @@ module tinycnn8_npu_fused #(
     wire ret_last = out_tag[5];
     wire ret_first = out_tag[6];
     wire [3:0] ret_oct = out_tag[10:7];
-    wire [4:0] ret_tile = out_tag[15:11];
-    reg [ARRAY_COLS*32-1:0] psum_buf[0:TILE_POS-1];
-    reg [ARRAY_COLS*32-1:0] win_buf[0:3];
-    reg [4:0] win_tile[0:3];
-    reg [3:0] win_oct[0:3];
+    wire [TILE_W-1:0] ret_tile = out_tag[TAG_W-1:11];
+    reg [ARRAY_COLS*PSUM_WIDTH-1:0] psum_buf[0:TILE_POS-1];
+    reg [ARRAY_COLS*32-1:0] win_buf[0:WINDOWS-1];
+    reg [TILE_W-1:0] win_tile[0:WINDOWS-1];
+    reg [3:0] win_oct[0:WINDOWS-1];
+    reg [ARRAY_COLS*PSUM_WIDTH-1:0] ret_unbiased;
     reg [ARRAY_COLS*32-1:0] ret_bias, ret_sum;
     integer col;
     always @* begin
         ret_bias = (phase==PH_C1) ? bias_conv1[ret_oct] :
                    (phase==PH_C2) ? bias_conv2[ret_oct] : bias_fc[ret_oct];
-        for (col = 0; col < ARRAY_COLS; col = col + 1)
-            ret_sum[col*32 +: 32] = (ret_first ? ret_bias[col*32 +: 32] :
-                psum_buf[ret_p][col*32 +: 32]) + out_psum[col*32 +: 32];
+        for (col = 0; col < ARRAY_COLS; col = col + 1) begin
+            if (PSUM_WIDTH==32) begin
+                // Wide comparison profile retains the original bias-first
+                // single-adder datapath, rather than adding a second adder.
+                ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH] =
+                    (ret_first ? ret_bias[col*32 +: 32] : psum_buf[ret_p][col*32 +: 32]) +
+                    out_psum[col*32 +: 32];
+                ret_sum[col*32 +: 32]=ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH];
+            end else begin
+            // Store only products. Bias may be any INT32 value, so it must
+            // never be truncated to PSUM_WIDTH. Add it in INT32 before max.
+            ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH] =
+                (ret_first ? {PSUM_WIDTH{1'b0}} : psum_buf[ret_p][col*PSUM_WIDTH +: PSUM_WIDTH]) +
+                $signed(out_psum[col*32 +: 32]);
+            ret_sum[col*32 +: 32] =
+                $signed(ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH]) + $signed(ret_bias[col*32 +: 32]);
+            end
+        end
     end
 
     // ------------------------------------------------------------------
@@ -301,7 +394,7 @@ module tinycnn8_npu_fused #(
     wire [ARRAY_COLS*32-1:0] rd_mult = (phase==PH_C1) ? mult_conv1[rd_oct] : mult_conv2[rd_oct];
     wire [ARRAY_COLS*SHIFT_WIDTH-1:0] rd_shift = (phase==PH_C1) ? shift_conv1[rd_oct] : shift_conv2[rd_oct];
     wire [ACT_ADDR_W-1:0] rd_addr = layer_dst +
-        ((win_tile[rd_win]*4 + rd_win) * 8) + rd_oct*ARRAY_COLS + rd_lane;
+        ((win_tile[rd_win]*WINDOWS + rd_win) * 8) + rd_oct*ARRAY_COLS + rd_lane;
     wire rq_out_valid;
     wire [7:0] rq_out_data;
     wire [ACT_ADDR_W-1:0] rq_out_addr;
@@ -329,13 +422,15 @@ module tinycnn8_npu_fused #(
     wire [8:0] inflight_total = inflight[0] + inflight[1];
     wire layer_drained = !issue_more && (inflight_total == 0) && (win_ready == 0) &&
                          (rq_count == 0) && !rd_fire;
-    assign start_ready = !running && !rst && (class_count >= 4'd1) && (class_count <= 4'd8);
+    assign start_ready = !running && !rst && host_weight_ready &&
+        (class_count >= 4'd1) && (class_count <= 4'd8);
     assign busy = running;
 
     task automatic begin_layer;
         begin
             issue_seq <= 0; load_seq <= 0; bank_ready <= 2'b00;
             load_busy <= 1'b0; load_more <= 1'b1; load_row <= 0;
+            load_request_row<=0;
             load_g <= 0; load_tile <= 0; load_oct <= 0;
             issue_more <= 1'b1; issue_p <= 0; issue_g <= 0; issue_tile <= 0; issue_oct <= 0;
             rd_win <= 0; rd_lane <= 0;
@@ -349,13 +444,13 @@ module tinycnn8_npu_fused #(
             issue_seq <= 0; load_seq <= 0; bank_ready <= 2'b00;
             inflight[0] <= 0; inflight[1] <= 0; lastgrp_inflight <= 0;
             load_busy <= 1'b0; load_more <= 1'b0; load_row <= 0;
+            load_request_row<=0;
             load_g <= 0; load_tile <= 0; load_oct <= 0;
             issue_more <= 1'b0; issue_p <= 0; issue_g <= 0; issue_tile <= 0; issue_oct <= 0;
             win_ready <= 0; rd_win <= 0; rd_lane <= 0; rq_count <= 0;
         end else begin
             done <= 1'b0;
             if (!running) begin
-                if (host_weight_we) weight_mem[host_weight_addr] <= host_weight_data;
                 if (host_parameter_we && host_parameter_tile < OCT_CONV) begin
                     case (host_parameter_layer)
                         0: begin bias_conv1[host_parameter_tile] <= host_bias_data;
@@ -374,10 +469,13 @@ module tinycnn8_npu_fused #(
                     begin_layer;
                 end
             end else begin
+                if (WEIGHT_SRAM && store_request_fire)
+                    load_request_row<=load_request_row+1'b1;
                 // Weight loader.
                 if (load_active) begin
                     if (load_row_now == ARRAY_ROWS-1) begin
                         load_busy <= 1'b0;
+                        load_request_row<=0;
                         bank_ready[load_bank] <= 1'b1;
                         load_seq <= load_seq + 1'b1;
                         if (load_g != layer_groups - 1'b1) load_g <= load_g + 1'b1;
@@ -426,7 +524,7 @@ module tinycnn8_npu_fused #(
                 // Retire.
                 if (out_valid) begin
                     if (!ret_last) begin
-                        psum_buf[ret_p] <= ret_sum;
+                        psum_buf[ret_p] <= ret_unbiased;
                     end else if (layer_pool) begin
                         for (lane = 0; lane < ARRAY_COLS; lane = lane + 1)
                             if (ret_p[1:0] == 2'd0 ||
@@ -452,7 +550,7 @@ module tinycnn8_npu_fused #(
                     else begin
                         rd_lane <= 0;
                         win_ready[rd_win] <= 1'b0;
-                        rd_win <= rd_win + 1'b1;
+                        rd_win <= (rd_win == WINDOWS-1) ? 0 : rd_win + 1'b1;
                     end
                 end
                 rq_count <= rq_count + rd_fire - rq_out_valid;

@@ -25,7 +25,7 @@ RTL = (
     "requant_unit", "reduction_sum_unit", "conv_window_addr_gen",
     "conv2d_engine", "maxpool2x2_engine", "global_sum_pool_engine",
     "global_avg_pool_engine", "tinycnn8_npu_top",
-    "fused_ws_array", "requant_lane", "tinycnn8_npu_fused",
+    "fused_ws_array", "requant_lane", "npu_weight_store", "tinycnn8_npu_fused",
 )
 
 

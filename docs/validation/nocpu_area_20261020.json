@@ -1,0 +1,308 @@
+{
+  "date": "2026-10-20",
+  "branch": "exp/no_cpu",
+  "base_commit": "48958c0ec5c176a886b5065747bbe170ae588f4c",
+  "scope": "RTL simulation only; no synthesis, place-and-route, STA or physical area result",
+  "simulator": "Icarus Verilog (iverilog/vvp), local Windows",
+  "default_profile": "sram16",
+  "core_cycle_budget_increase_percent": 10,
+  "profiles": {
+    "ff_wide": {
+      "parameters": {
+        "weight_sram": 0,
+        "tile": 16,
+        "array_acc": 32,
+        "psum": 32
+      },
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "cycle_increase_percent": 0.0,
+      "cases": 12,
+      "inferences": 24,
+      "element_comparisons": 19392
+    },
+    "ff_narrow": {
+      "parameters": {
+        "weight_sram": 0,
+        "tile": 16,
+        "array_acc": 18,
+        "psum": 23
+      },
+      "cycles": 2805,
+      "phase_cycles": [
+        1000,
+        1480,
+        325
+      ],
+      "cycle_increase_percent": 0.0,
+      "cases": 12,
+      "inferences": 24,
+      "element_comparisons": 19392
+    },
+    "sram16_wide": {
+      "parameters": {
+        "weight_sram": 1,
+        "tile": 16,
+        "array_acc": 32,
+        "psum": 32
+      },
+      "cycles": 3028,
+      "phase_cycles": [
+        1063,
+        1573,
+        392
+      ],
+      "cycle_increase_percent": 7.95,
+      "cases": 12,
+      "inferences": 24,
+      "element_comparisons": 19392
+    },
+    "sram16": {
+      "parameters": {
+        "weight_sram": 1,
+        "tile": 16,
+        "array_acc": 18,
+        "psum": 23
+      },
+      "cycles": 3028,
+      "phase_cycles": [
+        1063,
+        1573,
+        392
+      ],
+      "cycle_increase_percent": 7.95,
+      "cases": 12,
+      "inferences": 24,
+      "element_comparisons": 19392
+    },
+    "sram8": {
+      "parameters": {
+        "weight_sram": 1,
+        "tile": 8,
+        "array_acc": 18,
+        "psum": 23
+      },
+      "cycles": 4348,
+      "phase_cycles": [
+        1588,
+        2368,
+        392
+      ],
+      "cycle_increase_percent": 55.009,
+      "cases": 12,
+      "inferences": 24,
+      "element_comparisons": 19392
+    },
+    "sram4": {
+      "parameters": {
+        "weight_sram": 1,
+        "tile": 4,
+        "array_acc": 18,
+        "psum": 23
+      },
+      "cycles": 7040,
+      "phase_cycles": [
+        2664,
+        3984,
+        392
+      ],
+      "cycle_increase_percent": 150.98,
+      "cases": 12,
+      "inferences": 24,
+      "element_comparisons": 19392
+    }
+  },
+  "fixture_cases": [
+    {
+      "name": "random_1_1",
+      "classes": 1
+    },
+    {
+      "name": "random_2_2",
+      "classes": 2
+    },
+    {
+      "name": "random_3_3",
+      "classes": 3
+    },
+    {
+      "name": "random_4_4",
+      "classes": 4
+    },
+    {
+      "name": "random_5_5",
+      "classes": 5
+    },
+    {
+      "name": "random_6_6",
+      "classes": 6
+    },
+    {
+      "name": "random_7_7",
+      "classes": 7
+    },
+    {
+      "name": "random_8_8",
+      "classes": 8
+    },
+    {
+      "name": "impulse_11_6",
+      "classes": 6
+    },
+    {
+      "name": "extreme_6_8",
+      "classes": 8
+    },
+    {
+      "name": "overflow",
+      "classes": 8
+    },
+    {
+      "name": "dot_bound",
+      "classes": 8
+    }
+  ],
+  "boundary_witness": {
+    "pool2_all_127": true,
+    "fc_unbiased_extrema": [
+      -2600960,
+      2580640
+    ],
+    "fc_biased_logit_hex": [
+      "7fd85000",
+      "8027609f",
+      "7fd84f9b",
+      "80276105",
+      "ffd84fff",
+      "002760a0",
+      "ffd85001",
+      "07832db5"
+    ]
+  },
+  "weight_store_tests_behavioral": [
+    "PASS weight_store width=8 checked=514",
+    "PASS weight_store width=16 checked=514",
+    "PASS weight_store width=32 checked=514",
+    "PASS weight_store width=64 checked=514"
+  ],
+  "real_macro_validation": {
+    "model": {
+      "name": "RA1SHD_2048x32M8.v",
+      "sha256": "8ac2d40a9055d14b89b411b704a7d9ab73f28f885d31dd5e8f64e4c696713d53"
+    },
+    "weight_store_tests": [
+      "PASS weight_store width=8 checked=514",
+      "PASS weight_store width=16 checked=514",
+      "PASS weight_store width=32 checked=514",
+      "PASS weight_store width=64 checked=514"
+    ],
+    "golden_cases": 12,
+    "inferences": 24,
+    "cycles": 3028,
+    "phase_cycles": [
+      1063,
+      1573,
+      392
+    ],
+    "element_comparisons": 19392
+  },
+  "nocpu_behavioral": {
+    "tests": [
+      "PASS nocpu controller classes=4 commands=5923 readback_checks=3223",
+      "PASS nocpu controller classes=8 commands=5923 readback_checks=3223",
+      "PASS nocpu controller classes=1 commands=5923 readback_checks=3223",
+      "PASS nocpu JTAG commands=741 TCK_edges=171647 nonzero_jobs=2",
+      "PASS nocpu Python host trace commands=639"
+    ]
+  },
+  "nocpu_real_macro": {
+    "tests": [
+      "PASS nocpu controller classes=4 commands=5923 readback_checks=3223",
+      "PASS nocpu controller classes=8 commands=5923 readback_checks=3223",
+      "PASS nocpu controller classes=1 commands=5923 readback_checks=3223",
+      "PASS nocpu JTAG commands=741 TCK_edges=171647 nonzero_jobs=2",
+      "PASS nocpu Python host trace commands=639"
+    ]
+  },
+  "legacy": {
+    "units": [
+      "tb_requant_lane",
+      "tb_tinycnn8_npu_top fused 4x8",
+      "tb_tinycnn8_npu_top fused 4x4",
+      "tb_tinycnn8_npu_mmio_wrapper FUSED_CORE=1",
+      "tb_tinycnn8_npu_mmio_wrapper FUSED_CORE=0",
+      "tb_tinycnn8_capacity A=640 B=2560",
+      "tb_tinycnn8_capacity A=4096 B=4096"
+    ],
+    "golden_cases": 5,
+    "element_comparisons": 8080,
+    "negative_event_checks": [
+      "retire",
+      "retire_tag",
+      "array_value",
+      "activation_address",
+      "pool_value",
+      "write_value",
+      "profiler",
+      "requant_latency",
+      "clock_gap",
+      "bank_hazard"
+    ]
+  },
+  "entrypoint_checks": {
+    "method": "ordinary Tcl with EDA commands mocked, not actual EDA",
+    "passed_cases": [
+      "genus_macro",
+      "genus_ff",
+      "genus_invalid_tile",
+      "genus_missing_macro_library",
+      "dc_macro",
+      "dc_ff",
+      "dc_invalid_tile",
+      "dc_missing_macro_library"
+    ]
+  },
+  "storage_declaration_bits": {
+    "baseline_primary_arrays": 29696,
+    "new_standard_cell_primary_arrays": 12160,
+    "removed_primary_array_bits": 17536,
+    "macro_capacity_bytes": 8192,
+    "logical_weight_capacity_bytes": 2048,
+    "macro_body_area_mm2": 0.401443591,
+    "note": "Declarations and existing macro dimensions, not measured new mapped area"
+  },
+  "source_sha256": {
+    "hardware/npu/rtl/fused_ws_array.sv": "43690aa247d16d6756043f815e26329fe9ba53dca9a975a760537d6c6b0031ed",
+    "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+    "hardware/npu/rtl/npu_weight_store.sv": "1a15060f77b18ae96307d04061ae6673b006ffda665f683a0a9a5753cf80ed9a",
+    "hardware/npu/rtl/tinycnn8_npu_fused.sv": "5041cf399a3baad8e4fe9d05cc000589f534aca400679f6dc09eb43a61fc5834",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "ccab80bb94913b63b7e0111e1b1d0171dc1699cb4c37c28b057b7fa2236f6c3e",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "e8f03415316cc393783e41157b34b68b726e6d0c5ca135c13fbaffc7a84723e2",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "dc514e70fbc37018ab0342e42c93b13e71403ad4de09af0af77a18858738bc62",
+    "hardware/npu/tb/tb_npu_weight_store.sv": "533a259afa31a6834078da9d6f871138b9dd8da3451c208a36eb50a102564783",
+    "hardware/npu/tb/tb_tinycnn8_fused_golden.sv": "cd5beac3a02adff477ed443936810341be648d07af9b8653b9f60ffc90c59ab1",
+    "hardware/npu/tb/fused_event_trace.svh": "a0d67e1a929753e28c8d66f8e28bc8b1ef3d0bd99dcfdc7f32ae40cb39a1b620",
+    "hardware/npu/scripts/run_area_experiments.py": "95dde17f8b6db6d7a7f41b3e59359b0b5983f996a2b5085b564ad831b55cee70",
+    "hardware/npu/tools/check_fused_events.py": "598d984291e6bc545bd8c0527f1bd8b4081e272166db14820d870e25f79b1c0e",
+    "hardware/npu/tools/tinycnn8_golden.py": "221778fa19c4251f42d7cbe23210682fb2943a7fbd84a97cb51354eba8593776",
+    "hardware/soc/sim/scripts/run_nocpu.py": "bf3c14c3a3c274c7abf83b6353dcec79dea85704beeef8d38ec0c3703fa1c2e1",
+    "hardware/soc/sim/tb/tb_nocpu_controller.sv": "dd6e3c40c7ccd02a5858b19ee754cd81ce535a23bb5df32e0871c517fec2451c",
+    "hardware/soc/synth/scripts/nocpu_area_config.tcl": "a4c2f8ab81f0e85cfc11f46e9bf69db5877932535df18c879d66fe6a4b8640b3",
+    "hardware/soc/synth/scripts/synth_genus.tcl": "6e39bbaae5231f6943d8b3bb9f4c47eebb3b31ab1740e2fcf49bbf4faf7f7297",
+    "hardware/soc/synth/scripts/synth_dc.tcl": "ef903aad4a2b1ddff80598f481ec522827acbe7c0447864b0c3d5c45df7e93ba",
+    "hardware/soc/sim/filelists/chipdesign_nocpu.f": "c3ba060d77332c553f128b74966300068d67e1c064d9c55ee744784b99d5a6f4",
+    "hardware/soc/sim/filelists/chipdesign_soc.f": "5b6c90cb541cafb4abb2f6eaac72abea5e7198b985c792c99763201e5e138fa2",
+    ".github/workflows/tinycnn8.yml": "b6ddf7325ea940eac3eee9ed5f91a656aa7e586dcced7d18605425889e9e5949"
+  },
+  "limitations": [
+    "New ASIC area/frequency and 2 mm die closure unmeasured",
+    "Macro halo and physical view compatibility require EDA evaluation",
+    "23-bit psum adds a final INT32 bias path; compare timing/area against PSUM_WIDTH=32",
+    "Portable behavioral weight memory alone is not ASIC macro inference"
+  ]
+}

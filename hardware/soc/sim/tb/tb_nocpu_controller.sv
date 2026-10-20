@@ -171,6 +171,11 @@ module tb_nocpu_controller;
         load_model;load_input;c(8,0,0,0);finish_job;
         // A replacement invalidates model readiness before any new weight write.
         c(3,0,0,0);c(8,0,0,5);c(11,0,0,0);
+        // A synchronous inspection that never returns must also time out,
+        // release command ownership and permit a clean soft reset.
+        c(2,'h14,6,0);force dut.debug_valid=0;
+        c(1,'h2000,0,10);release dut.debug_valid;
+        expect_read(8,10);c(11,0,0,0);expect_read(4,0);
         $display("PASS nocpu controller classes=%0d commands=%0d readback_checks=%0d",classes,commands,checks);
         $finish;
     end

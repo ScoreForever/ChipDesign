@@ -6,14 +6,26 @@ set result_dir $::env(EDA_RESULT_DIR)
 file mkdir $result_dir
 set_app_var search_path [concat $search_path [list $root "$root/hardware/soc/rtl/include"]]
 set mapped [info exists ::env(EDA_TARGET_LIBS)]
+source hardware/soc/synth/scripts/nocpu_area_config.tcl
 if {$mapped} {
     foreach key {EDA_CLOCK_NS EDA_IO_DELAY_NS EDA_CLOCK_UNCERTAINTY_NS} {
         if {![info exists ::env($key)]} {error "Missing $key for mapped synthesis"}
     }
-    foreach lib $::env(EDA_TARGET_LIBS) {
+    set target_libs $::env(EDA_TARGET_LIBS)
+    if {$use_weight_sram} {
+        # DC needs a compiled .db, not the course Liberty accepted by Genus.
+        if {![info exists ::env(EDA_WEIGHT_SRAM_DB)] || ![file isfile $::env(EDA_WEIGHT_SRAM_DB)]} {
+            error "Set EDA_WEIGHT_SRAM_DB to the matching SRAM .db, or EDA_NPU_WEIGHT_SRAM=0 for the FF comparison"
+        }
+        if {[lsearch -exact $target_libs $::env(EDA_WEIGHT_SRAM_DB)]<0} {
+            lappend target_libs $::env(EDA_WEIGHT_SRAM_DB)
+        }
+        lappend hdl_defines NPU_USE_RA1SHD_WEIGHT
+    }
+    foreach lib $target_libs {
         if {![file isfile $lib]} {error "Target library does not exist: $lib"}
     }
-    set_app_var target_library $::env(EDA_TARGET_LIBS)
+    set_app_var target_library $target_libs
     set_app_var link_library [concat [list *] $target_library]
 }
 define_design_lib WORK -path "$result_dir/work"
@@ -25,7 +37,7 @@ foreach line [split [read $fh] \n] {
     lappend sources $line
 }
 close $fh
-if {![analyze -format sverilog -define SYNTHESIS $sources]} {error "RTL analyze failed"}
+if {![analyze -format sverilog -define $hdl_defines $sources]} {error "RTL analyze failed"}
 if {![elaborate my_soc_top]} {error "RTL elaborate failed"}
 current_design my_soc_top
 if {![link]} {error "RTL link failed"}

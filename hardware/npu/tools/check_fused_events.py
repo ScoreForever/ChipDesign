@@ -27,8 +27,12 @@ def read_hex(path):
     return [int(x, 16) for x in Path(path).read_text().split()]
 
 
-def check_trace(path, inputs, weights, bias, multiplier, shift, classes=4):
+def check_trace(path, inputs, weights, bias, multiplier, shift, classes=4, *,
+                spatial_tile=16, expected_phase_cycles=(1000, 1480, 325)):
     """inputs is one 320-byte sequence per job; a single sequence may be reused."""
+    if spatial_tile not in (4, 8, 16):
+        raise ValueError('spatial_tile must be 4, 8 or 16')
+    windows_per_tile = spatial_tile // 4
     jobs = []
     state = None
     with Path(path).open() as stream:
@@ -76,7 +80,7 @@ def check_trace(path, inputs, weights, bias, multiplier, shift, classes=4):
                 state['clocks'][phase] += 1
                 state['peak'] = max(state['peak'], sum(state['live']))
                 cycle = state['cycle']
-                groups, positions = ((3, 16), (18, 16), (40, 1))[phase]
+                groups, positions = ((3, spatial_tile), (18, spatial_tile), (40, 1))[phase]
 
                 # A live bank must not be overwritten, even on its last retire edge.
                 if n('load'):
@@ -139,7 +143,7 @@ def check_trace(path, inputs, weights, bias, multiplier, shift, classes=4):
                     else:
                         width, height = ((16, 20), (8, 10))[phase]
                         win_width = width // 2
-                        wy, wx = divmod(tile*4 + position//4, win_width)
+                        wy, wx = divmod(tile*windows_per_tile + position//4, win_width)
                         oy, ox = 2*wy + (position//2)%2, 2*wx + position%2
                         if phase == 0:
                             iy = oy + group - 1
@@ -163,7 +167,7 @@ def check_trace(path, inputs, weights, bias, multiplier, shift, classes=4):
                     require(phase < 2, 'FC must bypass requant')
                     ordinal = state['reads'][phase]
                     window, lane = divmod(ordinal, 8)
-                    tile, win = divmod(window, 4)
+                    tile, win = divmod(window, windows_per_tile)
                     key = (tile, win)
                     require(key in state['ready'] and state['ready'][key] <= cycle, 'pool read before ready')
                     addr = (320 if phase == 0 else 0) + ordinal
@@ -192,8 +196,10 @@ def check_trace(path, inputs, weights, bias, multiplier, shift, classes=4):
             require(n('valid') == n('done'), 'profile valid/completion timing')
             if n('done'):
                 require(not state['pending'] and not state['quant'] and state['live'] == [0, 0], 'completion before drain')
-                require(state['clocks'] == [1000, 1480, 325], '4x8 calibrated phase timing')
-                require(state['loads'] == [240, 360, 160], 'incomplete weight coverage')
+                if expected_phase_cycles is not None:
+                    require(state['clocks'] == list(expected_phase_cycles), '4x8 calibrated phase timing')
+                require(state['loads'] == [4*3*320//spatial_tile, 4*18*80//spatial_tile, 160],
+                        'incomplete weight coverage')
                 require(state['issues'] == state['retires'] == [960, 1440, 40], 'incomplete array coverage')
                 require(state['reads'] == state['writes'] == [640, 160, 0], 'incomplete pooled write coverage')
                 jobs.append(dict(job=len(jobs), cycles=state['cycle'], phase_cycles=state['clocks'],

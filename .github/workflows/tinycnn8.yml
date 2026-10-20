@@ -46,6 +46,8 @@ jobs:
         run: python3 hardware/npu/scripts/run_tinycnn8_fused_test.py --summary "${RUNNER_TEMP}/tinycnn8_fused.json"
       - name: Validate CPU-less controller, JTAG pins and Python host packets
         run: python3 hardware/soc/sim/scripts/run_nocpu.py --output build/nocpu_ci
+      - name: Validate synchronous weight storage and area profiles
+        run: python3 hardware/npu/scripts/run_area_experiments.py --seeds 2 --profiles sram16 sram8 sram4 --output build/nocpu_area_ci
       - name: Validate standalone and production MMIO paths
         run: python3 hardware/npu/scripts/run_tinycnn8_regression.py --output "${RUNNER_TEMP}/tinycnn8_results"
       - name: Preserve experiment evidence
@@ -57,4 +59,5 @@ jobs:
             ${{ runner.temp }}/tinycnn8_results
             ${{ runner.temp }}/tinycnn8_fused.json
             build/nocpu_ci
+            build/nocpu_area_ci
           retention-days: 14

@@ -52,6 +52,7 @@ def run(args, marker='', timeout=180):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--output', type=Path, default=Path('build/nocpu_regression'))
+    ap.add_argument('--macro-model', type=Path, help='external course SRAM Verilog; never committed')
     args = ap.parse_args()
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -59,11 +60,15 @@ def main():
         if not shutil.which(tool):
             raise SystemExit(f'missing {tool}')
     sources = (ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
+    defines=[]
+    if args.macro_model:
+        defines=['-DNPU_USE_RA1SHD_WEIGHT']
+        sources.append(str(args.macro_model.resolve()))
     results = []
     for top in ('tb_nocpu_controller', 'tb_nocpu_jtag', 'tb_nocpu_host_trace'):
         image = out / (top+'.vvp')
         tb = 'hardware/soc/sim/tb/'+top+'.sv'
-        run(['iverilog', '-g2012', '-s', top, '-o', image, *sources, tb])
+        run(['iverilog', '-g2012', '-s', top, '-o', image, *defines, *sources, tb])
         for classes, seed, pattern in ((4,7,'random'),(8,6,'extreme'),(1,11,'impulse')):
             if top != 'tb_nocpu_controller' and classes != 4:
                 continue
