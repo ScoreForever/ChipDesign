@@ -1,0 +1,6 @@
+die={0.0 0.0 3100.16 3100.16}
+core={150.08 150.08 2950.08 2950.08}
+insts=386899
+**WARN: (IMPDBTCL-204):	'density' is not a recognized object/attribute for object type 'topCell'. For help use 'dbSchema topCell' to get list of all supported (settable/unsettable) objects and attributes.
+Type 'man IMPDBTCL-204' for more detail.
+density=0x0

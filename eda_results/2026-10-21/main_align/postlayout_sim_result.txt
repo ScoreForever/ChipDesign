@@ -1,0 +1,13 @@
+main-aligned baseline (origin/main 128d454) — gate-level SDF post-layout simulation
+flow: /home/s2400012724/chip-fullstack-2026/ChipDesign_postsim_exps/pnr_main_align_std
+
+[150000] post-layout reset released; MAXIMUM SDF annotated
+[644670000] POSTLAYOUT_PASS: integrated SoC OK after 32226 cycles
+
+simulator: xrun(64) 21.09-s013
+netlist:   my_soc_top_hier_postpnr.v (17.4 MB) after pad-net normalization
+sdf:       my_soc_top_tt_io.sdf.gz (20.5 MB) annotated with MAXIMUM delay
+firmware:  hardware/soc/sim/sw/chipdesign_npu_test.hex (from the main tree)
+tb:        ChipDesign_postsim_exps/postsim_tb/chipdesign_main_postlayout_tb.sv
+
+full log: build/postlayout_sim/xrun_postlayout_sdf.log on the flow directory

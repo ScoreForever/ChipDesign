@@ -1,0 +1,8 @@
+
+Usage: report_area [-help] [-depth <integer>] [-detail] [-hinst <hInst>]
+                   [-include_physical] [-min_area <float>]
+                   [-min_count <integer>] [-show_leaf_cells] [-show_msv_cells]
+                   [-sort_by {name count area}]
+                   [-table_style {horizontal vertical}]
+
+**ERROR: (IMPTCM-48):	"-hierarchy" is not a legal option for command "report_area". Either the current option or an option prior to it is not specified correctly.
