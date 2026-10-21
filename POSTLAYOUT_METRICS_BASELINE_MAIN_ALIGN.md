@@ -64,9 +64,13 @@ cell area 不同。旧基线的 Genus 配置没有随流程目录保留，因此
 | Core-to-die margin | 150.08 µm | 同 |
 | post-route `report_area` | **3,647,279.552 µm²（3.647 mm²）** | 3,669,029.593 µm²（3.669 mm²） |
 | `report_area` 实例数 | 107,585 | 99,662 |
-| 密度（不含 filler） | **46.52%** | 42.983% |
-| 密度（含 filler） | 100.000% | 100.000% |
+| `report_area` / core 面积 | **46.52%** | 46.80% |
+| Innovus placement density（旧基线口径） | 43.68%（优化中快照）/ 100% 含 filler | 42.983% |
+| 含 filler 后密度 | 100.000% | 100.000% |
 | SRAM 位置 | `i_mainmem/i_mainmem` @ (250, 650)，halo 26 µm | 同 |
+
+> 密度有两个口径：`report_area`/core（本表第 3 行，可跨版本比较）与 Innovus 自己报的
+> placement density（第 4 行，受 filler 和优化阶段影响）。两者不要混用。
 
 ## 5. 时序与物理检查
 
