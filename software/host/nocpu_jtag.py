@@ -59,11 +59,23 @@ class JtagTransport:
         self.rpc.execute(f'irscan {tap} 0x12 -endstate IDLE')
 
     def scan(self, packet):
-        reply=self.rpc.execute(f'drscan {self.tap} 72 {packet:018x} -endstate IDLE')
+        # OpenOCD documents drscan as a list of fields and warns against fields
+        # wider than 32 bits for portability.  A single 72-bit value works on
+        # some builds but silently returns zeros on others.  The register shifts
+        # least-significant bits first, so send data, address, then opcode.
+        packet &= (1 << 72) - 1
+        data=packet & 0xffffffff
+        addr=(packet >> 32) & 0xffffffff
+        opcode=(packet >> 64) & 0xff
+        reply=self.rpc.execute(
+            f'drscan {self.tap} 32 0x{data:08x} 32 0x{addr:08x} '
+            f'8 0x{opcode:02x} -endstate IDLE'
+        )
         try:
-            if len(reply)>18:
+            fields=reply.split()
+            if len(fields)!=3 or len(fields[0])>8 or len(fields[1])>8 or len(fields[2])>2:
                 raise ValueError
-            return int(reply,16)
+            return int(fields[0],16) | (int(fields[1],16)<<32) | (int(fields[2],16)<<64)
         except ValueError as exc:
             raise RuntimeError(f'OpenOCD drscan failed: {reply}') from exc
 
