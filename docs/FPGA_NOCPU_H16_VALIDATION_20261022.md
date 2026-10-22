@@ -57,16 +57,42 @@ python3 software/host/nocpu_jtag.py infer \
   --input build/nocpu_impl_h16_20261022/zero_frame.bin
 ```
 
-## Limits and next validation
+## 100-frame physical real-speech comparison
 
-This is a physical smoke test: it proves the controller command path, model
-loading, and one complete inference against the integer golden model. A zero
-frame does not establish speech-task accuracy, data-dependent corner-case
-coverage, or long-run stability. The 100-sample bit-exact result described in
-the model documentation is RTL simulation evidence, not an FPGA measurement.
+After the zero-frame smoke test, the production package was left loaded and
+100 real utterances were run through the FPGA at 1 MHz JTAG. The samples were
+selected deterministically from the Speech Commands v0.02 test archive, 25
+per class (`yes`, `no`, `up`, `down`), then processed by the repository's
+`export_rtl_vectors.py` and integer golden model.
 
-Next, run a diverse set of real preprocessed test frames on the board and
-compare all four raw logits per frame against `software/golden_model.py`. Then
-run the full test set for classification metrics and repeat load/infer/ACK
-cycles to assess stability. Preserve the test vectors, metric summary, and
-all artifact hashes with that run.
+- Result: **PASS, 100/100 samples and 400/400 raw INT32 logits bit-exact**.
+- Board status before and after: model ready, idle, no fault, error zero.
+- Job IDs: 2 through 101, contiguous; all completed and ACKed.
+- Core/task cycles: 3028/3029 for every sample.
+- End-to-end JTAG batch time: 61.04 seconds.
+- Balanced-subset classification accuracy: 97.0%; macro-F1: 97.00%.
+- Confusion matrix (rows true, columns predicted; order `yes`, `no`, `up`, `down`):
+
+```text
+25  0  0  0
+ 0 24  0  1
+ 0  1 24  0
+ 1  0  0 24
+```
+
+The exact INT32 comparison is the hardware correctness gate. The 97% accuracy
+is only a metric for this balanced 100-frame subset, not a replacement for the
+model's full test-set evaluation.
+
+Evidence bundle:
+`docs/validation/nocpu_h16_100real_20261022/` contains the selected INT8
+inputs, golden logits, labels, sample/WAV hashes, source hashes and the
+per-sample FPGA comparison report. The source archive URL and SHA-256 are in
+`fpga_golden_100.json`; the model package and bitstream hashes are recorded
+above and in that report.
+
+## Remaining validation
+
+This physical run covers one model load and 100 inference/ACK cycles. Next,
+run the full test set on the board for end-to-end metrics, then repeat
+reset/load/infer cycles and a longer soak run to assess recovery and stability.
