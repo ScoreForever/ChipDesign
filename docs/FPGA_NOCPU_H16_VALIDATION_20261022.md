@@ -91,8 +91,38 @@ per-sample FPGA comparison report. The source archive URL and SHA-256 are in
 `fpga_golden_100.json`; the model package and bitstream hashes are recorded
 above and in that report.
 
-## Remaining validation
+## Full test-set and reset/reload stability run
 
-This physical run covers one model load and 100 inference/ACK cycles. Next,
-run the full test set on the board for end-to-end metrics, then repeat
-reset/load/infer cycles and a longer soak run to assess recovery and stability.
+The full balanced test split was then run consecutively on the board, without
+reloading the model during the inference sequence:
+
+- 1620/1620 inferences completed; **6480/6480 raw INT32 logits matched** the
+  integer golden model exactly.
+- Four classes had 405 samples each. FPGA accuracy was **90.3704%** and
+  macro-F1 was **90.4215%**, matching the model package's documented INT8
+  test-set results.
+- Job IDs were contiguous from 102 through 1721; every result was read and
+  ACKed. No timeout, NPU fault, or controller error occurred.
+- JTAG clock was 1 MHz; the continuous batch took 774.55 seconds.
+- Core cycles were exactly 3028 for every sample; task cycles were 3029.
+- Controller status before and after the run was model-ready and idle, with
+  no fault and error code zero.
+
+Three additional recovery rounds each performed controller `SOFT_RESET`,
+verified that `model_ready` cleared, reloaded the complete production model,
+verified `model_ready` returned, and ran one different real test frame. All
+three outputs matched the golden logits; every round ended idle with no fault
+or error. Each reset restarted the job counter and completed job 1.
+
+The reset test is a controller soft reset; the FPGA was not power-cycled or
+reprogrammed between rounds. The 12.9-minute continuous test establishes
+long-sequence behavior for this run, but is not an extended multi-hour soak.
+
+Evidence bundle:
+`docs/validation/nocpu_h16_fulltest_20261022/` contains compressed full-test
+features and golden outputs, the sample/source manifest, per-inference FPGA
+results and the three-round reset/reload report.
+
+Remaining validation is a longer soak under the intended deployment
+environment and, if required by the product, a physical power-cycle/reprogram
+recovery test.

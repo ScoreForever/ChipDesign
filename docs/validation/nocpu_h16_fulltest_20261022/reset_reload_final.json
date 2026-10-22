@@ -1,0 +1,190 @@
+{
+  "result": "PASS",
+  "board": "EGo1 xc7a35tcsg324-1",
+  "bitstream_sha256": "8346244761A8CDA194B68434FAD3CE9D80B9AE876CE4A0C81A8AA88B12616FDF",
+  "model_package_sha256": "1732c470ec65f2d2c0ebc96dd93326dabb058277b71eef1bb3717d2ddee2f83a",
+  "jtag_khz": 1000,
+  "reset_type": "NPU controller SOFT_RESET (does not reprogram FPGA)",
+  "cycles": [
+    {
+      "round": 1,
+      "soft_reset_reply": 0,
+      "status_after_reset": {
+        "status": 0,
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 0,
+        "completed_id": 0,
+        "core_cycles": 0,
+        "task_cycles": 0
+      },
+      "status_after_reload": {
+        "status": 2,
+        "busy": false,
+        "model_ready": true,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 0,
+        "completed_id": 0,
+        "core_cycles": 0,
+        "task_cycles": 0
+      },
+      "sample_index": 0,
+      "label": 0,
+      "expected_logits": [
+        8893,
+        -19981,
+        -9163,
+        -6324
+      ],
+      "fpga_logits": [
+        8893,
+        -19981,
+        -9163,
+        -6324
+      ],
+      "exact_match": true,
+      "job_id": 1,
+      "completed_id": 1,
+      "post_status": {
+        "status": 2,
+        "busy": false,
+        "model_ready": true,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 1,
+        "completed_id": 1,
+        "core_cycles": 3028,
+        "task_cycles": 3029
+      }
+    },
+    {
+      "round": 2,
+      "soft_reset_reply": 0,
+      "status_after_reset": {
+        "status": 0,
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 0,
+        "completed_id": 0,
+        "core_cycles": 0,
+        "task_cycles": 0
+      },
+      "status_after_reload": {
+        "status": 2,
+        "busy": false,
+        "model_ready": true,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 0,
+        "completed_id": 0,
+        "core_cycles": 0,
+        "task_cycles": 0
+      },
+      "sample_index": 1,
+      "label": 1,
+      "expected_logits": [
+        -9395,
+        1628,
+        -7467,
+        -2088
+      ],
+      "fpga_logits": [
+        -9395,
+        1628,
+        -7467,
+        -2088
+      ],
+      "exact_match": true,
+      "job_id": 1,
+      "completed_id": 1,
+      "post_status": {
+        "status": 2,
+        "busy": false,
+        "model_ready": true,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 1,
+        "completed_id": 1,
+        "core_cycles": 3028,
+        "task_cycles": 3029
+      }
+    },
+    {
+      "round": 3,
+      "soft_reset_reply": 0,
+      "status_after_reset": {
+        "status": 0,
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 0,
+        "completed_id": 0,
+        "core_cycles": 0,
+        "task_cycles": 0
+      },
+      "status_after_reload": {
+        "status": 2,
+        "busy": false,
+        "model_ready": true,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 0,
+        "completed_id": 0,
+        "core_cycles": 0,
+        "task_cycles": 0
+      },
+      "sample_index": 2,
+      "label": 2,
+      "expected_logits": [
+        -8067,
+        -5082,
+        10489,
+        -4515
+      ],
+      "fpga_logits": [
+        -8067,
+        -5082,
+        10489,
+        -4515
+      ],
+      "exact_match": true,
+      "job_id": 1,
+      "completed_id": 1,
+      "post_status": {
+        "status": 2,
+        "busy": false,
+        "model_ready": true,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "job_id": 1,
+        "completed_id": 1,
+        "core_cycles": 3028,
+        "task_cycles": 3029
+      }
+    }
+  ]
+}
