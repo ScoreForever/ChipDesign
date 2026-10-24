@@ -3,6 +3,7 @@ set result_dir $::env(EDA_RESULT_DIR)
 file mkdir $result_dir
 set_db init_hdl_search_path [list [pwd] "[pwd]/hardware/soc/rtl/include"]
 set mapped [info exists ::env(EDA_TARGET_LIBS)]
+set hdl_defines {SYNTHESIS}
 source hardware/soc/synth/scripts/nocpu_area_config.tcl
 if {$mapped} {
     foreach key {EDA_CLOCK_NS EDA_IO_DELAY_NS EDA_CLOCK_UNCERTAINTY_NS} {
@@ -32,6 +33,11 @@ foreach line [split [read $fh] \n] {
     lappend sources $line
 }
 close $fh
+if {$mapped} {
+    # The ASIC build uses the course-provided SRAM hard macro instead of
+    # synthesizing the behavioral sram_ff array into registers.
+    lappend hdl_defines USE_RA1SHD_MAINMEM
+}
 read_hdl -sv -define $hdl_defines $sources
 if {!$mapped} {
     puts "EDA_RTL_READ_COMPLETE"

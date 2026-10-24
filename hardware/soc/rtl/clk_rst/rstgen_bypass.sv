@@ -26,7 +26,7 @@ module rstgen_bypass #(
     // internal reset
     logic rst_n;
 
-    logic [NumRegs-1:0] synch_regs_q;
+    (* ASYNC_REG = "TRUE" *) logic [NumRegs-1:0] synch_regs_q;
     // bypass mode
     always_comb begin
         if (test_mode_i == 1'b0) begin

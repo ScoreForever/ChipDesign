@@ -19,6 +19,10 @@ $savedTemp = $env:TEMP
 $savedTmp = $env:TMP
 $savedLocalData = $env:XILINX_LOCAL_USER_DATA
 $exitCode = 1
+$sourceHashes = @{}
+Get-ChildItem -LiteralPath (Join-Path $repoRoot 'hardware') -Recurse -File |
+    Where-Object { $_.Extension -in '.sv','.svh','.v','.xdc','.f','.tcl' } |
+    ForEach-Object { $sourceHashes[$_.FullName.Substring($repoRoot.Length+1).Replace('\','/')] = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
 try {
     if (-not $VivadoRoot) { throw 'Set XILINX_VIVADO or pass -VivadoRoot to the Vivado installation directory.' }
     $vivado = Join-Path $VivadoRoot 'bin/vivado.bat'
@@ -39,8 +43,21 @@ try {
         if ($SynthesisOnly) { $buildArgs += 'synth_only' }
         & $vivado -mode batch -source (Join-Path $PSScriptRoot 'build_ego1.tcl') -log $logPath -journal (Join-Path $outputDir 'vivado.jou') -tclargs @buildArgs
         $exitCode = $LASTEXITCODE
+        if ($exitCode -eq 0) {
+            foreach ($name in $sourceHashes.Keys) {
+                if ((Get-FileHash -LiteralPath (Join-Path $repoRoot $name) -Algorithm SHA256).Hash.ToLowerInvariant() -ne $sourceHashes[$name]) {
+                    throw "Hardware input changed during build: $name"
+                }
+            }
+            @{
+                schema=1; source_sha256=$sourceHashes
+                bitstream_sha256=(Get-FileHash -LiteralPath (Join-Path $outputDir 'fpga_top.bit') -Algorithm SHA256).Hash.ToLowerInvariant()
+                checkpoint_sha256=(Get-FileHash -LiteralPath (Join-Path $outputDir 'route.dcp') -Algorithm SHA256).Hash.ToLowerInvariant()
+            } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $outputDir 'build_identity.json') -Encoding utf8
+        }
     } finally { Pop-Location }
 } catch {
+    $exitCode = 1
     Write-Host "Build failed: $($_.Exception.Message)"
     if (-not (Test-Path -LiteralPath $summaryPath)) {
         @("# EGo1 build summary", "", "Result: FAILED (launcher)", "Reason: $($_.Exception.Message)", "Log: $logPath") | Set-Content -LiteralPath $summaryPath -Encoding utf8

@@ -15,6 +15,22 @@ module my_mainmem #(
     output logic [DATA_W-1:0] rdata_o
 );
 
+`ifdef USE_RA1SHD_MAINMEM
+
+  // ASIC implementation: one course-provided 2048 x 32 single-port SRAM.
+  // CEN/OEN/WEN on this macro are active low; WEN is a byte write mask.
+  RA1SHD_2048x32M8 i_mainmem (
+      .CLK (clk_i),
+      .CEN (~req_i),
+      .OEN (1'b0),
+      .WEN (~(be_i & {4{we_i}})),
+      .A   (addr_i[ADDR_W+1:2]),
+      .D   (wdata_i),
+      .Q   (rdata_o)
+  );
+
+`else
+
   sram_ff #(
       .AddrWidth(ADDR_W),
       .DataWidth(DATA_W),
@@ -27,5 +43,7 @@ module my_mainmem #(
       .data_i(wdata_i),
       .data_o(rdata_o)
   );
+
+`endif
 
 endmodule
