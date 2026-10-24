@@ -20,7 +20,13 @@ foreach line [split [read $fh] \n] {
     lappend sources $line
 }
 close $fh
-read_hdl -sv -define SYNTHESIS $sources
+set hdl_defines {SYNTHESIS}
+if {$mapped} {
+    # The ASIC build uses the course-provided SRAM hard macro instead of
+    # synthesizing the behavioral sram_ff array into registers.
+    lappend hdl_defines USE_RA1SHD_MAINMEM
+}
+read_hdl -sv -define $hdl_defines $sources
 if {!$mapped} {
     puts "EDA_RTL_READ_COMPLETE"
     exit
