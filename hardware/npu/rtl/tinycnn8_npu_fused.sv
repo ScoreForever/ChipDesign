@@ -29,7 +29,9 @@ module tinycnn8_npu_fused #(
     parameter SHIFT_WIDTH=6,
     parameter OPT_GATHER_LOAD=0,     // accepted for drop-in compatibility; unused
     parameter OPT_SPATIAL_TILE=0,    // accepted for drop-in compatibility; unused
-    parameter SPATIAL_TILE=16        // accepted for drop-in compatibility; unused
+    parameter SPATIAL_TILE=16,       // accepted for drop-in compatibility; unused
+    parameter ARRAY_ACC_WIDTH=18,   // four signed INT8 products fit in 18 bits
+    parameter PSUM_WIDTH=23         // up to 160 signed INT8 products fit in 23 bits
 ) (
     input wire clk,input wire rst,
     input wire start_valid,output wire start_ready,
@@ -60,6 +62,11 @@ module tinycnn8_npu_fused #(
     generate if (ARRAY_ROWS != 4 || ARRAY_COLS < 1 || (8 % ARRAY_COLS) != 0)
     begin : invalid_shape
         initial $fatal(1, "tinycnn8_npu_fused requires ARRAY_ROWS=4 and ARRAY_COLS dividing 8");
+    end endgenerate
+    generate if (ARRAY_ACC_WIDTH < 18 || ARRAY_ACC_WIDTH > 32 ||
+                 PSUM_WIDTH < 23 || PSUM_WIDTH > 32)
+    begin : invalid_area_parameters
+        initial $fatal(1, "tinycnn8_npu_fused requires exact accumulator widths");
     end endgenerate
 
     // ------------------------------------------------------------------
@@ -208,13 +215,20 @@ module tinycnn8_npu_fused #(
     wire out_valid, out_bank;
     wire [TAG_W-1:0] out_tag;
     wire [ARRAY_COLS*32-1:0] out_psum;
+    wire [ARRAY_COLS*ARRAY_ACC_WIDTH-1:0] array_psum;
+    genvar accum_lane;
+    generate for (accum_lane=0; accum_lane<ARRAY_COLS; accum_lane=accum_lane+1) begin : g_array_extend
+        assign out_psum[accum_lane*32 +: 32] =
+            {{(32-ARRAY_ACC_WIDTH){array_psum[accum_lane*ARRAY_ACC_WIDTH+ARRAY_ACC_WIDTH-1]}},
+              array_psum[accum_lane*ARRAY_ACC_WIDTH +: ARRAY_ACC_WIDTH]};
+    end endgenerate
     fused_ws_array #(.ARRAY_ROWS(ARRAY_ROWS),.ARRAY_COLS(ARRAY_COLS),
-        .ACC_WIDTH(32),.TAG_WIDTH(TAG_W)) array(
+        .ACC_WIDTH(ARRAY_ACC_WIDTH),.TAG_WIDTH(TAG_W)) array(
         .clk(clk),.rst(rst),
         .weight_we(load_active),.weight_bank(load_bank),.weight_row(load_row_now),
         .weight_data(load_data),
         .in_valid(issue_fire),.in_bank(issue_seq[0]),.in_act(issue_act),.in_tag(issue_tag),
-        .out_valid(out_valid),.out_bank(out_bank),.out_tag(out_tag),.out_psum(out_psum));
+        .out_valid(out_valid),.out_bank(out_bank),.out_tag(out_tag),.out_psum(array_psum));
 
     // ------------------------------------------------------------------
     // Retire: output-side accumulation, INT32 2x2 max, FC logits.
@@ -224,18 +238,33 @@ module tinycnn8_npu_fused #(
     wire ret_first = out_tag[6];
     wire [3:0] ret_oct = out_tag[10:7];
     wire [4:0] ret_tile = out_tag[15:11];
-    reg [ARRAY_COLS*32-1:0] psum_buf[0:TILE_POS-1];
+    reg [ARRAY_COLS*PSUM_WIDTH-1:0] psum_buf[0:TILE_POS-1];
     reg [ARRAY_COLS*32-1:0] win_buf[0:3];
     reg [4:0] win_tile[0:3];
     reg [3:0] win_oct[0:3];
+    reg [ARRAY_COLS*PSUM_WIDTH-1:0] ret_unbiased;
     reg [ARRAY_COLS*32-1:0] ret_bias, ret_sum;
     integer col;
     always @* begin
         ret_bias = (phase==PH_C1) ? bias_conv1[ret_oct] :
                    (phase==PH_C2) ? bias_conv2[ret_oct] : bias_fc[ret_oct];
-        for (col = 0; col < ARRAY_COLS; col = col + 1)
-            ret_sum[col*32 +: 32] = (ret_first ? ret_bias[col*32 +: 32] :
-                psum_buf[ret_p][col*32 +: 32]) + out_psum[col*32 +: 32];
+        for (col = 0; col < ARRAY_COLS; col = col + 1) begin
+            if (PSUM_WIDTH == 32) begin
+                // Keep the original single-adder path available for comparison.
+                ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH] =
+                    (ret_first ? ret_bias[col*32 +: 32] : psum_buf[ret_p][col*PSUM_WIDTH +: PSUM_WIDTH]) +
+                    out_psum[col*32 +: 32];
+                ret_sum[col*32 +: 32] = ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH];
+            end else begin
+                // Accumulate products without bias in the proven 23-bit range.
+                // Bias remains full-width and is added before pooling/logit write.
+                ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH] =
+                    (ret_first ? {PSUM_WIDTH{1'b0}} : psum_buf[ret_p][col*PSUM_WIDTH +: PSUM_WIDTH]) +
+                    $signed(out_psum[col*32 +: 32]);
+                ret_sum[col*32 +: 32] =
+                    $signed(ret_unbiased[col*PSUM_WIDTH +: PSUM_WIDTH]) + $signed(ret_bias[col*32 +: 32]);
+            end
+        end
     end
 
     // ------------------------------------------------------------------
@@ -371,7 +400,7 @@ module tinycnn8_npu_fused #(
                 // Retire.
                 if (out_valid) begin
                     if (!ret_last) begin
-                        psum_buf[ret_p] <= ret_sum;
+                        psum_buf[ret_p] <= ret_unbiased;
                     end else if (layer_pool) begin
                         for (lane = 0; lane < ARRAY_COLS; lane = lane + 1)
                             if (ret_p[1:0] == 2'd0 ||
