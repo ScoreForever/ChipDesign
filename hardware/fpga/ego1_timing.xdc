@@ -1,5 +1,7 @@
-create_clock -period 10.000 -name fpga_clk_i -waveform {0.000 5.000} [get_ports fpga_clk_i]
+# The Clocking Wizard XDC creates the 100 MHz input clock on fpga_clk_i.
+# Avoid redeclaring it here; Vivado otherwise reports an overwritten clock.
 create_clock -period 1000.000 -name tck_i -waveform {0.000 500.000} [get_ports tck_i]
+
 # FT232H short-direct-wire profile, nominal TCK <= 1 MHz, rising TDO sample.
 # Derivation and scope: docs/JTAG_IO_TIMING.md. Delays referenced at FPGA TCK.
 # FTDI DO clock-to-out 0..7.5 ns, DI setup 11 ns/hold 0 ns.

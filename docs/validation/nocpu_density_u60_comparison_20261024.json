@@ -1,0 +1,49 @@
+{
+  "snapshot_sha256": "f9ae8f1094eb8e2ead264954a7c38d29b3210a65eac95c1e2c19338d2ab94100",
+  "baseline_target": 0.5,
+  "candidate_target": 0.6,
+  "baseline": {
+    "core_area_mm2": 6.760416006399999,
+    "standard_cell_area_mm2": 3.186771840000883,
+    "power_mW": 374.68650964,
+    "setup_wns_ns": 0.821,
+    "hold_wns_ns": 0.003,
+    "regular_wire_length_m": 7.208529925018896,
+    "active_standard_instances": 107336
+  },
+  "candidate": {
+    "core_area_mm2": 5.6644,
+    "standard_cell_area_mm2": 3.1860562048008707,
+    "power_mW": 374.88121728,
+    "setup_wns_ns": 0.423,
+    "hold_wns_ns": 0.004,
+    "regular_wire_length_m": 7.12508153001874,
+    "active_standard_instances": 107345
+  },
+  "delta": {
+    "core_area_mm2": -1.0960160063999993,
+    "standard_cell_area_mm2": -0.0007156352000121657,
+    "power_mW": 0.19470763999999008,
+    "setup_wns_ns": -0.39799999999999996,
+    "hold_wns_ns": 0.001,
+    "regular_wire_length_m": -0.08344839500015588,
+    "active_standard_instances": 9
+  },
+  "change_percent": {
+    "core_area_mm2": -16.212256839851502,
+    "standard_cell_area_mm2": -0.02245643039232581,
+    "power_mW": 0.05196547913803862,
+    "regular_wire_length_m": -1.1576340234161875
+  },
+  "checks": {
+    "execution": true,
+    "setup": true,
+    "hold": true,
+    "physical_checks": true,
+    "all_instances_placed": true,
+    "drvs": true,
+    "smaller_core": true
+  },
+  "meets_evaluated_tt_criteria": true,
+  "limitation": "Single TT corner; vectorless power; no foundry signoff or multi-corner claim."
+}

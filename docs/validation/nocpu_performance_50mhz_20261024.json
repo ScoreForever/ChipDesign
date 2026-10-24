@@ -1,0 +1,441 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "result": "PASS_WITH_DOCUMENTED_LIMITATIONS",
+  "system_mhz": 50,
+  "extension": {
+    "layout_id": "0x00010018",
+    "version": 1,
+    "counters": 24,
+    "register_base": "0x100",
+    "register_end": "0x15c"
+  },
+  "implementation": {
+    "passed": true,
+    "system_mhz": 50,
+    "wns_ns": 0.826,
+    "whs_ns": 0.047,
+    "wpws_ns": 3.0,
+    "setup_failing_endpoints": 0,
+    "hold_failing_endpoints": 0,
+    "pulse_width_failing_endpoints": 0,
+    "fully_routed_nets": 15630,
+    "cdc": {
+      "CDC-3": {
+        "severity": "Info",
+        "count": 2
+      },
+      "CDC-9": {
+        "severity": "Info",
+        "count": 3
+      },
+      "CDC-15": {
+        "severity": "Warning",
+        "count": 109
+      }
+    },
+    "drc_rules": [
+      {
+        "rule": "DPIP-1",
+        "severity": "Warning",
+        "count": 46
+      },
+      {
+        "rule": "DPOP-1",
+        "severity": "Warning",
+        "count": 8
+      },
+      {
+        "rule": "DPOP-2",
+        "severity": "Warning",
+        "count": 21
+      }
+    ],
+    "methodology_rules": [
+      {
+        "rule": "LUTAR-1",
+        "severity": "Warning",
+        "count": 1
+      },
+      {
+        "rule": "SYNTH-6",
+        "severity": "Warning",
+        "count": 6
+      },
+      {
+        "rule": "SYNTH-10",
+        "severity": "Warning",
+        "count": 4
+      }
+    ],
+    "route_checkpoint_sha256": "599afd20e9fbe98afcb739b82ef8715e6beaf6d6348f80588ebad7b578e46650",
+    "synthesis_checkpoint_sha256": "a312de403124c729416a087782554b92f4c885b1e5b1ea6af75b2345a6d8eb02",
+    "source_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "43890f97abba08208f1e4e9bc8274340bd9c046c65690951ea237c8bb42bccd5",
+      "hardware/npu/rtl/npu_model_store.sv": "4f12c59c05fecf021835c9196f834079936a1b2b95a48e779a4f3c234b3a5408",
+      "hardware/npu/rtl/npu_activation_store.sv": "da1e0beeb7548e55c1b0043a18db191826254380780f531c81e5d5a95b2fa350",
+      "hardware/npu/rtl/npu_program_core.sv": "651b1ec9728b9276f8a6a79f4115f19b49069ef02f5aeda74b1cdc9abd568dbd",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "2dcc7d94b9682556fc89072ce0a2a32e00e664152e41e6cab7a1a25668531d51",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "a043c9b7e0c0c909c810762e750d00b4a4d25466d055cd16bd82d896a988a191",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "f55bd993607f4137b8dcfb12d6b16371f8e7badfb6088647a1036a779b660a1b",
+      "hardware/soc/sim/filelists/chipdesign_nocpu.f": "78c7834099f6c44a3eccca3cf0e731fd1ea4c98176f5f8d8309f5d964afb8095",
+      "hardware/fpga/fpga_top.sv": "306b26300788bd5772a07dd5d3e787562b737613caea087767ca38fdcffa1bd3",
+      "hardware/fpga/ego1_pins.xdc": "6937b9d266e7c17216e052951d12814a6ec5aaa4adc76a1e4112ba68088df164",
+      "hardware/fpga/ego1_timing.xdc": "bd189507d043ff7e99b224c830c533dd4f9903ee6b10c650d94b0ad621ea5c66",
+      "hardware/fpga/ego1_configuration.xdc": "59d57e523e9515083b29f1baa4d6119329c2330443713d9c0ac8038e801400d5",
+      "hardware/fpga/check_bram_drc.tcl": "4467ca0c148afc6f4b8cc959eec11967de46144cfadbaf2d22c42f518efe675a",
+      "hardware/fpga/scripts/build_ego1.tcl": "b7e0f059ca4f12500961882be44d557c254264d5fb8afd2856e7e86a4b3dc8a7"
+    },
+    "review_notes": [
+      "CDC-15 paths are the held 72-bit request and 37-bit response mailboxes with two-flop toggle handshakes.",
+      "LUTAR-1: rst_ni & MMCM locked feeds asynchronous assertion; release is synchronized. Physical reset/clock-loss tests remain limited.",
+      "SYNTH-6/SYNTH-10 and DSP pipeline advisories are performance advisories; final setup/hold constraints are checked.",
+      "Asynchronous reset and indicator LEDs are intentionally false-pathed; FT232H cable timing uses documented engineering assumptions.",
+      "50 MHz follows routed MMCM configuration and the specified 100 MHz board oscillator, without oscilloscope measurement."
+    ],
+    "bitstream": {
+      "path": "D:\\IWS\\Advanced_SoC\\ChipDesign\\build\\fpga_ego1_50mhz_perf_impl_20261024\\fpga_top_h16_50mhz.bit",
+      "sha256": "fc822847bd631cf7877e3fcababb0826690cabb0f9223e5656951bfdda6ffd07",
+      "bytes": 2192132,
+      "payload_bytes": 2192012,
+      "header": {
+        "a": "fpga_top;UserID=0XFFFFFFFF;Version=2025.2;SW_CRC=85385b7c",
+        "b": "7a35tcsg324",
+        "c": "2026/10/24",
+        "d": "14:59:22"
+      },
+      "container_check": "PASS"
+    }
+  },
+  "rtl": {
+    "scenarios": 62,
+    "quantization_vectors": 20000,
+    "unchanged_common_scenarios": 58,
+    "live_bank_reads_tested": true,
+    "evidence": "build/nocpu_perf_rtl_final_20261024/summary.json"
+  },
+  "host_tests": {
+    "performance_api": 4,
+    "jtag_transport": 3,
+    "passed": true
+  },
+  "board": {
+    "passed": true,
+    "numeric_comparisons": 170,
+    "total_output_comparisons": 171,
+    "negative_checks": 28,
+    "independent_oracle_cases": 8,
+    "host_command_trace_entries": 44931,
+    "final_registers": {
+      "status": 0,
+      "error": 0,
+      "watchdog": 10000000,
+      "layout": 65560
+    },
+    "final_performance": {
+      "job": 185,
+      "active_cycles": 0,
+      "model_requests": 0,
+      "model_stall_cycles": 0,
+      "model_max_stall": 0,
+      "model_responses": 0,
+      "model_wait_response_cycles": 0,
+      "activation_requests": 0,
+      "activation_stall_cycles": 0,
+      "activation_max_stall": 0,
+      "activation_responses": 0,
+      "activation_wait_response_cycles": 0,
+      "writes": 0,
+      "mac_issues": 0,
+      "mac_wait_activation_cycles": 0,
+      "mac_wait_weight_cycles": 0,
+      "mac_wait_slot_cycles": 0,
+      "kernel_prepare_cycles": 0,
+      "result_slots_peak": 0,
+      "weight_banks_peak": 0,
+      "inflight_peak": 0,
+      "post_lanes": 0,
+      "gather_contiguous_groups": 0,
+      "gather_scalar_groups": 0,
+      "gather_zero_groups": 0
+    },
+    "elapsed_seconds": 232.785
+  },
+  "examples": [
+    {
+      "test": "cnn_f1_first",
+      "performance": {
+        "job": 17,
+        "active_cycles": 764,
+        "model_requests": 320,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 320,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 227,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 227,
+        "activation_wait_response_cycles": 0,
+        "writes": 41,
+        "mac_issues": 184,
+        "mac_wait_activation_cycles": 147,
+        "mac_wait_weight_cycles": 161,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 30,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 11,
+        "post_lanes": 41,
+        "gather_contiguous_groups": 131,
+        "gather_scalar_groups": 24,
+        "gather_zero_groups": 29
+      }
+    },
+    {
+      "test": "cnn_f0_first",
+      "performance": {
+        "job": 19,
+        "active_cycles": 2069,
+        "model_requests": 448,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 448,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 609,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 609,
+        "activation_wait_response_cycles": 0,
+        "writes": 423,
+        "mac_issues": 184,
+        "mac_wait_activation_cycles": 146,
+        "mac_wait_weight_cycles": 162,
+        "mac_wait_slot_cycles": 82,
+        "kernel_prepare_cycles": 30,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 11,
+        "post_lanes": 423,
+        "gather_contiguous_groups": 131,
+        "gather_scalar_groups": 24,
+        "gather_zero_groups": 29
+      }
+    },
+    {
+      "test": "slot_pressure_f1_first",
+      "performance": {
+        "job": 71,
+        "active_cycles": 626,
+        "model_requests": 72,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 72,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 64,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 64,
+        "activation_wait_response_cycles": 0,
+        "writes": 512,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 9,
+        "mac_wait_slot_cycles": 426,
+        "kernel_prepare_cycles": 4,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 512,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0
+      }
+    },
+    {
+      "test": "slot_pressure_f0_first",
+      "performance": {
+        "job": 73,
+        "active_cycles": 1874,
+        "model_requests": 112,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 112,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 576,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 576,
+        "activation_wait_response_cycles": 0,
+        "writes": 1024,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 9,
+        "mac_wait_slot_cycles": 426,
+        "kernel_prepare_cycles": 4,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 1024,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0
+      }
+    },
+    {
+      "test": "trained_f1_first",
+      "performance": {
+        "job": 75,
+        "active_cycles": 3442,
+        "model_requests": 1628,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 1628,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 2200,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 2200,
+        "activation_wait_response_cycles": 0,
+        "writes": 804,
+        "mac_issues": 2440,
+        "mac_wait_activation_cycles": 148,
+        "mac_wait_weight_cycles": 339,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 190,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 11,
+        "post_lanes": 804,
+        "gather_contiguous_groups": 2200,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 240
+      }
+    }
+  ],
+  "busy_window_observations": [
+    {
+      "test": "live_perf",
+      "attempt": 0,
+      "rejected": 1
+    },
+    {
+      "test": "tck_stop",
+      "attempt": 0,
+      "initial_status": 3,
+      "final_status": 10
+    },
+    {
+      "test": "abort",
+      "attempt": 0,
+      "initial_status": 3,
+      "final_status": 0
+    }
+  ],
+  "transport": [
+    {
+      "tck_khz": 100,
+      "idcode_reads": 32,
+      "register_reads": 288,
+      "roundtrips": 37,
+      "passed": true
+    },
+    {
+      "tck_khz": 1000,
+      "idcode_reads": 32,
+      "register_reads": 288,
+      "roundtrips": 37,
+      "passed": true
+    }
+  ],
+  "stress": [
+    {
+      "test": "TCK_stopped_during_observed_busy",
+      "initial_status": 3,
+      "final_status": 10,
+      "pause_ms": 50,
+      "expected_sha256": "781efec00efc70ef3301528f2e69f83d245952c3f38b58b22368e06c3783f92f",
+      "actual_sha256": "781efec00efc70ef3301528f2e69f83d245952c3f38b58b22368e06c3783f92f",
+      "passed": true,
+      "performance": {
+        "job": 15,
+        "active_cycles": 216384,
+        "model_requests": 36240,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 36240,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 124016,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 124016,
+        "activation_wait_response_cycles": 0,
+        "writes": 30720,
+        "mac_issues": 71680,
+        "mac_wait_activation_cycles": 113904,
+        "mac_wait_weight_cycles": 144,
+        "mac_wait_slot_cycles": 24960,
+        "kernel_prepare_cycles": 4480,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 11,
+        "post_lanes": 30720,
+        "gather_contiguous_groups": 51056,
+        "gather_scalar_groups": 18240,
+        "gather_zero_groups": 2384
+      }
+    },
+    {
+      "test": "RESET_during_observed_busy_no_stale_completion",
+      "initial_status": 3,
+      "final_status": 0,
+      "passed": true
+    },
+    {
+      "test": "100_varying_inputs_one_model_no_reset",
+      "passed": true
+    }
+  ],
+  "compiler_rejections": [
+    {
+      "test": "tinycnn_f0",
+      "reason": "activation capacity exceeded: c1 needs [320,10560), capacity 4096; consider fusion/larger build",
+      "scope": "host compiler rejection; not a board test"
+    },
+    {
+      "test": "trained_f0",
+      "reason": "activation capacity exceeded: conv1 needs [320,10560), capacity 4096; consider fusion/larger build",
+      "scope": "host compiler rejection; not a board test"
+    }
+  ],
+  "artifacts": {
+    "board_result": "build\\validation_nocpu_perf_20261024\\board_run_04\\result.json",
+    "board_audit": "build\\validation_nocpu_perf_20261024\\board_run_04\\audit.json",
+    "profile_csv": "docs\\validation\\nocpu_performance_50mhz_20261024.csv",
+    "programming": "build\\validation_nocpu_perf_20261024\\program\\console.log"
+  },
+  "evidence_sha256": {
+    "build\\validation_nocpu_perf_20261024\\board_run_04\\result.json": "d43dc6e1346006b4657f74fee5f29df31a213c34d0a6f026a6abff264281f997",
+    "build\\validation_nocpu_perf_20261024\\board_run_04\\audit.json": "8784e519b5eef8a7f6ef52af704e188f248b2275dced38828f1cd938d249f3b8",
+    "build\\validation_nocpu_perf_20261024\\board_suite.py": "dfd273ec29fa55dc4ea1966b658ee2f5b9b0c662bb45f263c0305a94ab4ad032",
+    "build\\nocpu_perf_rtl_final_20261024\\summary.json": "b3d67d5592d651663736a4fbc591678e1a77c0e0fb724fb183055a5b72061c8c",
+    "docs\\validation\\nocpu_performance_50mhz_20261024.csv": "7a2f21a4545976980c8bfd94bfcf8c3fd1d6a20fdeb8a5676bba62c8d7d2579f"
+  },
+  "cleanup": {
+    "openocd_stopped": true,
+    "usb_detached_from_wsl": true,
+    "task_keepalive_stopped": true,
+    "sram_image_preserved": true,
+    "flash_programmed": false
+  },
+  "limitations": [
+    "No oscilloscope measurement of oscillator frequency or JTAG electrical timing.",
+    "Physical reset button, power cycling, voltage/temperature corners are not automated.",
+    "Counters are aggregated over a job; no per-operator PC/address trace or ILA is included.",
+    "32-bit counters wrap; watchdog/core RESET clears counters, so pre-fault history is lost.",
+    "Classified CDC/mailbox, DSP pipeline and reset methodology warnings remain; see implementation review.",
+    "Synthetic trained-weight inputs are not real speech accuracy evaluation."
+  ]
+}

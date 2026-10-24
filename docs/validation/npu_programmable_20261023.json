@@ -1,0 +1,1687 @@
+{
+  "date": "2026-10-23",
+  "branch": "exp/no_cpu",
+  "baseline_commit": "6957d2c",
+  "abi": "2.0",
+  "scope": "RTL simulation, source-verified FPGA synthesis/implementation and software-only Conv-to-Conv scheduling exploration",
+  "unit_tests": [
+    "20000 independent Q31 vectors at II=1",
+    "model/activation memory response backpressure and reset",
+    "unaligned activation reads",
+    "random-latency model/activation reads for fused and plain execution"
+  ],
+  "functional": {
+    "tests": [
+      {
+        "case": "cnn_c8_f1_j0",
+        "commands": 346,
+        "bytes": 1060,
+        "peak": 102,
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC",
+            "Requant",
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          764,
+          764
+        ],
+        "writes": [
+          41,
+          41
+        ],
+        "checked_write_events": 82
+      },
+      {
+        "case": "cnn_c8_f0_j0",
+        "commands": 473,
+        "bytes": 1568,
+        "peak": 672,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          2069,
+          2069
+        ],
+        "writes": [
+          423,
+          423
+        ],
+        "checked_write_events": 846
+      },
+      {
+        "case": "pool_first_c8_f1_j0",
+        "commands": 349,
+        "bytes": 1008,
+        "peak": 126,
+        "groups": [
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "Conv",
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          1054,
+          1054
+        ],
+        "writes": [
+          197,
+          197
+        ],
+        "checked_write_events": 394
+      },
+      {
+        "case": "pool_first_c8_f0_j0",
+        "commands": 391,
+        "bytes": 1176,
+        "peak": 290,
+        "groups": [
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          1293,
+          1293
+        ],
+        "writes": [
+          251,
+          251
+        ],
+        "checked_write_events": 502
+      },
+      {
+        "case": "mlp_c8_f1_j0",
+        "commands": 248,
+        "bytes": 796,
+        "peak": 73,
+        "groups": [
+          [
+            "FC",
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          485,
+          485
+        ],
+        "writes": [
+          29,
+          29
+        ],
+        "checked_write_events": 58
+      },
+      {
+        "case": "mlp_c8_f0_j0",
+        "commands": 264,
+        "bytes": 860,
+        "peak": 73,
+        "groups": [
+          [
+            "FC"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          572,
+          572
+        ],
+        "writes": [
+          42,
+          42
+        ],
+        "checked_write_events": 84
+      },
+      {
+        "case": "i32_pool_c8_f1_j0",
+        "commands": 111,
+        "bytes": 232,
+        "peak": 64,
+        "groups": [
+          [
+            "Conv",
+            "MaxPool",
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          195,
+          195
+        ],
+        "writes": [
+          24,
+          24
+        ],
+        "checked_write_events": 48
+      },
+      {
+        "case": "i32_pool_c8_f0_j0",
+        "commands": 143,
+        "bytes": 360,
+        "peak": 256,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          456,
+          456
+        ],
+        "writes": [
+          84,
+          84
+        ],
+        "checked_write_events": 168
+      },
+      {
+        "case": "strided_c8_f1_j0",
+        "commands": 380,
+        "bytes": 1148,
+        "peak": 176,
+        "groups": [
+          [
+            "Conv",
+            "Requant"
+          ],
+          [
+            "Conv",
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          784,
+          784
+        ],
+        "writes": [
+          130,
+          130
+        ],
+        "checked_write_events": 260
+      },
+      {
+        "case": "strided_c8_f0_j0",
+        "commands": 451,
+        "bytes": 1432,
+        "peak": 576,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          1279,
+          1279
+        ],
+        "writes": [
+          260,
+          260
+        ],
+        "checked_write_events": 520
+      },
+      {
+        "case": "edges_c8_f1_j0",
+        "commands": 142,
+        "bytes": 364,
+        "peak": 21,
+        "groups": [
+          [
+            "FC",
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          199,
+          199
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "checked_write_events": 18
+      },
+      {
+        "case": "edges_c8_f0_j0",
+        "commands": 185,
+        "bytes": 536,
+        "peak": 48,
+        "groups": [
+          [
+            "FC"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          328,
+          328
+        ],
+        "writes": [
+          18,
+          18
+        ],
+        "checked_write_events": 36
+      },
+      {
+        "case": "long_k_c8_f1_j0",
+        "commands": 1270,
+        "bytes": 4332,
+        "peak": 296,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          1431,
+          1431
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "checked_write_events": 18
+      },
+      {
+        "case": "long_k_c8_f0_j0",
+        "commands": 1270,
+        "bytes": 4332,
+        "peak": 296,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          1431,
+          1431
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "checked_write_events": 18
+      },
+      {
+        "case": "tinycnn_c8_f1_j0",
+        "commands": 823,
+        "bytes": 2432,
+        "peak": 960,
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          3470,
+          3470
+        ],
+        "writes": [
+          808,
+          808
+        ],
+        "checked_write_events": 1616
+      },
+      {
+        "case": "host_i32_quant_c8_f1_j0",
+        "commands": 190,
+        "bytes": 228,
+        "peak": 225,
+        "groups": [
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          443,
+          443
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_quant_c8_f0_j0",
+        "commands": 190,
+        "bytes": 228,
+        "peak": 225,
+        "groups": [
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          443,
+          443
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_pool_c8_f1_j0",
+        "commands": 151,
+        "bytes": 128,
+        "peak": 160,
+        "groups": [
+          [
+            "MaxPool"
+          ],
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          180,
+          180
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "checked_write_events": 32
+      },
+      {
+        "case": "host_i32_pool_c8_f0_j0",
+        "commands": 151,
+        "bytes": 128,
+        "peak": 160,
+        "groups": [
+          [
+            "MaxPool"
+          ],
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          180,
+          180
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "checked_write_events": 32
+      },
+      {
+        "case": "tiny_padded_c8_f1_j0",
+        "commands": 86,
+        "bytes": 172,
+        "peak": 8,
+        "groups": [
+          [
+            "Conv",
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          94,
+          94
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "tiny_padded_c8_f0_j0",
+        "commands": 102,
+        "bytes": 236,
+        "peak": 40,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          173,
+          173
+        ],
+        "writes": [
+          10,
+          10
+        ],
+        "checked_write_events": 20
+      },
+      {
+        "case": "one_mac_c8_f1_j0",
+        "commands": 70,
+        "bytes": 108,
+        "peak": 8,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          69,
+          69
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "one_mac_c8_f0_j0",
+        "commands": 70,
+        "bytes": 108,
+        "peak": 8,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          69,
+          69
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c8_f1_j0",
+        "commands": 63,
+        "bytes": 64,
+        "peak": 13,
+        "groups": [
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          51,
+          51
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c8_f0_j0",
+        "commands": 63,
+        "bytes": 64,
+        "peak": 13,
+        "groups": [
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          51,
+          51
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "full_activation_c8_f1_j0",
+        "commands": 4151,
+        "bytes": 64,
+        "peak": 4096,
+        "groups": [
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          16425,
+          16425
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "checked_write_events": 8192
+      },
+      {
+        "case": "full_activation_c8_f0_j0",
+        "commands": 4151,
+        "bytes": 64,
+        "peak": 4096,
+        "groups": [
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          16425,
+          16425
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "checked_write_events": 8192
+      },
+      {
+        "case": "trained_c8_f1_j0",
+        "commands": 803,
+        "bytes": 2384,
+        "peak": 960,
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          3442,
+          3442
+        ],
+        "writes": [
+          804,
+          804
+        ],
+        "checked_write_events": 1608
+      },
+      {
+        "case": "cnn_c4_f1_j0",
+        "commands": 314,
+        "bytes": 932,
+        "peak": 102,
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC",
+            "Requant",
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          1094,
+          1094
+        ],
+        "writes": [
+          41,
+          41
+        ],
+        "checked_write_events": 82
+      },
+      {
+        "case": "cnn_c4_f0_j0",
+        "commands": 441,
+        "bytes": 1440,
+        "peak": 672,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          2529,
+          2529
+        ],
+        "writes": [
+          423,
+          423
+        ],
+        "checked_write_events": 846
+      },
+      {
+        "case": "pool_first_c4_f1_j0",
+        "commands": 289,
+        "bytes": 768,
+        "peak": 126,
+        "groups": [
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "Conv",
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          996,
+          996
+        ],
+        "writes": [
+          197,
+          197
+        ],
+        "checked_write_events": 394
+      },
+      {
+        "case": "pool_first_c4_f0_j0",
+        "commands": 331,
+        "bytes": 936,
+        "peak": 290,
+        "groups": [
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          1251,
+          1251
+        ],
+        "writes": [
+          251,
+          251
+        ],
+        "checked_write_events": 502
+      },
+      {
+        "case": "mlp_c4_f1_j0",
+        "commands": 232,
+        "bytes": 732,
+        "peak": 73,
+        "groups": [
+          [
+            "FC",
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          509,
+          509
+        ],
+        "writes": [
+          29,
+          29
+        ],
+        "checked_write_events": 58
+      },
+      {
+        "case": "mlp_c4_f0_j0",
+        "commands": 248,
+        "bytes": 796,
+        "peak": 73,
+        "groups": [
+          [
+            "FC"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          608,
+          608
+        ],
+        "writes": [
+          42,
+          42
+        ],
+        "checked_write_events": 84
+      },
+      {
+        "case": "i32_pool_c4_f1_j0",
+        "commands": 107,
+        "bytes": 216,
+        "peak": 64,
+        "groups": [
+          [
+            "Conv",
+            "MaxPool",
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          187,
+          187
+        ],
+        "writes": [
+          24,
+          24
+        ],
+        "checked_write_events": 48
+      },
+      {
+        "case": "i32_pool_c4_f0_j0",
+        "commands": 139,
+        "bytes": 344,
+        "peak": 256,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          439,
+          439
+        ],
+        "writes": [
+          84,
+          84
+        ],
+        "checked_write_events": 168
+      },
+      {
+        "case": "strided_c4_f1_j0",
+        "commands": 320,
+        "bytes": 908,
+        "peak": 176,
+        "groups": [
+          [
+            "Conv",
+            "Requant"
+          ],
+          [
+            "Conv",
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          900,
+          900
+        ],
+        "writes": [
+          130,
+          130
+        ],
+        "checked_write_events": 260
+      },
+      {
+        "case": "strided_c4_f0_j0",
+        "commands": 391,
+        "bytes": 1192,
+        "peak": 576,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          1419,
+          1419
+        ],
+        "writes": [
+          260,
+          260
+        ],
+        "checked_write_events": 520
+      },
+      {
+        "case": "edges_c4_f1_j0",
+        "commands": 130,
+        "bytes": 316,
+        "peak": 21,
+        "groups": [
+          [
+            "FC",
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          201,
+          201
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "checked_write_events": 18
+      },
+      {
+        "case": "edges_c4_f0_j0",
+        "commands": 173,
+        "bytes": 488,
+        "peak": 48,
+        "groups": [
+          [
+            "FC"
+          ],
+          [
+            "Requant"
+          ]
+        ],
+        "cycles": [
+          336,
+          336
+        ],
+        "writes": [
+          18,
+          18
+        ],
+        "checked_write_events": 36
+      },
+      {
+        "case": "long_k_c4_f1_j0",
+        "commands": 1010,
+        "bytes": 3292,
+        "peak": 296,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          1305,
+          1305
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "checked_write_events": 18
+      },
+      {
+        "case": "long_k_c4_f0_j0",
+        "commands": 1010,
+        "bytes": 3292,
+        "peak": 296,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          1305,
+          1305
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "checked_write_events": 18
+      },
+      {
+        "case": "tinycnn_c4_f1_j0",
+        "commands": 823,
+        "bytes": 2432,
+        "peak": 960,
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          6256,
+          6256
+        ],
+        "writes": [
+          808,
+          808
+        ],
+        "checked_write_events": 1616
+      },
+      {
+        "case": "host_i32_quant_c4_f1_j0",
+        "commands": 190,
+        "bytes": 228,
+        "peak": 225,
+        "groups": [
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          443,
+          443
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_quant_c4_f0_j0",
+        "commands": 190,
+        "bytes": 228,
+        "peak": 225,
+        "groups": [
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          443,
+          443
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_pool_c4_f1_j0",
+        "commands": 151,
+        "bytes": 128,
+        "peak": 160,
+        "groups": [
+          [
+            "MaxPool"
+          ],
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          180,
+          180
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "checked_write_events": 32
+      },
+      {
+        "case": "host_i32_pool_c4_f0_j0",
+        "commands": 151,
+        "bytes": 128,
+        "peak": 160,
+        "groups": [
+          [
+            "MaxPool"
+          ],
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          180,
+          180
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "checked_write_events": 32
+      },
+      {
+        "case": "tiny_padded_c4_f1_j0",
+        "commands": 74,
+        "bytes": 124,
+        "peak": 8,
+        "groups": [
+          [
+            "Conv",
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          79,
+          79
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "tiny_padded_c4_f0_j0",
+        "commands": 90,
+        "bytes": 188,
+        "peak": 40,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          152,
+          152
+        ],
+        "writes": [
+          10,
+          10
+        ],
+        "checked_write_events": 20
+      },
+      {
+        "case": "one_mac_c4_f1_j0",
+        "commands": 66,
+        "bytes": 92,
+        "peak": 8,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          61,
+          61
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "one_mac_c4_f0_j0",
+        "commands": 66,
+        "bytes": 92,
+        "peak": 8,
+        "groups": [
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          61,
+          61
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c4_f1_j0",
+        "commands": 63,
+        "bytes": 64,
+        "peak": 13,
+        "groups": [
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          51,
+          51
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c4_f0_j0",
+        "commands": 63,
+        "bytes": 64,
+        "peak": 13,
+        "groups": [
+          [
+            "MaxPool"
+          ]
+        ],
+        "cycles": [
+          51,
+          51
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "checked_write_events": 2
+      },
+      {
+        "case": "full_activation_c4_f1_j0",
+        "commands": 4151,
+        "bytes": 64,
+        "peak": 4096,
+        "groups": [
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          16425,
+          16425
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "checked_write_events": 8192
+      },
+      {
+        "case": "full_activation_c4_f0_j0",
+        "commands": 4151,
+        "bytes": 64,
+        "peak": 4096,
+        "groups": [
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          16425,
+          16425
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "checked_write_events": 8192
+      },
+      {
+        "case": "trained_c4_f1_j0",
+        "commands": 643,
+        "bytes": 1744,
+        "peak": 960,
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "cycles": [
+          5976,
+          5976
+        ],
+        "writes": [
+          804,
+          804
+        ],
+        "checked_write_events": 1608
+      },
+      {
+        "case": "cnn_c8_f1_j1",
+        "commands": 346,
+        "bytes": 1060,
+        "peak": 102,
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC",
+            "Requant",
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          764,
+          764
+        ],
+        "writes": [
+          41,
+          41
+        ],
+        "checked_write_events": 82
+      },
+      {
+        "case": "cnn_c8_f0_j1",
+        "commands": 473,
+        "bytes": 1568,
+        "peak": 672,
+        "groups": [
+          [
+            "Conv"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ],
+          [
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ],
+          [
+            "Requant"
+          ],
+          [
+            "ReLU"
+          ]
+        ],
+        "cycles": [
+          2069,
+          2069
+        ],
+        "writes": [
+          423,
+          423
+        ],
+        "checked_write_events": 846
+      }
+    ],
+    "negative_tests": [
+      "opcode",
+      "reserved",
+      "stride",
+      "shape",
+      "destination",
+      "source",
+      "multiplier",
+      "shift",
+      "lifecycle"
+    ],
+    "sources_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+      "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+      "hardware/npu/rtl/npu_activation_store.sv": "dc4d59dce8a067f14a27e02ea9adac1efd87c23a48b1edc76c04663c72aa13e8",
+      "hardware/npu/rtl/npu_program_core.sv": "f532c4fc6a0d732295f947cf475e42cf89bfee24745928b08cc7dd942f05f201",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "81db36784367ce2c29479ef5f8aba5b8ff754bd16559c20be7bd512813aa8cb7",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "88e8b92a44b34734f3dd7f9450ac869e872aa867e2a1dfd3297344a6b1af662e",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "edd078ac81cec2b95455601efd947679abb4c7ad22de7ead7943b30c7be331a5"
+    }
+  },
+  "course_sram_native_cases": 27,
+  "software_sha256": {
+    "software/host/explore_conv_streaming.py": "ad59825775e3d6747df140cc529cbd81b190b7915361e2edcfe4b4967e0f1192",
+    "software/host/make_demo.py": "3049aa3572057c247fd1e516ec78c0de55c007ee5e827c69da0a6995943c190b",
+    "software/host/nocpu_jtag.py": "b7f1d4f132a79a03fadf9f92ecf7b02d3da32e4182c9363917d7cbd12b21d5cf",
+    "software/host/npu_program.py": "d88e85bf4ed0147b9cdba4e79ae3c40fb1ebf3955afbb75ad412d4470debd80b"
+  },
+  "trained_model_sha256": "1732c470ec65f2d2c0ebc96dd93326dabb058277b71eef1bb3717d2ddee2f83a",
+  "conv_streaming": [
+    {
+      "scope": "software-only feasibility; no RTL timing/area claim",
+      "shape": [
+        8,
+        8,
+        2,
+        4,
+        3
+      ],
+      "comparisons": 192,
+      "producer_rows": 8,
+      "intermediate_full_bytes": 256,
+      "row_cache_peak_bytes": 96,
+      "intermediate_write_read_bytes_avoided": 512,
+      "layerwise_weight_switches": 1,
+      "row_schedule_weight_switches": 13,
+      "layerwise_weight_load_bytes": 1792,
+      "row_schedule_weight_load_bytes": 3584
+    },
+    {
+      "scope": "software-only feasibility; no RTL timing/area claim",
+      "shape": [
+        8,
+        16,
+        2,
+        4,
+        3
+      ],
+      "comparisons": 384,
+      "producer_rows": 8,
+      "intermediate_full_bytes": 512,
+      "row_cache_peak_bytes": 192,
+      "intermediate_write_read_bytes_avoided": 1024,
+      "layerwise_weight_switches": 1,
+      "row_schedule_weight_switches": 13,
+      "layerwise_weight_load_bytes": 3584,
+      "row_schedule_weight_load_bytes": 3584
+    },
+    {
+      "scope": "software-only feasibility; no RTL timing/area claim",
+      "shape": [
+        8,
+        32,
+        2,
+        4,
+        3
+      ],
+      "comparisons": 768,
+      "producer_rows": 8,
+      "intermediate_full_bytes": 1024,
+      "row_cache_peak_bytes": 384,
+      "intermediate_write_read_bytes_avoided": 2048,
+      "layerwise_weight_switches": 1,
+      "row_schedule_weight_switches": 13,
+      "layerwise_weight_load_bytes": 7168,
+      "row_schedule_weight_load_bytes": 7168
+    }
+  ],
+  "checked_write_events": 47204,
+  "verification_sha256": {
+    "hardware/npu/scripts/run_program_regression.py": "3661aec9284025e5a15e5afb6f3a3dc16f62be9a850f39f2ef9fc91643de0ef9",
+    "hardware/npu/tb/tb_npu_memories.sv": "8fcd10700fd70654de9d1193dacd45a969253b63eead883c60783ba779e05cdb",
+    "hardware/npu/tb/tb_npu_stalls.sv": "f80685cb6b80595476006bbb2674121941a72a06cadb615efd518c73d10eee9e",
+    "hardware/npu/tb/tb_requant_lane.sv": "183b38027bb1ce99bd5a85bfdd0f9d557af4f7da2ae0c43eefd099c5ccf7a822",
+    "hardware/soc/sim/tb/tb_npu_program.sv": "35016ba14e37a3060b754447dbb527079d25e25c6ec72454c6c64bcc54c6ca9a"
+  },
+  "fpga_synthesis": {
+    "tool": "Vivado 2025.2",
+    "part": "xc7a35tcsg324-1",
+    "mhz": 50,
+    "stage": "synthesis only",
+    "build": "build/program_vivado_owner_retry",
+    "LUT": 8906,
+    "FF": 4491,
+    "DSP": 48,
+    "BRAM_tiles": 4,
+    "WNS_ns": -1.394,
+    "TNS_ns": -17.946,
+    "WHS_ns": 0.045,
+    "configuration_bram_drc": "PASS",
+    "source_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+      "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+      "hardware/npu/rtl/npu_activation_store.sv": "dc4d59dce8a067f14a27e02ea9adac1efd87c23a48b1edc76c04663c72aa13e8",
+      "hardware/npu/rtl/npu_program_core.sv": "f532c4fc6a0d732295f947cf475e42cf89bfee24745928b08cc7dd942f05f201",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "81db36784367ce2c29479ef5f8aba5b8ff754bd16559c20be7bd512813aa8cb7",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "88e8b92a44b34734f3dd7f9450ac869e872aa867e2a1dfd3297344a6b1af662e",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "edd078ac81cec2b95455601efd947679abb4c7ad22de7ead7943b30c7be331a5",
+      "hardware/soc/sim/filelists/chipdesign_nocpu.f": "78c7834099f6c44a3eccca3cf0e731fd1ea4c98176f5f8d8309f5d964afb8095",
+      "hardware/fpga/fpga_top.sv": "e07bc42830c97eeb728f0bae38ceb4719bf9eda69a0f7eb7c59bfa3ac0abf172",
+      "hardware/fpga/ego1_pins.xdc": "9fa81520c0f6b2902c1fdf2fa307a8e297db73566b5379562004989238c5a7e4",
+      "hardware/fpga/ego1_timing.xdc": "84f6ba5e67579768771f8759f91a5146348e6eba5922f2c534751d0eec912360",
+      "hardware/fpga/ego1_configuration.xdc": "c25b411c7385ff165e341597cd0680af860adc87cf73fb682b3667f9b79050cf",
+      "hardware/fpga/check_bram_drc.tcl": "ecd6c298117a6e7bdafd04e17b0545db07fee86dbff9cfbe383c5948e57bd835",
+      "hardware/fpga/scripts/build_ego1.tcl": "b7e0f059ca4f12500961882be44d557c254264d5fb8afd2856e7e86a4b3dc8a7"
+    }
+  },
+  "functional_build": "build/program_owner_verified",
+  "course_sram_build": "build/program_owner_macro",
+  "course_sram_source_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+    "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+    "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+    "hardware/npu/rtl/npu_activation_store.sv": "dc4d59dce8a067f14a27e02ea9adac1efd87c23a48b1edc76c04663c72aa13e8",
+    "hardware/npu/rtl/npu_program_core.sv": "f532c4fc6a0d732295f947cf475e42cf89bfee24745928b08cc7dd942f05f201",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "81db36784367ce2c29479ef5f8aba5b8ff754bd16559c20be7bd512813aa8cb7",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "88e8b92a44b34734f3dd7f9450ac869e872aa867e2a1dfd3297344a6b1af662e",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "edd078ac81cec2b95455601efd947679abb4c7ad22de7ead7943b30c7be331a5"
+  },
+  "fpga_initial_implementation": {
+    "build": "build/program_route_owner",
+    "part": "xc7a35tcsg324-1",
+    "mhz": 50,
+    "LUT": 8569,
+    "FF": 4491,
+    "DSP": 48,
+    "BRAM_tiles": 4,
+    "result": "TIMING_FAILED",
+    "WNS_ns": -0.178,
+    "WHS_ns": 0.031,
+    "drc_errors": 0,
+    "checkpoint_sha256": "4d40ee6f8a109c145390788d89774413a41ea93dd0f1c5efc6ec0dd2bc1fd6d1",
+    "implementation_script_sha256": "bc0c002c6ad125509ecc15ec148b043256932eca1e2ba0770202bc717fc00582"
+  },
+  "fpga_implementation": {
+    "tool": "Vivado 2025.2",
+    "build": "build/program_route_final",
+    "part": "xc7a35tcsg324-1",
+    "mhz": 50,
+    "stage": "routed; one post-route AggressiveExplore pass",
+    "LUT": 8572,
+    "FF": 4491,
+    "DSP": 48,
+    "BRAM_tiles": 4,
+    "result": "PASS",
+    "WNS_ns": 0.073,
+    "TNS_ns": 0,
+    "WHS_ns": 0.031,
+    "drc_errors": 0,
+    "checkpoint_sha256": "4d40ee6f8a109c145390788d89774413a41ea93dd0f1c5efc6ec0dd2bc1fd6d1",
+    "implementation_script_sha256": "736b9a0ee99e791e7623d018395cd981cf8468836c5d26b81caa9883ae73b15f",
+    "jtag_clock_routing_override": "not applied; Place 30-574 did not occur",
+    "boundary": [
+      "current existing FPGA timing constraints only",
+      "3 input ports lack input delay; 3 output ports lack output delay",
+      "no bitstream or board inference",
+      "no ASIC physical verification"
+    ]
+  },
+  "tooling_sha256": {
+    "hardware/fpga/scripts/build_nocpu.py": "8ce3dc1525bc700a7a9978133045946c967686274fbffefd196e98a90fd6854c",
+    "hardware/fpga/scripts/implement_nocpu.py": "be694ebe4ec7988b07a22dd983ca8767202086468ef2b3b0475b76cb1f3fa06b",
+    "hardware/fpga/scripts/implement_nocpu.tcl": "736b9a0ee99e791e7623d018395cd981cf8468836c5d26b81caa9883ae73b15f"
+  }
+}

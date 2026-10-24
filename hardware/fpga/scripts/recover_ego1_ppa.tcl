@@ -42,7 +42,9 @@ proc reports {label} {
     }
     set mainmem_cells [get_cells -quiet -hierarchical -filter {NAME =~ u_soc/i_mainmem/i_mainmem/* && REF_NAME =~ RAMB*}]
     set mainmem36 [get_cells -quiet -hierarchical -filter {NAME =~ u_soc/i_mainmem/i_mainmem/* && REF_NAME =~ RAMB36*}]
-    if {[llength $mainmem_cells] == 2 && [llength $mainmem36] == 2} {
+    if {[llength [get_cells -quiet u_soc/i_control/i_controller]] == 1} {
+        set mainmem_status "PASS: CPU-less controller uses NPU-local storage; no shared SRAM"
+    } elseif {[llength $mainmem_cells] == 2 && [llength $mainmem36] == 2} {
         set mainmem_status "PASS: 8 KiB main SRAM maps to 2 RAMB36 primitives"
     } else {
         set mainmem_status "FAIL: expected 2 RAMB36; found [llength $mainmem36] RAMB36 / [llength $mainmem_cells] RAMB primitives"

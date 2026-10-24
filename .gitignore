@@ -37,3 +37,6 @@ ChipDesign.pdf
 # Dataset / training artifacts
 data/
 software/train/runs/
+
+# Reproducible local FPGA / firmware builds
+/build/

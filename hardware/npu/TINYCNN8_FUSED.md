@@ -1,5 +1,8 @@
 # TinyCNN-8-Flat 融合核心（`tinycnn8_npu_fused`）
 
+> 历史设计记录：以下为2026-10-14固定网络实现，相关核心与MMIO包装器已在2026-10-23重构中移除。
+> 当前设计与验证入口见 [NPU README](README.md)，下文不代表当前默认实现。
+
 生产SoC默认使用的NPU核心。2026-10-14冲突解决保留了main的AXI/SRAM三拍读取、
 FPGA约束/DRC脚本和Q31舍入简化；旧GAP配置的综合结果不能沿用到本核心。它和分层参考核心 `tinycnn8_npu_top` 端口相同，MMIO ABI 也相同，
 `tinycnn8_npu_mmio_wrapper` 通过 `FUSED_CORE` 参数在两者之间切换（默认为 1）。分层核心继续保留，

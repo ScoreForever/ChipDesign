@@ -1,58 +1,52 @@
-# ChipDesign
+# ChipDesign：可编程无 CPU NPU
 
-The group's repo for "Full-Stack Design and Practice of Advanced Chips" course
-of Peking University.
+当前默认系统是 **主机 JTAG → 事务控制器 → 描述符调度 → 共享 NPU 后端**，协议 ABI 2.0。
+支持 Conv、FC、MaxPool、ReLU、Requant；形状、参数、执行顺序由模型包提供。
+常见 Conv/FC 后处理链通过局部缓冲直接传递，避免完整中间张量写回。
 
-## What's inside
+- [架构与实现边界](docs/ARCHITECTURE.md)
+- [模型格式、命令协议及主机使用](docs/CPU_LESS_CONTROL.md)
+- [验证、资源和性能结果](docs/NPU_PROGRAMMABLE_VALIDATION_20261023.md)
 
-- `hardware/npu/` — 完整四分类 KWS-TinyCNN-8-Flat INT8 NPU、基础计算单元和
-  Icarus兼容的自检回归。
-- `hardware/soc/` — Integrated SoC with `cv32e40p` CPU, AXI crossbar, bootram,
-  SRAM, JTAG debug, and the NPU behind an MMIO wrapper (ModelSim).
+## 生成可运行模型包
 
-## Quick start
-
-Run NPU unit tests (Icarus):
+从仓库根目录运行（Python 3.10+，基础工具仅用标准库）：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_matrix_unit_test.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_vector_unit_test.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all_tests.ps1
+python software/host/make_demo.py --output build/npu_demo
+python software/host/npu_program.py build/npu_demo/model.json --output build/npu_demo/recompiled
 ```
 
-Run the reproducible synthetic TinyCNN schedule/golden/MMIO regression:
-
-```sh
-python3 hardware/npu/scripts/run_tinycnn8_regression.py --output /path/to/new-empty-directory
-```
-
-This compares original, gather/load overlap and spatial-tile schedules with the
-same compute core. [Measured results and trade-offs](docs/kws_tinycnn8_tiled/REPORT.md),
-[design decisions and contribution scope](docs/kws_tinycnn8_tiled/THOUGHTS.md), and
-[reproduction details](hardware/npu/sim/README_tinycnn8.md) describe the fixed
-behavioral-memory contract. It does not establish trained KWS accuracy or PPA.
-
-Run the integrated SoC (ModelSim):
+也可导入已有训练 NPZ（此路径需要 NumPy）：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_soc.ps1
+python software/host/npu_program.py software/models/tinycnn8_flatten_strong.npz --output build/trained_program
 ```
 
-默认SoC使用融合Flat核心（`FUSED_CORE=1`）。运行融合核与两种MMIO核心选择回归：
+模型包包含 `model.bin` 和 `manifest.json`。所有网络结构转换发生在主机，硬件不解析 JSON。
 
-```sh
-python3 hardware/npu/scripts/run_tinycnn8_fused_test.py
+## 完整回归
+
+安装 Icarus Verilog，将 `iverilog`、`vvp` 加入 PATH，然后运行：
+
+```powershell
+python hardware/npu/scripts/run_program_regression.py --output build/program_regression
+python software/host/explore_conv_streaming.py --output build/conv_streaming.json
 ```
 
-系统模型、量化、模块分工、MMIO接口和软硬件边界见
-`docs/ARCHITECTURE.md`。
+回归覆盖 4×8/4×4、五种算子、融合/独立、旧模型数值迁移、控制事务、JTAG 引脚、
+随机存储响应延迟、存储背压、复位与非法模型。`--quick` 只运行 4×8 原生控制接口。
+真实课程宏仿真可以追加 `--macro-model build/private_ip/RA1SHD_2048x32M8.v`；工艺 IP 不提交。
 
-当前融合核的[真实语音与逐周期验证](docs/FUSED_SPEECH_VALIDATION.md)，以及
-保持RTL兼容的[模型准确率实验](docs/MODEL_ACCURACY_OPTIMIZATION.md)包含2026-10-14
-的agi实测、复现入口和证据边界。
+## 主机推理
 
-存储配置：默认（流片配置）主存一路使用课程提供的 `axi2mem` / `my_mainmem` / `sram_ff`，
-实例路径保持 `i_mainmem/i_mainmem`，便于替换为课程 SRAM 宏。EGo1 构建定义
-`CHIPDESIGN_FPGA_MEM`，改用 `hardware/fpga/rtl/` 下 3 拍读流水的 FPGA 专用模块。
-结构回归、KWS workload、SAIF 与剖析脚本的 Linux 入口用 `--config asic|fpga` 选择
-（默认 `asic`），remote PowerShell 入口用 `-Config asic|fpga`；FPGA 功耗分析请用 `fpga`。
+先配置 USB-JTAG 适配器并以 `software/host/nocpu_openocd.cfg` 启动 OpenOCD，再运行：
+
+```powershell
+python software/host/nocpu_jtag.py status
+python software/host/nocpu_jtag.py infer --package build/npu_demo/package --input build/npu_demo/input.bin --output build/npu_demo/result.bin
+```
+
+本次验证包括 RTL 引脚仿真，不代表已经完成物理适配器、板上推理或芯片上电验证。
+新协议不兼容旧 TinyCNN MMIO/JTAG ABI；旧固定模型实现与旧测试入口已移除，历史可从 Git 获取。
+训练/预处理仍由主机承担。仓库保留的 CPU、AXI 和课程资料不属于默认实例树。

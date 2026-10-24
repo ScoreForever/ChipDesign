@@ -4,6 +4,7 @@ set out [file normalize [lindex $argv 1]]
 set jobs [lindex $argv 2]
 set frequency_mhz 50
 set ppa_mode [expr {[llength $argv] > 3}]
+set synth_only [expr {[llength $argv] > 4 && [lindex $argv 4] eq "synth_only"}]
 if {[llength $argv] > 3} { set frequency_mhz [lindex $argv 3] }
 if {![string is double -strict $frequency_mhz] || $frequency_mhz <= 0} {
     error "Output frequency must be positive MHz"
@@ -40,13 +41,8 @@ proc reports {label} {
     if {[regexp {WNS\(ns\)[^\n]*\n[^\n]*\n\s*([-+0-9.]+)\s+([-+0-9.]+)\s+\d+\s+\d+\s+([-+0-9.]+)} [read_text $timing_file] -> wns tns whs]} {
         set timing_values [list $wns $tns $whs]
     }
-    set mainmem_cells [get_cells -quiet -hierarchical -filter {NAME =~ u_soc/i_mainmem/i_mainmem/* && REF_NAME =~ RAMB*}]
-    set mainmem36 [get_cells -quiet -hierarchical -filter {NAME =~ u_soc/i_mainmem/i_mainmem/* && REF_NAME =~ RAMB36*}]
-    if {[llength $mainmem_cells] == 2 && [llength $mainmem36] == 2} {
-        set mainmem_status "PASS: 8 KiB main SRAM maps to 2 RAMB36 primitives"
-    } else {
-        set mainmem_status "FAIL: expected 2 RAMB36; found [llength $mainmem36] RAMB36 / [llength $mainmem_cells] RAMB primitives"
-    }
+    set mainmem_cells {}
+    set mainmem_status "N/A: CPU-less system uses NPU-local storage; no main SRAM"
 }
 
 proc bram_guard {label} {
@@ -66,7 +62,7 @@ proc summary {} {
     puts $f "# EGo1 build summary\n"
     puts $f "Result: $result"
     puts $f "Stage: $stage; last completed stage: $last_stage"
-    puts $f "Part: xc7a35tcsg324-1; top: fpga_top; default fused NPU"
+    puts $f "Part: xc7a35tcsg324-1; top: fpga_top; CPU-less JTAG controller and programmable five-operator NPU"
     puts $f "Clocking Wizard: 100 MHz input, [format %g $frequency_mhz] MHz output, locked enabled, reset disabled"
     puts $f "Log: vivado.log"
     if {$failure ne ""} { puts $f "\nFailure: $failure" }
@@ -116,7 +112,7 @@ if {[catch {
     set stage read_sources
     set sources {}
     set includes {}
-    foreach line [split [read_text [file join $repo hardware/soc/sim/filelists/chipdesign_soc.f]] \n] {
+    foreach line [split [read_text [file join $repo hardware/soc/sim/filelists/chipdesign_nocpu.f]] \n] {
         set line [string trim $line]
         if {$line eq "" || [string match "#*" $line] || [string match "//*" $line]} { continue }
         if {[string match "+incdir+*" $line]} {
@@ -142,6 +138,14 @@ if {[catch {
     reports synth
     bram_guard synth
     set last_stage synth
+    if {$synth_only} {
+        set result PASS_SYNTHESIS_ONLY
+        set stage complete
+        set failure ""
+        summary
+        puts "PASS EGo1 synthesis only; no implementation/bitstream; summary: [file join $out summary.md]"
+        exit 0
+    }
     set stage opt
     opt_design
     write_checkpoint -force [file join $out opt.dcp]
@@ -193,7 +197,6 @@ if {[catch {
     if {[llength $timing_values] != 3} { error "No timing metrics available" }
     lassign $timing_values wns tns whs
     if {$wns < 0 || $whs < 0} { error "Timing failed: WNS=$wns ns, WHS=$whs ns" }
-    if {![string match "PASS:*" $mainmem_status]} { error $mainmem_status }
     # Implemented DRCs and write_bitstream gate resource overflow and routing.
     set result PASS
     set stage complete

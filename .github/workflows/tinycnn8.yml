@@ -1,24 +1,13 @@
-name: TinyCNN RTL regression
-
+name: Programmable NPU regression
 on:
   pull_request:
-    paths:
-      - 'hardware/npu/**'
-      - 'hardware/soc/rtl/npu/**'
-      - 'hardware/soc/rtl/my_npu_subsystem.sv'
-      - '.github/workflows/tinycnn8.yml'
+    paths: ['hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
   push:
     branches: [main]
-    paths:
-      - 'hardware/npu/**'
-      - 'hardware/soc/rtl/npu/**'
-      - 'hardware/soc/rtl/my_npu_subsystem.sv'
-      - '.github/workflows/tinycnn8.yml'
+    paths: ['hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
   workflow_dispatch:
-
 permissions:
   contents: read
-
 jobs:
   rtl:
     runs-on: ubuntu-latest
@@ -28,18 +17,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install RTL simulator
+      - name: Install simulator
         run: sudo apt-get update && sudo apt-get install -y iverilog
-      - name: Validate fused core and both MMIO selections
-        run: python3 hardware/npu/scripts/run_tinycnn8_fused_test.py --summary "${RUNNER_TEMP}/tinycnn8_fused.json"
-      - name: Validate standalone and production MMIO paths
-        run: python3 hardware/npu/scripts/run_tinycnn8_regression.py --output "${RUNNER_TEMP}/tinycnn8_results"
-      - name: Preserve experiment evidence
+      - name: Five operators, fusion, two array widths, controller, JTAG and memory stalls
+        run: python hardware/npu/scripts/run_program_regression.py --output build/program_ci
+      - name: Explore consecutive convolution row buffering
+        run: python software/host/explore_conv_streaming.py --output build/conv_streaming.json
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: tinycnn8-rtl-evidence
+          name: programmable-npu-evidence
           path: |
-            ${{ runner.temp }}/tinycnn8_results
-            ${{ runner.temp }}/tinycnn8_fused.json
+            build/program_ci
+            build/conv_streaming.json
           retention-days: 14

@@ -1,0 +1,316 @@
+{
+  "date": "2026-10-24",
+  "passed": true,
+  "variant": "exp/no_cpu",
+  "board": "EGo1 V2.2",
+  "part": "xc7a35tcsg324-1",
+  "system_mhz": 50,
+  "recorder": "custom synchronous 1024 x 128-bit trace buffer; not vendor ILA",
+  "implementation": {
+    "passed": true,
+    "system_mhz": 50,
+    "wns_ns": 0.669,
+    "whs_ns": 0.029,
+    "wpws_ns": 3.0,
+    "setup_failing_endpoints": 0,
+    "hold_failing_endpoints": 0,
+    "pulse_width_failing_endpoints": 0,
+    "fully_routed_nets": 21522,
+    "cdc": {
+      "CDC-3": {
+        "severity": "Info",
+        "count": 2
+      },
+      "CDC-9": {
+        "severity": "Info",
+        "count": 3
+      },
+      "CDC-15": {
+        "severity": "Warning",
+        "count": 109
+      }
+    },
+    "drc_rules": [
+      {
+        "rule": "DPIP-1",
+        "severity": "Warning",
+        "count": 46
+      },
+      {
+        "rule": "DPOP-1",
+        "severity": "Warning",
+        "count": 8
+      },
+      {
+        "rule": "DPOP-2",
+        "severity": "Warning",
+        "count": 21
+      }
+    ],
+    "methodology_rules": [
+      {
+        "rule": "LUTAR-1",
+        "severity": "Warning",
+        "count": 1
+      },
+      {
+        "rule": "SYNTH-6",
+        "severity": "Warning",
+        "count": 10
+      },
+      {
+        "rule": "SYNTH-10",
+        "severity": "Warning",
+        "count": 4
+      }
+    ],
+    "route_checkpoint_sha256": "8e1783c28570cf4b752293ddbe0c685a6258076e88bab56fb2c86f9eb1040149",
+    "synthesis_checkpoint_sha256": "eb4604044593249433c56471494e860994e7c67f168ba2c45a9c116c76842222",
+    "source_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "43890f97abba08208f1e4e9bc8274340bd9c046c65690951ea237c8bb42bccd5",
+      "hardware/npu/rtl/npu_model_store.sv": "4f12c59c05fecf021835c9196f834079936a1b2b95a48e779a4f3c234b3a5408",
+      "hardware/npu/rtl/npu_activation_store.sv": "da1e0beeb7548e55c1b0043a18db191826254380780f531c81e5d5a95b2fa350",
+      "hardware/npu/rtl/npu_program_core.sv": "1be19091d504b3c4814fc95afd68292556f5c4baddb0ed9b6bf133ea0177b2b5",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "2bff063814550749bf54ca94757462355757968202f3fd6fc974558fa2cfc80e",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "2104e00d2888f0ad2540778d738fb71fd0ba94b980a51351e5b4f9e4232435d4",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "f55bd993607f4137b8dcfb12d6b16371f8e7badfb6088647a1036a779b660a1b",
+      "hardware/soc/sim/filelists/chipdesign_nocpu.f": "daf29f3a90b9e95aa9b713416aaa25b5934b781d450d0693d4795e421d6bd61f",
+      "hardware/fpga/fpga_top.sv": "306b26300788bd5772a07dd5d3e787562b737613caea087767ca38fdcffa1bd3",
+      "hardware/fpga/ego1_pins.xdc": "6937b9d266e7c17216e052951d12814a6ec5aaa4adc76a1e4112ba68088df164",
+      "hardware/fpga/ego1_timing.xdc": "bd189507d043ff7e99b224c830c533dd4f9903ee6b10c650d94b0ad621ea5c66",
+      "hardware/fpga/ego1_configuration.xdc": "59d57e523e9515083b29f1baa4d6119329c2330443713d9c0ac8038e801400d5",
+      "hardware/fpga/check_bram_drc.tcl": "4467ca0c148afc6f4b8cc959eec11967de46144cfadbaf2d22c42f518efe675a",
+      "hardware/fpga/scripts/build_ego1.tcl": "b7e0f059ca4f12500961882be44d557c254264d5fb8afd2856e7e86a4b3dc8a7",
+      "hardware/npu/rtl/npu_trace_capture.sv": "e2f8cf1be0b7e4f216fa37b16e1f30c812c937c488548c0968892b1fbcbcffc7"
+    },
+    "review_notes": [
+      "CDC-15 paths are the held 72-bit request and 37-bit response mailboxes with two-flop toggle handshakes.",
+      "LUTAR-1: rst_ni & MMCM locked feeds asynchronous assertion; release is synchronized. Physical reset/clock-loss tests remain limited.",
+      "SYNTH-6/SYNTH-10 and DSP pipeline advisories are performance advisories; final setup/hold constraints are checked.",
+      "Asynchronous reset and indicator LEDs are intentionally false-pathed; FT232H cable timing uses documented engineering assumptions.",
+      "50 MHz follows routed MMCM configuration and the specified 100 MHz board oscillator, without oscilloscope measurement."
+    ],
+    "bitstream": {
+      "path": "D:\\IWS\\Advanced_SoC\\ChipDesign\\build\\fpga_ego1_50mhz_trace_impl_20261024\\fpga_top_h16_50mhz.bit",
+      "sha256": "cabf6baf0dd6c13b44bb907f7699a0f6ba52bff5c66e01de772c6bd9ad6efaf3",
+      "bytes": 2192132,
+      "payload_bytes": 2192012,
+      "header": {
+        "a": "fpga_top;UserID=0XFFFFFFFF;Version=2025.2;SW_CRC=b55c4127",
+        "b": "7a35tcsg324",
+        "c": "2026/10/24",
+        "d": "15:45:49"
+      },
+      "container_check": "PASS"
+    }
+  },
+  "resources": {
+    "lut": 11046,
+    "ff": 9452,
+    "bram_tiles": 8,
+    "dsp": 48
+  },
+  "rtl": {
+    "program_scenarios": 62,
+    "negative_cases": [
+      "opcode",
+      "reserved",
+      "stride",
+      "shape",
+      "destination",
+      "source",
+      "multiplier",
+      "shift",
+      "lifecycle"
+    ],
+    "sources_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "43890f97abba08208f1e4e9bc8274340bd9c046c65690951ea237c8bb42bccd5",
+      "hardware/npu/rtl/npu_model_store.sv": "4f12c59c05fecf021835c9196f834079936a1b2b95a48e779a4f3c234b3a5408",
+      "hardware/npu/rtl/npu_activation_store.sv": "da1e0beeb7548e55c1b0043a18db191826254380780f531c81e5d5a95b2fa350",
+      "hardware/npu/rtl/npu_program_core.sv": "1be19091d504b3c4814fc95afd68292556f5c4baddb0ed9b6bf133ea0177b2b5",
+      "hardware/npu/rtl/npu_trace_capture.sv": "e2f8cf1be0b7e4f216fa37b16e1f30c812c937c488548c0968892b1fbcbcffc7",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "2bff063814550749bf54ca94757462355757968202f3fd6fc974558fa2cfc80e",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "2104e00d2888f0ad2540778d738fb71fd0ba94b980a51351e5b4f9e4232435d4",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "f55bd993607f4137b8dcfb12d6b16371f8e7badfb6088647a1036a779b660a1b"
+    },
+    "performance_comparison": {
+      "passed": true,
+      "scenarios": 62,
+      "identical": [
+        "cycles",
+        "writes",
+        "checked_write_events",
+        "24 performance counters"
+      ]
+    }
+  },
+  "host_tests": {
+    "trace": 7,
+    "performance": 4,
+    "transport": 3,
+    "total": 14
+  },
+  "physical": {
+    "output_byte_comparisons": 178,
+    "regular_audit": {
+      "passed": true,
+      "numeric_comparisons": 170,
+      "total_output_comparisons": 171,
+      "negative_checks": 32,
+      "operator_rows": 473,
+      "host_commands": 55520,
+      "elapsed_seconds": 230.457
+    },
+    "waveform_audit": {
+      "passed": true,
+      "output_comparisons": 7,
+      "waveform_samples": 3992,
+      "commands": 22886,
+      "cli_tail_samples": 425,
+      "source_hashes_match_implementation": true,
+      "bitstream_sha256": "cabf6baf0dd6c13b44bb907f7699a0f6ba52bff5c66e01de772c6bd9ad6efaf3",
+      "cases": [
+        {
+          "test": "disabled",
+          "passed": true,
+          "samples": 0,
+          "flags": 4,
+          "first_cycle": 0,
+          "last_cycle": 0,
+          "captured_control": 0,
+          "captured_offset": 0,
+          "artifact_sha256": {
+            "vcd": "81e1ea217965cf0783ccbacb1bd990cf38e9484c3e2510c4b23cf8ceae3f2c0b",
+            "csv": "6951924d288dee1996cf0e4c5f4d3fde1d62042917d01d9da17633086c79efe4",
+            "json": "406ddc59dcd8ef6340e9f69fa81db3286a35f21ca6b411a9c460ea321df4b5cf"
+          }
+        },
+        {
+          "test": "pressure_full",
+          "passed": true,
+          "samples": 626,
+          "flags": 5,
+          "first_cycle": 0,
+          "last_cycle": 625,
+          "captured_control": 1,
+          "captured_offset": 0,
+          "artifact_sha256": {
+            "vcd": "867529b44fbb0f80464aff3acdb25ee92466a5dc31ad77c0868dbaa35521fbce",
+            "csv": "b4bd5c5bda5bb74b06eba71de86f4558f3a2a506fe2b4c45cabbdba8d48c86ec",
+            "json": "d73df4455e8fdca17d01582bf65eb171d6455015d154538d5a8858e20a9b8ff9"
+          }
+        },
+        {
+          "test": "pressure_trigger",
+          "passed": true,
+          "samples": 526,
+          "flags": 5,
+          "first_cycle": 100,
+          "last_cycle": 625,
+          "captured_control": 3,
+          "captured_offset": 0,
+          "artifact_sha256": {
+            "vcd": "c6b07fa6c966171fd90e4972dc06c2e99099d88a8f2da3f3a216acf23c10c8ed",
+            "csv": "b9dd830bf08760fe9f7a2a96d561b34a6b30369f8f2b01bd549060d81bfdddab",
+            "json": "171537ccd0350309ede706e41f050c0feb159e4f8da8f7f7a240b14f8792b140"
+          }
+        },
+        {
+          "test": "cnn_plain_pc1",
+          "passed": true,
+          "samples": 367,
+          "flags": 5,
+          "first_cycle": 531,
+          "last_cycle": 897,
+          "captured_control": 17,
+          "captured_offset": 0,
+          "artifact_sha256": {
+            "vcd": "ede7b239cfd532dbb92bfeb74e1877689855e59f8d3fa03c461d5562aa769919",
+            "csv": "12c751c4a0b5e5b013800d624399d056201fa5dbde93e430412bdb11ae70d28e",
+            "json": "bc5705e4d3f20874d065147de7e378d39b175810c5ba9d1da35296ce7b43f845"
+          }
+        },
+        {
+          "test": "trained_pc1",
+          "passed": true,
+          "samples": 1024,
+          "flags": 15,
+          "first_cycle": 1211,
+          "last_cycle": 2234,
+          "captured_control": 17,
+          "captured_offset": 0,
+          "artifact_sha256": {
+            "vcd": "7ec43fbc5aaff7e5e82d2a18d9da62dd8c5f978b5c752ea5646e0e9dcc0af150",
+            "csv": "8c32cef48b3d897fae237ef6effed76372e0ab78a30ff7f3bed8729b9c9a5704",
+            "json": "ca53f747ce14f71d2eab3a7eaa66a16f38e9beeb3736a83c7cb8ebae6793072c"
+          }
+        },
+        {
+          "test": "activation_head",
+          "passed": true,
+          "samples": 1024,
+          "flags": 15,
+          "first_cycle": 0,
+          "last_cycle": 1023,
+          "captured_control": 1,
+          "captured_offset": 0,
+          "artifact_sha256": {
+            "vcd": "ae9d89ce843e215faca9f558b54115129c70e2609c902b0cd5dd40b5a6268195",
+            "csv": "f9d8e28e02796b70dcd35a48a14ae316d10e0aa401d7276dc0491c636c603159",
+            "json": "73fc56473a169de1e096e7192b97d267d47bdebefef8185f141af305f0602d9b"
+          }
+        },
+        {
+          "test": "activation_tail",
+          "passed": true,
+          "samples": 425,
+          "flags": 5,
+          "first_cycle": 16000,
+          "last_cycle": 16424,
+          "captured_control": 1,
+          "captured_offset": 16000,
+          "artifact_sha256": {
+            "vcd": "0718e7b695eaffcd5427df78af386f9271b70358ee0fd505f8e53bcea73c9e99",
+            "csv": "bf03592b48c52dd3ef4fdc3656777c52fb928e9b1ebe6b6eded17ae0613c1a13",
+            "json": "847261d35d702d9036bb20ee2b73f31fa4a6f663533478dc71cbf3f89e8826dc"
+          }
+        }
+      ]
+    },
+    "operator_csv_rows": 473,
+    "final_observed_status": 2,
+    "final_observed_error": 0,
+    "retained_capture": "activation_tail",
+    "openocd_stopped": true,
+    "ft232h_detached_from_wsl": true,
+    "task_wsl_keepalive_stopped": true,
+    "flash_written": false
+  },
+  "artifacts": {
+    "operator_csv": "docs/validation/nocpu_operator_trace_20261024.csv",
+    "pressure_preview": "docs/validation/nocpu_operator_trace_pressure_20261024.png",
+    "pressure_vcd": "build/validation_nocpu_trace_20261024/waveform_run_01/pressure_full.vcd",
+    "cnn_pc1_vcd": "build/validation_nocpu_trace_20261024/waveform_run_01/cnn_plain_pc1.vcd",
+    "cli_tail_vcd": "build/validation_nocpu_trace_20261024/cli_activation_tail.vcd"
+  },
+  "limits": [
+    "1024-cycle selected-operator waveform window; per-operator summaries remain complete.",
+    "VCD display clock reconstructed at 20 ns/sample; no analog or glitch observation.",
+    "No MAC internal values or write payload captured.",
+    "Core RESET/watchdog clears captured history.",
+    "No physical button/power-cycle, oscilloscope, PVT or long aging tests.",
+    "Trained weights tested with synthetic input; no real speech accuracy claim.",
+    "Two oversized nonfused models rejected on host; not counted as board passes."
+  ],
+  "artifact_sha256": {
+    "operator_csv": "52c078b6c67c65f53ab6db7f436e223d123c6caa3978abd9df2e146bb85af754",
+    "pressure_preview": "e1d8de549132ddb93cc4eadb80369431f1d0d3df2a5b73d04ef51a280ab91956",
+    "pressure_vcd": "867529b44fbb0f80464aff3acdb25ee92466a5dc31ad77c0868dbaa35521fbce",
+    "cnn_pc1_vcd": "ede7b239cfd532dbb92bfeb74e1877689855e59f8d3fa03c461d5562aa769919",
+    "cli_tail_vcd": "0718e7b695eaffcd5427df78af386f9271b70358ee0fd505f8e53bcea73c9e99"
+  }
+}

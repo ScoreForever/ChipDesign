@@ -1,0 +1,146 @@
+{
+  "snapshot_sha256": "f9ae8f1094eb8e2ead264954a7c38d29b3210a65eac95c1e2c19338d2ab94100",
+  "architecture": "No-CPU programmable NPU ABI 2",
+  "corner": "TT 1.8 V 25 C",
+  "core_clock_period_ns": 20,
+  "jtag_clock_period_ns": 1000,
+  "scope": "Core block without pad ring/package",
+  "execution": {
+    "exit_code": 0,
+    "completion_marker": true,
+    "warning_count": 14532,
+    "error_count": 2,
+    "error_diagnostic": "IMPSP-9099: mapped scan flops without scan-chain definitions; repeated twice. Functional wiring retained."
+  },
+  "timing": {
+    "setup": {
+      "wns_ns": 0.821,
+      "tns_ns": 0.0,
+      "violating_paths": 0,
+      "reported_density_percent": 51.58,
+      "reported_density_with_fillers_percent": 100.0
+    },
+    "hold": {
+      "wns_ns": 0.003,
+      "tns_ns": 0.0,
+      "violating_paths": 0,
+      "reported_density_percent": 51.58,
+      "reported_density_with_fillers_percent": 100.0
+    }
+  },
+  "power": {
+    "internal_mW": 316.56084064,
+    "switching_mW": 58.10731221,
+    "leakage_mW": 0.01835678,
+    "total_mW": 374.68650964,
+    "assumptions": {
+      "engine": "Innovus static",
+      "input_activity": 0.1,
+      "sequential_activity": 0.1,
+      "waveform": null,
+      "includes_clock_tree": true,
+      "includes_routed_parasitics": true,
+      "comparison_to_genus": "Different power engine and activity propagation; not an optimization delta."
+    }
+  },
+  "layout": {
+    "snapshot": "f9ae8f1094eb8e2ead264954a7c38d29b3210a65eac95c1e2c19338d2ab94100",
+    "stage": "final",
+    "instance_count": 340638,
+    "unplaced_count": 0,
+    "macro_count": 1,
+    "macro_area_um2": 401443.59075,
+    "active_standard_instances": 107336,
+    "physical_only_instances": 233301,
+    "standard_cell_area_excluding_physical_only_um2": 3186771.8400008827,
+    "physical_only_cell_area_um2": 3113796.8063917556,
+    "core_area_um2": 6760416.006399999,
+    "die_area_um2": 7180256.159999999,
+    "occupied_core_fraction": 0.5307684360480132,
+    "standard_fraction_of_nonmacro_area": 0.5011457247648933,
+    "density_bin_max": 0.819365361829224,
+    "grid": [
+      64,
+      64
+    ],
+    "note": "Density excludes fillers/taps/decaps/antenna cells and derives from instance boxes, not routing demand. Core block excludes pad ring/package."
+  },
+  "routing": {
+    "def_sha256": "e96dcf679f2742361ca3d452df61a7ec12f33ec42ce46c723cad0b68ede0b8c4",
+    "die_box_um": [
+      0.0,
+      0.0,
+      2679.6,
+      2679.6
+    ],
+    "declared_regular_nets": 111589,
+    "regular_nets_with_route_paths": 111519,
+    "regular_wire_centerline_length_um": {
+      "METAL1": 0.09999999999990905,
+      "METAL2": 2008947.3250134476,
+      "METAL3": 2470854.59500496,
+      "METAL4": 1572536.560000424,
+      "METAL5": 995811.0750000649,
+      "METAL6": 160380.26999999917
+    },
+    "regular_wire_segments": {
+      "METAL1": 2,
+      "METAL2": 634535,
+      "METAL3": 367605,
+      "METAL4": 82350,
+      "METAL5": 18021,
+      "METAL6": 2035
+    },
+    "note": "Signal/clock DEF path centerlines. Excludes special power nets, via metal and patch shapes. Not a DRC check."
+  },
+  "check_reports": {
+    "final_placement": {
+      "report": "physical/reports/final_placement.rpt",
+      "passed": true,
+      "sha256": "e8cc10785cc11c128213462e4d055d3fdd87b61aa754146b7f1baeb46310a8d5"
+    },
+    "final_drc": {
+      "report": "physical/reports/final_drc.rpt",
+      "passed": true,
+      "sha256": "0c2f6c20c6483e876be4cc8d36d2484a52b48ea74ee1e4b7d0b7d2bbd5a2c931"
+    },
+    "final_pg_drc": {
+      "report": "physical/reports/final_pg_drc.rpt",
+      "passed": true,
+      "sha256": "c807805ae084cc88a51b8608b859525868103fc34634df89a24b58021815009c"
+    },
+    "final_signal_connectivity": {
+      "report": "physical/reports/final_signal_connectivity.rpt",
+      "passed": true,
+      "sha256": "3d15526dd2d54048982e3068ef4985354994c94c337170d940573e3c814cabee"
+    },
+    "final_pg_connectivity": {
+      "report": "physical/reports/final_pg_connectivity.rpt",
+      "passed": true,
+      "sha256": "d632399c0f0a02baf675adf69f2ec7208863b449a1fe163b410eee30142f9853"
+    },
+    "final_antenna": {
+      "report": "physical/reports/final_antenna.rpt",
+      "passed": true,
+      "sha256": "f5c8488cbc205d3fe9bfd1978db766ef2c0444324883307b6fbd77d991381edd"
+    }
+  },
+  "congestion": {
+    "overflow_total": 111,
+    "horizontal_overflow": 94,
+    "horizontal_overflow_percent": 0.02,
+    "vertical_overflow": 17,
+    "vertical_overflow_percent": 0.0,
+    "note": "Global routing resource estimate; final detailed-route DRC checked separately."
+  },
+  "extraction": {
+    "engine": "Innovus postRoute",
+    "effort": "low",
+    "captable": "t018lo_1p6m_typical.captable",
+    "signoff": false
+  },
+  "limitations": [
+    "Single TT corner; no foundry signoff DRC/LVS or multi-corner closure.",
+    "Vectorless power estimation; no representative workload waveform."
+  ]
+}
