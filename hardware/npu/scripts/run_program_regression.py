@@ -1,0 +1,264 @@
+#!/usr/bin/env python3
+"""ABI 2 end-to-end operator/compiler/controller/JTAG regression (Icarus)."""
+from pathlib import Path
+import argparse
+import hashlib
+import json
+import random
+import re
+import struct
+import subprocess
+import sys
+
+ROOT=Path(__file__).resolve().parents[3]
+sys.path.insert(0,str(ROOT/'software/host'))
+from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz
+from nocpu_jtag import Npu,Op
+
+def fixtures(seed=7):
+    r=random.Random(seed)
+    def mac(op,src,dst,k,oc,**kw):
+        return dict(op=op,input=src,output=dst,channels=oc,weights=[r.randrange(-8,9) for _ in range(k*oc)],
+                    bias=[r.randrange(-50,51) for _ in range(oc)],**kw)
+    def q(src,dst,c,shift=-3):return dict(op='Requant',input=src,output=dst,multiplier=[0x40000000]*c,shift=[shift]*c)
+    a=dict(input=dict(name='x',shape=[4,6,3]),nodes=[
+        mac('Conv','x','a',27,5,kernel=3,pads=[1]*4),q('a','b',5),
+        dict(op='ReLU',input='b',output='c'),dict(op='MaxPool',input='c',output='d'),
+        mac('FC','d','e',30,11),q('e','f',11),dict(op='ReLU',input='f',output='y')])
+    b=dict(input=dict(name='x',shape=[5,7,3]),nodes=[
+        dict(op='ReLU',input='x',output='a'),dict(op='MaxPool',input='a',output='b'),q('b','c',3,0),
+        mac('Conv','c','d',3,9,kernel=1),q('d','e',9),mac('FC','e','y',54,2)])
+    c=dict(input=dict(name='x',shape=[1,1,7]),nodes=[
+        mac('FC','x','a',7,13),dict(op='ReLU',input='a',output='b'),q('b','c',13),
+        mac('FC','c','y',13,3)])
+    d=dict(input=dict(name='x',shape=[4,4,1]),nodes=[
+        mac('Conv','x','a',1,3,kernel=1),dict(op='MaxPool',input='a',output='b'),
+        dict(op='ReLU',input='b',output='c'),q('c','y',3)])
+    e=dict(input=dict(name='x',shape=[3,5,5]),nodes=[
+        mac('Conv','x','a',45,10,kernel=3,stride=[2,1],pads=[1,0,1,2]),q('a','b',10),
+        mac('Conv','b','c',10,3,kernel=1),q('c','y',3)])
+    edge=dict(input=dict(name='x',shape=[1,1,9]),nodes=[
+        dict(op='FC',input='x',output='a',channels=9,weights=[(-128 if i%2 else 127) for i in range(81)],
+             bias=[-2**31,2**31-1,-1,0,1,-2**31+5,2**31-6,123456789,-123456789]),
+        dict(op='Requant',input='a',output='y',multiplier=[0,1,0x7fffffff,0x40000000,0x60000000,0x7fffffff,123,0x50000000,0],
+             shift=[31,-31,0,-1,1,-12,12,5,-5])])
+    long=dict(input=dict(name='x',shape=[1,1,257]),nodes=[mac('FC','x','y',257,9)])
+    long['nodes'][0]['weights']=[-128]*(257*9)
+    for name,model in [('cnn',a),('pool_first',b),('mlp',c),('i32_pool',d),('strided',e),('edges',edge),('long_k',long)]:
+        frame=[r.randrange(-128,128) for _ in range(__import__('math').prod(model['input']['shape']))]
+        if name=='long_k':frame=[-128]*257
+        yield name,model,frame
+    # Original network, independently checked against the pre-refactor oracle.
+    sys.path.insert(0,str(ROOT/'hardware/npu/tools'))
+    import tinycnn8_golden as old
+    t=old.build_model(seed,8,'extreme');nodes=[];src='x'
+    for idx in (1,2):
+        cfg=t[f'conv{idx}'];dst=f'c{idx}'
+        nodes.extend([dict(op='Conv',input=src,output=dst,channels=8,kernel=3,pads=[1]*4,weights=cfg['weights'],bias=cfg['bias']),
+                      dict(op='Requant',input=dst,output=f'q{idx}',multiplier=cfg['multiplier'],shift=cfg['shift']),
+                      dict(op='ReLU',input=f'q{idx}',output=f'r{idx}'),dict(op='MaxPool',input=f'r{idx}',output=f'p{idx}')])
+        src=f'p{idx}'
+    nodes.append(dict(op='FC',input=src,output='y',channels=8,weights=t['fc']['weights'],bias=t['fc']['bias']))
+    model=dict(input=dict(name='x',shape=[20,16,1]),nodes=nodes)
+    gold=old.run_model(t);new=reference(model,t['input'])
+    assert new['p1']==gold['pool1'] and new['p2']==gold['pool2'] and new['y']==gold['fc']
+    yield 'tinycnn',model,t['input']
+    yield 'host_i32_quant',dict(input=dict(name='x',shape=[3,5,3],dtype='i32'),nodes=[
+        dict(op='Requant',input='x',output='a',multiplier=[0x40000000,0x7fffffff,0],shift=[-4,1,-31]),
+        dict(op='ReLU',input='a',output='b'),dict(op='MaxPool',input='b',output='y')]),[r.randrange(-2**31,2**31) for _ in range(45)]
+    yield 'host_i32_pool',dict(input=dict(name='x',shape=[4,4,2],dtype='i32'),nodes=[
+        dict(op='MaxPool',input='x',output='a'),dict(op='ReLU',input='a',output='y')]),[r.randrange(-2**31,2**31) for _ in range(32)]
+    yield 'tiny_padded',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
+        dict(op='Conv',input='x',output='a',channels=1,kernel=3,pads=[2]*4,weights=list(range(-4,5)),bias=[-7]),
+        dict(op='MaxPool',input='a',output='y')]),[-128]
+    yield 'one_mac',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
+        dict(op='FC',input='x',output='y',channels=1,weights=[-128],bias=[2**31-1])]),[-128]
+    yield 'negative_pool',dict(input=dict(name='x',shape=[3,3,1]),nodes=[
+        dict(op='MaxPool',input='x',output='y')]),list(range(-9,0))
+    yield 'full_activation',dict(input=dict(name='x',shape=[64,64,1]),nodes=[
+        dict(op='ReLU',input='x',output='y')]),[r.randrange(-128,128) for _ in range(4096)]
+
+class Recorder:
+    """Records the real host API. Expected data comes only from logical oracle."""
+    def __init__(self,pkg,output):
+        self.rows=[];self.regs={0:0x20000,0x50:4096,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16}
+        self.output=output;self.started=False;self.completed=False;self.pkg=pkg
+    def exchange(self,op,addr=0,data=0):
+        value=0;mask=0xffffffff
+        if op==Op.WRITE and addr<0x10000:self.regs[addr]=data
+        if op==Op.START:
+            self.started=True;value=1;mask=0 # job id increases across repeated inference
+        if op==Op.READ:
+            if addr==4:
+                if self.started:
+                    self.rows.append('f0 0 0 0 0 0');value=10;mask=0x49;self.completed=True
+                else:value=2;mask=0
+            elif 0x20000<=addr<0x21000:
+                at=addr-0x20000-self.pkg.manifest['output_base']
+                chunk=self.output[at:at+4];value=int.from_bytes(chunk.ljust(4,b'\0'),'little');mask=(1<<(8*len(chunk)))-1
+            else:value=self.regs.get(addr,0)
+        if op==Op.ACK:self.started=False
+        self.rows.append(f'{int(op):02x} {addr:08x} {int(data)&0xffffffff:08x} 00 {mask:08x} {value:08x}')
+        return value
+
+def encoded(values,dtype):
+    return struct.pack('<'+'i'*len(values),*values) if dtype=='i32' else bytes(v&255 for v in values)
+
+def run(command,log):
+    try:
+        p=subprocess.run([str(x) for x in command],cwd=ROOT,text=True,stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT,timeout=600 if str(command[0])=='vvp' else 240)
+    except subprocess.TimeoutExpired as error:
+        output=error.stdout or ''
+        if isinstance(output,bytes):output=output.decode(errors='replace')
+        log.write_text(output,encoding='utf-8')
+        raise RuntimeError(f'host process timeout; preserved partial output in {log}') from error
+    log.write_text(p.stdout,encoding='utf-8')
+    if p.returncode or 'FATAL:' in p.stdout:raise RuntimeError(f'{command[0]} failed: {log}\n{p.stdout[-5000:]}')
+    return p.stdout
+
+def negative_tests(out,image):
+    name,model,frame=next(fixtures());base=compile_model(model)
+    mutations=[('opcode',0,99,18),('reserved',44,1,18),('stride',20,0,18),
+               ('shape',40,0,19),('destination',8,4092,20),('source',4,2048,21),
+               ('multiplier',struct.unpack_from('<I',base.image,32)[0]+4,0xffffffff,22),
+               ('shift',struct.unpack_from('<I',base.image,32)[0]+8,32,22)]
+    results=[]
+    for name,offset,value,error in mutations:
+        data=bytearray(base.image);struct.pack_into('<I',data,offset,value)
+        pkg=Package(bytes(data),base.manifest);rec=Recorder(pkg,b'');host=Npu(rec);host.load_model(pkg)
+        parts=rec.rows[-1].split();parts[3]=f'{error:x}';rec.rows[-1]=' '.join(parts)
+        rec.rows.extend(['01 40 0 0 ffffffff 0','07 0 0 5 0 0','09 0 0 0 0 0'])
+        trace=out/f'negative_{name}.txt';trace.write_text('\n'.join(rec.rows)+'\n')
+        run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}'],out/f'negative_{name}.log')
+        results.append(name);print('PASS reject',name,flush=True)
+    # Exercise lifecycle, transfer completeness, result protection, abort, and
+    # timeout with a real valid program, not a behavioral controller stub.
+    expected=reference(model,frame)[model['nodes'][-1]['output']]
+    rec=Recorder(base,encoded(expected,base.manifest['output_dtype']));host=Npu(rec);host.load_model(base)
+    def c(op,addr=0,data=0,error=0,mask=0,value=0):rec.rows.append(f'{op:x} {addr:x} {data:x} {error:x} {mask:x} {value:x}')
+    c(7,error=5);c(6,error=5);c(2,0x20000,error=5)
+    c(5);c(6,error=7);c(2,0x20004,error=6)
+    # Use the real host sequence, then insert commands immediately after START.
+    before=len(rec.rows);host.infer(bytes(v&255 for v in frame))
+    start=next(i for i in range(before,len(rec.rows)) if rec.rows[i].startswith('07 '))
+    rec.rows[start+1:start+1]=['07 0 0 4 0 0','02 10000 0 4 0 0','01 20000 0 4 0 0']
+    ack=next(i for i in range(start,len(rec.rows)) if rec.rows[i].startswith('08 '))
+    rec.rows[ack:ack]=['03 0 0 9 0 0','05 0 0 9 0 0']
+    # Start another inference, abort it, and ensure no stale done arrives.
+    old=len(rec.rows);host.infer(bytes(v&255 for v in frame))
+    start=next(i for i in range(old,len(rec.rows)) if rec.rows[i].startswith('07 '))
+    rec.rows=rec.rows[:start+1]
+    c(9);c(0xf1,data=100);c(1,4,mask=0x7f,value=0);c(7,error=5)
+    host.load_model(base)
+    old=len(rec.rows);host.infer(bytes(v&255 for v in frame))
+    start=next(i for i in range(old,len(rec.rows)) if rec.rows[i].startswith('07 '))
+    rec.rows=rec.rows[:start]+['02 28 2 0 0 0']+rec.rows[start:start+1]
+    c(0xf0);c(1,8,mask=0xffffffff,value=10);c(1,4,mask=0x49,value=0x40);c(9);c(2,0x28,10000000)
+    # Model upload count is transactional: one missing word cannot commit.
+    rec2=Recorder(base,b'');h2=Npu(rec2);h2.load_model(base)
+    rec.rows.extend(rec2.rows[:-2]);c(4,error=7);c(9)
+    trace=out/'lifecycle.txt';trace.write_text('\n'.join(rec.rows)+'\n')
+    run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}'],out/'lifecycle.log')
+    print('PASS lifecycle/abort/timeout/incomplete',flush=True)
+    return results+['lifecycle']
+
+def unit_tests(out,defines,macro_model=None):
+    sys.path.insert(0,str(ROOT/'hardware/npu/tools'))
+    import tinycnn8_golden as oracle
+    r=random.Random(20261023);rows=[]
+    edges=[-2**31,2**31-1,-1,0,1,127,-129,65537,-65537]
+    for i in range(20000):
+        x=edges[i%len(edges)] if i%3==0 else r.randrange(-2**31,2**31)
+        m=r.choice([0,1,0x7fffffff,0x40000000,-2**31,r.randrange(-2**31,2**31)])
+        shift=r.randrange(-31,32);lo,hi=r.choice([(-128,127),(0,100),(-64,63)])
+        expected=oracle.requant(x,0,m,shift,activation_min=lo,activation_max=hi)
+        assert requant(x,m,shift,lo,hi)==expected
+        rows.append(f'{x&0xffffffff:08x} {m&0xffffffff:08x} {shift&63:02x} {lo&255:02x} {hi:02x} {expected&255:02x}')
+    vectors=out/'quant.hex';vectors.write_text('\n'.join(rows)+'\n')
+    qimage=out/'quant.vvp'
+    run(['iverilog','-g2012','-s','tb_requant_lane','-o',qimage,
+         'hardware/npu/rtl/requant_lane.sv','hardware/npu/tb/tb_requant_lane.sv'],out/'quant_compile.log')
+    run(['vvp',qimage,f'+VECTORS={vectors.relative_to(ROOT).as_posix()}'],out/'quant.log')
+    memimage=out/'memories.vvp'
+    extra=[str(macro_model.resolve())] if macro_model else []
+    run(['iverilog','-g2012',*defines,'-s','tb_npu_memories','-o',memimage,
+         'hardware/npu/rtl/npu_model_store.sv','hardware/npu/rtl/npu_activation_store.sv',
+         'hardware/npu/tb/tb_npu_memories.sv',*extra],out/'memories_compile.log')
+    run(['vvp',memimage],out/'memories.log')
+    simage=out/'stalls.vvp'
+    run(['iverilog','-g2012','-s','tb_npu_stalls','-o',simage,
+         'hardware/npu/rtl/npu_mac_array.sv','hardware/npu/rtl/requant_lane.sv',
+         'hardware/npu/rtl/npu_program_core.sv','hardware/npu/tb/tb_npu_stalls.sv'],out/'stalls_compile.log')
+    _,model,frame=next(fixtures())
+    for fuse in (True,False):
+        pkg=compile_model(model,fuse=fuse);m=pkg.manifest;case=out/f'stalls_{fuse}';case.mkdir(exist_ok=True)
+        def hx(file,values,width):file.write_text(''.join(f'{v:0{width}x}\n' for v in values))
+        hx(case/'config.hex',[m[k] for k in ('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes')],8)
+        hx(case/'model.hex',struct.unpack('<'+'I'*(len(pkg.image)//4),pkg.image),8)
+        hx(case/'input.hex',[v&255 for v in frame],2)
+        hx(case/'gold.hex',encoded(reference(model,frame)[model['nodes'][-1]['output']],m['output_dtype']),2)
+        run(['vvp',simage,f'+DATA={case.relative_to(ROOT).as_posix()}'],case/'rtl.log')
+    print('PASS 20000 quant vectors, memory backpressure/reset, random-latency fused/plain core',flush=True)
+
+def main():
+    ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',type=Path,default=ROOT/'build/program_regression')
+    ap.add_argument('--quick',action='store_true');ap.add_argument('--macro-model',type=Path)
+    ap.add_argument('--trained-model',type=Path,help='optional real trained NPZ; needs NumPy')
+    args=ap.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=True)
+    sources=(ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
+    defines=[]
+    if args.macro_model:sources.append(str(args.macro_model.resolve()));defines.append('-DNPU_USE_RA1SHD_MODEL')
+    unit_tests(out,defines,args.macro_model)
+    cases=list(fixtures())
+    if args.trained_model:
+        rng=random.Random(20261023)
+        cases.append(('trained',from_tinycnn_npz(args.trained_model),[rng.randrange(-32,33) for _ in range(320)]))
+    results=[];variants=[(8,False),(4,False),(8,True)] if not args.quick else [(8,False)]
+    negatives=[]
+    for cols,jtag in variants:
+        image=out/f'program_{cols}_{jtag}.vvp'
+        ds=defines+(['-DCOLS4','-DNPU_ARRAY_COLS=4'] if cols==4 else [])+(['-DJTAG_TEST'] if jtag else [])
+        run(['iverilog','-g2012','-s','tb_npu_program','-o',image,*ds,*sources,'hardware/soc/sim/tb/tb_npu_program.sv'],out/f'compile_{cols}_{jtag}.log')
+        for name,model,frame in cases:
+            if jtag and name!='cnn':continue
+            for fuse in (True,False):
+                if name in ('tinycnn','trained') and not fuse:continue # raw Conv alone exceeds 4 KiB, explicitly rejected
+                case=out/f'{name}_c{cols}_f{int(fuse)}_j{int(jtag)}';case.mkdir(exist_ok=True)
+                pkg=compile_model(model,cols=cols,fuse=fuse);pkg.save(case)
+                logical=reference(model,frame);expected=logical[model['nodes'][-1]['output']]
+                output=encoded(expected,pkg.manifest['output_dtype']);rec=Recorder(pkg,output);host=Npu(rec)
+                host.load_model(pkg)
+                for _ in range(2):
+                    got=host.infer(encoded(frame,model['input'].get('dtype','i8')))
+                    assert got==output
+                    rec.rows.extend(['01 00000038 0 0 0 0','01 00000040 0 0 0 0'])
+                trace=case/'commands.txt';trace.write_text('\n'.join(rec.rows)+'\n')
+                # Check every materialized tensor write, including values that
+                # are subsequently overwritten through lifetime reuse.
+                events=[]
+                for tensor,info in list(pkg.manifest['tensors'].items())[1:]:
+                    values=logical[tensor];channels=info['shape'][2]
+                    for oc in range(0,channels,cols):
+                        for pos in range(len(values)//channels):
+                            for lane in range(min(cols,channels-oc)):
+                                index=pos*channels+oc+lane;size=4 if info['dtype']=='i32' else 1
+                                address=info['base']+index*size;mask=15 if size==4 else 1
+                                events.append((address<<48)|(mask<<32)|(values[index]&0xffffffff))
+                events*=2;event_file=case/'writes.hex';event_file.write_text(''.join(f'{v:016x}\n' for v in events))
+                log=run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}',
+                         f'+EVENTS={event_file.relative_to(ROOT).as_posix()}',f'+EVENT_COUNT={len(events)}'],case/'rtl.log')
+                if 'PASS program' not in log:raise RuntimeError(log)
+                metrics=re.findall(r'METRIC reg=([0-9a-f]+) value=(\d+)',log)
+                row=dict(case=case.name,commands=len(rec.rows),bytes=len(pkg.image),peak=pkg.manifest['activation_peak'],groups=pkg.manifest['groups'],
+                         cycles=[int(v) for a,v in metrics if int(a,16)==0x38],writes=[int(v) for a,v in metrics if int(a,16)==0x40],checked_write_events=len(events))
+                results.append(row);print('PASS',case.name,flush=True)
+        if cols==8 and not jtag:negatives=negative_tests(out,image)
+    # A common post chain must demonstrate physical savings, not only equal outputs.
+    cnn={r['case']:r for r in results if r['case'].startswith('cnn_c8_') and r['case'].endswith('j0')}
+    if cnn:
+        fused=cnn['cnn_c8_f1_j0'];plain=cnn['cnn_c8_f0_j0']
+        assert fused['writes'][0]<plain['writes'][0] and fused['cycles'][0]<plain['cycles'][0]
+    (out/'summary.json').write_text(json.dumps(dict(tests=results,negative_tests=negatives,sources_sha256={s:hashlib.sha256((ROOT/s).read_bytes()).hexdigest() for s in sources if not Path(s).is_absolute()}),indent=2)+'\n')
+    print(f'ALL {len(results)} PROGRAM TESTS PASSED',flush=True)
+if __name__=='__main__':main()

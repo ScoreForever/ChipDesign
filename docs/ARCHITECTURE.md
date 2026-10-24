@@ -1,215 +1,89 @@
-# KWS TinyCNN-8-Flat 芯片系统架构与软硬件边界
+# NPU 架构（ABI 2.0，2026-10-23）
 
-> 2026-10-17：本分支默认 SoC 已切换为无 CPU JTAG 控制系统，见
-> [CPU_LESS_CONTROL.md](CPU_LESS_CONTROL.md)。本文的 CPU/AXI/MMIO 部分描述保留的
-> `my_soc_cpu_reference`；模型数学定义仍适用，新控制地址与旧 MMIO ABI 不兼容。
+## 目标与默认实例树
 
-本文按PR #5与main冲突解决后的实现核对，更新于2026-10-14。
-默认使用融合Flat核；分层Flat核保留为参考。此前7569a43的GAP/Flat接口不一致
-已通过恢复160输入FC和0/9/81权重布局解决。旧GAP模块保留独立测试。
-
-## 1. 系统边界
+一个被外部主机调用、可执行不同静态 INT8 网络的推理加速模块，不包含指令 CPU。
+主机完成图分析、量化、布局转换、权重打包和生命周期分配；硬件验证能力与边界、顺序执行。
 
 ```text
-麦克风或 WAV
-  -> CPU：16 kHz 音频、log-mel、INT8 输入量化
-  -> NPU：Conv1 -> Pool1 -> Conv2 -> Pool2 -> NHWC Flatten -> FC
-  -> CPU：统一四类 logit 尺度、argmax、可选拒绝阈值和业务逻辑
+my_soc_top
+├─ npu_jtag_transport：72-bit 专用 TAP、CDC、单条在途命令
+└─ npu_control_subsystem
+   ├─ npu_command_controller：模型/输入事务、完成保护、超时、复位
+   ├─ npu_model_store：一条同步 32-bit 物理端口，共享模型区
+   ├─ npu_activation_store：四个 byte bank，同步 4-byte 读取、掩码写入
+   └─ npu_program_core：描述符验证、顺序调度、算子执行
+      ├─ npu_mac_array：Conv/FC 共享 4×8 MAC、双权重 bank
+      └─ requant_lane：单路 Q31 流水，II=1
 ```
 
-SoC 包含 CV32E40P CPU、AXI、BootRAM、8 KiB 主 SRAM、DMA、调试模块和
-NPU。NPU 不负责采样、FFT/log-mel、训练、Softmax 或业务判断。
+唯一默认源文件表为 `hardware/soc/sim/filelists/chipdesign_nocpu.f`。
+阵列可在编译时选 4×4；主机按能力寄存器重新打包，不能把 8 列包直接用于 4 列配置。
+无旧 `FUSED_CORE`、固定 class_count、三组参数或旧扩展 endpoint。
 
-## 2. 冻结模型
+## 算子与数值契约
 
-输入为 `20×16×1` signed INT8 log-mel，NHWC 排列，共 320 字节。前处理采用
-16 kHz、1 秒、50 ms 帧长/帧移、1024 点 FFT、Hamming 窗、16 个 mel 通道、
-80–7600 Hz，zero point=0。
+- Conv：batch=1、NHWC、kernel=1×1/3×3、stride H/W=1/2、显式四侧 padding（每侧小于对应 kernel），groups=dilation=1。
+- FC：连续输入展平，输入长度≤1024，输出通道≤256；共享矩阵后端。
+- MaxPool：2×2、stride2、无 padding、floor 输出尺寸，支持 INT8/INT32。
+- ReLU：INT8/INT32，逐元素 max(x,0)。
+- Requant：INT8 或 INT32 输入、INT8 输出；逐通道或主机展开后的逐张量 Q31 multiplier/shift/clamp，零点为 0。
 
-| 阶段 | 运算 | 输出 |
-| --- | --- | --- |
-| Conv1 | `3×3 SAME, 1→8`，INT32 累加 + bias/requant/ReLU | `20×16×8` INT8 |
-| Pool1 | `2×2 stride 2` MaxPool | `10×8×8` INT8 |
-| Conv2 | `3×3 SAME, 8→8`，INT32 累加 + bias/requant/ReLU | `10×8×8` INT8 |
-| Pool2 | `2×2 stride 2` MaxPool | `5×4×8` INT8 |
-| Flatten | 直接解释连续 NHWC 存储，不搬运 | `160` INT8 |
-| FC | `160→4` | 4 个 INT32 raw logits |
+Conv/FC 的逻辑输出为 INT32：无偏乘积和采用 26 bit（K≤1024），加 INT32 bias 按两补码 wrap。
+4 行阵列局部和为 18 bit；尾部 K 和 Cout 通过 mask 补零/禁止写回。
+Requant 契约为 saturating left shift、SRDHM、RoundingDivideByPOT、INT8 clamp；
+shift=-31..31，multiplier=0..INT32_MAX。Requant 不额外加 bias，不支持任意非零 zero_point。
+不支持的配置明确拒绝；容量约束必须与各维上限同时满足。
 
-类别固定为 `0=yes, 1=no, 2=up, 3=down`。训练模型有 1,324 个参数；BN 在
-导出时折叠进卷积权重和 bias。
+## 组合、融合与数据流
 
-卷积公式为 `acc[oc] = bias[oc] + Σ input[k] * weight[k][oc]`。INT8 乘积和
-Conv1 的 9 项、Conv2 的 72 项统一在 INT32 中累加；padding 为整数 0。
-
-## 3. 量化契约
-
-- 激活：signed INT8、逐张量对称、zero point=0；
-- 权重：signed INT8、逐输出通道对称；
-- bias、partial sum、raw logit：signed INT32；
-- 每个卷积输出通道独立使用 Q0.31 multiplier 和 signed 6-bit shift；
-- 合法 shift `[-31,31]`，`-32` 在 MMIO commit 时拒绝；
-- Conv 输出钳位 `[0,127]`；MaxPool/Flatten 不改变 scale。
+主机模型由五种逻辑节点构成，编译器按单消费者条件将 Conv/FC 与后续 Requant、ReLU、MaxPool
+中的合法白名单组合降为一条执行描述符。独立执行走激活存储读写，同一处理资源支持流式路径。
+可以用 `--no-fuse` 关闭融合；中间 INT32 张量必须真实分配，可能超出容量。
 
 ```text
-real_multiplier[c] = input_scale * weight_scale[c] / output_scale
-biased = accumulator + bias
-shifted = saturating_left_shift(biased, max(shift,0))
-scaled = SaturatingRoundingDoublingHighMul(shifted, multiplier)
-scaled = RoundingDivideByPOT(scaled, max(-shift,0))
-result = clamp(scaled + output_offset, activation_min, activation_max)
+MAC → INT32 bias → 可旁路的窗口 MaxPool → 单路 Requant → ReLU/clamp → 写回
+                      ↑                          ↑
+              独立 Pool 访存路径          独立 Requant/ReLU 访存路径
 ```
 
-FC 权重逐输出通道量化，四个 raw logit 的真实 scale 不同。CPU 必须用部署包的
-`fc_cmp_mult/shift` 映射到共同尺度再 argmax。
+融合 Pool 采用窗口优先的空间顺序，故只需四个结果向量槽，而非缓存整幅卷积输出。
+空间 tile=16，K-major 权重复用。每个最终归约在发射前保留结果槽，覆盖仍在阵列中的返回，
+槽可复用时才发射。写回每拍最多一个 INT8 或 INT32 元素；量化在途数据由有效位/计数管理。
+当前内部写端口固定可接受，随机读延迟由握手处理。
 
-## 4. RTL 与性能优化
+当相同通道的量化为非负倍率的单调变换时，允许把 MaxPool 提前至 Requant/ReLU 之前，
+减少 2×2 窗口的量化次数。INT32 bias 的 wrap 加法仍在 max 比较前，不能移动到其后。
+连续两个 Requant 不合并；多消费者中间值不省略写回；不支持的链按独立描述符执行。
+当前编译器不会融合 Conv→Conv，两层之间的 INT8 张量正常写回。
 
-生产核心是 `tinycnn8_npu_fused`（`FUSED_CORE=1`，默认），分层核心
-`tinycnn8_npu_top` 保留为逐层 bit-exact 参考。两者host/装载窗口相同，VERSION与PERF_LAYER解释不同。
+连续 Conv 的行缓存可行性、权重切换和 spatial-tile 利用代价由
+`software/host/explore_conv_streaming.py` 单独探索；它是软件调度验证，不是 RTL 流式模式。
+没有为了探索而实例化第二套 MAC 或任意全互连网络。
 
-```text
-tinycnn8_npu_fused（生产）
-  +-- 1 KiB 字节 bank 激活存储：每拍任意地址 4 B 读
-  +-- fused_ws_array：4×8 WS 阵列，PE 双 bank 权重，bank 选择随操作数流动
-  +-- 输出侧 INT32 累加（tile16 = 4 个 2×2 窗口）-> INT32 2×2 max
-  +-- requant_lane：单 lane、II=1、4 级流水
-```
+## 存储和控制边界
 
-融合核心对所有层都做 K-major tile，权重预取与计算重叠，Conv 与 MaxPool 融合，
-先在 INT32 上池化再量化（multiplier ≥ 0 时逐位等价）。实测单次推理 2,805 周期，
-分层核心为 59,357 周期（tile16 为 33,610）。设计、实测和验证见
-`hardware/npu/TINYCNN8_FUSED.md`。
+默认激活逻辑容量 4096 B，模型区 8192 B。描述符、权重、bias/multiplier/shift 共同占用模型区，
+不存在三份分别为 8 KiB 的承诺。最多 16 条物理描述符；执行时不做 tensor-ID 间接查表。
+主机输入可选 INT8/INT32，Conv/FC 仍只接受 INT8。主机用张量名做生命周期分析，执行描述符直接引用 byte offset，节省间接查询与元数据存储。
 
-分层参考核心：
+硬件预验证所有描述符与量化参数，验证期间禁止写激活；确认全部合法才置 model_valid。
+预验证使用最多17项的有效区域表，检查源是否由声明的模型输入或先前操作覆盖，以及 dtype 是否一致；START 另行要求输入事务已提交。
+覆盖旧区域会使旧区域有效性失效；仅 ReLU 的精确同区域操作允许 in-place。
+此机制不是对任意模型逻辑意图的形式证明：张量身份、语义依赖、优化正确性仍由主机编译器负责。
 
-```text
-tinycnn8_npu_top
-  +-- conv2d_engine：Conv1 / Conv2 / FC 共享
-  |     +-- conv_window_addr_gen
-  |     +-- matrix_unit -> ws_systolic_array -> ws_pe
-  |     +-- requant_unit
-  +-- maxpool2x2_engine：Pool1 / Pool2 共享
-        +-- vector_unit
-```
+每层配置执行期间不变，切换前等待 MAC、结果槽、Requant 和模型读全部排空。
+运行期间锁定模型与输入写入；完成输出保留到 ACK，结果保护通过存储所有权实现，不复制八个 logits。
+软复位/超时取消在途操作和模型/输入有效性，不清整片 RAM，重新提交后才能执行。
+控制器和存储控制使用同步复位；TAP/CDC 保留独立异步置位与同步释放机制。
 
-旧 `reduction_sum_unit`、`global_sum_pool_engine`、`global_avg_pool_engine`
-保留独立测试及SoC filelist编译项，但不进入当前Flat顶层实例路径。
+## 平台映射
 
-远程 main 的性能优化已保留：`OPT_GATHER_LOAD` 可重叠固定 Conv2 的输入收集与
-权重装载；`OPT_SPATIAL_TILE` 使用 K-major 空间分块，默认 `SPATIAL_TILE=16`，但两项优化开关默认0。融合核固定tile16，不使用这两个开关。
-仅固定 4×8、`10×8×8`、`3×3 SAME` Conv2 使用优化路径，其余 descriptor 自动
-回退。优化复用同一 Matrix/Requant，不增加第二套计算核。
+`NPU_USE_RA1SHD_MODEL` 实例化 `RA1SHD_2048x32M8`，实例路径为
+`i_control/i_model_store/i_sram`（FPGA 顶层再加 `u_soc/`）。
+公开默认模型是同步行为存储，可供 FPGA RAM 推断；不能将其当作 ASIC SRAM 映射结果。
+激活区未指定专用 ASIC 硬宏，ASIC 工具可能映射为标准单元，需要结合可用小容量宏和端口预算继续评估。
 
-## 5. NPU 本地存储
-
-融合核心：激活只有 1 KiB。输入 `0..319`，Pool1 `320..959`，Pool2 `0..159`（覆盖
-输入）。Conv 输出不落地。权重和参数布局与下文相同。以下是分层参考核心的布局：
-
-- 分层核默认激活A/B各4096 B；MMIO参考实例设置A=640 B、B=2560 B；
-- 权重：256×64 bit，共 2048 字节；
-- 参数：Conv1、Conv2、FC 三组；
-- 输出：最多 8×INT32，生产模型前 4 路有效。
-
-```text
-输入 A(320 B) -> Conv1 B(2560 B) -> Pool1 A(640 B)
- -> Conv2 B(640 B) -> Pool2 A(160 B) -> FC logits
-```
-
-Pool2 已按 NHWC 连续写入，Flatten 无额外周期和 SRAM。生产 8-lane 权重布局：
-
-| 层 | base | word 数 | 区间 |
-| --- | ---: | ---: | --- |
-| Conv1 | 0 | 9 | `[0,9)` |
-| Conv2 | 9 | 72 | `[9,81)` |
-| FC | 81 | 160 | `[81,241)` |
-| 空余 | 241 | 15 | `[241,256)` |
-
-每次推理重装 320 字节输入；权重和参数可保留。空间 tile16 额外使用 512 B
-INT32 partial sums 及少量 tag/pack；行为数组仍需在物理实现阶段替换为工艺 SRAM。
-
-## 6. SoC 集成与存储器
-
-生产 SoC 只实例化 `tinycnn8_npu_mmio_wrapper -> tinycnn8_npu_fused`
-（`FUSED_CORE=0` 时为分层参考核心 `tinycnn8_npu_top`）。历史算子级
-wrapper 已从远程 main 删除。BootRAM 复位后跳到 `0x8000_0000`；主SRAM为2048×32 bit（8 KiB）。生产SoC保持main的`PIPELINED=1`和
-AXI `READ_LATENCY=3`：请求输入、RAM读取、同步输出三级；背压期间保持读数据。
-复位屏蔽新请求，已接受请求可完成，SRAM内容保留。仿真用`$readmemh`加载程序，
-综合时关闭预载；FPGA程序运行时装入。该实现不是ASIC工艺SRAM。
-
-| 区域 | 基址 | 长度 |
-| --- | --- | --- |
-| Debug | `0x0000_0000` | `0x0000_1000` |
-| BootRAM | `0x0001_0000` | `0x0001_0000` |
-| NPU | `0x7000_0000` | `0x0000_4000` |
-| SRAM | `0x8000_0000` | 8 KiB |
-
-## 7. MMIO ABI
-
-所有偏移相对 `NPU_BASE=0x7000_0000`。
-
-| 偏移 | 名称 | 说明 |
-| --- | --- | --- |
-| `0x0000` | CONTROL | bit0 start；bit1 IRQ enable；bit2 clear done；bit3 clear error |
-| `0x0004` | STATUS | ready/busy/done/error 和错误码低位 |
-| `0x0008` | CLASS_COUNT | RTL 合法 1–8；生产写 4 |
-| `0x000C` | ERROR_CODE | 完整错误码 |
-| `0x0010..0x002C` | LOGIT[0..7] | raw signed INT32 |
-| `0x0030` | VERSION | `0x0002_0002`：融合核心；`0x0002_0001`：分层参考核心 |
-| `0x0040` | PERF_TOTAL | 最近任务核心周期 |
-| `0x0044..0x0058` | PERF_LAYER[0..5] | C1、P1、C2、P2、保留0、FC |
-| `0x005C` | PERF_WEIGHT_ROWS | Matrix 权重行握手数 |
-| `0x0060/0x0064` | PERF_ISSUES/RETIRES | Matrix 输入/输出事务数 |
-| `0x0068` | PERF_PEAK_INFLIGHT | 峰值在途事务 |
-| `0x006C` | PERF_STATUS | valid、overflow、busy |
-
-性能计数从 start 后一拍到完成转移边沿；六个 lane 中 lane4 为已移除 GAP 的保留
-零值，其余五层之和等于 total。融合核心把 P1/P2 计入 C1/C2，P1/P2 lane 读 0。新 start/reset 清零，完成后冻结，clear done 不清
-profile；写性能地址返回错误6。
-
-错误码：1非法配置，2 busy访问，3未对齐，4权重高低半字顺序，5非法 shift
-（融合核心下，卷积层 multiplier 为负也报 5），
-6保留/未定义操作。IRQ 在完成后锁存至 clear done。
-
-装载窗口：
-
-```text
-输入：0x1000 + 4*i，i=0..319，低8 bit有效
-权重：0x2000 + 8*i低半字；0x2004 + 8*i高半字并提交，i=0..255
-参数：0x3000 + layer_id*0x100
-```
-
-参数层：0=Conv1，1=Conv2，2=旧 GAP 保留槽（commit 错误6），3=FC。层内 bias
-从 `+0x00`、multiplier 从 `+0x20`、shift 从 `+0x40`，`+0x60` commit。FC 只
-消费 bias。DMA 寄存器在 `0x0400..0x0410`。
-
-## 8. 软硬件职责与验证
-
-软件负责训练、BN 折叠、PTQ、权重打包、log-mel、输入量化、模型装载、logit
-统一尺度和分类；NPU 自动完成 Conv/Pool/Flatten/FC。标准流程是检查版本、装载
-241 个有效权重 word 和三组参数、逐帧装载输入、写类别4、start、等待 done/IRQ、
-读取四个 logit、统一 scale、清 done。
-
-截至 2026-10-08：强增强 INT8 accuracy/macro-F1 为 89.94%/90.00%；100 条真实
-语音四个 raw logit 与 RTL bit-exact；基础、baseline/tiled 调度、MMIO 和 SoC
-ModelSim动态回归属于部署验收项。本次合并可执行验证与未运行项见第9节；
-最终类别相同不能掩盖任何1 LSB差异。
-
-## 9. PR #5 与 main 的冲突解决（2026-10-14）
-
-- 默认融合核保留4×8双bank权重、输出侧累加、INT32池化和单lane II=1量化。
-- 分层参考恢复Flat计算图，同时保留main的八银行激活组织和独立A/B容量参数。
-  每银行同步写/异步读，`bank=addr%8`、`row=addr/8`，MMIO实例为640/2560 B。
-- 分层`requant_unit`采用并行参考接口，融合`requant_lane`采用4级流水、II=1接口；
-  两者保留main的32位Q31舍入简化`product[62:31]+product[30]`及INT32_MIN饱和特例。
-- main的AXI/SRAM三拍读、FPGA顶层、配置约束和DRC脚本保留。
-- 原GAP容量测试改为`tb_tinycnn8_capacity`，检查非零Flat网络、A=639/B=2559边界、
-  4/6/8类连续推理和默认/非对称容量；结构回归入口同步更新。
-- CI增加融合核与两种MMIO核心选择回归；原分层调度实验继续验证参考路径。
-
-此前FPGA资源和DRC数字属于GAP配置；默认核心更换后必须重新运行Vivado才能
-确认新的LUT/FF/DSP和时序。本机没有ModelSim/Vivado，本次不声明整SoC或综合通过。
-历史训练/100条真实语音结果保留为当时证据，不替代本次回归。
-
-本次本地验证：融合21个golden用例共33,936次比较（每次2,805周期），
-两种MMIO核心选择及分层容量640/2560、4096/4096均通过；完整分层调度回归
-通过，共224,292次逐元素比较。融合与分层回归已接入GitHub Actions。
+Genus/DC 使用 `EDA_NPU_MODEL_SRAM=1`，分别提供 `EDA_MODEL_SRAM_LIB` / `EDA_MODEL_SRAM_DB`；
+`EDA_NPU_COLS=4|8` 选择阵列列数。旧 tile/权重/psum 环境开关不再使用。
+最终面积、时序和功耗应以同工艺全系统 PnR/STA 为准；周期比较不能代替物理结果。

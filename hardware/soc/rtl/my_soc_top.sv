@@ -1,49 +1,19 @@
 `timescale 1ns/1ps
-// CPU-less production system. Dedicated JTAG host -> controller -> native NPU.
-// The former CPU/AXI system is retained as my_soc_cpu_reference for comparison.
 module my_soc_top #(
-`ifdef NPU_WEIGHT_FF
-    parameter WEIGHT_SRAM=0,
+ parameter ACT_BYTES=4096,MODEL_BYTES=8192,
+`ifdef NPU_ARRAY_COLS
+ parameter COLS=`NPU_ARRAY_COLS,
 `else
-    parameter WEIGHT_SRAM=1,
+ parameter COLS=8,
 `endif
-`ifdef NPU_SPATIAL_TILE
-    parameter SPATIAL_TILE=`NPU_SPATIAL_TILE,
-`else
-    parameter SPATIAL_TILE=16,
-`endif
-`ifdef NPU_ARRAY_ACC_WIDTH
-    parameter ARRAY_ACC_WIDTH=`NPU_ARRAY_ACC_WIDTH,
-`else
-    parameter ARRAY_ACC_WIDTH=18,
-`endif
-`ifdef NPU_PSUM_WIDTH
-    parameter PSUM_WIDTH=`NPU_PSUM_WIDTH
-`else
-    parameter PSUM_WIDTH=23
-`endif
-) (
-    input wire clk_i, rst_ni,
-    input wire tck_i, tms_i, td_i,
-    output wire td_o,
-    output wire irq_o
-);
-    wire cmd_valid, cmd_ready, rsp_valid, rsp_ready;
-    wire [7:0] cmd_op;
-    wire [31:0] cmd_addr, cmd_data, rsp_data;
-    wire [4:0] rsp_error;
-    npu_jtag_transport i_host (
-        .clk_i(clk_i),.rst_ni(rst_ni),.tck_i(tck_i),.tms_i(tms_i),.td_i(td_i),.td_o(td_o),
-        .cmd_valid_o(cmd_valid),.cmd_ready_i(cmd_ready),.cmd_op_o(cmd_op),
-        .cmd_addr_o(cmd_addr),.cmd_data_o(cmd_data),
-        .rsp_valid_i(rsp_valid),.rsp_ready_o(rsp_ready),.rsp_error_i(rsp_error),.rsp_data_i(rsp_data)
-    );
-    npu_control_subsystem #(.WEIGHT_SRAM(WEIGHT_SRAM),.SPATIAL_TILE(SPATIAL_TILE),
-        .ARRAY_ACC_WIDTH(ARRAY_ACC_WIDTH),.PSUM_WIDTH(PSUM_WIDTH)) i_control (
-        .clk_i(clk_i),.rst_ni(rst_ni),.cmd_valid_i(cmd_valid),.cmd_ready_o(cmd_ready),
-        .cmd_op_i(cmd_op),.cmd_addr_i(cmd_addr),.cmd_data_i(cmd_data),
-        .rsp_valid_o(rsp_valid),.rsp_ready_i(rsp_ready),.rsp_error_o(rsp_error),.rsp_data_o(rsp_data),
-        .irq_o(irq_o),.ext_valid_o(),.ext_ready_i(1'b0),.ext_write_o(),.ext_addr_o(),.ext_data_o(),
-        .ext_rsp_valid_i(1'b0),.ext_rsp_ready_o(),.ext_rsp_data_i(32'd0),.ext_rsp_error_i(5'd0)
-    );
+ parameter MAX_OPS=16,MAX_K=1024
+)(input wire clk_i,rst_ni,tck_i,tms_i,td_i,output wire td_o,irq_o);
+ wire cv,cr,rv,rr; wire [7:0] op; wire [31:0] addr,data,rd; wire [4:0] err;
+ npu_jtag_transport i_host (
+  .clk_i(clk_i),.rst_ni(rst_ni),.tck_i(tck_i),.tms_i(tms_i),.td_i(td_i),.td_o(td_o),
+  .cmd_valid_o(cv),.cmd_ready_i(cr),.cmd_op_o(op),.cmd_addr_o(addr),.cmd_data_o(data),
+  .rsp_valid_i(rv),.rsp_ready_o(rr),.rsp_error_i(err),.rsp_data_i(rd));
+ npu_control_subsystem #(.ACT_BYTES(ACT_BYTES),.MODEL_BYTES(MODEL_BYTES),.COLS(COLS),.MAX_OPS(MAX_OPS),.MAX_K(MAX_K)) i_control (
+  .clk_i(clk_i),.rst_ni(rst_ni),.cmd_valid_i(cv),.cmd_ready_o(cr),.cmd_op_i(op),.cmd_addr_i(addr),.cmd_data_i(data),
+  .rsp_valid_o(rv),.rsp_ready_i(rr),.rsp_error_o(err),.rsp_data_o(rd),.irq_o(irq_o));
 endmodule

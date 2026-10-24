@@ -12,15 +12,15 @@ if {$mapped} {
         if {![info exists ::env($key)]} {error "Missing $key for mapped synthesis"}
     }
     set target_libs $::env(EDA_TARGET_LIBS)
-    if {$use_weight_sram} {
+    if {$use_model_sram} {
         # DC needs a compiled .db, not the course Liberty accepted by Genus.
-        if {![info exists ::env(EDA_WEIGHT_SRAM_DB)] || ![file isfile $::env(EDA_WEIGHT_SRAM_DB)]} {
-            error "Set EDA_WEIGHT_SRAM_DB to the matching SRAM .db, or EDA_NPU_WEIGHT_SRAM=0 for the FF comparison"
+        if {![info exists ::env(EDA_MODEL_SRAM_DB)] || ![file isfile $::env(EDA_MODEL_SRAM_DB)]} {
+            error "Set EDA_MODEL_SRAM_DB to the matching SRAM .db, or EDA_NPU_MODEL_SRAM=0 for the FF comparison"
         }
-        if {[lsearch -exact $target_libs $::env(EDA_WEIGHT_SRAM_DB)]<0} {
-            lappend target_libs $::env(EDA_WEIGHT_SRAM_DB)
+        if {[lsearch -exact $target_libs $::env(EDA_MODEL_SRAM_DB)]<0} {
+            lappend target_libs $::env(EDA_MODEL_SRAM_DB)
         }
-        lappend hdl_defines NPU_USE_RA1SHD_WEIGHT
+        lappend hdl_defines NPU_USE_RA1SHD_MODEL
     }
     foreach lib $target_libs {
         if {![file isfile $lib]} {error "Target library does not exist: $lib"}

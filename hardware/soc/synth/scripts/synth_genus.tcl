@@ -9,15 +9,15 @@ if {$mapped} {
         if {![info exists ::env($key)]} {error "Missing $key for mapped synthesis"}
     }
     set target_libs $::env(EDA_TARGET_LIBS)
-    if {$use_weight_sram} {
-        set weight_lib /lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib
-        if {[info exists ::env(EDA_WEIGHT_SRAM_LIB)]} {set weight_lib $::env(EDA_WEIGHT_SRAM_LIB)}
-        if {![file isfile $weight_lib]} {
-            error "Missing weight SRAM Liberty; set EDA_WEIGHT_SRAM_LIB, or EDA_NPU_WEIGHT_SRAM=0 for the FF comparison"
+    if {$use_model_sram} {
+        set model_lib /lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib
+        if {[info exists ::env(EDA_MODEL_SRAM_LIB)]} {set model_lib $::env(EDA_MODEL_SRAM_LIB)}
+        if {![file isfile $model_lib]} {
+            error "Missing model SRAM Liberty; set EDA_MODEL_SRAM_LIB, or EDA_NPU_MODEL_SRAM=0 for the FF comparison"
         }
-        if {[lsearch -exact $target_libs $weight_lib]<0} {lappend target_libs $weight_lib}
-        lappend hdl_defines NPU_USE_RA1SHD_WEIGHT
-        puts "NPU_WEIGHT_SRAM_LIB=$weight_lib"
+        if {[lsearch -exact $target_libs $model_lib]<0} {lappend target_libs $model_lib}
+        lappend hdl_defines NPU_USE_RA1SHD_MODEL
+        puts "NPU_MODEL_SRAM_LIB=$model_lib"
     }
     foreach lib $target_libs {
         if {![file isfile $lib]} {error "Target library does not exist: $lib"}

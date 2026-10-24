@@ -62,7 +62,7 @@ proc summary {} {
     puts $f "# EGo1 build summary\n"
     puts $f "Result: $result"
     puts $f "Stage: $stage; last completed stage: $last_stage"
-    puts $f "Part: xc7a35tcsg324-1; top: fpga_top; CPU-less JTAG controller and fused NPU"
+    puts $f "Part: xc7a35tcsg324-1; top: fpga_top; CPU-less JTAG controller and programmable five-operator NPU"
     puts $f "Clocking Wizard: 100 MHz input, [format %g $frequency_mhz] MHz output, locked enabled, reset disabled"
     puts $f "Log: vivado.log"
     if {$failure ne ""} { puts $f "\nFailure: $failure" }

@@ -1,7 +1,8 @@
-hardware/npu/rtl/fused_ws_array.sv
+hardware/npu/rtl/npu_mac_array.sv
 hardware/npu/rtl/requant_lane.sv
-hardware/npu/rtl/npu_weight_store.sv
-hardware/npu/rtl/tinycnn8_npu_fused.sv
+hardware/npu/rtl/npu_model_store.sv
+hardware/npu/rtl/npu_activation_store.sv
+hardware/npu/rtl/npu_program_core.sv
 hardware/soc/rtl/control/npu_command_controller.sv
 hardware/soc/rtl/control/npu_control_subsystem.sv
 hardware/soc/rtl/control/npu_jtag_transport.sv

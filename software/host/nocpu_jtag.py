@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
-"""CPU-less NPU host using OpenOCD Tcl RPC (jtag-only; no RISC-V target).
-
-Start OpenOCD with your adapter config and software/host/nocpu_openocd.cfg.
-Then: python software/host/nocpu_jtag.py status
-      python software/host/nocpu_jtag.py infer --package model.npz --input frame.bin
-Input is 320 signed INT8 feature bytes, not PCM audio. NumPy is needed only for
-NPZ deployment packages. The standard-library transport also supports RTL hex
-vectors with `infer-vectors --directory ...`.
-"""
+"""ABI 2 host: reusable model loading and arbitrary input/output tensors over JTAG."""
 from __future__ import annotations
 import argparse
 from enum import IntEnum
@@ -18,15 +10,12 @@ import time
 
 
 class Op(IntEnum):
-    READ=1; WRITE=2; MODEL_BEGIN=3; PARAM_COMMIT=4; MODEL_COMMIT=5
-    INPUT_BEGIN=6; INPUT_COMMIT=7; START=8; ACK=9; CLEAR_ERROR=10; RESET=11
-    MODULE_WRITE=32; MODULE_READ=33
+    READ=1; WRITE=2; MODEL_BEGIN=3; MODEL_COMMIT=4; INPUT_BEGIN=5
+    INPUT_COMMIT=6; START=7; ACK=8; RESET=9; CLEAR_ERROR=10
 
-
-ERRORS = {1:'illegal opcode',2:'invalid address',3:'unaligned address',4:'busy',
-          5:'invalid lifecycle state',6:'out-of-order transfer',7:'incomplete transfer',
-          8:'invalid parameter',9:'unacknowledged result',10:'hardware timeout',
-          11:'unsupported extension',12:'backend not ready'}
+ERRORS={1:'opcode',2:'address',3:'alignment',4:'busy',5:'state',6:'order',
+        7:'incomplete',8:'parameter',9:'result pending',10:'timeout',
+        17:'program header',18:'descriptor',19:'shape',20:'range',21:'uninitialized source',22:'quantization'}
 
 
 class TclRpc:
@@ -97,163 +86,60 @@ def signed32(value):
 
 
 class Npu:
-    def __init__(self, transport):
+    def __init__(self,transport):
         self.transport=transport
-        version=self.read(0)
-        if version!=0x10000:
-            raise RuntimeError(f'unsupported controller ABI 0x{version:08x}')
-
-    def command(self, op, addr=0, data=0):
-        return self.transport.exchange(op,addr,data)
-
-    def read(self, addr):
-        return self.command(Op.READ,addr)
-
-    def write(self, addr, data):
-        return self.command(Op.WRITE,addr,int(data))
-
+        if self.read(0)!=0x20000:raise RuntimeError('requires NPU ABI 2.0')
+    def command(self,op,addr=0,data=0):return self.transport.exchange(op,addr,data)
+    def read(self,addr):return self.command(Op.READ,addr)
+    def write(self,addr,data):return self.command(Op.WRITE,addr,int(data)&0xffffffff)
     def status(self):
-        raw=self.read(4)
-        return {'status':raw, 'busy':bool(raw&1),'model_ready':bool(raw&2),
-                'input_ready':bool(raw&4),'done':bool(raw&8),'faulted':bool(raw&128),
-                'error':self.read(8),'job_id':self.read(0x18),'completed_id':self.read(0x1c),
-                'core_cycles':self.read(0x20),'task_cycles':self.read(0x24)}
-
-    def load_model(self, weights, params, classes=4):
-        # Validate the complete host package before invalidating the device model.
-        weights=list(weights)
-        if len(weights)<241 or any(not 0<=int(w)<2**64 for w in weights):
-            raise ValueError('need at least 241 packed 64-bit weight words')
-        if classes not in range(1,9) or set(params)!={0,1,3}:
-            raise ValueError('invalid classes or parameter groups')
-        for layer,(bias,mult,shift) in params.items():
-            if len(bias)!=8 or any(not -(2**31)<=int(v)<2**32 for v in bias):
-                raise ValueError('each layer needs eight INT32 bias lanes (pad unused FC lanes)')
-            if layer!=3 and (len(mult)!=8 or len(shift)!=8 or
-                            any(not 0<=int(v)<2**31 for v in mult) or
-                            any(not -31<=int(v)<=31 for v in shift)):
-                raise ValueError('invalid convolution multiplier/shift')
+        s=self.read(4)
+        return dict(busy=bool(s&1),model_ready=bool(s&2),input_ready=bool(s&4),done=bool(s&8),
+                    faulted=bool(s&64),error=self.read(8),error_op=self.read(0x34),
+                    cycles=self.read(0x38),issues=self.read(0x3c),writes=self.read(0x40))
+    def load_model(self,package):
+        m=package.manifest
+        # All host checks happen before MODEL_BEGIN invalidates the old model.
+        caps={r:self.read(r) for r in (0x50,0x54,0x58,0x5c,0x60)}
+        if m['abi']!=0x20000 or m['cols']!=(caps[0x58]&65535):raise ValueError('ABI/array mismatch; recompile package')
+        if len(package.image)!=m['model_bytes'] or len(package.image)%4 or len(package.image)>caps[0x54]:raise ValueError('model capacity/length')
+        if not 0<m['op_count']<=caps[0x60] or m['activation_peak']>caps[0x50]:raise ValueError('program/activation capacity')
         self.command(Op.MODEL_BEGIN)
-        self.write(0x10,classes)
-        for index,word in enumerate(weights[:241]):
-            self.write(0x2000+index*8,int(word)&0xffffffff)
-            self.write(0x2004+index*8,int(word)>>32)
-        for layer in (0,1,3):
-            bias,mult,shift=params[layer]
-            for lane in range(8):
-                base=0x4000+layer*0x100+lane*4
-                self.write(base,bias[lane])
-                if layer!=3:
-                    self.write(base+0x20,mult[lane]);self.write(base+0x40,shift[lane])
-            self.command(Op.PARAM_COMMIT,data=layer)
+        for reg,key in zip(range(0x10,0x28,4),('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes')):
+            self.write(reg,m[key])
+        self.write(0x64,int(m['input_dtype']=='i32'))
+        for offset in range(0,len(package.image),4):self.write(0x10000+offset,int.from_bytes(package.image[offset:offset+4],'little'))
         self.command(Op.MODEL_COMMIT)
-
-    def infer(self, frame, timeout=5):
-        frame=bytes(frame)
-        if len(frame)!=320:
-            raise ValueError('expected exactly 320 feature bytes')
+    def infer(self,frame,timeout=10):
+        frame=bytes(frame);base=self.read(0x18);length=self.read(0x1c)
+        if len(frame)!=length:raise ValueError(f'expected {length} input bytes')
         self.command(Op.INPUT_BEGIN)
-        for index in range(80):
-            self.write(0x1000+index*4,int.from_bytes(frame[index*4:index*4+4],'little'))
-        self.command(Op.INPUT_COMMIT)
-        job=self.command(Op.START)
+        for offset in range(0,len(frame),4):self.write(0x20000+base+offset,int.from_bytes(frame[offset:offset+4].ljust(4,b'\0'),'little'))
+        self.command(Op.INPUT_COMMIT);self.command(Op.START)
         deadline=time.monotonic()+timeout
-        while time.monotonic()<deadline:
-            state=self.read(4)
-            if state&128:
-                raise RuntimeError(f'NPU fault: {self.read(8)}; soft reset and reload required')
-            if state&8:
-                classes=self.read(0x10)
-                logits=[signed32(self.read(0x100+4*i)) for i in range(classes)]
-                result={'job_id':job,'logits':logits,'core_cycles':self.read(0x20),
-                        'task_cycles':self.read(0x24)}
-                self.command(Op.ACK)
-                return result
+        while True:
+            s=self.read(4)
+            if s&64:raise RuntimeError(f'NPU fault {self.read(8)}, operator {self.read(0x34)}')
+            if s&8:break
+            if time.monotonic()>deadline:raise TimeoutError('inference still active; inspect status, do not automatically retry START')
             time.sleep(0.001)
-        raise TimeoutError('inference wait timed out; inspect device before retrying')
-
-
-def hex_values(path):
-    return [int(line.strip(),16) for line in Path(path).read_text().splitlines() if line.strip()]
-
-
-def fixture(directory, sample=0, classes=4):
-    directory=Path(directory)
-    weights=hex_values(directory/'weights.hex')
-    if (directory/'bias.hex').is_file():
-        bias=hex_values(directory/'bias.hex');mult=hex_values(directory/'multiplier.hex')
-        shift=[x if x<128 else x-256 for x in hex_values(directory/'shift.hex')]
-        params={layer:(bias[layer*8:layer*8+8],mult[layer*8:layer*8+8],shift[layer*8:layer*8+8]) for layer in (0,1,3)}
-        inputs=hex_values(directory/'input.hex')
-    else:
-        params={layer:(hex_values(directory/f'conv{layer+1}_bias.hex'),
-                       hex_values(directory/f'conv{layer+1}_mult.hex'),
-                       [x if x<128 else x-256 for x in hex_values(directory/f'conv{layer+1}_shift.hex')]) for layer in (0,1)}
-        params[3]=(hex_values(directory/'fc_bias.hex'),[],[])
-        inputs=hex_values(directory/'inputs.hex')
-    frame=bytes(inputs[sample*320:(sample+1)*320])
-    if len(frame)!=320:
-        raise ValueError('sample index outside input vectors')
-    return weights,params,classes,frame
-
-
-def package(path):
-    import numpy as np
-    with np.load(path,allow_pickle=False) as p:
-        if p['model_head'].item()!='flatten' or tuple(p['weight_mem'].shape)!=(256,8):
-            raise ValueError('expected production Flatten deployment package')
-        classes=int(p['num_classes'])
-        if classes!=4:
-            raise ValueError('production deployment package must contain four classes')
-        weights=[sum((int(v)&255)<<(8*i) for i,v in enumerate(row)) for row in p['weight_mem']]
-        params={layer:(p[f'conv{layer+1}_bias'].tolist(),p[f'conv{layer+1}_mult'].tolist(),
-                       p[f'conv{layer+1}_shift'].tolist()) for layer in (0,1)}
-        params[3]=(p['fc_bias'].tolist()+[0]*(8-classes),[],[])
-        compare=(p['fc_cmp_mult'].tolist(),p['fc_cmp_shift'].tolist())
-    return weights,params,classes,compare
-
+        base=self.read(0x20);length=self.read(0x24)
+        result=b''.join(self.read(0x20000+base+i).to_bytes(4,'little') for i in range(0,length,4))[:length]
+        self.command(Op.ACK)
+        return result
 
 def main():
-    ap=argparse.ArgumentParser(description=__doc__,formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--host',default='127.0.0.1');ap.add_argument('--port',type=int,default=6666)
-    ap.add_argument('--tap',default='npu.tap')
-    sub=ap.add_subparsers(dest='action',required=True)
-    sub.add_parser('status');sub.add_parser('reset');sub.add_parser('ack');sub.add_parser('clear-error')
-    read=sub.add_parser('read');read.add_argument('address',type=lambda x:int(x,0));read.add_argument('--count',type=int,default=1)
-    infer=sub.add_parser('infer');infer.add_argument('--package',required=True);infer.add_argument('--input',required=True)
-    reuse=sub.add_parser('infer-reuse');reuse.add_argument('--input',required=True)
-    vectors=sub.add_parser('infer-vectors');vectors.add_argument('--directory',required=True)
-    vectors.add_argument('--sample',type=int,default=0);vectors.add_argument('--classes',type=int,default=4)
-    args=ap.parse_args()
-    rpc=TclRpc(args.host,args.port)
+    from npu_program import Package
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['status','reset','infer'])
+    p.add_argument('--package',type=Path);p.add_argument('--input',type=Path);p.add_argument('--output',type=Path)
+    p.add_argument('--host',default='127.0.0.1');p.add_argument('--port',type=int,default=6666)
+    args=p.parse_args();rpc=TclRpc(args.host,args.port)
     try:
-        npu=Npu(JtagTransport(rpc,args.tap))
-        if args.action=='status':result=npu.status()
-        elif args.action in ('reset','ack','clear-error'):
-            npu.command({'reset':Op.RESET,'ack':Op.ACK,'clear-error':Op.CLEAR_ERROR}[args.action]);result=npu.status()
-        elif args.action=='read':
-            if args.count<1 or args.count>1024:raise ValueError('count must be 1..1024')
-            result={f'0x{args.address+4*i:08x}':f'0x{npu.read(args.address+4*i):08x}' for i in range(args.count)}
-        elif args.action=='infer-vectors':
-            weights,params,classes,frame=fixture(args.directory,args.sample,args.classes)
-            npu.load_model(weights,params,classes);result=npu.infer(frame)
-        elif args.action=='infer-reuse':result=npu.infer(Path(args.input).read_bytes())
+        npu=Npu(JtagTransport(rpc))
+        if args.command=='status':print(json.dumps(npu.status(),indent=2))
+        elif args.command=='reset':npu.command(Op.RESET)
         else:
-            weights,params,classes,compare=package(args.package)
-            frame=Path(args.input).read_bytes()
-            if len(frame)!=320:raise ValueError('expected exactly 320 feature bytes')
-            npu.load_model(weights,params,classes);result=npu.infer(frame)
-            # Preserve the existing Q31 classifier contract, including rounding.
-            import sys
-            sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
-            from quantize import multiply_by_quantized_multiplier
-            scores=[multiply_by_quantized_multiplier(v,m,s) for v,m,s in zip(result['logits'],*compare)]
-            result['class_id']=max(range(classes),key=lambda i:scores[i])
-            result['label']=['yes','no','up','down'][result['class_id']]
-        print(json.dumps(result,indent=2))
-    finally:
-        rpc.close()
-
-
-if __name__=='__main__':
-    main()
+            if not args.package or not args.input or not args.output:p.error('infer requires --package --input --output')
+            npu.load_model(Package.load(args.package));args.output.write_bytes(npu.infer(args.input.read_bytes()))
+    finally:rpc.close()
+if __name__=='__main__':main()

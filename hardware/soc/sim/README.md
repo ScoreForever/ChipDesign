@@ -1,57 +1,16 @@
-# SoC 仿真
+# SoC 与仿真
 
-本分支默认无 CPU 系统使用 `filelists/chipdesign_nocpu.f`，从根目录运行：
-
-```sh
-python hardware/soc/sim/scripts/run_nocpu.py --output build/nocpu_regression
-```
-
-包含生命周期/读回/恢复、真实 JTAG 引脚和 Python 主机命令回放测试。
-协议与证据见 [CPU_LESS_CONTROL.md](../../../docs/CPU_LESS_CONTROL.md)。
-以下入口及 CPU 固件/SAIF 工作负载用于保留的 `my_soc_cpu_reference`，
-不代表无 CPU 系统的端到端延迟或功耗。
-
-旧 CPU 参考 SoC 仿真入口为 `filelists/chipdesign_soc.f` 和
-`scripts/run_soc.ps1`。它编译CPU、AXI、SRAM、DMA、完整TinyCNN-8-Flat NPU及
-`chipdesign_soc_tb`。
-
-从仓库根目录运行：
+当前唯一默认 SoC 是无 CPU、ABI 2 的描述符 NPU，源文件表为
+`hardware/soc/sim/filelists/chipdesign_nocpu.f`。
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File hardware/soc/sim/scripts/run_soc.ps1
+python hardware/npu/scripts/run_program_regression.py --output build/program_regression
 ```
 
-测试程序 `sw/chipdesign_npu_test.hex` 由以下命令生成：
+测试台 `tb_npu_program.sv` 用同一主机命令轨迹验证原生握手和专用 JTAG 引脚。
+数值、随机延迟、量化和存储单元验证由同一回归入口驱动。
 
-```powershell
-D:\conda\envs\ml\python.exe hardware/soc/sim/sw/gen_hex.py `
-  --output hardware/soc/sim/sw/chipdesign_npu_test.hex
-```
+旧固定 TinyCNN、CPU/MMIO 集成、旧 ABI 测试不再是本分支的运行入口；历史从 Git 获取。
+遗留课程 CPU/AXI/IP 文件不在默认构建中。
 
-CPU通过正式
-MMIO窗口装入全零输入和模型，启动一次四分类完整推理，检查完成状态、NPU中断
-和四个INT32零logit，最后在SRAM魔数区域写入PASS或FAIL。
-
-脚本不仅检查 ModelSim 进程返回值，还要求日志出现测试台的明确 PASS 标记，并把
-FAIL、TIMEOUT 或非零 Errors 视为失败，防止 `$finish` 导致假阳性。
-
-完整系统需要支持SystemVerilog interface的ModelSim/Questa/VCS。独立NPU和
-MMIO wrapper测试使用Icarus，可运行：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File hardware/npu/scripts/run_all_tests.ps1
-```
-
-旧的Lab3测试文件仍保留作课程参考，但不是当前TinyCNN-8生产回归入口。
-
-## Linux / Xcelium
-
-在仓库根目录、已配置 `xrun` 的环境中执行：
-
-```sh
-python3 hardware/soc/sim/scripts/run_structure_regression.py --output /path/to/new-empty-results
-```
-
-运行与 Windows 结构回归对应的 7 项测试，分别保存日志和 `summary.json`。
-2026-10-14 soc 服务器融合 Flat 配置的执行结果见
-[EDA 部署记录](../../../docs/SOC_EDA_DEPLOYMENT.md)。
+详见 [架构](../../../docs/ARCHITECTURE.md) 与 [控制协议](../../../docs/CPU_LESS_CONTROL.md)。
