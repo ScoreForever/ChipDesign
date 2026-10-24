@@ -32,7 +32,7 @@ module fpga_top (
   wire async_rst_n = rst_ni & clk_locked;
 
   // 两级寄存器：复位来时立刻生效，撤销时跟着 clk_sys 打两拍再放开
-  logic [1:0] rst_sync_q;
+  (* ASYNC_REG = "TRUE" *) logic [1:0] rst_sync_q;
   always_ff @(posedge clk_sys or negedge async_rst_n) begin
     if (!async_rst_n) rst_sync_q <= 2'b00;
     else              rst_sync_q <= {rst_sync_q[0], 1'b1};
@@ -73,9 +73,18 @@ module fpga_top (
 
   // tck 灯：在 JTAG 时钟域计数，数满一轮翻转一次
   //   OpenOCD 连上来时 tck 会跑一阵子，灯随之变化；没接调试器时保持灭
-  logic [15:0] tck_cnt_q;
+  // 异步复位立即断言，撤销后由 TCK 域同步释放。
+  (* ASYNC_REG = "TRUE" *) logic [1:0] tck_led_reset_sync_q;
   always_ff @(posedge tck_i or negedge rst_ni) begin
-    if (!rst_ni) begin
+    if (!rst_ni) tck_led_reset_sync_q <= 2'b00;
+    else         tck_led_reset_sync_q <= {tck_led_reset_sync_q[0], 1'b1};
+  end
+  logic tck_led_rst_n;
+  assign tck_led_rst_n = tck_led_reset_sync_q[1];
+
+  logic [15:0] tck_cnt_q;
+  always_ff @(posedge tck_i or negedge tck_led_rst_n) begin
+    if (!tck_led_rst_n) begin
       tck_cnt_q <= '0;
       led_tck_o <= 1'b0;
     end else begin

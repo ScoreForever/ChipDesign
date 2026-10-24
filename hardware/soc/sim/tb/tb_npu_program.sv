@@ -94,6 +94,9 @@ module tb_npu_program;
    else begin
     exchange;
     if(op==1 && (addr=='h38 || addr=='h40))$display("METRIC reg=%h value=%0d",addr,value);
+    if(op==1 && expected_error==0 && addr>='h100 && addr<'h160)$display("PERF reg=%h value=%0d",addr,value);
+    if(op==1 && expected_error==0 && addr>='h200 && addr<'h400)$display("OPTRACE reg=%h value=%0d",addr,value);
+    if(op==1 && expected_error==0 && addr>='h190 && addr<='h19c)$display("TRACEHDR reg=%h value=%0d",addr,value);
     if((value&mask)!==(expected&mask))$fatal(1,"cmd=%0d op=%h addr=%h got=%h expected=%h mask=%h",commands,op,addr,value,expected,mask);
     commands=commands+1;
    end

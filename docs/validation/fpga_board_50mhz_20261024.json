@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-24",
+  "recorded_at_utc": "2026-10-24T06:44:34.608450+00:00",
+  "result": "PASS_WITH_DOCUMENTED_LIMITATIONS",
+  "branch": "exp/no_cpu",
+  "system_mhz": 50,
+  "board": {
+    "model": "EGo1 V2.2",
+    "part": "xc7a35tcsg324-1",
+    "configuration_idcode": "0362D093",
+    "fabric_idcode": 1,
+    "configuration_cable": "1234-tulA",
+    "ft232h_serial": "210512180081",
+    "tck_pin": "H16"
+  },
+  "rtl_change": {
+    "path": "hardware/npu/rtl/npu_program_core.sv",
+    "description": "Select calc_addr[calc_first] directly on the initial activation request",
+    "scenarios": 58,
+    "quantization_vectors": 20000,
+    "baseline_comparison": {
+      "old_scenarios": 56,
+      "new_scenarios": 58,
+      "common_scenarios_with_identical_cycles_writes_and_events": 56,
+      "changed_common_scenarios": []
+    }
+  },
+  "implementation": {
+    "passed": true,
+    "system_mhz": 50,
+    "wns_ns": 0.049,
+    "whs_ns": 0.024,
+    "wpws_ns": 3.0,
+    "setup_failing_endpoints": 0,
+    "hold_failing_endpoints": 0,
+    "pulse_width_failing_endpoints": 0,
+    "fully_routed_nets": 14727,
+    "cdc": {
+      "CDC-3": {
+        "severity": "Info",
+        "count": 2
+      },
+      "CDC-9": {
+        "severity": "Info",
+        "count": 3
+      },
+      "CDC-15": {
+        "severity": "Warning",
+        "count": 109
+      }
+    },
+    "drc_rules": [
+      {
+        "rule": "DPIP-1",
+        "severity": "Warning",
+        "count": 46
+      },
+      {
+        "rule": "DPOP-1",
+        "severity": "Warning",
+        "count": 8
+      },
+      {
+        "rule": "DPOP-2",
+        "severity": "Warning",
+        "count": 21
+      }
+    ],
+    "methodology_rules": [
+      {
+        "rule": "LUTAR-1",
+        "severity": "Warning",
+        "count": 1
+      },
+      {
+        "rule": "SYNTH-6",
+        "severity": "Warning",
+        "count": 6
+      },
+      {
+        "rule": "SYNTH-10",
+        "severity": "Warning",
+        "count": 4
+      }
+    ],
+    "route_checkpoint_sha256": "5f20c167670a831df26a15ee58d1db9f84b48ac52ef370893775700eebccf2af",
+    "synthesis_checkpoint_sha256": "467bda171408f316566830ddfd5ff706c44bb4f7087bb926647b96a5409f4988",
+    "source_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "43890f97abba08208f1e4e9bc8274340bd9c046c65690951ea237c8bb42bccd5",
+      "hardware/npu/rtl/npu_model_store.sv": "4f12c59c05fecf021835c9196f834079936a1b2b95a48e779a4f3c234b3a5408",
+      "hardware/npu/rtl/npu_activation_store.sv": "da1e0beeb7548e55c1b0043a18db191826254380780f531c81e5d5a95b2fa350",
+      "hardware/npu/rtl/npu_program_core.sv": "6b153f122a07c70a2373ea95c1b4c2de2649f319fd3088f891c261dc3f23766a",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "81db36784367ce2c29479ef5f8aba5b8ff754bd16559c20be7bd512813aa8cb7",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "88e8b92a44b34734f3dd7f9450ac869e872aa867e2a1dfd3297344a6b1af662e",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "f55bd993607f4137b8dcfb12d6b16371f8e7badfb6088647a1036a779b660a1b",
+      "hardware/soc/sim/filelists/chipdesign_nocpu.f": "78c7834099f6c44a3eccca3cf0e731fd1ea4c98176f5f8d8309f5d964afb8095",
+      "hardware/fpga/fpga_top.sv": "306b26300788bd5772a07dd5d3e787562b737613caea087767ca38fdcffa1bd3",
+      "hardware/fpga/ego1_pins.xdc": "6937b9d266e7c17216e052951d12814a6ec5aaa4adc76a1e4112ba68088df164",
+      "hardware/fpga/ego1_timing.xdc": "bd189507d043ff7e99b224c830c533dd4f9903ee6b10c650d94b0ad621ea5c66",
+      "hardware/fpga/ego1_configuration.xdc": "59d57e523e9515083b29f1baa4d6119329c2330443713d9c0ac8038e801400d5",
+      "hardware/fpga/check_bram_drc.tcl": "4467ca0c148afc6f4b8cc959eec11967de46144cfadbaf2d22c42f518efe675a",
+      "hardware/fpga/scripts/build_ego1.tcl": "b7e0f059ca4f12500961882be44d557c254264d5fb8afd2856e7e86a4b3dc8a7"
+    },
+    "review_notes": [
+      "CDC-15 paths are the held 72-bit request and 37-bit response mailboxes with two-flop toggle handshakes.",
+      "LUTAR-1: rst_ni & MMCM locked feeds asynchronous assertion; release is synchronized. Physical reset/clock-loss tests remain limited.",
+      "SYNTH-6/SYNTH-10 and DSP pipeline advisories are performance advisories; final setup/hold constraints are checked.",
+      "Asynchronous reset and indicator LEDs are intentionally false-pathed; FT232H cable timing uses documented engineering assumptions.",
+      "50 MHz follows routed MMCM configuration and the specified 100 MHz board oscillator, without oscilloscope measurement."
+    ],
+    "bitstream": {
+      "path": "D:\\IWS\\Advanced_SoC\\ChipDesign\\build\\fpga_ego1_50mhz_addressfix_impl_20261024\\fpga_top_h16_50mhz.bit",
+      "sha256": "1200bd566a51d14d7694b5d6ed7764a3e9b4fbb06426a8b01ff7aa4a53909a09",
+      "bytes": 2192132,
+      "payload_bytes": 2192012,
+      "header": {
+        "a": "fpga_top;UserID=0XFFFFFFFF;Version=2025.2;SW_CRC=993293a1",
+        "b": "7a35tcsg324",
+        "c": "2026/10/24",
+        "d": "14:30:37"
+      },
+      "container_check": "PASS"
+    }
+  },
+  "programming": {
+    "done": 1,
+    "crc_error": 0,
+    "target": "SRAM",
+    "flash_programmed": false,
+    "evidence": "build/validation_nocpu_50mhz_20261024/program/console.log"
+  },
+  "board_results": {
+    "passed": true,
+    "numeric_comparisons": 166,
+    "output_comparisons_including_active_tck_stop": 167,
+    "negative_checks": 25,
+    "independent_oracle_cases": 8,
+    "host_command_trace_entries": 27698,
+    "final_registers": {
+      "abi": 131072,
+      "status": 0,
+      "error": 0,
+      "watchdog": 10000000
+    },
+    "elapsed_seconds": 467.828,
+    "transport": [
+      {
+        "tck_khz": 100,
+        "idcode_reads": 32,
+        "register_reads": 288,
+        "roundtrips": 37,
+        "passed": true
+      },
+      {
+        "tck_khz": 1000,
+        "idcode_reads": 32,
+        "register_reads": 288,
+        "roundtrips": 37,
+        "passed": true
+      }
+    ],
+    "stress": [
+      {
+        "test": "TCK_stopped_during_observed_busy",
+        "initial_status": 3,
+        "final_status": 10,
+        "pause_ms": 50,
+        "expected_sha256": "79cfd93977adde7a4adca3bd990f0ad66055f1c6b29a04a97b0e49cc2f240327",
+        "actual_sha256": "79cfd93977adde7a4adca3bd990f0ad66055f1c6b29a04a97b0e49cc2f240327",
+        "passed": true
+      },
+      {
+        "test": "RESET_during_observed_busy_no_stale_completion",
+        "initial_status": 3,
+        "final_status": 0,
+        "passed": true
+      },
+      {
+        "test": "100_varying_inputs_one_model_no_reset",
+        "passed": true
+      }
+    ],
+    "compiler_rejections": [
+      {
+        "test": "tinycnn_f0",
+        "reason": "activation capacity exceeded: c1 needs [320,10560), capacity 4096; consider fusion/larger build",
+        "scope": "host compiler rejection; not a board test"
+      },
+      {
+        "test": "trained_f0",
+        "reason": "activation capacity exceeded: conv1 needs [320,10560), capacity 4096; consider fusion/larger build",
+        "scope": "host compiler rejection; not a board test"
+      }
+    ],
+    "trained_model_npz_sha256": "1732c470ec65f2d2c0ebc96dd93326dabb058277b71eef1bb3717d2ddee2f83a",
+    "evidence": "build/validation_nocpu_50mhz_20261024/board_run_02/result.json"
+  },
+  "cleanup": {
+    "openocd_stopped": true,
+    "ft232h_detached_from_wsl": true,
+    "task_wsl_keepalive_stopped": true,
+    "tested_sram_image_preserved": true
+  },
+  "observability": {
+    "available": [
+      "cycles",
+      "issues",
+      "writes",
+      "model_reads",
+      "activation_reads",
+      "elapsed_cycles"
+    ],
+    "not_instrumented": [
+      "per-interface valid && !ready cycles",
+      "longest backpressure interval",
+      "buffer occupancy high-water marks",
+      "per-operator stall breakdown",
+      "ILA traces"
+    ],
+    "congestion_localization_proven": false
+  },
+  "limitations": [
+    "No oscilloscope measurement of oscillator frequency or JTAG electrical timing.",
+    "Physical reset button, power cycling, voltage/temperature corners are not automated.",
+    "Routed setup margin is only 0.049 ns; instrumentation requires fresh timing closure.",
+    "109 bundled-mailbox CDC-15 warnings, 75 DSP advisories, and 11 methodology warnings remain classified.",
+    "Training-weight tests use synthetic inputs; no real speech accuracy evaluation.",
+    "Two nonfused models were rejected by the host compiler for activation capacity; they are not board pass cases."
+  ],
+  "evidence_sha256": {
+    "build/fpga_ego1_50mhz_addressfix_impl_20261024/review_gate.json": "3859e4f813983ea2ccaec2ae889215a25eb660393b9e2450d281b31453ec0e29",
+    "build/validation_nocpu_50mhz_20261024/board_run_02/result.json": "7cb550f5d03ba04d401f64ae3a079a7ca9bcc4715bceb3a7dc464beb78ad20a1",
+    "build/validation_nocpu_50mhz_20261024/board_run_02/audit.json": "e466ff563de49c3107c87c6fb2d0be3d1222b6bfb638b9ee19257d69d141b637",
+    "build/nocpu_rtl_50mhz_addressfix_20261024/summary.json": "3b82fc8dc8eb0acd4bf5c5059dae56e508f83a23b4a1c2c9ad5cdbc50d5ae02a",
+    "build/validation_nocpu_50mhz_20261024/board_suite.py": "fac281883803f32314d930d834a4d8db4da48828e585976187eb3cbdaac3dfd1"
+  }
+}

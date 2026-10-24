@@ -1,0 +1,76 @@
+{
+  "architecture": "No-CPU programmable NPU ABI 2",
+  "branch": "exp/no_cpu",
+  "revision": "c24b3428b732c987e6c3e720924f32a8f2073673",
+  "snapshot_sha256": "f9ae8f1094eb8e2ead264954a7c38d29b3210a65eac95c1e2c19338d2ab94100",
+  "source_captured_at_utc": "2026-10-24T06:45:15.851372+00:00",
+  "configuration": {
+    "cols": 8,
+    "model_bytes": 8192,
+    "activation_bytes": 4096,
+    "core_period_ns": 20,
+    "jtag_period_ns": 1000,
+    "corner": "TT 1.8 V 25 C"
+  },
+  "synthesis": {
+    "total_instances": 104995,
+    "total_cell_area_um2": 3554492.745,
+    "standard_instances": 104994,
+    "standard_cell_area_um2": 3153049.151,
+    "sram_instances": 1,
+    "sram_cell_area_um2": 401443.594,
+    "reported_setup_slack_ns": 6.364,
+    "worst_reported_data_path_ns": 13.162,
+    "wireload": "ZeroWireload",
+    "power": {
+      "0.05": {
+        "leakage_mW": 0.018,
+        "dynamic_mW": 334.075,
+        "total_mW": 334.093
+      },
+      "0.10": {
+        "leakage_mW": 0.018,
+        "dynamic_mW": 441.555,
+        "total_mW": 441.573
+      },
+      "0.20": {
+        "leakage_mW": 0.018,
+        "dynamic_mW": 491.027,
+        "total_mW": 491.045
+      }
+    }
+  },
+  "power_assumptions": {
+    "engine": "Genus 19 legacy",
+    "probability": 0.5,
+    "activity": "lp_default_toggle_percentage; one fresh process per factor",
+    "workload_waveform": null,
+    "includes_routed_parasitics": false
+  },
+  "physical_state": "completed; final post-route results in nocpu_baseline_physical_20261024.json",
+  "reports_sha256": {
+    "results\\area.rpt": "93113171fca78a390930a7593542a5a1c0349f29aeb29b98d181fdfbbf014f64",
+    "results\\check_design.rpt": "8f5ef645e25b344c849cffb1b2aba1ed63fa69bb75fbd53a479c9d8bb903fd75",
+    "results\\clocks.rpt": "7201fc2ca1d9515e411117624e9fd00c25014207b4a90b69513cf8b2f512b4be",
+    "results\\gates.rpt": "935d4ac68d5c2f4bd50e2c85e104859dde25fb3a5f4c293703f68273e135d7da",
+    "results\\timing.rpt": "ba6f637f02070866c6453c067a06227ae9246ee5b786a63a26ccd98a52f41e2c",
+    "results\\units.rpt": "4e4dd6e2ca2ff826b1b60dc0a80faf1cfbdd65e4db6a7555bb433b27bb563042",
+    "physical\\reports\\final_antenna.rpt": "f5c8488cbc205d3fe9bfd1978db766ef2c0444324883307b6fbd77d991381edd",
+    "physical\\reports\\final_congestion.rpt": "ac04f112baca25564854a2bf9a33a6d00cf753308fc35f90b628a59a8f46c41b",
+    "physical\\reports\\final_drc.rpt": "0c2f6c20c6483e876be4cc8d36d2484a52b48ea74ee1e4b7d0b7d2bbd5a2c931",
+    "physical\\reports\\final_pg_connectivity.rpt": "d632399c0f0a02baf675adf69f2ec7208863b449a1fe163b410eee30142f9853",
+    "physical\\reports\\final_pg_drc.rpt": "c807805ae084cc88a51b8608b859525868103fc34634df89a24b58021815009c",
+    "physical\\reports\\final_placement.rpt": "e8cc10785cc11c128213462e4d055d3fdd87b61aa754146b7f1baeb46310a8d5",
+    "physical\\reports\\final_signal_connectivity.rpt": "3d15526dd2d54048982e3068ef4985354994c94c337170d940573e3c814cabee",
+    "physical\\reports\\final_summary.rpt": "e98554fe9299c643cfce2044b1c1c48c3689a5dcfd1f752389af2ae16bfa7114",
+    "physical\\reports\\placement.rpt": "f95504937acded8e285a3057967a3619fd797a46fe5fb2f7d9e35f783035c35d",
+    "physical\\reports\\placement_congestion.rpt": "e983b4d2e0dc4d98eb1ed8ea68a376060bb784202e5da459bebd1fe75e27648c",
+    "physical\\reports\\placement_summary.rpt": "2c21622ffca3f2326101953fc327a512fa8b23c6f8a89cebb289063f6e84c52d",
+    "physical\\reports\\postroute_power.rpt": "39c7a9741719bdd97723d22a3d03ccae613a5ca95ff88b856284e37838b2d16f",
+    "physical\\reports\\powerplan_connectivity.rpt": "b190499d203af2150d8ebf6f058b930e0f1fb2f5d5e011137f12af7cdac892d7",
+    "physical\\reports\\powerplan_drc.rpt": "3bebd00b7b9618d4ccf6d11cbbb55f776cc4df97d1271e784bdf6f3efa7136a0",
+    "physical\\reports\\power_legacy_factor_0.05.rpt": "6c40bc8d27edd326625c0c2095be0e6cb3f61fb9ef9a5921543fab44d3a3b1e9",
+    "physical\\reports\\power_legacy_factor_0.10.rpt": "de327fa997ddf2e52332e512967a33e60c318f45289312804f63c249d88d97aa",
+    "physical\\reports\\power_legacy_factor_0.20.rpt": "f57a063a227cab7d2a0221f64f9fc4d9d30519e996a4853a623ccf1cd0c34894"
+  }
+}

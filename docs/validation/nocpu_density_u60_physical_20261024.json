@@ -1,0 +1,170 @@
+{
+  "snapshot_sha256": "f9ae8f1094eb8e2ead264954a7c38d29b3210a65eac95c1e2c19338d2ab94100",
+  "architecture": "No-CPU programmable NPU ABI 2",
+  "corner": "TT 1.8 V 25 C",
+  "core_clock_period_ns": 20,
+  "jtag_clock_period_ns": 1000,
+  "scope": "Core block without pad ring/package",
+  "execution": {
+    "exit_code": 0,
+    "completion_marker": true,
+    "warning_count": 5558,
+    "error_count": 2,
+    "error_codes": {
+      "IMPSP-9099": 2
+    },
+    "error_diagnostic": "Mapped scan flops without scan-chain definitions; functional wiring retained."
+  },
+  "timing": {
+    "setup": {
+      "wns_ns": 0.423,
+      "tns_ns": 0.0,
+      "violating_paths": 0,
+      "drvs": {
+        "max_cap": {
+          "real_nets": 0,
+          "real_terms": 0
+        },
+        "max_tran": {
+          "real_nets": 0,
+          "real_terms": 0
+        },
+        "max_fanout": {
+          "real_nets": 0,
+          "real_terms": 0
+        },
+        "max_length": {
+          "real_nets": 0,
+          "real_terms": 0
+        }
+      },
+      "reported_density_percent": 62.404,
+      "reported_density_with_fillers_percent": 100.0
+    },
+    "hold": {
+      "wns_ns": 0.004,
+      "tns_ns": 0.0,
+      "violating_paths": 0,
+      "drvs": {},
+      "reported_density_percent": 62.404,
+      "reported_density_with_fillers_percent": 100.0
+    }
+  },
+  "power": {
+    "internal_mW": 316.95878218,
+    "switching_mW": 57.90408322,
+    "leakage_mW": 0.01835188,
+    "total_mW": 374.88121728,
+    "assumptions": {
+      "engine": "Innovus static",
+      "input_activity": 0.1,
+      "sequential_activity": 0.1,
+      "waveform": null,
+      "includes_clock_tree": true,
+      "includes_routed_parasitics": true,
+      "comparison_to_genus": "Different power engine and activity propagation; not an optimization delta."
+    }
+  },
+  "layout": {
+    "snapshot": "f9ae8f1094eb8e2ead264954a7c38d29b3210a65eac95c1e2c19338d2ab94100",
+    "stage": "final",
+    "instance_count": 305846,
+    "run_label": "No-CPU 60% target",
+    "target_utilization": 0.6,
+    "unplaced_count": 0,
+    "macro_count": 1,
+    "macro_area_um2": 401443.59075,
+    "active_standard_instances": 107345,
+    "physical_only_instances": 198500,
+    "standard_cell_area_excluding_physical_only_um2": 3186056.2048008707,
+    "physical_only_cell_area_um2": 2020075.7247964956,
+    "core_area_um2": 5664400.0,
+    "die_area_um2": 6049238.6304,
+    "occupied_core_fraction": 0.6333415358291912,
+    "standard_fraction_of_nonmacro_area": 0.6053738539808466,
+    "density_bin_max": 0.8490574394463656,
+    "grid": [
+      64,
+      64
+    ],
+    "note": "Density excludes fillers/taps/decaps/antenna cells and derives from instance boxes, not routing demand. Core block excludes pad ring/package."
+  },
+  "routing": {
+    "def_sha256": "373061c80c403f0371c9236f54f699156d5cae37e66205a6de974d715dd189fd",
+    "die_box_um": [
+      0.0,
+      0.0,
+      2459.52,
+      2459.52
+    ],
+    "declared_regular_nets": 111598,
+    "regular_nets_with_route_paths": 111528,
+    "regular_wire_centerline_length_um": {
+      "METAL1": 0.09999999999995168,
+      "METAL2": 1968054.8300135413,
+      "METAL3": 2455970.315004695,
+      "METAL4": 1580658.8000004378,
+      "METAL5": 960865.8050000651,
+      "METAL6": 159531.67999999993
+    },
+    "regular_wire_segments": {
+      "METAL1": 2,
+      "METAL2": 634712,
+      "METAL3": 365866,
+      "METAL4": 81661,
+      "METAL5": 17598,
+      "METAL6": 1871
+    },
+    "note": "Signal/clock DEF path centerlines. Excludes special power nets, via metal and patch shapes. Not a DRC check."
+  },
+  "check_reports": {
+    "final_placement": {
+      "report": "physical_u60/reports/final_placement.rpt",
+      "passed": true,
+      "sha256": "684aadbf111b0ecc2bbbd434b3c55008cff13eab1263dfc8183c54dca9df9318"
+    },
+    "final_drc": {
+      "report": "physical_u60/reports/final_drc.rpt",
+      "passed": true,
+      "sha256": "a31395fd235a7d876710d6673f517fa4233866cfbb46d4b129cb5c272abdfa5d"
+    },
+    "final_pg_drc": {
+      "report": "physical_u60/reports/final_pg_drc.rpt",
+      "passed": true,
+      "sha256": "b970e6c3b7b50dd7c58f428426cb155894860a958c2249384770b8a3bcfeb5e9"
+    },
+    "final_signal_connectivity": {
+      "report": "physical_u60/reports/final_signal_connectivity.rpt",
+      "passed": true,
+      "sha256": "6a4c20f8e31f58400fbfd77d8f1ce06295fd24e280ead18b7c85a34145f4ef9f"
+    },
+    "final_pg_connectivity": {
+      "report": "physical_u60/reports/final_pg_connectivity.rpt",
+      "passed": true,
+      "sha256": "9db8903378666e285d595281cab8bc67001ea3ed202da3c9d058f113ef7ca6db"
+    },
+    "final_antenna": {
+      "report": "physical_u60/reports/final_antenna.rpt",
+      "passed": true,
+      "sha256": "228c246e94b670e7bbbce4a7669c632342221ddefa2fd4f07317f4184d090485"
+    }
+  },
+  "congestion": {
+    "overflow_total": 124,
+    "horizontal_overflow": 103,
+    "horizontal_overflow_percent": 0.03,
+    "vertical_overflow": 20,
+    "vertical_overflow_percent": 0.01,
+    "note": "Global routing resource estimate; final detailed-route DRC checked separately."
+  },
+  "extraction": {
+    "engine": "Innovus postRoute",
+    "effort": "low",
+    "captable": "t018lo_1p6m_typical.captable",
+    "signoff": false
+  },
+  "limitations": [
+    "Single TT corner; no foundry signoff DRC/LVS or multi-corner closure.",
+    "Vectorless power estimation; no representative workload waveform."
+  ]
+}

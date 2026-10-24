@@ -10,6 +10,13 @@ IR=0x12，72-bit LSB-first 请求 `{opcode[7:0], address[31:0], data[31:0]}`。
 只有一条在途请求；忙时不得覆盖 mailbox。START/COMMIT 发生主机超时后不能自动重发，
 应检查状态，因为原操作可能已经执行。TCK 可在推理过程中停止，系统时钟继续工作。
 
+OpenOCD 主机扫描使用三个 LSB-first 字段，并显式指定十六进制前缀：
+`drscan npu.tap 32 0x<data> 32 0x<address> 8 0x<opcode> -endstate IDLE`。
+返回的三个字段按 data、address、status 顺序重新组成 72-bit 响应。不能将
+`{packet:018x}` 生成的无前缀字符串直接当作 OpenOCD 十六进制参数：本机
+OpenOCD 的数值解析器默认按十进制解释，可能把 READ 的 opcode 变成 0，
+或拒绝含 a-f 的参数。2026-10-24 的 FPGA 实测据此修正了主机工具。
+
 | opcode | 命令 | 作用 |
 |---|---|---|
 | 1 | READ | 读寄存器或空闲激活存储 |

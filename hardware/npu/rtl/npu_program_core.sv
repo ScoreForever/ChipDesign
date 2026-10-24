@@ -14,6 +14,11 @@ module npu_program_core #(
     output reg validation_done,validation_ok,done,
     output reg [4:0] error,error_op,
     output reg [31:0] cycles,issues,model_reads,act_reads,act_writes,
+    output wire [24*32-1:0] perf_counters,
+    output wire trace_clear,trace_active,
+    output wire [127:0] trace_sample,
+    output wire [3:0] trace_events,
+    output wire [31:0] trace_descriptor,
     output reg m_valid, input wire m_ready, output reg [15:0] m_addr,
     input wire m_rsp_valid, output wire m_rsp_ready, input wire [31:0] m_data,
     output reg a_valid, input wire a_ready, output reg [15:0] a_addr,
@@ -196,6 +201,10 @@ module npu_program_core #(
     wire [3:0] ret_p=out_tag[3:0];
     wire ret_last=out_tag[4],ret_first=out_tag[5];
     wire [1:0] ret_slot=pool_enable ? ret_p[3:2] : ret_p[1:0];
+    // Declare the delayed tile tag before its use for Genus 19 compatibility.
+    localparam LAT=4+COLS-1;
+    reg [15:0] tile_pipe[0:LAT-1];
+    wire [15:0] ret_tile=tile_pipe[LAT-1];
     reg signed [PSUM_BITS-1:0] reduced;
     reg signed [31:0] biased;
     integer lane;
@@ -296,8 +305,12 @@ module npu_program_core #(
         m_valid=0; m_addr=0; a_valid=0;
         // The address is meaningful only on a request handshake. Do not add
         // state/valid gating to the data path merely to drive idle addresses 0.
+        // A noncontiguous initial request is issued only when mask[0] is set,
+        // in which case calc_first is already zero. Otherwise no request uses
+        // this address. Select the first valid byte directly so the expensive
+        // contiguous test does not feed the activation BRAM address mux.
         a_addr=mac_op ? (gather_state==1 ? gather_addr[gather_row] :
-            calc_addr[calc_contiguous ? calc_first : 0]) : eaddr;
+            calc_addr[calc_first]) : eaddr;
         if(state==FREQ) begin m_valid=1; m_addr=pc*64+fetch_word*4; end
         else if(state==PREQ) begin m_valid=1; m_addr=params+param_channel*12+param_word*4; end
         else if(state==EXECUTE && mac_op && lstate==L_REQ) begin
@@ -335,6 +348,110 @@ module npu_program_core #(
     wire drained=mac_op ? (!issue_more && inflight[0]==0 && inflight[1]==0 &&
         slot_busy==0 && rq_pending==0 && !rq_valid && lstate==L_IDLE && !load_more) :
         (element_pos==dh*dw && estate==0 && slot_busy==0 && rq_pending==0 && !rq_valid);
+
+    // Passive one-cycle sampled monitoring; no feedback into datapath control.
+    // Count execution only. The bank settles one cycle after execution ends.
+    wire perf_active=state!=IDLE && !checking;
+    wire perf_mac=state==EXECUTE && mac_op && issue_more && !kernel_prepare;
+    wire perf_gather=perf_mac && (gather_state==0 || (issue_fire && has_next));
+    wire [2:0] perf_slots={2'b0,slot_busy[0]}+{2'b0,slot_busy[1]}+
+        {2'b0,slot_busy[2]}+{2'b0,slot_busy[3]};
+    wire [1:0] perf_banks={1'b0,bank_ready[0]}+{1'b0,bank_ready[1]};
+    wire [5:0] perf_inflight={1'b0,inflight[0]}+{1'b0,inflight[1]};
+    assign trace_clear=perf_clear;
+    assign trace_active=perf_active;
+    assign trace_events={state==FAILED,state==BASIC,state==NEXT,state==FREQ && fetch_word==0};
+    assign trace_descriptor=d[0];
+    // Samples describe values immediately before the rising execution edge.
+    // Opcode is zero while fetching; the descriptor table carries fusion flags.
+    assign trace_sample={
+        (state==FREQ || state==FWAIT ? 1'b0 : q_enable),
+        (state==FREQ || state==FWAIT ? 3'b0 : op),pc[3:0],state,
+        (w_valid ? w_mask : 4'b0),(w_valid ? w_addr : 16'b0),
+        (a_valid ? a_addr : 16'b0),(m_valid ? m_addr : 16'b0),
+        lstate,gather_state,perf_inflight,bank_ready,slot_ready,slot_busy,
+        kernel_prepare,
+        (perf_mac && !slot_available),
+        (perf_mac && slot_available && !bank_ready[issue_seq[0]]),
+        (perf_mac && slot_available && bank_ready[issue_seq[0]] && !gather_full),
+        issue_fire,w_valid,a_rsp_valid,a_ready,a_valid,m_rsp_valid,m_ready,m_valid,
+        cycles};
+    reg perf_sample_active;
+    reg [17:0] perf_events;
+    reg [2:0] perf_sample_slots;
+    reg [1:0] perf_sample_banks;
+    reg [5:0] perf_sample_inflight;
+    reg [31:0] perf_count[0:23];
+    reg [31:0] perf_m_streak,perf_a_streak;
+    reg perf_m_pending,perf_a_pending;
+    wire perf_clear=rst || (state==IDLE && (validate || run));
+    integer pi;
+    genvar pg;
+    generate for(pg=0;pg<24;pg=pg+1) begin:g_perf
+        assign perf_counters[pg*32+:32]=perf_count[pg];
+    end endgenerate
+    always @(posedge clk) begin
+        if(perf_clear) begin
+            perf_sample_active<=0;perf_events<=0;
+            perf_sample_slots<=0;perf_sample_banks<=0;perf_sample_inflight<=0;
+            perf_m_streak<=0;perf_a_streak<=0;perf_m_pending<=0;perf_a_pending<=0;
+            for(pi=0;pi<24;pi=pi+1)perf_count[pi]<=0;
+        end else begin
+            perf_sample_active<=perf_active;
+            // MAC wait reasons are exclusive: slot, then weight, then gather.
+            perf_events<={
+                perf_gather && calc_mask==0,
+                perf_gather && calc_mask!=0 && !calc_contiguous,
+                perf_gather && calc_mask!=0 && calc_contiguous,
+                post_fire,
+                state==EXECUTE && mac_op && issue_more && kernel_prepare,
+                perf_mac && !slot_available,
+                perf_mac && slot_available && !bank_ready[issue_seq[0]],
+                perf_mac && slot_available && bank_ready[issue_seq[0]] && !gather_full,
+                issue_fire,w_valid,
+                perf_a_pending && !a_rsp_valid,a_rsp_valid,a_valid && !a_ready,a_valid && a_ready,
+                perf_m_pending && !m_rsp_valid,m_rsp_valid,m_valid && !m_ready,m_valid && m_ready};
+            perf_sample_slots<=perf_slots;perf_sample_banks<=perf_banks;perf_sample_inflight<=perf_inflight;
+            if(perf_active) begin
+                if(m_valid && m_ready)perf_m_pending<=1;
+                else if(m_rsp_valid)perf_m_pending<=0;
+                if(a_valid && a_ready)perf_a_pending<=1;
+                else if(a_rsp_valid)perf_a_pending<=0;
+            end
+            if(perf_sample_active) begin
+                perf_count[0]<=perf_count[0]+1'b1;
+                if(perf_events[0])perf_count[1]<=perf_count[1]+1'b1;
+                if(perf_events[1])perf_count[2]<=perf_count[2]+1'b1;
+                if(perf_events[2])perf_count[4]<=perf_count[4]+1'b1;
+                if(perf_events[3])perf_count[5]<=perf_count[5]+1'b1;
+                if(perf_events[4])perf_count[6]<=perf_count[6]+1'b1;
+                if(perf_events[5])perf_count[7]<=perf_count[7]+1'b1;
+                if(perf_events[6])perf_count[9]<=perf_count[9]+1'b1;
+                if(perf_events[7])perf_count[10]<=perf_count[10]+1'b1;
+                if(perf_events[8])perf_count[11]<=perf_count[11]+1'b1;
+                if(perf_events[9])perf_count[12]<=perf_count[12]+1'b1;
+                if(perf_events[10])perf_count[13]<=perf_count[13]+1'b1;
+                if(perf_events[11])perf_count[14]<=perf_count[14]+1'b1;
+                if(perf_events[12])perf_count[15]<=perf_count[15]+1'b1;
+                if(perf_events[13])perf_count[16]<=perf_count[16]+1'b1;
+                if(perf_sample_slots>perf_count[17])perf_count[17]<=perf_sample_slots;
+                if(perf_sample_banks>perf_count[18])perf_count[18]<=perf_sample_banks;
+                if(perf_sample_inflight>perf_count[19])perf_count[19]<=perf_sample_inflight;
+                if(perf_events[14])perf_count[20]<=perf_count[20]+1'b1;
+                if(perf_events[15])perf_count[21]<=perf_count[21]+1'b1;
+                if(perf_events[16])perf_count[22]<=perf_count[22]+1'b1;
+                if(perf_events[17])perf_count[23]<=perf_count[23]+1'b1;
+                if(perf_events[1])begin
+                    perf_m_streak<=perf_m_streak+1'b1;
+                    if(perf_m_streak>=perf_count[3])perf_count[3]<=perf_m_streak+1'b1;
+                end else perf_m_streak<=0;
+                if(perf_events[5])begin
+                    perf_a_streak<=perf_a_streak+1'b1;
+                    if(perf_a_streak>=perf_count[8])perf_count[8]<=perf_a_streak+1'b1;
+                end else perf_a_streak<=0;
+            end else begin perf_m_streak<=0;perf_a_streak<=0;end
+        end
+    end
 
     integer v;
     always @(posedge clk) begin
@@ -601,14 +718,11 @@ module npu_program_core #(
     end
     // Tile tag is delayed independently because the shared array tag holds
     // only hot first/last/position fields.
-    localparam LAT=4+COLS-1;
-    reg [15:0] tile_pipe[0:LAT-1];
     integer t;
     always @(posedge clk) begin
         tile_pipe[0]<=issue_tile;
         for(t=1;t<LAT;t=t+1) tile_pipe[t]<=tile_pipe[t-1];
     end
-    wire [15:0] ret_tile=tile_pipe[LAT-1];
     initial if((COLS!=4 && COLS!=8) || TILE!=16 || MAX_K>1024 || MAX_OPS>16 || PSUM_BITS<26)
         $fatal(1,"unsupported program-core geometry");
 endmodule

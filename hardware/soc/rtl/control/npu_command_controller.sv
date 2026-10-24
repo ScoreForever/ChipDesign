@@ -11,6 +11,10 @@ module npu_command_controller #(
  input wire core_ready_i,core_busy_i,validation_done_i,validation_ok_i,done_i,
  input wire [4:0] core_error_i,core_error_op_i,
  input wire [31:0] cycles_i,issues_i,model_reads_i,act_reads_i,act_writes_i,
+ input wire [24*32-1:0] perf_counters_i,
+ output reg [31:0] trace_control_o,trace_offset_o,
+ output wire trace_read_o,output wire [15:0] trace_addr_o,
+ input wire trace_valid_i,input wire [31:0] trace_data_i,input wire [4:0] trace_error_i,
  output reg [15:0] model_bytes_o,input_base_o,input_bytes_o,output_base_o,output_bytes_o,
  output reg [4:0] op_count_o,
  output reg input_i32_o,
@@ -19,8 +23,8 @@ module npu_command_controller #(
  output wire read_valid_o,input wire read_ready_i,output wire [15:0] read_addr_o,
  input wire read_rsp_valid_i,output wire read_rsp_ready_o,input wire [31:0] read_data_i
 );
- localparam IDLE=0,EXEC=1,VWAIT=2,RWAIT=3;
- reg [1:0] state; reg [7:0] op; reg [31:0] addr,data;
+ localparam IDLE=0,EXEC=1,VWAIT=2,RWAIT=3,TWAIT=4;
+ reg [2:0] state; reg [7:0] op; reg [31:0] addr,data;
  reg model_valid,input_valid,model_loading,input_loading,job_active,done,faulted;
  reg [4:0] error_code,error_op;
  reg [31:0] timeout_limit,elapsed,command_elapsed,job_id,completed_id;
@@ -47,6 +51,10 @@ module npu_command_controller #(
  assign act_mask_o={input_count+3<input_bytes_o,input_count+2<input_bytes_o,input_count+1<input_bytes_o,1'b1};
  assign read_valid_o=state==EXEC && op==1 && inspect && !owned && addr[1:0]==0;
  assign read_addr_o=addr[15:0]; assign read_rsp_ready_o=state==RWAIT;
+ wire trace_selected=(addr>='h180 && addr<'h1b4) || (addr>='h200 && addr<'h400) ||
+  (addr>='h1000 && addr<'h5000);
+ assign trace_read_o=state==EXEC && op==1 && trace_selected && !owned && addr[1:0]==0;
+ assign trace_addr_o=addr[15:0];
  task automatic reply(input [4:0] code,input [31:0] value);
  begin rsp_valid_o<=1; rsp_error_o<=code; rsp_data_o<=value; state<=IDLE;
  if(code!=0) error_code<=code; end endtask
@@ -60,6 +68,7 @@ module npu_command_controller #(
    core_reset_o<=1; job_active<=0; done<=0; faulted<=0; invalidate;
    model_bytes_o<=0; op_count_o<=0; input_base_o<=0; input_bytes_o<=0; output_base_o<=0; output_bytes_o<=0;input_i32_o<=0;
    error_code<=0; error_op<=0; timeout_limit<=DEFAULT_TIMEOUT; elapsed<=0; command_elapsed<=0; job_id<=0; completed_id<=0;
+   trace_control_o<=1;trace_offset_o<=0;
   end else begin
    core_reset_o<=0; if(rsp_valid_o && rsp_ready_i) rsp_valid_o<=0;
    if(job_active) begin
@@ -76,7 +85,13 @@ module npu_command_controller #(
      else if(op!=1 && op!=2 && (addr!=0 || data!=0)) reply(8,0);
      else case(op)
       1:if(inspect) begin if(owned) reply(4,0); else if(read_ready_i) state<=RWAIT; end
-      else case(addr)
+      else if(addr>='h100 && addr<'h160) begin
+       // Refuse live reads: a finished job remains stable across the bank.
+       if(owned) reply(4,0);
+       else reply(0,perf_counters_i[addr[6:2]*32+:32]);
+      end else if(trace_selected)begin
+       if(owned)reply(4,0);else state<=TWAIT;
+      end else case(addr)
        'h00:reply(0,32'h00020000);
        'h04:reply(0,{25'd0,faulted,input_loading,model_loading,done,input_valid,model_valid,owned});
        'h08:reply(0,error_code); 'h0c:reply(0,'h1f);
@@ -86,9 +101,14 @@ module npu_command_controller #(
        'h38:reply(0,cycles_i); 'h3c:reply(0,issues_i); 'h40:reply(0,act_writes_i);
        'h44:reply(0,model_reads_i); 'h48:reply(0,act_reads_i); 'h4c:reply(0,elapsed);
        'h50:reply(0,ACT_BYTES); 'h54:reply(0,MODEL_BYTES); 'h58:reply(0,(4<<16)|COLS);
-       'h5c:reply(0,MAX_K); 'h60:reply(0,MAX_OPS);'h64:reply(0,input_i32_o); default:reply(2,0);
+       'h5c:reply(0,MAX_K); 'h60:reply(0,MAX_OPS);'h64:reply(0,input_i32_o);
+       'h68:reply(0,32'h00010018); // Performance extension v1, 24 counters.
+       default:reply(2,0);
       endcase
       2:if(locked) reply(owned ? 4 : done ? 9 : 5,0);
+      else if(addr=='h188)begin
+       if((data & 32'hffffff0c)!=0)reply(8,0);else begin trace_control_o<=data;reply(0,0);end
+      end else if(addr=='h18c)begin trace_offset_o<=data;reply(0,0);end
       else if(addr=='h28) begin if(data==0) reply(8,0); else begin timeout_limit<=data; reply(0,0); end end
       else if(addr=='h64)begin
        if(!model_loading || model_count!=0)reply(5,0);
@@ -124,6 +144,7 @@ module npu_command_controller #(
        else begin input_valid<=0; job_active<=1; elapsed<=0; job_id<=job_id+1; reply(0,job_id+1); end
       8:if(owned) reply(4,0); else begin done<=0; reply(0,0); end
       9:begin core_reset_o<=1; job_active<=0; done<=0; faulted<=0; invalidate;
+       trace_control_o<=1;trace_offset_o<=0;
        error_code<=0; error_op<=0; elapsed<=0; timeout_limit<=DEFAULT_TIMEOUT; reply(0,0); end
       10:begin error_code<=0; error_op<=0; reply(0,0); end
       default:reply(1,0);
@@ -134,6 +155,7 @@ module npu_command_controller #(
      else begin error_op<=core_error_op_i; reply(16+core_error_i,0); end
     end
     RWAIT:if(read_rsp_valid_i) reply(0,read_data_i);
+    TWAIT:if(trace_valid_i)reply(trace_error_i,trace_data_i);
    endcase
    if(state!=IDLE && command_elapsed>=timeout_limit-1 && op!=9) begin
     core_reset_o<=1; job_active<=0; faulted<=1; invalidate; reply(10,0);

@@ -77,12 +77,19 @@ def fixtures(seed=7):
         dict(op='MaxPool',input='x',output='y')]),list(range(-9,0))
     yield 'full_activation',dict(input=dict(name='x',shape=[64,64,1]),nodes=[
         dict(op='ReLU',input='x',output='y')]),[r.randrange(-128,128) for _ in range(4096)]
+    # Fast 1x1 producer versus eight-lane postprocessing deliberately reaches
+    # the four reserved result slots and must report scheduler backpressure.
+    yield 'slot_pressure',dict(input=dict(name='x',shape=[8,8,1]),nodes=[
+        dict(op='Conv',input='x',output='a',channels=8,kernel=1,
+             weights=[1,-1,2,-2,3,-3,4,-4],bias=[0]*8),
+        q('a','y',8,-2)]),[2*i-64 for i in range(64)]
 
 class Recorder:
     """Records the real host API. Expected data comes only from logical oracle."""
     def __init__(self,pkg,output):
         self.rows=[];self.regs={0:0x20000,0x50:4096,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16}
         self.output=output;self.started=False;self.completed=False;self.pkg=pkg
+        self.check_live_perf=False
     def exchange(self,op,addr=0,data=0):
         value=0;mask=0xffffffff
         if op==Op.WRITE and addr<0x10000:self.regs[addr]=data
@@ -99,6 +106,8 @@ class Recorder:
             else:value=self.regs.get(addr,0)
         if op==Op.ACK:self.started=False
         self.rows.append(f'{int(op):02x} {addr:08x} {int(data)&0xffffffff:08x} 00 {mask:08x} {value:08x}')
+        if op==Op.START and self.check_live_perf:
+            self.rows.extend(['01 00000100 0 04 0 0','01 00000194 0 04 0 0','0a 0 0 0 0 0'])
         return value
 
 def encoded(values,dtype):
@@ -186,6 +195,10 @@ def unit_tests(out,defines,macro_model=None):
          'hardware/npu/rtl/npu_model_store.sv','hardware/npu/rtl/npu_activation_store.sv',
          'hardware/npu/tb/tb_npu_memories.sv',*extra],out/'memories_compile.log')
     run(['vvp',memimage],out/'memories.log')
+    timage=out/'trace.vvp'
+    run(['iverilog','-g2012','-s','tb_npu_trace','-o',timage,
+         'hardware/npu/rtl/npu_trace_capture.sv','hardware/npu/tb/tb_npu_trace.sv'],out/'trace_compile.log')
+    run(['vvp',timage],out/'trace.log')
     simage=out/'stalls.vvp'
     run(['iverilog','-g2012','-s','tb_npu_stalls','-o',simage,
          'hardware/npu/rtl/npu_mac_array.sv','hardware/npu/rtl/requant_lane.sv',
@@ -227,12 +240,21 @@ def main():
                 case=out/f'{name}_c{cols}_f{int(fuse)}_j{int(jtag)}';case.mkdir(exist_ok=True)
                 pkg=compile_model(model,cols=cols,fuse=fuse);pkg.save(case)
                 logical=reference(model,frame);expected=logical[model['nodes'][-1]['output']]
-                output=encoded(expected,pkg.manifest['output_dtype']);rec=Recorder(pkg,output);host=Npu(rec)
+                output=encoded(expected,pkg.manifest['output_dtype']);rec=Recorder(pkg,output)
+                rec.check_live_perf=not jtag
+                host=Npu(rec)
                 host.load_model(pkg)
                 for _ in range(2):
                     got=host.infer(encoded(frame,model['input'].get('dtype','i8')))
                     assert got==output
                     rec.rows.extend(['01 00000038 0 0 0 0','01 00000040 0 0 0 0'])
+                    rec.rows.append('01 00000068 0 0 ffffffff 00010018')
+                    rec.rows.extend(f'01 {0x100+4*i:08x} 0 0 0 0' for i in range(24))
+                    rec.rows.extend(['01 00000180 0 0 ffffffff 00010080','01 00000184 0 0 ffffffff 00000400'])
+                    rec.rows.extend(f'01 {addr:08x} 0 0 0 0' for addr in range(0x190,0x1a0,4))
+                    rec.rows.extend(f'01 {0x200+4*i:08x} 0 0 0 0' for i in range(pkg.manifest['op_count']*8))
+                    # Exercise the synchronous RAM port through both transports.
+                    rec.rows.extend(f'01 {0x1000+4*i:08x} 0 0 0 0' for i in range(8))
                 trace=case/'commands.txt';trace.write_text('\n'.join(rec.rows)+'\n')
                 # Check every materialized tensor write, including values that
                 # are subsequently overwritten through lifetime reuse.
@@ -252,6 +274,34 @@ def main():
                 metrics=re.findall(r'METRIC reg=([0-9a-f]+) value=(\d+)',log)
                 row=dict(case=case.name,commands=len(rec.rows),bytes=len(pkg.image),peak=pkg.manifest['activation_peak'],groups=pkg.manifest['groups'],
                          cycles=[int(v) for a,v in metrics if int(a,16)==0x38],writes=[int(v) for a,v in metrics if int(a,16)==0x40],checked_write_events=len(events))
+                perf=re.findall(r'PERF reg=([0-9a-f]+) value=(\d+)',log)
+                assert len(perf)==48,case
+                banks=[[int(v) for _,v in perf[i:i+24]] for i in (0,24)]
+                for n,bank in enumerate(banks):
+                    assert bank[0]==row['cycles'][n] and bank[11]==row['writes'][n],case
+                    assert bank[1]==bank[4] and bank[6]==bank[9],case
+                    assert bank[3]<=bank[2] and bank[8]<=bank[7],case
+                    assert bank[17]<=4 and bank[18]<=2 and bank[19]<=32,case
+                assert banks[0]==banks[1],f'{case}: counters did not reset/repeat deterministically'
+                if name=='slot_pressure' and cols==8:
+                    assert banks[0][17]==4 and banks[0][15]>0,case
+                row['performance']=banks
+                op_values=[int(v) for _,v in re.findall(r'OPTRACE reg=([0-9a-f]+) value=(\d+)',log)]
+                n=pkg.manifest['op_count'];assert len(op_values)==n*8*2,case
+                op_banks=[[op_values[j:j+8] for j in range(at,at+n*8,8)] for at in (0,n*8)]
+                for run_index,ops in enumerate(op_banks):
+                    assert ops[0][0]==0 and ops[-1][1]==row['cycles'][run_index],case
+                    assert all(x[3]==11 and x[1]>x[0] for x in ops),case
+                    assert all(x[1]==y[0] for x,y in zip(ops,ops[1:])),case
+                    assert all(x[2]==struct.unpack_from('<I',pkg.image,pc*64)[0] for pc,x in enumerate(ops)),case
+                    for index,perf_index in ((4,13),(5,14),(6,15),(7,12)):
+                        assert sum(x[index] for x in ops)==banks[run_index][perf_index],case
+                assert op_banks[0]==op_banks[1],case
+                hdr=[int(v) for _,v in re.findall(r'TRACEHDR reg=([0-9a-f]+) value=(\d+)',log)]
+                for run_index,at in enumerate((0,4)):
+                    duration=op_banks[run_index][0][1];expected_count=min(1024,duration)
+                    assert hdr[at:at+4]==[5|(2 if duration>=1024 else 0)|(8 if duration>1024 else 0),expected_count,0,expected_count-1],case
+                row['operator_trace']=op_banks
                 results.append(row);print('PASS',case.name,flush=True)
         if cols==8 and not jtag:negatives=negative_tests(out,image)
     # A common post chain must demonstrate physical savings, not only equal outputs.

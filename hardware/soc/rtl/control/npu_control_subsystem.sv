@@ -14,6 +14,15 @@ module npu_control_subsystem #(
  wire [4:0] error,error_op,op_count;wire input_i32;
  wire [15:0] model_bytes,input_base,input_bytes,output_base,output_bytes;
  wire [31:0] cycles,issues,model_reads,act_reads,act_writes;
+ wire [24*32-1:0] perf_counters;
+ wire trace_clear,trace_active,trace_read,trace_valid;
+ wire [127:0] trace_sample;wire [3:0] trace_events;
+ wire [31:0] trace_descriptor,trace_control,trace_offset,trace_data;
+ wire [4:0] trace_error;wire [15:0] trace_addr;
+ npu_trace_capture i_trace(.clk(clk_i),.clear(trace_clear),.active(trace_active),
+  .sample(trace_sample),.events(trace_events),.descriptor(trace_descriptor),
+  .control(trace_control),.offset(trace_offset),.read_request(trace_read),.read_addr(trace_addr),
+  .read_valid(trace_valid),.read_data(trace_data),.read_error(trace_error));
  wire mw,mready,mv,mr,mrv; wire [15:0] mwa,ma; wire [31:0] mwd,md;
  wire host_aw,host_ar,host_arr,host_rsp_ready;
  wire [15:0] host_wa,host_ra; wire [31:0] host_wd; wire [3:0] host_wm;
@@ -27,6 +36,9 @@ module npu_control_subsystem #(
   .core_ready_i(ready),.core_busy_i(busy),.validation_done_i(vdone),.validation_ok_i(vok),.done_i(done),
   .core_error_i(error),.core_error_op_i(error_op),.cycles_i(cycles),.issues_i(issues),
   .model_reads_i(model_reads),.act_reads_i(act_reads),.act_writes_i(act_writes),
+  .perf_counters_i(perf_counters),
+  .trace_control_o(trace_control),.trace_offset_o(trace_offset),
+  .trace_read_o(trace_read),.trace_addr_o(trace_addr),.trace_valid_i(trace_valid),.trace_data_i(trace_data),.trace_error_i(trace_error),
   .model_bytes_o(model_bytes),.input_base_o(input_base),.input_bytes_o(input_bytes),
   .output_base_o(output_base),.output_bytes_o(output_bytes),.op_count_o(op_count),.input_i32_o(input_i32),
   .model_we_o(mw),.model_addr_o(mwa),.model_data_o(mwd),.model_ready_i(mready),
@@ -50,6 +62,9 @@ module npu_control_subsystem #(
   .output_base(output_base),.output_bytes(output_bytes),.op_count(op_count),.input_i32(input_i32),
   .validation_done(vdone),.validation_ok(vok),.done(done),.error(error),.error_op(error_op),
   .cycles(cycles),.issues(issues),.model_reads(model_reads),.act_reads(act_reads),.act_writes(act_writes),
+  .perf_counters(perf_counters),
+  .trace_clear(trace_clear),.trace_active(trace_active),.trace_sample(trace_sample),
+  .trace_events(trace_events),.trace_descriptor(trace_descriptor),
   .m_valid(mv),.m_ready(mr),.m_addr(ma),.m_rsp_valid(mrv),.m_rsp_ready(),.m_data(md),
   .a_valid(av),.a_ready(arr && running),.a_addr(aa),.a_rsp_valid(arv && running),.a_rsp_ready(),.a_data(act_data),
   .w_valid(aw),.w_addr(wa),.w_data(wd),.w_mask(wm));

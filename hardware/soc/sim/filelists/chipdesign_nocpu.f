@@ -3,6 +3,7 @@ hardware/npu/rtl/requant_lane.sv
 hardware/npu/rtl/npu_model_store.sv
 hardware/npu/rtl/npu_activation_store.sv
 hardware/npu/rtl/npu_program_core.sv
+hardware/npu/rtl/npu_trace_capture.sv
 hardware/soc/rtl/control/npu_command_controller.sv
 hardware/soc/rtl/control/npu_control_subsystem.sv
 hardware/soc/rtl/control/npu_jtag_transport.sv
