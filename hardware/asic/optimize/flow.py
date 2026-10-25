@@ -109,10 +109,17 @@ def geometry(std_area, sizes, utilization=.5, macro_xy=(.2,.2), halo=26):
     return dict(core_side_um=core,die_side_um=die,margin_um=margin,macro=macro,halo_um=halo,pads=pads,corner_um=corner,bond_depth_um=sizes.get('PAD60LU_OBV',[60,73.16])[1])
 
 
+def rtl_fingerprint():
+    listing=ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f'
+    paths=[listing,ROOT/'hardware/soc/synth/scripts/soc_constraints.tcl']
+    paths += [ROOT/line.strip() for line in listing.read_text().splitlines() if line.strip() and not line.startswith('+')]
+    return {str(p.relative_to(ROOT)):digest(p) for p in paths}
+
+
 def fingerprint():
     paths = [ROOT/line.strip() for line in (ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines() if line.strip() and not line.startswith('+')]
     paths += sorted(HERE.glob('*.tcl')) + sorted(HERE.glob('*.sv')) + sorted(HERE.glob('*.py'))
-    paths += [ROOT/p for p in ('hardware/soc/sim/filelists/chipdesign_nocpu.f','hardware/soc/synth/scripts/soc_constraints.tcl','hardware/asic/flow/config/user_define.tcl','hardware/asic/flow/config/global_define.tcl','hardware/asic/flow/pnr/scripts/init_pnr_standard.tcl')]
+    paths += [ROOT/p for p in ('hardware/soc/sim/filelists/chipdesign_nocpu.f','hardware/soc/synth/scripts/soc_constraints.tcl','hardware/asic/flow/config/user_define.tcl','hardware/asic/flow/config/global_define.tcl','hardware/asic/flow/pnr/scripts/init_pnr_standard.tcl','hardware/npu/scripts/run_program_regression.py','software/host/npu_program.py','software/host/nocpu_jtag.py','hardware/npu/tools/tinycnn8_golden.py')]
     return {str(p.relative_to(ROOT)):digest(p) for p in paths}
 
 
@@ -236,7 +243,7 @@ def validate_reports(directory):
         name,cell,orientation,*coords=line.split()
         x0,y0,x1,y1,die=map(float,coords)
         pad_ok &= x0>=-.001 and y0>=-.001 and x1<=die+.001 and y1<=die+.001
-        boxes.append((name,x0,y0,x1,y1))
+        if cell!='PAD60LU_OBV':boxes.append((name,x0,y0,x1,y1))
     for i,a in enumerate(boxes):
         for b in boxes[i+1:]:
             if min(a[3],b[3])-max(a[1],b[1])>.001 and min(a[4],b[4])-max(a[2],b[2])>.001:
@@ -289,6 +296,7 @@ def synth(output,libs):
     directory.mkdir(parents=True,exist_ok=True)
     cfg=common_config(libs)+'set source_root '+tcl(ROOT)+'\nset threads 4\n'
     (directory/'config.tcl').write_text(cfg)
+    save(directory/'rtl_sources.json',dict(sources_sha256=rtl_fingerprint(),origin='captured immediately before synthesis launch'))
     state=launch(['genus','-no_gui','-batch','-files',str(HERE/'synth.tcl')],directory,'PNR_OPT_SYNTHESIS_COMPLETE')
     if state['status']!='complete':raise RuntimeError('synthesis failed: '+str(directory))
     verify_clocks(directory/'mapped.sdc')
@@ -311,6 +319,8 @@ def verify_clocks(path):
 def adopt_synthesis(output, libs, source):
     """Import a completed course synthesis, without remapping or changing it."""
     source=source.resolve()
+    original=json.loads((source/'rtl_sources.json').read_text())
+    if original.get('sources_sha256')!=rtl_fingerprint():raise RuntimeError('imported synthesis RTL/constraints do not match current checkout')
     log=(source/'console.log').read_text(errors='replace')
     if not re.search(r'(?m)^EDA_MAPPED_SYNTHESIS_COMPLETE$',log) or re.search(r'(?mi)^Error\s*:',log):
         raise RuntimeError('external synthesis has no clean completion evidence')
@@ -344,20 +354,25 @@ def snapshot_driver(directory):
     return driver
 
 
-def candidate(output,libs,name,util,xy,congestion=False):
+def candidate(output,libs,name,util,xy,congestion=False,halo=26):
+    if not re.fullmatch(r'[A-Za-z0-9_-]+',name) or halo<26:raise ValueError('invalid candidate name or halo below 26um')
     directory=output/'candidates'/name
     if (output/'sources.json').exists() and json.loads((output/'sources.json').read_text())!=fingerprint():
         raise RuntimeError('inputs changed between candidates')
     if (directory/'status.json').exists():
+        saved=json.loads((directory/'experiment.json').read_text())
+        if (saved['utilization'],saved['macro_xy'],saved['congestion'],saved['geometry']['halo_um'])!=(util,list(xy),bool(congestion),halo):
+            raise RuntimeError('candidate parameters differ from preserved run')
         state=json.loads((directory/'status.json').read_text())
         if state.get('status')=='running':state=recover_tool(directory,'PNR_OPT_PHYSICAL_COMPLETE')
         if state.get('status')=='complete':return finalize_candidate(directory,state)
         return metrics(directory)
+    if len(list((output/'candidates').glob('*/status.json')))>=8:raise RuntimeError('eight-candidate PNR budget exhausted')
     handoff=json.loads((output/'synthesis/handoff.json').read_text())
     if any(digest(output/'synthesis'/p)!=sha for p,sha in handoff.items()):raise RuntimeError('frozen synthesis handoff changed')
     area=json.loads((output/'synthesis/area.json').read_text())
     sizes=lef_sizes([libs[k] for k in ('macro_lef','io_lef','bond_lef')])
-    geo=geometry(area['standard_cell_area_um2'],sizes,util,xy)
+    geo=geometry(area['standard_cell_area_um2'],sizes,util,xy,halo)
     directory.mkdir(parents=True,exist_ok=True)
     save(directory/'experiment.json',dict(utilization=util,macro_xy=xy,congestion=congestion,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
     cfg=common_config(libs)+f'set threads 4\nset congestion {int(congestion)}\nset source_root '+tcl(ROOT)+'\nset netlist '+tcl(output/'synthesis/mapped.v')+'\nset sdc '+tcl(output/'synthesis/mapped.sdc')+'\n'
@@ -390,7 +405,9 @@ def summarize(output):
     repeat=next((r for r in rows if Path(r['directory']).name=='repeat'),None)
     def sdf_pass(point):
         path=Path(point['directory'])/'sdf/result.json' if point else None
-        return bool(path and path.is_file() and json.loads(path.read_text()).get('passed'))
+        if not path or not path.is_file():return False
+        data=json.loads(path.read_text());hashes=data.get('sources_sha256',{})
+        return bool(data.get('passed') and hashes and all(Path(p).is_file() and digest(p)==sha for p,sha in hashes.items()))
     baseline=next((r for r in rows if Path(r['directory']).name=='u50'),None)
     release=bool(best and repeat and repeat['eligible'] and baseline and baseline['eligible'] and sdf_pass(best) and sdf_pass(baseline))
     frozen=json.loads((output/'sources.json').read_text()) if (output/'sources.json').exists() else None
@@ -425,6 +442,7 @@ def search(output,libs):
     repeat=candidate(output,libs,'repeat',exp['utilization'],exp['macro_xy'],exp['congestion'])
     summarize(output)
     if not repeat.get('eligible'):raise RuntimeError('independent repeat failed')
+    if json.loads(frozen.read_text())!=fingerprint():raise RuntimeError('inputs changed before SDF acceptance')
     for point in (output/'candidates/u50',Path(best['directory'])):
         if not (point/'sdf/result.json').exists():
             subprocess.run([sys.executable,str(HERE/'postlayout.py'),'--candidate',str(point)],check=True)
@@ -436,10 +454,18 @@ def search(output,libs):
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('action',choices=['preflight','synth','adopt','baseline','search','resume','summary'])
+    ap.add_argument('action',choices=['preflight','synth','adopt','baseline','trial','search','resume','summary'])
     ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--import-dir',type=Path)
+    ap.add_argument('--name')
+    ap.add_argument('--utilization',type=float,default=.5)
+    ap.add_argument('--macro-x',type=float,default=.2)
+    ap.add_argument('--macro-y',type=float,default=.2)
+    ap.add_argument('--halo',type=float,default=26)
+    ap.add_argument('--congestion',action='store_true')
     args=ap.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=True)
+    if args.action=='trial' and (not args.name or not re.fullmatch(r'[A-Za-z0-9_-]+',args.name) or not 0<args.utilization<1 or not 0<=args.macro_x<=1 or not 0<=args.macro_y<=1 or args.halo<26):
+        ap.error('trial requires a simple name, utilization in (0,1), macro fractions in [0,1], and halo >=26um')
     if args.action=='summary':summarize(output);return
     import fcntl
     lock=(output/'controller.lock').open('a')
@@ -447,10 +473,21 @@ def main():
     except BlockingIOError:raise RuntimeError('another controller is already running for this experiment')
     libs=preflight(output)
     if args.action=='preflight':return
+    frozen=output/'sources.json'
+    if frozen.exists() and json.loads(frozen.read_text())!=fingerprint():raise RuntimeError('inputs changed; use a new experiment directory')
+    if not frozen.exists():save(frozen,fingerprint())
     if args.action=='adopt':
         if not args.import_dir:ap.error('adopt requires --import-dir')
         adopt_synthesis(output,libs,args.import_dir)
     elif args.action=='synth':synth(output,libs)
+    elif args.action=='trial':
+        if not args.name:ap.error('trial requires --name')
+        frozen=output/'sources.json'
+        if not frozen.exists():save(frozen,fingerprint())
+        if not (output/'synthesis/handoff.json').exists():synth(output,libs)
+        result=candidate(output,libs,args.name,args.utilization,(args.macro_x,args.macro_y),args.congestion,args.halo)
+        summarize(output)
+        if not result.get('eligible'):raise RuntimeError('trial physical acceptance failed')
     elif args.action=='baseline':
         if not (output/'synthesis/handoff.json').exists():synth(output,libs)
         result=candidate(output,libs,'u50',.5,(.2,.2));summarize(output)

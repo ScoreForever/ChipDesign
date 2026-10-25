@@ -22,16 +22,16 @@ def main():
         # No tool can have started before launch writes its status. Preserve
         # partially generated inputs, then start a new, reviewable attempt.
         out.rename(candidate/('sdf_incomplete_'+str(time.time_ns())))
-    libs=libraries()
+    libs=libraries();testbench=candidate/'driver/tb_fullchip.sv'
     if not out.exists():
         out.mkdir()
         with gzip.open(candidate/'outputs/routed.sdf.gz','rt') as source:
             (out/'routed.sdf').write_text(source.read())
         subprocess.run(['python3',str(HERE/'make_trace.py'),str(out/'commands.txt')],check=True,cwd=ROOT)
-        save(out/'inputs_sha256.json',{str(p):digest(p) for p in [candidate/'outputs/simulation.v',out/'routed.sdf',out/'commands.txt',HERE/'tb_fullchip.sv']})
+        save(out/'inputs_sha256.json',{str(p):digest(p) for p in [candidate/'outputs/simulation.v',out/'routed.sdf',out/'commands.txt',testbench]})
         command=['xrun','-64bit','-sv','-timescale','1ns/1ps','-access','+rwc','-top','tb_fullchip',
           str(libs['std_verilog']),str(libs['io_verilog']),str(libs['macro_verilog']),
-          str(candidate/'outputs/simulation.v'),str(HERE/'tb_fullchip.sv'),
+          str(candidate/'outputs/simulation.v'),str(testbench),
           '+SDF='+str(out/'routed.sdf'),'+TRACE='+str(out/'commands.txt'),'-l','simulation.log']
         state=launch(command,out,'PNR_OPT_JTAG_PASS',timeout=14400)
     else:

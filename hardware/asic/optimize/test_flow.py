@@ -70,6 +70,7 @@ class FlowTests(unittest.TestCase):
     def test_external_synthesis_requires_clean_marker_and_keeps_hashes(self):
         with tempfile.TemporaryDirectory() as d:
             base=Path(d);source=base/'original';output=base/'experiment';source.mkdir();output.mkdir()
+            flow.save(source/'rtl_sources.json',dict(sources_sha256=flow.rtl_fingerprint()))
             macro=base/'macro.lib';macro.write_text('cell (RA1SHD_2048x32M8) { area : 400; }')
             (source/'console.log').write_text('EDA_MAPPED_SYNTHESIS_COMPLETE\nError : failed\n')
             with self.assertRaises(RuntimeError):flow.adopt_synthesis(output,{'macro_lib':macro},source)
@@ -150,5 +151,96 @@ proc routeDesign {args} {}
             (p/'console.log').write_text('COMPLETE\n')
             recovered=flow.recover_tool(p,'COMPLETE')
             self.assertEqual(recovered['status'],'failed')
+
+    def test_candidate_budget_and_names_fail_before_tool_launch(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            with self.assertRaises(ValueError):flow.candidate(root,{},'../escape',.5,(.2,.2))
+            for i in range(8):flow.save(root/'candidates'/str(i)/'status.json',dict(status='failed'))
+            with self.assertRaisesRegex(RuntimeError,'budget'):flow.candidate(root,{},'ninth',.5,(.2,.2))
+
+    def test_resume_never_reuses_a_different_parameter_point(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);point=root/'candidates/u50'
+            flow.save(point/'status.json',dict(status='failed'))
+            flow.save(point/'experiment.json',dict(utilization=.5,macro_xy=[.2,.2],congestion=False,geometry=dict(halo_um=26)))
+            with self.assertRaisesRegex(RuntimeError,'parameters differ'):flow.candidate(root,{},'u50',.6,(.2,.2))
+            self.assertEqual(json.loads((point/'status.json').read_text())['status'],'failed')
+
+    def test_cell_accounting_excludes_physical_fill_and_io(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as d:
+            script='''array set data {
+ top.insts {logic fill io ram}
+ logic.cell.name DFQD1BWP7T
+ logic.cell.baseClass core
+ logic.box {{0 0 2 1}}
+ logic.name logic0
+ fill.cell.name FILL64BWP7T
+ fill.cell.baseClass core
+ fill.box {{0 1 10 4}}
+ fill.name fill0
+ io.cell.name PDDW0204CDG
+ io.cell.baseClass pad
+ io.box {{0 0 60 115}}
+ io.name io0
+ ram.cell.name RA1SHD_2048x32M8
+ ram.cell.baseClass block
+ ram.box {{100 100 120 110}}
+ ram.name model
+}
+proc dbGet {key} {global data;return $data($key)}
+'''
+            script+='source {'+str(flow.HERE/'cell_stats.tcl')+'}\ncapture_cell_stats final\n'
+            run=subprocess.run(['tclsh'],cwd=d,input=script,text=True,capture_output=True)
+            self.assertFalse(run.stderr)
+            result=json.loads((Path(d)/'final_cells.json').read_text())
+            self.assertEqual(result['active_standard_instances'],1)
+            self.assertEqual(result['active_standard_area_um2'],2)
+            self.assertEqual(result['macro_count'],1)
+            self.assertEqual(result['macro_area_um2'],200)
+
+    def test_pad_connection_survives_native_net_renaming(self):
+        import subprocess
+        script='''set moved 0
+set bindings {}
+proc addNet {name} {}
+proc dbGet {args} {
+ global moved
+ if {[llength $args]==3} {return T0}
+ switch -- [lindex $args 0] {
+  T0.net {return N0}
+  N0.instTerms {return P0}
+  T0.net.name {return clk_i}
+  P0.net.name {if {$moved} {return n_1} else {return clk_i}}
+  default {error "unexpected query $args"}
+ }
+}
+proc detachModulePort {args} {}
+proc attachModulePort {args} {global moved;set moved 1}
+proc attachTerm {args} {global bindings;lappend bindings $args}
+'''
+        script+='source {'+str(flow.HERE/'connect_pad.tcl')+'}\nconnect_signal_pad clk_i pad0 input\nputs [lindex $bindings 0]\nputs [lindex $bindings 1]\n'
+        run=subprocess.run(['tclsh'],input=script,text=True,capture_output=True)
+        self.assertFalse(run.stderr)
+        self.assertEqual(run.stdout.splitlines(),['pad0 PAD clk_i','pad0 C n_1'])
+
+    def test_release_summary_requires_both_sdf_and_independent_repeat(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);rows={}
+            for name,area in [('u50',10),('u60',8),('repeat',8)]:
+                point=root/'candidates'/name;flow.save(point/'status.json',dict(status='complete'))
+                rows[name]=dict(directory=str(point),eligible=True,die_area_mm2=area,setup_wns_ns=.3,hold_wns_ns=.02,wire_length_um=1000)
+            def read(point):return rows[point.name].copy()
+            with patch('flow.metrics',side_effect=read):
+                self.assertFalse(flow.summarize(root)['release_eligible'])
+                for name in ('u50','u60'):
+                    proof=root/'candidates'/name/'sdf'/'input';proof.parent.mkdir();proof.write_text('unit fixture')
+                    flow.save(proof.parent/'result.json',dict(passed=True,sources_sha256={str(proof):flow.digest(proof)}))
+                result=flow.summarize(root)
+                self.assertTrue(result['release_eligible'])
+                self.assertEqual(result['validated_area_improvement_percent'],20)
+                (root/'candidates/u60/sdf/input').write_text('changed')
+                self.assertFalse(flow.summarize(root)['release_eligible'])
 
 if __name__=='__main__':unittest.main()

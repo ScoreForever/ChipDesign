@@ -27,7 +27,15 @@ set ::env(CHIPDESIGN_PROJECT_ROOT) $source_root
 source $here/legacy/user_define.tcl
 source $here/legacy/global_define.tcl
 set pnr_cpus $threads
+# Legacy globals reuse std_lib, io_lib and macro_gds. Restore the explicit
+# immutable run inputs after obtaining the course cell/optimization settings.
 source $here/legacy/init_pnr_standard.tcl
+source config.tcl
+# Keep checkpoint restore references on the real run inputs, not legacy paths.
+set init_verilog $netlist
+set init_lef_file [list $std_lef $io_lef $io_ant_lef $bond_lef $macro_lef $macro_ant_lef]
+set init_mmmc_file [file normalize mmmc.tcl]
+set init_top_cell my_soc_top
 setDesignMode -bottomRoutingLayer METAL2 -topRoutingLayer METAL6
 setDelayCalMode -SIAware true
 setOptMode -fixHoldAllowSetupTnsDegrade false -holdTargetSlack 0.02
@@ -45,6 +53,7 @@ foreach spec [list [list bottom_left 0 0 R0] [list bottom_right $edge 0 MY] [lis
     lassign $spec name x y orient
     addInst -physical -cell PCORNER -inst corner_$name -loc [list $x $y] -ori $orient -place_status fixed -dontSnapToPlacementGrid
 }
+source $here/connect_pad.tcl
 set signal_ports {}
 foreach spec $pads {
     lassign $spec name master port direction side x y orient
@@ -53,19 +62,7 @@ foreach spec $pads {
     addInst -cell $master -inst $name -loc [list $x $y] -ori $orient -place_status fixed -dontSnapToPlacementGrid
     if {$direction ne "supply"} {
         lappend signal_ports $port
-        set core_net [get_object_name [get_nets -of_objects [get_ports $port]]]
-        detachTerm my_soc_top $port
-        addNet ${port}_pad
-        attachTerm my_soc_top $port ${port}_pad
-        set external [get_object_name [get_nets -of_objects [get_ports $port]]]
-        attachTerm $name PAD $external
-        if {$direction eq "input"} {
-            attachTerm $name C $core_net
-            foreach {pin bit} {OEN 1 IE 1 PE 0 DS 0 I 0} {attachTerm $name $pin 1'b$bit}
-        } else {
-            attachTerm $name I $core_net
-            foreach {pin bit} {OEN 0 IE 0 PE 0 DS 0} {attachTerm $name $pin 1'b$bit}
-        }
+        connect_signal_pad $port $name $direction
     }
     # Separate wire-bond opening is physical only, as in the course template.
     set bx $x;set by $y

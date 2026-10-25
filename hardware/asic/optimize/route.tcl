@@ -1,3 +1,5 @@
+source $here/cell_stats.tcl
+set prects_stats [capture_cell_stats prects]
 # Rebuild physical clock roots at PAD core pins without changing frequencies.
 set_interactive_constraint_modes [all_constraint_modes -active]
 create_clock -period 20 -name core_clk [get_pins i_pad_clk_i/C]
@@ -15,13 +17,15 @@ ccopt_design
 set_interactive_constraint_modes [all_constraint_modes -active]
 set_propagated_clock [get_clocks {core_clk jtag_clk}]
 set_interactive_constraint_modes {}
-optDesign -postCTS -hold -outDir postcts
+optDesign -postCTS -setup -outDir postcts_setup
+optDesign -postCTS -hold -outDir postcts_hold
 saveDesign cts.enc
 setAttribute -net VDDPST -skip_routing true
 setAttribute -net VSSPST -skip_routing true
 setNanoRouteMode -routeWithTimingDriven true -routeDesignRouteClockNetsFirst true -drouteFixAntenna true
 setExtractRCMode -engine postRoute -effortLevel low -tQuantusForPostRoute false
 routeDesign
+optDesign -postRoute -setup -outDir postroute_setup
 optDesign -postRoute -hold -outDir postroute_hold
 saveDesign routed.enc
 setFillerMode -core {FILL64BWP7T FILL32BWP7T FILL16BWP7T FILL8BWP7T FILL4BWP7T FILL2BWP7T FILL1BWP7T} -corePrefix FILLER -createRows false -diffCellViol true -ecoMode true -fitGap true -scheme locationFirst -honorPrerouteAsObs false -check_signal_drc true -add_fillers_with_drc false
@@ -61,12 +65,14 @@ proc slack_stats {mode} {
 lassign [slack_stats -late] setup_wns setup_tns
 lassign [slack_stats -early] hold_wns hold_tns
 # Physical checks use raw report text, interpreted by the Python validator.
+set final_stats [capture_cell_stats final]
 set fp [open metrics.json w]
 lassign [lindex [dbGet top.fPlan.coreBox] 0] cx0 cy0 cx1 cy1
 set core_area [expr {($cx1-$cx0)*($cy1-$cy0)/1e6}]
-puts $fp [format {"die_area_mm2":%.9f,"core_area_mm2":%.9f,"setup_wns_ns":%.9f,"setup_tns_ns":%.9f,"hold_wns_ns":%.9f,"hold_tns_ns":%.9f} [expr {($dx1-$dx0)*($dy1-$dy0)/1e6}] $core_area $setup_wns $setup_tns $hold_wns $hold_tns]
+puts $fp [format {"die_area_mm2":%.9f,"core_area_mm2":%.9f,"setup_wns_ns":%.9f,"setup_tns_ns":%.9f,"hold_wns_ns":%.9f,"hold_tns_ns":%.9f,"active_standard_instances":%d,"active_standard_area_um2":%.9f,"macro_count":%d,"macro_area_um2":%.9f,"cts_and_repair_area_change_um2":%.9f} [expr {($dx1-$dx0)*($dy1-$dy0)/1e6}] $core_area $setup_wns $setup_tns $hold_wns $hold_tns [lindex $final_stats 0] [lindex $final_stats 1] [lindex $final_stats 2] [lindex $final_stats 3] [expr {[lindex $final_stats 1]-[lindex $prects_stats 1]}]]
 close $fp
 set fp [open metrics.json r];set data [read $fp];close $fp
+set final_stats [capture_cell_stats final]
 set fp [open metrics.json w];puts $fp "\173$data\175";close $fp
 set fp [open ports.txt w]
 puts $fp [get_object_name [get_ports *]]
@@ -83,7 +89,7 @@ set fp [open io_geometry.tsv w]
 foreach inst [dbGet top.insts] {
     set class [dbGet $inst.cell.baseClass]
     set cell [dbGet $inst.cell.name]
-    if {$class ni {pad corner} || $cell eq "PAD60LU_OBV"} {continue}
+    if {$class ni {pad corner} && $cell ne "PAD60LU_OBV"} {continue}
     puts $fp "[dbGet $inst.name] $cell [dbGet $inst.orient] [lindex [dbGet $inst.box] 0] $die_side_um"
 }
 close $fp

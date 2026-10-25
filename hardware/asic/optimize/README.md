@@ -92,3 +92,27 @@ IMPSP-9099 scan-chain diagnostics remain recorded separately when the tool
 otherwise completes; they do not establish DFT completion. Other tool errors
 remain fatal. CI tests the framework without private libraries or EDA licenses;
 server implementation and SDF evidence are separate acceptance gates.
+
+For a named controlled trial (within the same eight-attempt output budget):
+
+```bash
+python3 hardware/asic/optimize/flow.py trial --output /absolute/experiment \
+  --name custom_u60 --utilization 0.60 --macro-x 0.8 --macro-y 0.2 \
+  --halo 26 --congestion
+```
+
+Utilization is in (0,1), macro fractions in [0,1], and halo is at least 26um.
+A preserved name cannot be reused with changed parameters. The default search
+keeps halo at 26um. Every point uses the same post-CTS/post-route setup/hold
+repair policy. Import also requires `rtl_sources.json` from the original RTL
+regression/synthesis preparation and verifies it against the current RTL and
+constraint source, so historical netlists cannot be mislabeled as current.
+
+`prects_cells.tsv/json` and `final_cells.tsv/json` retain actual instance boxes
+and active-cell counts/areas, excluding fillers, taps, decaps, antenna and IO
+cells. The reported macro count/area refers specifically to the model SRAM;
+wire-bond opening blocks are physical IO, not functional SRAMs. The difference
+between final and pre-CTS active area is the net CTS/timing-repair change, not
+an attribution of every added cell to the clock tree. All bond openings must
+also stay within the actual snapped die; their intended overlays with electrical
+PADs are excluded only from electrical-PAD overlap checks.
