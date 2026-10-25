@@ -2,7 +2,7 @@
 // ABI 2.0 transactional program endpoint. Opcodes 1..10:
 // READ WRITE MODEL_BEGIN MODEL_COMMIT INPUT_BEGIN INPUT_COMMIT START ACK RESET CLEAR.
 module npu_command_controller #(
- parameter ACT_BYTES=4096,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
+ parameter ACT_BYTES=8192,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
 )(
  input wire clk_i,rst_ni,input wire cmd_valid_i,output wire cmd_ready_o,
  input wire [7:0] cmd_op_i,input wire [31:0] cmd_addr_i,cmd_data_i,
@@ -20,10 +20,11 @@ module npu_command_controller #(
  output reg input_i32_o,
  output wire model_we_o,output wire [15:0] model_addr_o,output wire [31:0] model_data_o,input wire model_ready_i,
  output wire act_we_o,output wire [15:0] act_addr_o,output wire [31:0] act_data_o,output wire [3:0] act_mask_o,
+ input wire act_write_ready_i,act_idle_i,output wire act_flush_o,
  output wire read_valid_o,input wire read_ready_i,output wire [15:0] read_addr_o,
  input wire read_rsp_valid_i,output wire read_rsp_ready_o,input wire [31:0] read_data_i
 );
- localparam IDLE=0,EXEC=1,VWAIT=2,RWAIT=3,TWAIT=4;
+ localparam IDLE=0,EXEC=1,VWAIT=2,RWAIT=3,TWAIT=4,IFLUSH=5;
  reg [2:0] state; reg [7:0] op; reg [31:0] addr,data;
  reg model_valid,input_valid,model_loading,input_loading,job_active,done,faulted;
  reg [4:0] error_code,error_op;
@@ -48,6 +49,7 @@ module npu_command_controller #(
  assign running_o=job_active;
  assign model_we_o=model_write; assign model_addr_o=model_count; assign model_data_o=data;
  assign act_we_o=input_write; assign act_addr_o=input_base_o+input_count; assign act_data_o=data;
+ assign act_flush_o=state==IFLUSH;
  assign act_mask_o={input_count+3<input_bytes_o,input_count+2<input_bytes_o,input_count+1<input_bytes_o,1'b1};
  assign read_valid_o=state==EXEC && op==1 && inspect && !owned && addr[1:0]==0;
  assign read_addr_o=addr[15:0]; assign read_rsp_ready_o=state==RWAIT;
@@ -129,7 +131,7 @@ module npu_command_controller #(
        else if(model_ready_i) begin model_count<=model_count+4; reply(0,0); end
       end else if(inspect) begin
        if(!input_loading) reply(5,0); else if(!input_write) reply(6,0);
-       else begin input_count<=input_count+4; reply(0,0); end
+       else if(act_write_ready_i) begin input_count<=input_count+4; reply(0,0); end
       end else reply(2,0);
       3:if(locked) reply(owned ? 4 : done ? 9 : 5,0); else begin invalidate; model_loading<=1; reply(0,0); end
       4:if(locked) reply(owned ? 4 : 9,0); else if(!model_loading) reply(5,0);
@@ -139,7 +141,7 @@ module npu_command_controller #(
        else begin input_valid<=0; input_loading<=1; input_count<=0; reply(0,0); end
       6:if(locked || !input_loading) reply(5,0);
        else if(input_count!=(($signed({1'b0,input_bytes_o})+3)/4)*4) reply(7,0);
-       else begin input_valid<=1; input_loading<=0; reply(0,0); end
+       else state<=IFLUSH;
       7:if(owned) reply(4,0); else if(done) reply(9,0); else if(!start_ok) reply(5,0);
        else begin input_valid<=0; job_active<=1; elapsed<=0; job_id<=job_id+1; reply(0,job_id+1); end
       8:if(owned) reply(4,0); else begin done<=0; reply(0,0); end
@@ -156,6 +158,7 @@ module npu_command_controller #(
     end
     RWAIT:if(read_rsp_valid_i) reply(0,read_data_i);
     TWAIT:if(trace_valid_i)reply(trace_error_i,trace_data_i);
+    IFLUSH:if(act_idle_i)begin input_valid<=1;input_loading<=0;reply(0,0);end
    endcase
    if(state!=IDLE && command_elapsed>=timeout_limit-1 && op!=9) begin
     core_reset_o<=1; job_active<=0; faulted<=1; invalidate; reply(10,0);

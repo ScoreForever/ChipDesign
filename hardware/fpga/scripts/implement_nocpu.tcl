@@ -3,6 +3,9 @@ set checkpoint [file normalize [lindex $argv 0]]
 set out [file normalize [lindex $argv 1]]
 set_param general.maxThreads 4
 open_checkpoint $checkpoint
+source [file normalize [lindex $argv 2]]
+source [file normalize [lindex $argv 3]]
+audit_npu_jtag_cdc [file join $out checkpoint_npu_jtag_cdc.tsv]
 opt_design
 write_checkpoint -force [file join $out opt.dcp]
 if {[catch {place_design} failure options]} {
@@ -31,6 +34,8 @@ if {$initial_wns<0} {
     phys_opt_design -directive AggressiveExplore
     route_design -directive Explore
 }
+audit_npu_jtag_cdc [file join $out route_npu_jtag_cdc.tsv]
+audit_jtag_io [file join $out io_audit]
 write_checkpoint -force [file join $out route.dcp]
 report_utilization -file [file join $out route_utilization.rpt]
 report_timing_summary -delay_type min_max -report_unconstrained -file [file join $out route_timing_summary.rpt]

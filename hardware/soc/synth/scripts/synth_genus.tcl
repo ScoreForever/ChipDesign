@@ -14,11 +14,11 @@ if {$mapped} {
         set model_lib /lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib
         if {[info exists ::env(EDA_MODEL_SRAM_LIB)]} {set model_lib $::env(EDA_MODEL_SRAM_LIB)}
         if {![file isfile $model_lib]} {
-            error "Missing model SRAM Liberty; set EDA_MODEL_SRAM_LIB, or EDA_NPU_MODEL_SRAM=0 for the FF comparison"
+            error "Missing dual-store SRAM Liberty; set EDA_MODEL_SRAM_LIB, or EDA_NPU_MODEL_SRAM=0 for inferred-memory comparison"
         }
         if {[lsearch -exact $target_libs $model_lib]<0} {lappend target_libs $model_lib}
-        lappend hdl_defines NPU_USE_RA1SHD_MODEL
-        puts "NPU_MODEL_SRAM_LIB=$model_lib"
+        lappend hdl_defines NPU_USE_RA1SHD_MODEL NPU_USE_RA1SHD_ACTIVATION
+        puts "NPU_DUAL_SRAM_LIB=$model_lib"
     }
     foreach lib $target_libs {
         if {![file isfile $lib]} {error "Target library does not exist: $lib"}
@@ -33,11 +33,6 @@ foreach line [split [read $fh] \n] {
     lappend sources $line
 }
 close $fh
-if {$mapped} {
-    # The ASIC build uses the course-provided SRAM hard macro instead of
-    # synthesizing the behavioral sram_ff array into registers.
-    lappend hdl_defines USE_RA1SHD_MAINMEM
-}
 read_hdl -sv -define $hdl_defines $sources
 if {!$mapped} {
     puts "EDA_RTL_READ_COMPLETE"

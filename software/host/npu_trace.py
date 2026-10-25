@@ -22,6 +22,8 @@ def decode_sample(words):
 
 def export_trace(capture, output, period_ns=20):
     """Each row is a value sampled immediately before a system rising edge."""
+    if capture.get('header',{}).get('depth')==0:
+        raise ValueError('waveform trace is not enabled in this hardware build')
     if not isinstance(period_ns,int) or period_ns<2 or period_ns%2:
         raise ValueError('period_ns must be a positive even integer')
     vcd=Path(output)

@@ -168,7 +168,7 @@ def reference(model,values):
         data[n['output']]=out
     return data
 
-def compile_model(model,*,fuse=True,cols=8,act_bytes=4096,model_bytes=8192,max_ops=16):
+def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_ops=16):
     tensors,nodes=analyze(model)
     if cols not in (4,8):raise ValueError('array columns must be 4 or 8')
     uses={name:0 for name in tensors}
@@ -288,7 +288,7 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('model',type=Path);ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--no-fuse',action='store_true');ap.add_argument('--cols',type=int,default=8)
-    ap.add_argument('--act-bytes',type=int,default=4096)
+    ap.add_argument('--act-bytes',type=int,default=8192)
     args=ap.parse_args();model=from_tinycnn_npz(args.model) if args.model.suffix=='.npz' else json.loads(args.model.read_text(encoding='utf-8'))
     pkg=compile_model(model,fuse=not args.no_fuse,cols=args.cols,act_bytes=args.act_bytes);pkg.save(args.output)
     print(json.dumps(pkg.manifest,ensure_ascii=False,indent=2))

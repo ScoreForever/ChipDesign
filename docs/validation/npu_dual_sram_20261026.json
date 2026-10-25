@@ -1,0 +1,1462 @@
+{
+  "date": "2026-10-26",
+  "baseline_commit": "73f5580",
+  "architecture": {
+    "model_bytes": 8192,
+    "activation_bytes": 8192,
+    "activation_read_cache_bytes": 64,
+    "activation_word_write_queue_depth": 8,
+    "core_output_fifo_depth": 8,
+    "asic_waveform_trace_default": false,
+    "simulation_fpga_waveform_default": true,
+    "area_target_mm": [
+      2,
+      2
+    ],
+    "area_target_scope": "estimation only; not a strict EDA acceptance condition"
+  },
+  "scope": "RTL functional verification, two real SRAM Verilog models, configuration elaboration and host API; no ASIC mapped/PnR/board claim",
+  "functional": {
+    "build": "build/dual_sram_verified",
+    "waveform": true,
+    "memory": "behavioral SRAM",
+    "cases": 70,
+    "inferences_per_case": 2,
+    "checked_write_events": 135268,
+    "negative_tests": [
+      "opcode",
+      "reserved",
+      "stride",
+      "shape",
+      "destination",
+      "source",
+      "multiplier",
+      "shift",
+      "lifecycle"
+    ],
+    "tests": [
+      {
+        "case": "cnn_c8_f1_j0",
+        "cycles": [
+          773,
+          771
+        ],
+        "writes": [
+          41,
+          41
+        ],
+        "bytes": 1060,
+        "peak": 102,
+        "checked_write_events": 82
+      },
+      {
+        "case": "cnn_c8_f0_j0",
+        "cycles": [
+          2309,
+          2305
+        ],
+        "writes": [
+          423,
+          423
+        ],
+        "bytes": 1568,
+        "peak": 672,
+        "checked_write_events": 846
+      },
+      {
+        "case": "pool_first_c8_f1_j0",
+        "cycles": [
+          1134,
+          1111
+        ],
+        "writes": [
+          197,
+          197
+        ],
+        "bytes": 1008,
+        "peak": 126,
+        "checked_write_events": 394
+      },
+      {
+        "case": "pool_first_c8_f0_j0",
+        "cycles": [
+          1417,
+          1417
+        ],
+        "writes": [
+          251,
+          251
+        ],
+        "bytes": 1176,
+        "peak": 290,
+        "checked_write_events": 502
+      },
+      {
+        "case": "mlp_c8_f1_j0",
+        "cycles": [
+          495,
+          495
+        ],
+        "writes": [
+          29,
+          29
+        ],
+        "bytes": 796,
+        "peak": 73,
+        "checked_write_events": 58
+      },
+      {
+        "case": "mlp_c8_f0_j0",
+        "cycles": [
+          586,
+          586
+        ],
+        "writes": [
+          42,
+          42
+        ],
+        "bytes": 860,
+        "peak": 73,
+        "checked_write_events": 84
+      },
+      {
+        "case": "i32_pool_c8_f1_j0",
+        "cycles": [
+          208,
+          199
+        ],
+        "writes": [
+          24,
+          24
+        ],
+        "bytes": 232,
+        "peak": 64,
+        "checked_write_events": 48
+      },
+      {
+        "case": "i32_pool_c8_f0_j0",
+        "cycles": [
+          497,
+          497
+        ],
+        "writes": [
+          84,
+          84
+        ],
+        "bytes": 360,
+        "peak": 256,
+        "checked_write_events": 168
+      },
+      {
+        "case": "strided_c8_f1_j0",
+        "cycles": [
+          827,
+          822
+        ],
+        "writes": [
+          130,
+          130
+        ],
+        "bytes": 1148,
+        "peak": 176,
+        "checked_write_events": 260
+      },
+      {
+        "case": "strided_c8_f0_j0",
+        "cycles": [
+          1431,
+          1431
+        ],
+        "writes": [
+          260,
+          260
+        ],
+        "bytes": 1432,
+        "peak": 576,
+        "checked_write_events": 520
+      },
+      {
+        "case": "edges_c8_f1_j0",
+        "cycles": [
+          203,
+          203
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "bytes": 364,
+        "peak": 21,
+        "checked_write_events": 18
+      },
+      {
+        "case": "edges_c8_f0_j0",
+        "cycles": [
+          336,
+          336
+        ],
+        "writes": [
+          18,
+          18
+        ],
+        "bytes": 536,
+        "peak": 48,
+        "checked_write_events": 36
+      },
+      {
+        "case": "long_k_c8_f1_j0",
+        "cycles": [
+          1435,
+          1435
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "bytes": 4332,
+        "peak": 296,
+        "checked_write_events": 18
+      },
+      {
+        "case": "long_k_c8_f0_j0",
+        "cycles": [
+          1435,
+          1435
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "bytes": 4332,
+        "peak": 296,
+        "checked_write_events": 18
+      },
+      {
+        "case": "tinycnn_c8_f1_j0",
+        "cycles": [
+          3854,
+          3854
+        ],
+        "writes": [
+          808,
+          808
+        ],
+        "bytes": 2432,
+        "peak": 960,
+        "checked_write_events": 1616
+      },
+      {
+        "case": "host_i32_quant_c8_f1_j0",
+        "cycles": [
+          509,
+          509
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "bytes": 228,
+        "peak": 225,
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_quant_c8_f0_j0",
+        "cycles": [
+          509,
+          509
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "bytes": 228,
+        "peak": 225,
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_pool_c8_f1_j0",
+        "cycles": [
+          202,
+          202
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "bytes": 128,
+        "peak": 160,
+        "checked_write_events": 32
+      },
+      {
+        "case": "host_i32_pool_c8_f0_j0",
+        "cycles": [
+          202,
+          202
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "bytes": 128,
+        "peak": 160,
+        "checked_write_events": 32
+      },
+      {
+        "case": "tiny_padded_c8_f1_j0",
+        "cycles": [
+          96,
+          96
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 172,
+        "peak": 8,
+        "checked_write_events": 2
+      },
+      {
+        "case": "tiny_padded_c8_f0_j0",
+        "cycles": [
+          177,
+          177
+        ],
+        "writes": [
+          10,
+          10
+        ],
+        "bytes": 236,
+        "peak": 40,
+        "checked_write_events": 20
+      },
+      {
+        "case": "one_mac_c8_f1_j0",
+        "cycles": [
+          71,
+          71
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 108,
+        "peak": 8,
+        "checked_write_events": 2
+      },
+      {
+        "case": "one_mac_c8_f0_j0",
+        "cycles": [
+          71,
+          71
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 108,
+        "peak": 8,
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c8_f1_j0",
+        "cycles": [
+          53,
+          53
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 64,
+        "peak": 13,
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c8_f0_j0",
+        "cycles": [
+          53,
+          53
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 64,
+        "peak": 13,
+        "checked_write_events": 2
+      },
+      {
+        "case": "full_activation_c8_f1_j0",
+        "cycles": [
+          17451,
+          17451
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "bytes": 64,
+        "peak": 4096,
+        "checked_write_events": 8192
+      },
+      {
+        "case": "full_activation_c8_f0_j0",
+        "cycles": [
+          17451,
+          17451
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "bytes": 64,
+        "peak": 4096,
+        "checked_write_events": 8192
+      },
+      {
+        "case": "full_activation_8k_c8_f1_j0",
+        "cycles": [
+          34859,
+          34859
+        ],
+        "writes": [
+          8192,
+          8192
+        ],
+        "bytes": 64,
+        "peak": 8192,
+        "checked_write_events": 16384
+      },
+      {
+        "case": "full_activation_8k_c8_f0_j0",
+        "cycles": [
+          34859,
+          34859
+        ],
+        "writes": [
+          8192,
+          8192
+        ],
+        "bytes": 64,
+        "peak": 8192,
+        "checked_write_events": 16384
+      },
+      {
+        "case": "upper_activation_c8_f1_j0",
+        "cycles": [
+          9310,
+          9310
+        ],
+        "writes": [
+          2048,
+          2048
+        ],
+        "bytes": 140,
+        "peak": 5120,
+        "checked_write_events": 4096
+      },
+      {
+        "case": "upper_activation_c8_f0_j0",
+        "cycles": [
+          9310,
+          9310
+        ],
+        "writes": [
+          2048,
+          2048
+        ],
+        "bytes": 140,
+        "peak": 5120,
+        "checked_write_events": 4096
+      },
+      {
+        "case": "slot_pressure_c8_f1_j0",
+        "cycles": [
+          780,
+          780
+        ],
+        "writes": [
+          512,
+          512
+        ],
+        "bytes": 192,
+        "peak": 576,
+        "checked_write_events": 1024
+      },
+      {
+        "case": "slot_pressure_c8_f0_j0",
+        "cycles": [
+          2565,
+          2565
+        ],
+        "writes": [
+          1024,
+          1024
+        ],
+        "bytes": 352,
+        "peak": 2624,
+        "checked_write_events": 2048
+      },
+      {
+        "case": "trained_c8_f1_j0",
+        "cycles": [
+          3826,
+          3826
+        ],
+        "writes": [
+          804,
+          804
+        ],
+        "bytes": 2384,
+        "peak": 960,
+        "checked_write_events": 1608
+      },
+      {
+        "case": "cnn_c4_f1_j0",
+        "cycles": [
+          1108,
+          1106
+        ],
+        "writes": [
+          41,
+          41
+        ],
+        "bytes": 932,
+        "peak": 102,
+        "checked_write_events": 82
+      },
+      {
+        "case": "cnn_c4_f0_j0",
+        "cycles": [
+          2818,
+          2814
+        ],
+        "writes": [
+          423,
+          423
+        ],
+        "bytes": 1440,
+        "peak": 672,
+        "checked_write_events": 846
+      },
+      {
+        "case": "pool_first_c4_f1_j0",
+        "cycles": [
+          1059,
+          1036
+        ],
+        "writes": [
+          197,
+          197
+        ],
+        "bytes": 768,
+        "peak": 126,
+        "checked_write_events": 394
+      },
+      {
+        "case": "pool_first_c4_f0_j0",
+        "cycles": [
+          1375,
+          1375
+        ],
+        "writes": [
+          251,
+          251
+        ],
+        "bytes": 936,
+        "peak": 290,
+        "checked_write_events": 502
+      },
+      {
+        "case": "mlp_c4_f1_j0",
+        "cycles": [
+          527,
+          527
+        ],
+        "writes": [
+          29,
+          29
+        ],
+        "bytes": 732,
+        "peak": 73,
+        "checked_write_events": 58
+      },
+      {
+        "case": "mlp_c4_f0_j0",
+        "cycles": [
+          634,
+          634
+        ],
+        "writes": [
+          42,
+          42
+        ],
+        "bytes": 796,
+        "peak": 73,
+        "checked_write_events": 84
+      },
+      {
+        "case": "i32_pool_c4_f1_j0",
+        "cycles": [
+          200,
+          191
+        ],
+        "writes": [
+          24,
+          24
+        ],
+        "bytes": 216,
+        "peak": 64,
+        "checked_write_events": 48
+      },
+      {
+        "case": "i32_pool_c4_f0_j0",
+        "cycles": [
+          493,
+          482
+        ],
+        "writes": [
+          84,
+          84
+        ],
+        "bytes": 344,
+        "peak": 256,
+        "checked_write_events": 168
+      },
+      {
+        "case": "strided_c4_f1_j0",
+        "cycles": [
+          965,
+          960
+        ],
+        "writes": [
+          130,
+          130
+        ],
+        "bytes": 908,
+        "peak": 176,
+        "checked_write_events": 260
+      },
+      {
+        "case": "strided_c4_f0_j0",
+        "cycles": [
+          1600,
+          1600
+        ],
+        "writes": [
+          260,
+          260
+        ],
+        "bytes": 1192,
+        "peak": 576,
+        "checked_write_events": 520
+      },
+      {
+        "case": "edges_c4_f1_j0",
+        "cycles": [
+          207,
+          207
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "bytes": 316,
+        "peak": 21,
+        "checked_write_events": 18
+      },
+      {
+        "case": "edges_c4_f0_j0",
+        "cycles": [
+          348,
+          348
+        ],
+        "writes": [
+          18,
+          18
+        ],
+        "bytes": 488,
+        "peak": 48,
+        "checked_write_events": 36
+      },
+      {
+        "case": "long_k_c4_f1_j0",
+        "cycles": [
+          1311,
+          1311
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "bytes": 3292,
+        "peak": 296,
+        "checked_write_events": 18
+      },
+      {
+        "case": "long_k_c4_f0_j0",
+        "cycles": [
+          1311,
+          1311
+        ],
+        "writes": [
+          9,
+          9
+        ],
+        "bytes": 3292,
+        "peak": 296,
+        "checked_write_events": 18
+      },
+      {
+        "case": "tinycnn_c4_f1_j0",
+        "cycles": [
+          6408,
+          6408
+        ],
+        "writes": [
+          808,
+          808
+        ],
+        "bytes": 2432,
+        "peak": 960,
+        "checked_write_events": 1616
+      },
+      {
+        "case": "host_i32_quant_c4_f1_j0",
+        "cycles": [
+          509,
+          509
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "bytes": 228,
+        "peak": 225,
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_quant_c4_f0_j0",
+        "cycles": [
+          509,
+          509
+        ],
+        "writes": [
+          96,
+          96
+        ],
+        "bytes": 228,
+        "peak": 225,
+        "checked_write_events": 192
+      },
+      {
+        "case": "host_i32_pool_c4_f1_j0",
+        "cycles": [
+          202,
+          202
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "bytes": 128,
+        "peak": 160,
+        "checked_write_events": 32
+      },
+      {
+        "case": "host_i32_pool_c4_f0_j0",
+        "cycles": [
+          202,
+          202
+        ],
+        "writes": [
+          16,
+          16
+        ],
+        "bytes": 128,
+        "peak": 160,
+        "checked_write_events": 32
+      },
+      {
+        "case": "tiny_padded_c4_f1_j0",
+        "cycles": [
+          81,
+          81
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 124,
+        "peak": 8,
+        "checked_write_events": 2
+      },
+      {
+        "case": "tiny_padded_c4_f0_j0",
+        "cycles": [
+          156,
+          156
+        ],
+        "writes": [
+          10,
+          10
+        ],
+        "bytes": 188,
+        "peak": 40,
+        "checked_write_events": 20
+      },
+      {
+        "case": "one_mac_c4_f1_j0",
+        "cycles": [
+          63,
+          63
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 92,
+        "peak": 8,
+        "checked_write_events": 2
+      },
+      {
+        "case": "one_mac_c4_f0_j0",
+        "cycles": [
+          63,
+          63
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 92,
+        "peak": 8,
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c4_f1_j0",
+        "cycles": [
+          53,
+          53
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 64,
+        "peak": 13,
+        "checked_write_events": 2
+      },
+      {
+        "case": "negative_pool_c4_f0_j0",
+        "cycles": [
+          53,
+          53
+        ],
+        "writes": [
+          1,
+          1
+        ],
+        "bytes": 64,
+        "peak": 13,
+        "checked_write_events": 2
+      },
+      {
+        "case": "full_activation_c4_f1_j0",
+        "cycles": [
+          17451,
+          17451
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "bytes": 64,
+        "peak": 4096,
+        "checked_write_events": 8192
+      },
+      {
+        "case": "full_activation_c4_f0_j0",
+        "cycles": [
+          17451,
+          17451
+        ],
+        "writes": [
+          4096,
+          4096
+        ],
+        "bytes": 64,
+        "peak": 4096,
+        "checked_write_events": 8192
+      },
+      {
+        "case": "full_activation_8k_c4_f1_j0",
+        "cycles": [
+          34859,
+          34859
+        ],
+        "writes": [
+          8192,
+          8192
+        ],
+        "bytes": 64,
+        "peak": 8192,
+        "checked_write_events": 16384
+      },
+      {
+        "case": "full_activation_8k_c4_f0_j0",
+        "cycles": [
+          34859,
+          34859
+        ],
+        "writes": [
+          8192,
+          8192
+        ],
+        "bytes": 64,
+        "peak": 8192,
+        "checked_write_events": 16384
+      },
+      {
+        "case": "upper_activation_c4_f1_j0",
+        "cycles": [
+          9310,
+          9310
+        ],
+        "writes": [
+          2048,
+          2048
+        ],
+        "bytes": 140,
+        "peak": 5120,
+        "checked_write_events": 4096
+      },
+      {
+        "case": "upper_activation_c4_f0_j0",
+        "cycles": [
+          9310,
+          9310
+        ],
+        "writes": [
+          2048,
+          2048
+        ],
+        "bytes": 140,
+        "peak": 5120,
+        "checked_write_events": 4096
+      },
+      {
+        "case": "slot_pressure_c4_f1_j0",
+        "cycles": [
+          764,
+          764
+        ],
+        "writes": [
+          512,
+          512
+        ],
+        "bytes": 192,
+        "peak": 576,
+        "checked_write_events": 1024
+      },
+      {
+        "case": "slot_pressure_c4_f0_j0",
+        "cycles": [
+          2757,
+          2757
+        ],
+        "writes": [
+          1024,
+          1024
+        ],
+        "bytes": 352,
+        "peak": 2624,
+        "checked_write_events": 2048
+      },
+      {
+        "case": "trained_c4_f1_j0",
+        "cycles": [
+          6126,
+          6126
+        ],
+        "writes": [
+          804,
+          804
+        ],
+        "bytes": 1744,
+        "peak": 960,
+        "checked_write_events": 1608
+      },
+      {
+        "case": "cnn_c8_f1_j1",
+        "cycles": [
+          773,
+          771
+        ],
+        "writes": [
+          41,
+          41
+        ],
+        "bytes": 1060,
+        "peak": 102,
+        "checked_write_events": 82
+      },
+      {
+        "case": "cnn_c8_f0_j1",
+        "cycles": [
+          2309,
+          2305
+        ],
+        "writes": [
+          423,
+          423
+        ],
+        "bytes": 1568,
+        "peak": 672,
+        "checked_write_events": 846
+      }
+    ]
+  },
+  "macro": {
+    "build": "build/dual_sram_macro_verified",
+    "waveform": false,
+    "memory": "two RA1SHD_2048x32M8 Verilog instances",
+    "cases": 70,
+    "inferences_per_case": 2,
+    "checked_write_events": 135268,
+    "all_cases_match_behavioral_cycles_perf_operator_trace": true
+  },
+  "unit": {
+    "independent_q31_vectors": 20000,
+    "activation_pressure": {
+      "reads": 2976,
+      "accepted_writes": 15745,
+      "write_stall_cycles": 1459,
+      "read_stall_cycles": 18376,
+      "peak_write_queue": 8,
+      "behavioral_and_macro_match": true
+    },
+    "core_write_backpressure": {
+      "peak_output_fifo": 8,
+      "peak_reserved_outputs": 8,
+      "longest_stable_stall_cycles": 37
+    },
+    "host_tests_passed": 14
+  },
+  "waveform_configurations": {
+    "scope": "RTL elaboration/simulation and host API checks; no mapped or physical area claim",
+    "configurations": [
+      {
+        "configuration": "simulation",
+        "defines": [],
+        "wave_enabled": true,
+        "elaborated_wave_arrays": [
+          "ram0",
+          "ram1",
+          "ram2",
+          "ram3"
+        ],
+        "result": "PASS"
+      },
+      {
+        "configuration": "asic",
+        "defines": [
+          "-DSYNTHESIS"
+        ],
+        "wave_enabled": false,
+        "elaborated_wave_arrays": [],
+        "result": "PASS"
+      },
+      {
+        "configuration": "fpga",
+        "defines": [
+          "-DSYNTHESIS",
+          "-DCHIPDESIGN_FPGA_MEM"
+        ],
+        "wave_enabled": true,
+        "elaborated_wave_arrays": [
+          "ram0",
+          "ram1",
+          "ram2",
+          "ram3"
+        ],
+        "result": "PASS"
+      },
+      {
+        "configuration": "explicit_off",
+        "defines": [
+          "-DNPU_ENABLE_WAVE_TRACE=0"
+        ],
+        "wave_enabled": false,
+        "elaborated_wave_arrays": [],
+        "result": "PASS"
+      },
+      {
+        "configuration": "asic_explicit_on",
+        "defines": [
+          "-DSYNTHESIS",
+          "-DNPU_ENABLE_WAVE_TRACE=1"
+        ],
+        "wave_enabled": true,
+        "elaborated_wave_arrays": [
+          "ram0",
+          "ram1",
+          "ram2",
+          "ram3"
+        ],
+        "result": "PASS"
+      },
+      {
+        "configuration": "fpga_explicit_off",
+        "defines": [
+          "-DSYNTHESIS",
+          "-DCHIPDESIGN_FPGA_MEM",
+          "-DNPU_ENABLE_WAVE_TRACE=0"
+        ],
+        "wave_enabled": false,
+        "elaborated_wave_arrays": [],
+        "result": "PASS"
+      }
+    ],
+    "host_disabled_wave": "PASS",
+    "sources_sha256": {
+      "hardware/npu/rtl/npu_trace_capture.sv": "52be2b1991bf897f38499e2f123c5377c41ae68c7413e05d06da7f367e244866",
+      "hardware/npu/tb/tb_npu_trace_configuration.sv": "eeb46cdb17d3d603d467e7946a67dbd0e306a92494f09ccb4cfa5015ff3ea53f",
+      "hardware/npu/scripts/run_trace_configuration.py": "2c6373db54eaa934fa47e3229069b29f3a4a1d5f18833ac9adef211a89c11f40",
+      "software/host/nocpu_jtag.py": "138312a85c2269fa1b770a7ddf21f71e24fdb14447e08b2b76541ead7b9cea9b",
+      "software/host/npu_trace.py": "964d734f3d793689a15d165557a53a32f7915c9e6c9d12f63703404dc3078743"
+    }
+  },
+  "asic_elaboration": {
+    "scope": "Icarus whole-system ASIC-configuration elaboration only; not mapped synthesis",
+    "macro_instances": 2,
+    "waveform_arrays_elaborated": false,
+    "source_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+      "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+      "hardware/npu/rtl/npu_activation_store.sv": "3e2f7a734dfb929954da8b08b69ae5a8b84dcb86fab3b1a418fb347a84673f99",
+      "hardware/npu/rtl/npu_program_core.sv": "cd303750a578ae08207e88badd8abb23115ad4ea166cc6bc9f7c7c77e417e377",
+      "hardware/npu/rtl/npu_trace_capture.sv": "52be2b1991bf897f38499e2f123c5377c41ae68c7413e05d06da7f367e244866",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "ac2a59f127705c8c15d3c248e40d0203f61144c886704d8345a650528386e422",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "2d47d05ef5c4553b2f40def5581484a34eb5be952e9746d3570d3f51b279970c",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "819e2eef2990d0a7a52d4b88b93d60444bf9713e2117cd691d8f0dafe8ba9c70"
+    }
+  },
+  "source_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+    "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+    "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+    "hardware/npu/rtl/npu_activation_store.sv": "3e2f7a734dfb929954da8b08b69ae5a8b84dcb86fab3b1a418fb347a84673f99",
+    "hardware/npu/rtl/npu_program_core.sv": "cd303750a578ae08207e88badd8abb23115ad4ea166cc6bc9f7c7c77e417e377",
+    "hardware/npu/rtl/npu_trace_capture.sv": "52be2b1991bf897f38499e2f123c5377c41ae68c7413e05d06da7f367e244866",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "ac2a59f127705c8c15d3c248e40d0203f61144c886704d8345a650528386e422",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "2d47d05ef5c4553b2f40def5581484a34eb5be952e9746d3570d3f51b279970c",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "819e2eef2990d0a7a52d4b88b93d60444bf9713e2117cd691d8f0dafe8ba9c70"
+  },
+  "verification_sha256": {
+    "hardware/npu/scripts/run_program_regression.py": "cf65f9b8e99d4caa491ece34fe053de7e0ed23105f7678101d26a5ed5ee8356d",
+    "hardware/npu/tb/tb_npu_activation_pressure.sv": "75452342a23d0fa5956377bacee89cc1653574d4b176b0051f7dced1cf4582c6",
+    "hardware/npu/tb/tb_npu_memories.sv": "e5abdbb7dc5d27c2e0274a55e2b885d50ee821ff04480ca7089cf78e29e441e0",
+    "hardware/npu/tb/tb_npu_stalls.sv": "134c438498343f52cb7a13029cfd70ce59328d95360545c39eddfad981bda6de",
+    "hardware/npu/tb/tb_npu_trace.sv": "749d5c638a18ba1d968ed64c5587c93c23257472edf2643d530da4681d690341",
+    "hardware/npu/tb/tb_npu_trace_configuration.sv": "eeb46cdb17d3d603d467e7946a67dbd0e306a92494f09ccb4cfa5015ff3ea53f",
+    "hardware/npu/tb/tb_requant_lane.sv": "183b38027bb1ce99bd5a85bfdd0f9d557af4f7da2ae0c43eefd099c5ccf7a822",
+    "hardware/soc/sim/tb/tb_npu_program.sv": "76843e1a3bb2977f569d02bc262313d4f55ca02922dcf4daecdf290ee434e404"
+  },
+  "host_sha256": {
+    "software/host/explore_conv_streaming.py": "ad59825775e3d6747df140cc529cbd81b190b7915361e2edcfe4b4967e0f1192",
+    "software/host/make_demo.py": "3049aa3572057c247fd1e516ec78c0de55c007ee5e827c69da0a6995943c190b",
+    "software/host/nocpu_jtag.py": "138312a85c2269fa1b770a7ddf21f71e24fdb14447e08b2b76541ead7b9cea9b",
+    "software/host/npu_program.py": "13bd8a4824e638603bf55c0c5d46a569f8d59386f9588e74e332dc8dee061ccb",
+    "software/host/npu_trace.py": "964d734f3d793689a15d165557a53a32f7915c9e6c9d12f63703404dc3078743"
+  },
+  "fpga_synthesis": {
+    "tool": "Vivado 2025.2",
+    "part": "xc7a35tcsg324-1",
+    "core_mhz": 50,
+    "tck_mhz": 1,
+    "build": "build/dual_sram_vivado_final",
+    "stage": "synthesis only",
+    "waveform_trace": true,
+    "LUT": 16550,
+    "FF": 10684,
+    "DSP": 48,
+    "BRAM_tiles": 8,
+    "WNS_ns": -0.778,
+    "TNS_ns": -13.432,
+    "WHS_ns": 0.045,
+    "activation_store": {
+      "LUT": 3014,
+      "FF": 1225,
+      "RAMB36": 2
+    },
+    "configuration_bram_drc": "PASS",
+    "source_sha256": {
+      "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+      "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+      "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+      "hardware/npu/rtl/npu_activation_store.sv": "3e2f7a734dfb929954da8b08b69ae5a8b84dcb86fab3b1a418fb347a84673f99",
+      "hardware/npu/rtl/npu_program_core.sv": "cd303750a578ae08207e88badd8abb23115ad4ea166cc6bc9f7c7c77e417e377",
+      "hardware/npu/rtl/npu_trace_capture.sv": "52be2b1991bf897f38499e2f123c5377c41ae68c7413e05d06da7f367e244866",
+      "hardware/soc/rtl/control/npu_command_controller.sv": "ac2a59f127705c8c15d3c248e40d0203f61144c886704d8345a650528386e422",
+      "hardware/soc/rtl/control/npu_control_subsystem.sv": "2d47d05ef5c4553b2f40def5581484a34eb5be952e9746d3570d3f51b279970c",
+      "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+      "hardware/soc/rtl/my_soc_top.sv": "819e2eef2990d0a7a52d4b88b93d60444bf9713e2117cd691d8f0dafe8ba9c70",
+      "hardware/soc/sim/filelists/chipdesign_nocpu.f": "daf29f3a90b9e95aa9b713416aaa25b5934b781d450d0693d4795e421d6bd61f",
+      "hardware/fpga/fpga_top.sv": "236ed0f77c6b0379e848edffb8a81cbfcfe233ff7e61eb0b599b60d0dbb31080",
+      "hardware/fpga/ego1_pins.xdc": "8628583cf2f2078a50d72a42e1da6fda8b80dfef77192f7f43272e7e92c517bc",
+      "hardware/fpga/ego1_timing.xdc": "1053d6db3987abd5eb558c72a9d5b4be7944633cf329439c766173e87aa5c0d0",
+      "hardware/fpga/ego1_configuration.xdc": "c25b411c7385ff165e341597cd0680af860adc87cf73fb682b3667f9b79050cf",
+      "hardware/fpga/check_bram_drc.tcl": "ecd6c298117a6e7bdafd04e17b0545db07fee86dbff9cfbe383c5948e57bd835",
+      "hardware/fpga/scripts/build_ego1.tcl": "547165fabc02c7563c70a10e3c9fea1d4e1a171c4ccd1dba6b8c8fa9ad59ceff",
+      "hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl": "d87badffaa5b77e506c4150a1dfd9d4a7d7cb5e0e2188cbaa7e8daf04c620722",
+      "hardware/fpga/scripts/audit_jtag_io.tcl": "81c5d6831abb805b075f8339f80c37b12206fe0a4071db1905de5eac811dea9a"
+    },
+    "boundary": "FPGA mapping only; not ASIC area and not routed timing"
+  },
+  "fpga_implementation": {
+    "tool": "Vivado 2025.2",
+    "build": "build/dual_sram_route",
+    "part": "xc7a35tcsg324-1",
+    "core_mhz": 50,
+    "tck_mhz": 1,
+    "waveform_trace": true,
+    "stage": "routed",
+    "result": "PASS",
+    "LUT": 16204,
+    "FF": 10684,
+    "DSP": 48,
+    "BRAM_tiles": 8,
+    "WNS_ns": 0.056,
+    "WHS_ns": 0.033,
+    "TNS_ns": 0,
+    "drc_errors": 0,
+    "cdc_audit": [
+      {
+        "group": "request_payload",
+        "kind": "bundled_max_delay",
+        "source_registers": "72",
+        "target_pins": "72",
+        "paths": "72",
+        "bound_ns": "20.0",
+        "min_slack_ns": "18.158",
+        "launch_clock": "tck_i",
+        "capture_clock": "clk_out1_clk_wiz_0"
+      },
+      {
+        "group": "response_payload",
+        "kind": "bundled_max_delay",
+        "source_registers": "37",
+        "target_pins": "37",
+        "paths": "37",
+        "bound_ns": "20.0",
+        "min_slack_ns": "18.338",
+        "launch_clock": "clk_out1_clk_wiz_0",
+        "capture_clock": "tck_i"
+      },
+      {
+        "group": "request_toggle",
+        "kind": "second_stage_max",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "20.000",
+        "min_slack_ns": "18.606",
+        "launch_clock": "clk_out1_clk_wiz_0",
+        "capture_clock": "clk_out1_clk_wiz_0"
+      },
+      {
+        "group": "request_toggle",
+        "kind": "second_stage_min",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "0.000",
+        "min_slack_ns": "0.442",
+        "launch_clock": "clk_out1_clk_wiz_0",
+        "capture_clock": "clk_out1_clk_wiz_0"
+      },
+      {
+        "group": "request_toggle",
+        "kind": "async_entry_D_only",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "response_toggle",
+        "kind": "second_stage_max",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "1000.000",
+        "min_slack_ns": "999.272",
+        "launch_clock": "tck_i",
+        "capture_clock": "tck_i"
+      },
+      {
+        "group": "response_toggle",
+        "kind": "second_stage_min",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "0.000",
+        "min_slack_ns": "0.122",
+        "launch_clock": "tck_i",
+        "capture_clock": "tck_i"
+      },
+      {
+        "group": "response_toggle",
+        "kind": "async_entry_D_only",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "fpga_core_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "fpga_tck_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "tap_core_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "tap_tck_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      }
+    ],
+    "io_audit": [
+      {
+        "port": "td_i",
+        "type": "max",
+        "paths": "4",
+        "io_delay_ns": "532.500",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "1000.000",
+        "min_slack_ns": "467.034",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "td_i",
+        "type": "min",
+        "paths": "4",
+        "io_delay_ns": "475.000",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "0.000",
+        "min_slack_ns": "472.581",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "tms_i",
+        "type": "max",
+        "paths": "4",
+        "io_delay_ns": "532.500",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "1000.000",
+        "min_slack_ns": "467.616",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "tms_i",
+        "type": "min",
+        "paths": "4",
+        "io_delay_ns": "475.000",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "0.000",
+        "min_slack_ns": "472.561",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "td_o",
+        "type": "max",
+        "paths": "1",
+        "io_delay_ns": "541.000",
+        "launch_edge_ns": "500.000",
+        "capture_edge_ns": "1500.000",
+        "min_slack_ns": "447.234",
+        "direct_paths": "0",
+        "equivalent_paths": "1"
+      },
+      {
+        "port": "td_o",
+        "type": "min",
+        "paths": "1",
+        "io_delay_ns": "480.000",
+        "launch_edge_ns": "500.000",
+        "capture_edge_ns": "500.000",
+        "min_slack_ns": "483.586",
+        "direct_paths": "0",
+        "equivalent_paths": "1"
+      }
+    ],
+    "jtag_clock_routing_override": "not applied",
+    "checkpoint_sha256": "43c72f00f4857b5e01c0048a866cff599d0aabdd1a0ce2204901157efffc34fa",
+    "implementation_script_sha256": "bd50398ec8c758b7a33b42a75947cf35ad0acdc5f8b7aafdc9ebcee24a7b2d06",
+    "cdc_script_sha256": "d87badffaa5b77e506c4150a1dfd9d4a7d7cb5e0e2188cbaa7e8daf04c620722",
+    "boundary": [
+      "FT232H short-wire I/O profile only; not measured board I/O",
+      "no bitstream or physical board inference",
+      "no ASIC mapped synthesis or physical signoff"
+    ]
+  },
+  "tooling_sha256": {
+    "hardware/fpga/scripts/audit_jtag_io.tcl": "81c5d6831abb805b075f8339f80c37b12206fe0a4071db1905de5eac811dea9a",
+    "hardware/fpga/scripts/build_ego1.tcl": "547165fabc02c7563c70a10e3c9fea1d4e1a171c4ccd1dba6b8c8fa9ad59ceff",
+    "hardware/fpga/scripts/build_nocpu.py": "d469d3bf004f3f050bfcea06bd942ebc89a2e41166ece9604f015c8cfd628dc2",
+    "hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl": "d87badffaa5b77e506c4150a1dfd9d4a7d7cb5e0e2188cbaa7e8daf04c620722",
+    "hardware/fpga/scripts/implement_nocpu.py": "ce32de9b87d919e6fb9c8164d0cd3a45c4005fba55c8bca80659a6bb5e438535",
+    "hardware/fpga/scripts/implement_nocpu.tcl": "bd50398ec8c758b7a33b42a75947cf35ad0acdc5f8b7aafdc9ebcee24a7b2d06",
+    "hardware/fpga/scripts/run_ego1_ppa.py": "5b557d84f9eda67c47c81419230297a211c7cfb28a1e573c9ac3d14d4f01c280",
+    "hardware/soc/synth/scripts/nocpu_area_config.tcl": "db81fcdb27929533d6aa6678067f27bf930fa8b1410378319cdaa49c856c5ca8",
+    "hardware/soc/synth/scripts/soc_constraints.tcl": "1a5cf9344149060898bf3f6b68549c482781a26ab3a542462bc180d607f22315",
+    "hardware/soc/synth/scripts/synth_dc.tcl": "f64e1b5874032452151e4e92f6e2ca2dd0c9751bde47529202b3db940d735763",
+    "hardware/soc/synth/scripts/synth_genus.tcl": "3a1f917cff1a069bc685f232840edd8d08a65a5d41c0afd2c25dbabb6d771757"
+  }
+}
