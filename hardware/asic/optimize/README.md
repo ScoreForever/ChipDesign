@@ -19,7 +19,8 @@ python3 hardware/asic/optimize/postlayout.py --candidate /absolute/new/experimen
 Use the Python 3.8 environment available after sourcing EDA; the system Python
 may be too old. Never copy private PDK or SRAM views into this repository.
 Paths are discovered from the course installation, and every input is hashed.
-Preflight proves file/tool availability, not a license checkout. Real tool
+Each candidate runs a private, hashed copy of the Tcl driver and saves output
+artifact hashes. Preflight proves file/tool availability, not a license checkout. Real tool
 invocation and the completion markers establish execution.
 
 `search` / `resume` run serially with four threads: 50/55/60/65% utilization,
@@ -28,7 +29,10 @@ and an independent repeat (eight complete-flow attempts maximum). Failed
 existing candidates are preserved rather than silently retried. Start a new
 output directory after changing sources or flow scripts. A changed synthesis
 handoff is rejected. A process timeout kills its process group and saves a
-failed status; never resume while the saved PID is still running.
+failed status. An independent worker preserves the real tool exit code after
+controller disconnection. `resume` waits for the existing verified worker,
+without launching a duplicate; missing exit receipts fail closed. A controller
+lock prevents concurrent controllers for the same output directory.
 
 The macro keeps R0 and a 26um halo. Its fractional position refers to the
 legal lower-left placement interval, reserving room for rings and channels.
@@ -71,3 +75,20 @@ Local framework tests:
 ```bash
 python3 -m unittest discover -s hardware/asic/optimize -p 'test_*.py' -v
 ```
+
+A completed existing course synthesis can be adopted without remapping:
+
+```bash
+python3 hardware/asic/optimize/flow.py adopt --output /absolute/new/experiment \
+  --import-dir /absolute/completed/synthesis
+```
+
+Import requires the completion marker, clean error scan, zero exit code,
+area report and explicit ns SDC with 20/1000ns clocks; it retains the original
+driver and console. All candidates reuse the exact imported netlist bytes.
+The common antenna policy permits at most two selected-net reroutes, saves
+every attempt and rejects unrecognized reports or remaining violations.
+IMPSP-9099 scan-chain diagnostics remain recorded separately when the tool
+otherwise completes; they do not establish DFT completion. Other tool errors
+remain fatal. CI tests the framework without private libraries or EDA licenses;
+server implementation and SDF evidence are separate acceptance gates.

@@ -90,14 +90,14 @@ def geometry(std_area, sizes, utilization=.5, macro_xy=(.2,.2), halo=26):
     xhi,yhi=margin+core-clear-mw,margin+core-clear-mh
     if xhi < xlo or yhi < ylo:
         raise ValueError('macro and halo do not fit')
-    macro = [round(xlo+macro_xy[0]*(xhi-xlo),3), round(ylo+macro_xy[1]*(yhi-ylo),3),mw,mh]
+    macro = [round(round((xlo+macro_xy[0]*(xhi-xlo))/.005)*.005,3), round(round((ylo+macro_xy[1]*(yhi-ylo))/.005)*.005,3),mw,mh]
     pads=[]
     for side,signals in SIGNALS.items():
         entries=[(p,'PDDW0204CDG',direction) for p,direction in signals]+[(p,c,'supply') for p,c in SUPPLIES]
         step=(die-2*corner)/len(entries)
         for i,(name,cell,direction) in enumerate(entries):
             width,depth=sizes[cell]
-            at=corner+(i+.5)*step-width/2
+            at=round(round((corner+(i+.5)*step-width/2)/.005)*.005,3)
             if step < width+1:
                 raise ValueError('overlapping pads')
             if side=='N': loc=[at,die-depth];orient='R180'
@@ -132,34 +132,71 @@ def preflight(output):
     return libs
 
 
+def process_token(pid):
+    path=Path('/proc')/str(pid)/'stat'
+    try:return path.read_text().rsplit(')',1)[1].split()[19]
+    except (OSError,IndexError):return None
+
+
+def finish_tool(directory, marker, state):
+    receipt=directory/'tool_exit.json'
+    if not receipt.exists():
+        state.update(status='failed',reason='missing independent tool exit receipt')
+    else:
+        record=json.loads(receipt.read_text())
+        expected=hashlib.sha256(json.dumps(state['command']).encode()).hexdigest()
+        data=(directory/'console.log').read_text(errors='replace')
+        errors=re.findall(r'(?mi)^(?:Error\s*:|\*\*ERROR:|\*E,|FATAL:|.*\*E,).*$',data)
+        diagnostics=[e for e in errors if 'IMPSP-9099' in e and Path(state['command'][0]).name=='innovus']
+        fatal=[e for e in errors if e not in diagnostics]
+        completed=bool(re.search(r'(?m)^'+re.escape(marker)+r'(?:\s|$)',data))
+        state.update(exit_code=record['exit_code'],marker=completed,errors=errors,unresolved_scan_diagnostics=diagnostics)
+        state['status']='complete' if record['exit_code']==0 and record['command_sha256']==expected and completed and not fatal else 'failed'
+        state['finished']=record['finished']
+    state.setdefault('finished',time.time());save(directory/'status.json',state)
+    return state
+
+
+def recover_tool(directory, marker):
+    state=json.loads((directory/'status.json').read_text())
+    if state['status']!='running':return state
+    # A missing receipt can never be replaced with a guessed zero exit code.
+    deadline=state['started']+state.get('timeout_seconds',14400)
+    while not (directory/'tool_exit.json').exists():
+        token=process_token(state.get('pid',-1))
+        if not token or token!=state.get('process_token'):
+            state.update(status='failed',reason='interrupted tool has no verified exit receipt',finished=time.time())
+            save(directory/'status.json',state);return state
+        if time.time()>deadline:
+            import signal
+            os.killpg(state['pid'],signal.SIGTERM)
+            state.update(status='failed',reason='recovered tool exceeded original timeout',finished=time.time())
+            save(directory/'status.json',state);return state
+        time.sleep(2)
+    return finish_tool(directory,marker,state)
+
+
 def launch(command, directory, marker, timeout=14400):
-    directory.mkdir(parents=True,exist_ok=True)
-    if (directory/'status.json').exists():
-        raise RuntimeError('refusing to overwrite previous run: '+str(directory))
-    state=dict(command=list(map(str,command)),started=time.time(),status='running')
+    command=list(map(str,command));directory.mkdir(parents=True,exist_ok=True)
+    if (directory/'status.json').exists():raise RuntimeError('refusing to overwrite previous run: '+str(directory))
+    state=dict(command=command,started=time.time(),status='running',timeout_seconds=timeout)
     save(directory/'status.json',state)
     try:
         with (directory/'console.log').open('w') as log:
-            proc=subprocess.Popen(command,cwd=directory,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-            state['pid']=proc.pid;save(directory/'status.json',state)
-            try: code=proc.wait(timeout=timeout)
+            worker=[sys.executable,str(HERE/'tool_worker.py'),json.dumps(command),str(directory/'tool_exit.json')]
+            proc=subprocess.Popen(worker,cwd=directory,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            state.update(pid=proc.pid,process_token=process_token(proc.pid));save(directory/'status.json',state)
+            try:proc.wait(timeout=timeout)
             except subprocess.TimeoutExpired:
                 import signal
                 os.killpg(proc.pid,signal.SIGTERM)
-                try: proc.wait(timeout=30)
-                except subprocess.TimeoutExpired: os.killpg(proc.pid,signal.SIGKILL);proc.wait()
+                try:proc.wait(timeout=30)
+                except subprocess.TimeoutExpired:os.killpg(proc.pid,signal.SIGKILL);proc.wait()
                 raise TimeoutError('tool timeout')
-        data=(directory/'console.log').read_text(errors='replace')
-        # Genus may return zero on script failures; scan errors and require marker.
-        errors=re.findall(r'(?mi)^(?:Error\s*:|\*\*ERROR:|\*E,|FATAL:|.*\*E,).*$',data)
-        diagnostics=[e for e in errors if 'IMPSP-9099' in e and Path(str(command[0])).name=='innovus']
-        fatal=[e for e in errors if e not in diagnostics]
-        state.update(exit_code=code,marker=marker in data,errors=errors,unresolved_scan_diagnostics=diagnostics)
-        state['status']='complete' if code==0 and marker in data and not fatal else 'failed'
+        return finish_tool(directory,marker,state)
     except Exception as exc:
-        state.update(status='failed',reason=str(exc))
-    state['finished']=time.time();save(directory/'status.json',state)
-    return state
+        state.update(status='failed',reason=str(exc),finished=time.time());save(directory/'status.json',state)
+        return state
 
 
 def validate_reports(directory):
@@ -182,7 +219,7 @@ def validate_reports(directory):
     place_ok=bool(unplaced and int(unplaced[1])==0 and all(x=='pchkIoOverlapList' for x in lists))
     pg='Found no problems or warnings' in read('pg_connectivity.rpt')
     constraints=read('constraints.rpt')
-    drv=bool(constraints.strip()) and 'No constrained paths' not in constraints and not re.search(r'VIOLATED|max_(?:capacitance|transition|fanout).*-[0-9]',constraints,re.I)
+    drv=bool(re.search(r'No (?:constraint )?violations|max_transition|max_capacitance|max_fanout|Setup Check|Hold Check',constraints,re.I)) and 'No constrained paths' not in constraints and not re.search(r'VIOLATED|max_(?:capacitance|transition|fanout).*-[0-9]',constraints,re.I)
     ports=read('ports.txt').split()
     ports_ok=set(ports)=={'clk_i','rst_ni','tck_i','tms_i','td_i','td_o','irq_o'} and len(ports)==7
     connections=read('io_connectivity.tsv').splitlines()
@@ -230,7 +267,7 @@ def metrics(directory):
     required=['metrics.json','checks.json','timing_setup.rpt','timing_hold.rpt','drc.rpt','pg_drc.rpt','connectivity.rpt','pg_connectivity.rpt','antenna.rpt','placement.rpt','io_geometry.tsv','io_connectivity.tsv','ports.txt','constraints.rpt','outputs/physical.v','outputs/simulation.v','outputs/routed.sdf.gz','outputs/routed.spef.gz','outputs/routed.def','outputs/chip.gds.gz','outputs/chip.lef','outputs/mapped.sdc']
     missing=[p for p in required if not (directory/p).is_file() or (directory/p).stat().st_size==0]
     state=json.loads((directory/'status.json').read_text()) if (directory/'status.json').exists() else {}
-    result=dict(directory=str(directory),eligible=False,missing=missing)
+    result=dict(directory=str(directory),eligible=False,missing=missing,runtime_seconds=max(0,state.get('finished',0)-state.get('started',0)))
     if missing or state.get('status')!='complete': return result
     result.update(json.loads((directory/'metrics.json').read_text()))
     result['checks']=json.loads((directory/'checks.json').read_text())
@@ -275,7 +312,7 @@ def adopt_synthesis(output, libs, source):
     """Import a completed course synthesis, without remapping or changing it."""
     source=source.resolve()
     log=(source/'console.log').read_text(errors='replace')
-    if 'EDA_MAPPED_SYNTHESIS_COMPLETE' not in log or re.search(r'(?mi)^Error\s*:',log):
+    if not re.search(r'(?m)^EDA_MAPPED_SYNTHESIS_COMPLETE$',log) or re.search(r'(?mi)^Error\s*:',log):
         raise RuntimeError('external synthesis has no clean completion evidence')
     if (source/'exit_code').read_text().strip()!='0':raise RuntimeError('synthesis exit code')
     verify_clocks(source/'my_soc_top.sdc')
@@ -296,12 +333,25 @@ def adopt_synthesis(output, libs, source):
     save(directory/'import.json',dict(source=str(source),completed_marker='EDA_MAPPED_SYNTHESIS_COMPLETE',sources_sha256=fingerprint(),library_sha256={k:digest(v) for k,v in libs.items()},note='Imported completed mapped netlist; no new mapping or HDL rewrite'))
 
 
+def snapshot_driver(directory):
+    driver=directory/'driver';driver.mkdir()
+    for path in HERE.iterdir():
+        if path.suffix in ('.py','.tcl','.sv'):shutil.copyfile(path,driver/path.name)
+    legacy=driver/'legacy';legacy.mkdir()
+    for rel in ('config/user_define.tcl','config/global_define.tcl','pnr/scripts/init_pnr_standard.tcl'):
+        shutil.copyfile(ROOT/'hardware/asic/flow'/rel,legacy/Path(rel).name)
+    save(driver/'sha256.json',{str(p.relative_to(driver)):digest(p) for p in driver.rglob('*') if p.is_file()})
+    return driver
+
+
 def candidate(output,libs,name,util,xy,congestion=False):
     directory=output/'candidates'/name
+    if (output/'sources.json').exists() and json.loads((output/'sources.json').read_text())!=fingerprint():
+        raise RuntimeError('inputs changed between candidates')
     if (directory/'status.json').exists():
         state=json.loads((directory/'status.json').read_text())
-        if state.get('status')=='running':
-            raise RuntimeError('candidate is running or was interrupted; inspect saved PID before recovery: '+str(directory))
+        if state.get('status')=='running':state=recover_tool(directory,'PNR_OPT_PHYSICAL_COMPLETE')
+        if state.get('status')=='complete':return finalize_candidate(directory,state)
         return metrics(directory)
     handoff=json.loads((output/'synthesis/handoff.json').read_text())
     if any(digest(output/'synthesis'/p)!=sha for p,sha in handoff.items()):raise RuntimeError('frozen synthesis handoff changed')
@@ -318,18 +368,33 @@ def candidate(output,libs,name,util,xy,congestion=False):
         cfg+=' {'+' '.join([pad['name'],pad['cell'],pad['port'] or '-',pad['direction'],pad['side'],*map(str,pad['loc']),pad['orient']])+'}\n'
     cfg+='}\n'
     (directory/'config.tcl').write_text(cfg)
-    state=launch(['innovus','-no_gui','-files',str(HERE/'fullchip.tcl')],directory,'PNR_OPT_PHYSICAL_COMPLETE')
+    driver=snapshot_driver(directory)
+    state=launch(['innovus','-no_gui','-files',str(driver/'fullchip.tcl')],directory,'PNR_OPT_PHYSICAL_COMPLETE')
+    return finalize_candidate(directory,state)
+
+
+def finalize_candidate(directory,state):
     if state['status']=='complete':
         save(directory/'checks.json',validate_reports(directory))
         raw=json.loads((directory/'metrics.json').read_text());raw['wire_length_um']=def_wire_length(directory/'outputs/routed.def');save(directory/'metrics.json',raw)
+        save(directory/'artifact_sha256.json',{str(p.relative_to(directory)):digest(p) for p in (directory/'outputs').iterdir() if p.is_file()})
     result=metrics(directory);result['runtime_seconds']=state['finished']-state['started'];save(directory/'result.json',result)
     return result
 
 
 def summarize(output):
     rows=[metrics(p.parent) for p in sorted((output/'candidates').glob('*/status.json'))]
-    ranked=rank(rows)
-    result=dict(candidates=rows,best=ranked[0] if ranked else None,limitation='TT only; vectorless power; no foundry signoff',sources_sha256=fingerprint())
+    ranked=rank([r for r in rows if Path(r['directory']).name!='repeat'])
+    selected=json.loads((output/'selection.json').read_text())['directory'] if (output/'selection.json').exists() else None
+    best=next((r for r in ranked if r['directory']==selected),ranked[0] if ranked else None)
+    repeat=next((r for r in rows if Path(r['directory']).name=='repeat'),None)
+    def sdf_pass(point):
+        path=Path(point['directory'])/'sdf/result.json' if point else None
+        return bool(path and path.is_file() and json.loads(path.read_text()).get('passed'))
+    baseline=next((r for r in rows if Path(r['directory']).name=='u50'),None)
+    release=bool(best and repeat and repeat['eligible'] and baseline and baseline['eligible'] and sdf_pass(best) and sdf_pass(baseline))
+    frozen=json.loads((output/'sources.json').read_text()) if (output/'sources.json').exists() else None
+    result=dict(candidates=rows,best=best,repeat=repeat,release_eligible=release,validated_area_improvement_percent=(100*(baseline['die_area_mm2']-best['die_area_mm2'])/baseline['die_area_mm2'] if release else None),limitation='TT only; vectorless power; no foundry signoff',sources_sha256=frozen)
     save(output/'summary.json',result)
     lines=['# Full-chip PNR experiments','','| Run | Valid physical result | Die mm² | Setup ns | Hold ns | Wire m |','|---|---|---:|---:|---:|---:|']
     for r in rows:
@@ -345,7 +410,10 @@ def search(output,libs):
     save(frozen,fingerprint())
     if not (output/'synthesis/handoff.json').exists():synth(output,libs)
     rows=[]
-    for util in (.5,.55,.6,.65):rows.append(candidate(output,libs,f'u{int(util*100)}',util,(.2,.2)))
+    for util in (.5,.55,.6,.65):
+        row=candidate(output,libs,f'u{int(util*100)}',util,(.2,.2));rows.append(row)
+        if util==.5 and not row.get('eligible'):
+            summarize(output);raise RuntimeError('baseline failed physical acceptance; inspect it before starting more candidates')
     best=rank(rows)
     if not best:summarize(output);raise RuntimeError('no physically valid baseline/candidate')
     exp=json.loads((Path(best[0]['directory'])/'experiment.json').read_text());util=exp['utilization']
@@ -353,6 +421,7 @@ def search(output,libs):
     best=rank(rows)[0];exp=json.loads((Path(best['directory'])/'experiment.json').read_text())
     rows.append(candidate(output,libs,'congestion',exp['utilization'],exp['macro_xy'],True))
     best=rank(rows)[0];exp=json.loads((Path(best['directory'])/'experiment.json').read_text())
+    save(output/'selection.json',dict(directory=best['directory'],experiment=exp))
     repeat=candidate(output,libs,'repeat',exp['utilization'],exp['macro_xy'],exp['congestion'])
     summarize(output)
     if not repeat.get('eligible'):raise RuntimeError('independent repeat failed')
@@ -361,6 +430,8 @@ def search(output,libs):
             subprocess.run([sys.executable,str(HERE/'postlayout.py'),'--candidate',str(point)],check=True)
         if not json.loads((point/'sdf/result.json').read_text()).get('passed'):
             raise RuntimeError('SDF acceptance failed: '+str(point))
+    final=summarize(output)
+    if not final['release_eligible']:raise RuntimeError('final release gates are not satisfied')
 
 
 def main():
@@ -370,6 +441,10 @@ def main():
     ap.add_argument('--import-dir',type=Path)
     args=ap.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=True)
     if args.action=='summary':summarize(output);return
+    import fcntl
+    lock=(output/'controller.lock').open('a')
+    try:fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
+    except BlockingIOError:raise RuntimeError('another controller is already running for this experiment')
     libs=preflight(output)
     if args.action=='preflight':return
     if args.action=='adopt':
@@ -378,7 +453,8 @@ def main():
     elif args.action=='synth':synth(output,libs)
     elif args.action=='baseline':
         if not (output/'synthesis/handoff.json').exists():synth(output,libs)
-        candidate(output,libs,'u50',.5,(.2,.2));summarize(output)
+        result=candidate(output,libs,'u50',.5,(.2,.2));summarize(output)
+        if not result.get('eligible'):raise RuntimeError('baseline physical acceptance failed')
     else:search(output,libs)
 
 if __name__=='__main__':main()
