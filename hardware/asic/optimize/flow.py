@@ -1,0 +1,384 @@
+#!/usr/bin/env python3
+"""Reproducible No-CPU full-chip experiments; run on the course Linux node."""
+from __future__ import annotations
+import argparse
+import hashlib
+import json
+import math
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import time
+
+ROOT = Path(__file__).resolve().parents[3]
+HERE = Path(__file__).resolve().parent
+SIGNALS = {'N': [('clk_i', 'input'), ('rst_ni', 'input'), ('irq_o', 'output')],
+           'S': [('tck_i', 'input'), ('tms_i', 'input'), ('td_i', 'input'), ('td_o', 'output')], 'W': [], 'E': []}
+SUPPLIES = [('vss_1','PVSS1CDG'), ('vss_2','PVSS1CDG'), ('vssio','PVSS2CDG'),
+            ('vdd_1','PVDD1CDG'), ('vdd_2','PVDD1CDG'), ('vddio','PVDD2CDG'), ('poc','PVDD2POC')]
+
+def save(path, value):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + '.tmp')
+    tmp.write_text(json.dumps(value, indent=2, sort_keys=True) + '\n')
+    tmp.replace(path)
+
+
+def digest(path):
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def tcl(value):
+    value = str(value)
+    if any(c in value for c in '{}\n\r'):
+        raise ValueError('unsupported Tcl path/value')
+    return '{' + value + '}'
+
+
+def libraries(pdk=Path('/lec/pdk/tsmc180'), course=Path('/lec/lab4/soc_cv32e40p_template_pnr-stu')):
+    std = pdk/'tcb018gbwp7t_290a/TSMCHOME/digital'
+    io = pdk/'tpd018nv_280a/TSMCHOME/digital'
+    bond = pdk/'tpb018v_180a/TSMCHOME/digital'
+    macro = course/'src/macro/RA1SHD_2048x32M8'
+    return dict(std_lib=std/'Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib',
+        io_lib=io/'Front_End/timing_power_noise/NLDM/tpd018nv_280a/tpd018nvtc.lib',
+        macro_lib=macro/'RA1SHD_2048x32M8_tt_1p8_25C_syn.lib',
+        std_lef=std/'Back_End/lef/tcb018gbwp7t_270a/lef/tcb018gbwp7t_6lm.lef',
+        io_lef=io/'Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/tpd018nv_6lm.lef',
+        io_ant_lef=io/'Back_End/lef/tpd018nv_280a/mt_2/6lm/lef/antenna_6lm.lef',
+        bond_lef=bond/'Back_End/lef/tpb018v_180a/cup/6lm/lef/tpb018v_6lm.lef',
+        macro_lef=macro/'RA1SHD_2048x32M8.vclef', macro_ant_lef=macro/'RA1SHD_2048x32M8_ant.lef',
+        captable=std/'Back_End/lef/tcb018gbwp7t_270a/techfiles/captable/t018lo_1p6m_typical.captable',
+        gds_map=std/'Back_End/lef/tcb018gbwp7t_270a/techfiles/gds2.map',
+        std_gds=std/'Back_End/gds/tcb018gbwp7t_270a/tcb018gbwp7t.gds',
+        io_gds=io/'Back_End/gds/tpd018nv_280a/mt_2/6lm/tpd018nv.gds',
+        bond_gds=bond/'Back_End/gds/tpb018v_180a/cup/6lm/tpb018v.gds', macro_gds=macro/'RA1SHD_2048x32M8.gds',
+        std_verilog=std/'Front_End/verilog/tcb018gbwp7t_270a/tcb018gbwp7t.v',
+        io_verilog=io/'Front_End/verilog/tpd018nv_260a/tpd018nv.v', macro_verilog=macro/'RA1SHD_2048x32M8.v')
+
+
+def lef_sizes(paths):
+    sizes = {}
+    for path in paths:
+        data = Path(path).read_text(errors='replace')
+        for match in re.finditer(r'(?m)^[ \t]*MACRO\s+(\S+)(.*?)(?=^[ \t]*END\s+\1[ \t]*$)', data, re.S | re.M):
+            size = re.search(r'\bSIZE\s+([\d.]+)\s+BY\s+([\d.]+)', match[2])
+            if size:
+                sizes[match[1]] = [float(size[1]), float(size[2])]
+    return sizes
+
+
+def geometry(std_area, sizes, utilization=.5, macro_xy=(.2,.2), halo=26):
+    if not 0 < utilization < 1 or std_area <= 0 or not all(0 <= x <= 1 for x in macro_xy) or halo < 0:
+        raise ValueError('invalid geometry inputs')
+    mw, mh = sizes['RA1SHD_2048x32M8']
+    core = math.ceil(math.sqrt(std_area/utilization + mw*mh)/20)*20
+    margin = 150
+    corner = sizes['PCORNER'][0]
+    pad_width, pad_depth = sizes['PDDW0204CDG']
+    # Enough room for every side's electrical pads and corners, with 10um gaps.
+    minimum = max((len(SUPPLIES)+len(v))*(pad_width+10) + 2*corner for v in SIGNALS.values())
+    core = max(core, math.ceil((minimum-2*margin)/20)*20)
+    die = core+2*margin
+    # Ring width/offset, macro halo and routing channels remain clear.
+    clear = max(halo, 26) + 20
+    xlo,ylo=margin+clear,margin+clear
+    xhi,yhi=margin+core-clear-mw,margin+core-clear-mh
+    if xhi < xlo or yhi < ylo:
+        raise ValueError('macro and halo do not fit')
+    macro = [round(xlo+macro_xy[0]*(xhi-xlo),3), round(ylo+macro_xy[1]*(yhi-ylo),3),mw,mh]
+    pads=[]
+    for side,signals in SIGNALS.items():
+        entries=[(p,'PDDW0204CDG',direction) for p,direction in signals]+[(p,c,'supply') for p,c in SUPPLIES]
+        step=(die-2*corner)/len(entries)
+        for i,(name,cell,direction) in enumerate(entries):
+            width,depth=sizes[cell]
+            at=corner+(i+.5)*step-width/2
+            if step < width+1:
+                raise ValueError('overlapping pads')
+            if side=='N': loc=[at,die-depth];orient='R180'
+            elif side=='S': loc=[at,0];orient='R0'
+            elif side=='W': loc=[0,at];orient='R270'
+            else: loc=[die-depth,at];orient='R90'
+            pads.append(dict(name='i_pad_'+(name if direction!='supply' else side+'_'+name),
+                port=name if direction!='supply' else None, cell=cell,direction=direction,side=side,loc=loc,orient=orient))
+    return dict(core_side_um=core,die_side_um=die,margin_um=margin,macro=macro,halo_um=halo,pads=pads,corner_um=corner,bond_depth_um=sizes.get('PAD60LU_OBV',[60,73.16])[1])
+
+
+def fingerprint():
+    paths = [ROOT/line.strip() for line in (ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines() if line.strip() and not line.startswith('+')]
+    paths += sorted(HERE.glob('*.tcl')) + sorted(HERE.glob('*.sv')) + sorted(HERE.glob('*.py'))
+    paths += [ROOT/p for p in ('hardware/soc/sim/filelists/chipdesign_nocpu.f','hardware/soc/synth/scripts/soc_constraints.tcl','hardware/asic/flow/config/user_define.tcl','hardware/asic/flow/config/global_define.tcl','hardware/asic/flow/pnr/scripts/init_pnr_standard.tcl')]
+    return {str(p.relative_to(ROOT)):digest(p) for p in paths}
+
+
+def preflight(output):
+    libs=libraries()
+    missing=[str(v) for v in libs.values() if not v.is_file()]
+    tools={x:shutil.which(x) for x in ('genus','innovus','xrun')}
+    result=dict(libraries={k:str(v) for k,v in libs.items()},missing=missing,tools=tools,sources_sha256=fingerprint(),
+                library_sha256={k:digest(v) for k,v in libs.items() if v.is_file()},license_checked=False)
+    if (output/'preflight.json').exists():
+        previous=json.loads((output/'preflight.json').read_text())
+        if previous.get('library_sha256')!=result['library_sha256']:
+            raise RuntimeError('library inputs changed; use a new output directory')
+    save(output/'preflight.json',result)
+    if missing or not all(tools.values()):
+        raise RuntimeError('preflight failed; see preflight.json')
+    return libs
+
+
+def launch(command, directory, marker, timeout=14400):
+    directory.mkdir(parents=True,exist_ok=True)
+    if (directory/'status.json').exists():
+        raise RuntimeError('refusing to overwrite previous run: '+str(directory))
+    state=dict(command=list(map(str,command)),started=time.time(),status='running')
+    save(directory/'status.json',state)
+    try:
+        with (directory/'console.log').open('w') as log:
+            proc=subprocess.Popen(command,cwd=directory,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            state['pid']=proc.pid;save(directory/'status.json',state)
+            try: code=proc.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                import signal
+                os.killpg(proc.pid,signal.SIGTERM)
+                try: proc.wait(timeout=30)
+                except subprocess.TimeoutExpired: os.killpg(proc.pid,signal.SIGKILL);proc.wait()
+                raise TimeoutError('tool timeout')
+        data=(directory/'console.log').read_text(errors='replace')
+        # Genus may return zero on script failures; scan errors and require marker.
+        errors=re.findall(r'(?mi)^(?:Error\s*:|\*\*ERROR:|\*E,|FATAL:|.*\*E,).*$',data)
+        diagnostics=[e for e in errors if 'IMPSP-9099' in e and Path(str(command[0])).name=='innovus']
+        fatal=[e for e in errors if e not in diagnostics]
+        state.update(exit_code=code,marker=marker in data,errors=errors,unresolved_scan_diagnostics=diagnostics)
+        state['status']='complete' if code==0 and marker in data and not fatal else 'failed'
+    except Exception as exc:
+        state.update(status='failed',reason=str(exc))
+    state['finished']=time.time();save(directory/'status.json',state)
+    return state
+
+
+def validate_reports(directory):
+    """Fail closed; unknown report formats are not evidence of success."""
+    def read(name):
+        path=directory/name
+        return path.read_text(errors='replace') if path.is_file() else ''
+    drc=lambda text: bool(re.search(r'No DRC violations were found',text,re.I))
+    antenna=bool(re.search(r'No Violations Found',read('antenna.rpt'),re.I))
+    regular=read('connectivity.rpt')
+    # Abutting native IO supply rails are checked separately from routed nets.
+    infos=re.findall(r'Net (\S+): no routing',regular)
+    regular_ok='Found no problems or warnings' in regular or (len(infos)==2 and set(infos)=={'VDDPST','VSSPST'} and '2 total info(s)' in regular and '2 Problem(s) (IMPVFC-98)' in regular)
+    place=read('placement.rpt')
+    unplaced=re.search(r'Number of Unplaced Instances\s*=\s*(\d+)',place)
+    # Bond openings intentionally overlay electrical PAD cells; all other
+    # legal placement failure classes must be absent. Actual rectangles below
+    # independently check electrical PAD/corner/filler overlap and die bounds.
+    lists=re.findall(r'set (pchk\w+) \[list',place)
+    place_ok=bool(unplaced and int(unplaced[1])==0 and all(x=='pchkIoOverlapList' for x in lists))
+    pg='Found no problems or warnings' in read('pg_connectivity.rpt')
+    constraints=read('constraints.rpt')
+    drv=bool(constraints.strip()) and 'No constrained paths' not in constraints and not re.search(r'VIOLATED|max_(?:capacitance|transition|fanout).*-[0-9]',constraints,re.I)
+    ports=read('ports.txt').split()
+    ports_ok=set(ports)=={'clk_i','rst_ni','tck_i','tms_i','td_i','td_o','irq_o'} and len(ports)==7
+    connections=read('io_connectivity.tsv').splitlines()
+    ports_ok &= len(connections)==7
+    seen=set()
+    for line in connections:
+        row=line.split()
+        if len(row)!=5:ports_ok=False;continue
+        port,external,pad_net,core_net,direction=row;seen.add(port)
+        ports_ok &= external==pad_net and core_net!=external and core_net!='0x0' and direction==('output' if port in ('td_o','irq_o') else 'input')
+    ports_ok &= seen==set(ports)
+    geo=read('io_geometry.tsv'); boxes=[];pad_ok=bool(geo)
+    for line in geo.splitlines():
+        name,cell,orientation,*coords=line.split()
+        x0,y0,x1,y1,die=map(float,coords)
+        pad_ok &= x0>=-.001 and y0>=-.001 and x1<=die+.001 and y1<=die+.001
+        boxes.append((name,x0,y0,x1,y1))
+    for i,a in enumerate(boxes):
+        for b in boxes[i+1:]:
+            if min(a[3],b[3])-max(a[1],b[1])>.001 and min(a[4],b[4])-max(a[2],b[2])>.001:
+                pad_ok=False
+    return dict(placement=place_ok,drc=drc(read('drc.rpt')),pg_drc=drc(read('pg_drc.rpt')),connectivity=regular_ok,pg_connectivity=pg,antenna=antenna,drv=drv,ports=ports_ok,pad_geometry=pad_ok)
+
+
+def def_wire_length(path):
+    text=Path(path).read_text()
+    units=re.search(r'UNITS DISTANCE MICRONS (\d+)',text)
+    if not units:raise ValueError('DEF units missing')
+    nets=re.search(r'(?ms)^NETS \d+ ;(.*?)^END NETS',text)
+    if not nets:raise ValueError('DEF NETS missing')
+    length=0
+    for section in re.split(r'\+\s*(?:ROUTED|FIXED|COVER)|\bNEW\b',nets[1])[1:]:
+        previous=None
+        for a,b in re.findall(r'\(\s*(-?\d+|\*)\s+(-?\d+|\*)(?:\s+-?\d+)?\s*\)',section.split(';')[0]):
+            if previous is None and '*' in (a,b):raise ValueError('unresolved DEF wildcard')
+            point=(previous[0] if a=='*' else int(a),previous[1] if b=='*' else int(b))
+            if previous:length+=abs(point[0]-previous[0])+abs(point[1]-previous[1])
+            previous=point
+    if length<=0:raise ValueError('no routed wire geometry')
+    return length/int(units[1])
+
+
+def metrics(directory):
+    directory=Path(directory)
+    required=['metrics.json','checks.json','timing_setup.rpt','timing_hold.rpt','drc.rpt','pg_drc.rpt','connectivity.rpt','pg_connectivity.rpt','antenna.rpt','placement.rpt','io_geometry.tsv','io_connectivity.tsv','ports.txt','constraints.rpt','outputs/physical.v','outputs/simulation.v','outputs/routed.sdf.gz','outputs/routed.spef.gz','outputs/routed.def','outputs/chip.gds.gz','outputs/chip.lef','outputs/mapped.sdc']
+    missing=[p for p in required if not (directory/p).is_file() or (directory/p).stat().st_size==0]
+    state=json.loads((directory/'status.json').read_text()) if (directory/'status.json').exists() else {}
+    result=dict(directory=str(directory),eligible=False,missing=missing)
+    if missing or state.get('status')!='complete': return result
+    result.update(json.loads((directory/'metrics.json').read_text()))
+    result['checks']=json.loads((directory/'checks.json').read_text())
+    finite=all(isinstance(result.get(k),(int,float)) and math.isfinite(result[k]) for k in ('setup_wns_ns','hold_wns_ns','setup_tns_ns','hold_tns_ns','die_area_mm2','wire_length_um'))
+    result['eligible']=finite and all(result['checks'].get(k) is True for k in ('placement','drc','pg_drc','connectivity','pg_connectivity','antenna','drv','ports','pad_geometry')) and result['setup_wns_ns']>=0 and result['hold_wns_ns']>=0 and result['setup_tns_ns']==0 and result['hold_tns_ns']==0
+    return result
+
+
+def rank(rows):
+    return sorted((r for r in rows if r.get('eligible')),key=lambda r:(r['die_area_mm2'],-r['setup_wns_ns'],r['wire_length_um'],r.get('runtime_seconds',0)))
+
+
+def common_config(libs):
+    return '\n'.join('set '+key+' '+tcl(value) for key,value in libs.items())+'\n'
+
+
+def synth(output,libs):
+    directory=output/'synthesis'
+    directory.mkdir(parents=True,exist_ok=True)
+    cfg=common_config(libs)+'set source_root '+tcl(ROOT)+'\nset threads 4\n'
+    (directory/'config.tcl').write_text(cfg)
+    state=launch(['genus','-no_gui','-batch','-files',str(HERE/'synth.tcl')],directory,'PNR_OPT_SYNTHESIS_COMPLETE')
+    if state['status']!='complete':raise RuntimeError('synthesis failed: '+str(directory))
+    verify_clocks(directory/'mapped.sdc')
+    save(directory/'handoff.json',{p:digest(directory/p) for p in ('mapped.v','mapped.sdc','area.json')})
+
+
+def verify_clocks(path):
+    text=Path(path).read_text().replace('\\\n',' ')
+    unit=re.search(r'set_units[^\n]*-time\s+(\S+)',text)
+    if not unit or unit[1] not in ('ns','1ns'):raise RuntimeError('handoff must explicitly use ns; do not silently reinterpret SDC')
+    clocks={}
+    for line in text.splitlines():
+        if not line.lstrip().startswith('create_clock'):continue
+        name=re.search(r'-name\s+[{]?([\w]+)',line);period=re.search(r'-period\s+([{]?)([\d.]+)',line)
+        if name and period:clocks[name[1]]=float(period[2])
+    if clocks.get('core_clk')!=20 or clocks.get('jtag_clk')!=1000:raise RuntimeError('unexpected clock periods: '+str(clocks))
+    return clocks
+
+
+def adopt_synthesis(output, libs, source):
+    """Import a completed course synthesis, without remapping or changing it."""
+    source=source.resolve()
+    log=(source/'console.log').read_text(errors='replace')
+    if 'EDA_MAPPED_SYNTHESIS_COMPLETE' not in log or re.search(r'(?mi)^Error\s*:',log):
+        raise RuntimeError('external synthesis has no clean completion evidence')
+    if (source/'exit_code').read_text().strip()!='0':raise RuntimeError('synthesis exit code')
+    verify_clocks(source/'my_soc_top.sdc')
+    report=(source/'area.rpt').read_text()
+    top=re.search(r'(?m)^my_soc_top\s+(\d+)\s+([\d.]+)',report)
+    macro=re.search(r'\barea\s*:\s*([\d.]+)',libs['macro_lib'].read_text(errors='replace'))
+    if not top or not macro:raise RuntimeError('unrecognized synthesis area report')
+    total=float(top[2]);macro_area=float(macro[1])
+    if total<=macro_area:raise RuntimeError('invalid imported area')
+    directory=output/'synthesis'
+    if directory.exists():raise RuntimeError('refusing to replace synthesis handoff')
+    directory.mkdir()
+    for old,new in [('my_soc_top.v','mapped.v'),('my_soc_top.sdc','mapped.sdc'),('area.rpt','area.rpt'),('timing.rpt','timing.rpt'),('console.log','console.log'),('run.tcl','original_driver.tcl'),('run.sh','original_driver.sh')]:
+        shutil.copyfile(source/old,directory/new)
+    save(directory/'area.json',dict(total_area_um2=total,standard_cell_area_um2=total-macro_area,macro_area_um2=macro_area))
+    verify_clocks(directory/'mapped.sdc')
+    save(directory/'handoff.json',{p:digest(directory/p) for p in ('mapped.v','mapped.sdc','area.json')})
+    save(directory/'import.json',dict(source=str(source),completed_marker='EDA_MAPPED_SYNTHESIS_COMPLETE',sources_sha256=fingerprint(),library_sha256={k:digest(v) for k,v in libs.items()},note='Imported completed mapped netlist; no new mapping or HDL rewrite'))
+
+
+def candidate(output,libs,name,util,xy,congestion=False):
+    directory=output/'candidates'/name
+    if (directory/'status.json').exists():
+        state=json.loads((directory/'status.json').read_text())
+        if state.get('status')=='running':
+            raise RuntimeError('candidate is running or was interrupted; inspect saved PID before recovery: '+str(directory))
+        return metrics(directory)
+    handoff=json.loads((output/'synthesis/handoff.json').read_text())
+    if any(digest(output/'synthesis'/p)!=sha for p,sha in handoff.items()):raise RuntimeError('frozen synthesis handoff changed')
+    area=json.loads((output/'synthesis/area.json').read_text())
+    sizes=lef_sizes([libs[k] for k in ('macro_lef','io_lef','bond_lef')])
+    geo=geometry(area['standard_cell_area_um2'],sizes,util,xy)
+    directory.mkdir(parents=True,exist_ok=True)
+    save(directory/'experiment.json',dict(utilization=util,macro_xy=xy,congestion=congestion,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
+    cfg=common_config(libs)+f'set threads 4\nset congestion {int(congestion)}\nset source_root '+tcl(ROOT)+'\nset netlist '+tcl(output/'synthesis/mapped.v')+'\nset sdc '+tcl(output/'synthesis/mapped.sdc')+'\n'
+    for key in ('core_side_um','die_side_um','margin_um','corner_um','halo_um','bond_depth_um'):
+        cfg+='set '+key+' '+str(geo[key])+'\n'
+    cfg+='set macro_box {'+' '.join(map(str,geo['macro']))+'}\nset pads {\n'
+    for pad in geo['pads']:
+        cfg+=' {'+' '.join([pad['name'],pad['cell'],pad['port'] or '-',pad['direction'],pad['side'],*map(str,pad['loc']),pad['orient']])+'}\n'
+    cfg+='}\n'
+    (directory/'config.tcl').write_text(cfg)
+    state=launch(['innovus','-no_gui','-files',str(HERE/'fullchip.tcl')],directory,'PNR_OPT_PHYSICAL_COMPLETE')
+    if state['status']=='complete':
+        save(directory/'checks.json',validate_reports(directory))
+        raw=json.loads((directory/'metrics.json').read_text());raw['wire_length_um']=def_wire_length(directory/'outputs/routed.def');save(directory/'metrics.json',raw)
+    result=metrics(directory);result['runtime_seconds']=state['finished']-state['started'];save(directory/'result.json',result)
+    return result
+
+
+def summarize(output):
+    rows=[metrics(p.parent) for p in sorted((output/'candidates').glob('*/status.json'))]
+    ranked=rank(rows)
+    result=dict(candidates=rows,best=ranked[0] if ranked else None,limitation='TT only; vectorless power; no foundry signoff',sources_sha256=fingerprint())
+    save(output/'summary.json',result)
+    lines=['# Full-chip PNR experiments','','| Run | Valid physical result | Die mm² | Setup ns | Hold ns | Wire m |','|---|---|---:|---:|---:|---:|']
+    for r in rows:
+        lines.append('| {} | {} | {} | {} | {} | {} |'.format(Path(r['directory']).name,r['eligible'],r.get('die_area_mm2','—'),r.get('setup_wns_ns','—'),r.get('hold_wns_ns','—'),r.get('wire_length_um',0)/1e6))
+    lines+=['','Physical eligibility does not establish SDF or multi-corner signoff.']
+    (output/'summary.md').write_text('\n'.join(lines)+'\n')
+    return result
+
+
+def search(output,libs):
+    frozen=output/'sources.json'
+    if frozen.exists() and json.loads(frozen.read_text())!=fingerprint(): raise RuntimeError('source/flow changed; use a new experiment directory')
+    save(frozen,fingerprint())
+    if not (output/'synthesis/handoff.json').exists():synth(output,libs)
+    rows=[]
+    for util in (.5,.55,.6,.65):rows.append(candidate(output,libs,f'u{int(util*100)}',util,(.2,.2)))
+    best=rank(rows)
+    if not best:summarize(output);raise RuntimeError('no physically valid baseline/candidate')
+    exp=json.loads((Path(best[0]['directory'])/'experiment.json').read_text());util=exp['utilization']
+    for name,xy in [('macro_east',(.8,.2)),('macro_north',(.2,.8))]:rows.append(candidate(output,libs,name,util,xy))
+    best=rank(rows)[0];exp=json.loads((Path(best['directory'])/'experiment.json').read_text())
+    rows.append(candidate(output,libs,'congestion',exp['utilization'],exp['macro_xy'],True))
+    best=rank(rows)[0];exp=json.loads((Path(best['directory'])/'experiment.json').read_text())
+    repeat=candidate(output,libs,'repeat',exp['utilization'],exp['macro_xy'],exp['congestion'])
+    summarize(output)
+    if not repeat.get('eligible'):raise RuntimeError('independent repeat failed')
+    for point in (output/'candidates/u50',Path(best['directory'])):
+        if not (point/'sdf/result.json').exists():
+            subprocess.run([sys.executable,str(HERE/'postlayout.py'),'--candidate',str(point)],check=True)
+        if not json.loads((point/'sdf/result.json').read_text()).get('passed'):
+            raise RuntimeError('SDF acceptance failed: '+str(point))
+
+
+def main():
+    ap=argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('action',choices=['preflight','synth','adopt','baseline','search','resume','summary'])
+    ap.add_argument('--output',type=Path,required=True)
+    ap.add_argument('--import-dir',type=Path)
+    args=ap.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=True)
+    if args.action=='summary':summarize(output);return
+    libs=preflight(output)
+    if args.action=='preflight':return
+    if args.action=='adopt':
+        if not args.import_dir:ap.error('adopt requires --import-dir')
+        adopt_synthesis(output,libs,args.import_dir)
+    elif args.action=='synth':synth(output,libs)
+    elif args.action=='baseline':
+        if not (output/'synthesis/handoff.json').exists():synth(output,libs)
+        candidate(output,libs,'u50',.5,(.2,.2));summarize(output)
+    else:search(output,libs)
+
+if __name__=='__main__':main()

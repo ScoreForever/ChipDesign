@@ -358,6 +358,7 @@ module npu_program_core #(
         {2'b0,slot_busy[2]}+{2'b0,slot_busy[3]};
     wire [1:0] perf_banks={1'b0,bank_ready[0]}+{1'b0,bank_ready[1]};
     wire [5:0] perf_inflight={1'b0,inflight[0]}+{1'b0,inflight[1]};
+    wire perf_clear=rst || (state==IDLE && (validate || run));
     assign trace_clear=perf_clear;
     assign trace_active=perf_active;
     assign trace_events={state==FAILED,state==BASIC,state==NEXT,state==FREQ && fetch_word==0};
@@ -384,7 +385,6 @@ module npu_program_core #(
     reg [31:0] perf_count[0:23];
     reg [31:0] perf_m_streak,perf_a_streak;
     reg perf_m_pending,perf_a_pending;
-    wire perf_clear=rst || (state==IDLE && (validate || run));
     integer pi;
     genvar pg;
     generate for(pg=0;pg<24;pg=pg+1) begin:g_perf
