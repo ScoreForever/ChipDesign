@@ -12,7 +12,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'software/host'))
-from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz
+from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz,ABI
 from nocpu_jtag import Npu,Op
 
 def fixtures(seed=7):
@@ -93,7 +93,7 @@ def fixtures(seed=7):
 class Recorder:
     """Records the real host API. Expected data comes only from logical oracle."""
     def __init__(self,pkg,output):
-        self.rows=[];self.regs={0:0x20000,0x50:8192,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16}
+        self.rows=[];self.regs={0:ABI,0x50:8192,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16}
         self.output=output;self.started=False;self.completed=False;self.pkg=pkg
         self.check_live_perf=False
     def exchange(self,op,addr=0,data=0):

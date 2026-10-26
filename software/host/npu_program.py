@@ -1,4 +1,4 @@
-"""Static INT8 model compiler and independent integer reference, ABI 2.
+"""Static INT8 model compiler and independent integer reference, ABI 2.1.
 
 Pure Python, no framework/runtime dependency. Public input uses five logical
 operators. Fusion only removes single-consumer, non-output intermediates.
@@ -12,7 +12,9 @@ from pathlib import Path
 import struct
 import operator
 
-ABI=0x20000
+# ABI 2.1 (0x00020001): as 2.0, except that on an 8-column array an output
+# tile with at most four real channels packs four weight bytes per row.
+ABI=0x20001
 OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5}
 Q,R,P,S32,D32=1<<8,1<<9,1<<10,1<<11,1<<12
 
@@ -224,8 +226,9 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         if op in ('Conv','FC'):
             packed=[];k=n['k']
             for o_base in range(0,oc,cols):
+                width=4 if cols==8 and oc-o_base<=4 else cols
                 for ki in range(align(k,4)):
-                    for lane in range(cols):
+                    for lane in range(width):
                         o=o_base+lane
                         row_pad=n['kernel']==3 and n['input_shape'][2]==1
                         logical=(ki//4)*3+ki%4 if row_pad else ki

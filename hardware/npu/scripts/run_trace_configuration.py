@@ -38,13 +38,13 @@ def run(command,log):
 
 def check_host_disabled_wave(out):
     sys.path.insert(0,str(ROOT/'software/host'))
-    from nocpu_jtag import Npu,Op
+    from nocpu_jtag import Npu,Op,ABI
     from npu_trace import export_trace
 
     class SummaryRegisters:
         def __init__(self):
             self.reads=[]
-            self.registers={0:0x20000,4:10,0x2c:7,0x14:1,0x180:0x10080,
+            self.registers={0:ABI,4:10,0x2c:7,0x14:1,0x180:0x10080,
                 0x184:0,0x188:1,0x18c:0,0x190:4,0x194:0,0x198:0,0x19c:0,
                 0x1a0:16,0x1a4:32,0x1a8:16,0x1ac:0,0x1b0:0}
             for i,value in enumerate((10,13,0x301,11,1,1,1,1)):

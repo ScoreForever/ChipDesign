@@ -1,4 +1,4 @@
-# 无 CPU 主机控制与模型 ABI 2.0
+# 无 CPU 主机控制与模型 ABI 2.1
 
 本协议用于五算子可配置 NPU，不兼容旧固定 TinyCNN JTAG/MMIO ABI。
 数据包仍由专用 JTAG TAP 传输；主机无需 RISC-V Debug Module。
@@ -38,7 +38,7 @@ OpenOCD 的数值解析器默认按十进制解释，可能把 READ 的 opcode �
 
 | 地址 | 含义 |
 |---|---|
-| 0x00 | ABI=0x00020000 |
+| 0x00 | ABI=0x00020001（2.1） |
 | 0x04 | bit0 busy、1 model_valid、2 input_valid、3 done、4 model_loading、5 input_loading、6 fault |
 | 0x08 | 最近错误码 |
 | 0x0c | 支持算子位图=0x1f |
@@ -107,6 +107,10 @@ FC 输入 H=W=1、C=展平长度；展平顺序必须与权重一致，主机负
 
 阵列 COLS=4 或 8。权重按 `[输出通道 tile][K 行][lane]` 存放，lane 为连续 byte，
 K 按每四行补齐，未用输出 lane 和 K 行必须填0，起始 offset 8-byte 对齐。
+ABI 2.1：COLS=8 时，若某个输出通道 tile 的真实通道数不超过4（只可能是最后一个 tile），
+该 tile 每个 K 行只存4个 lane（4 B），硬件每行只读一个32-bit word，高4个 lane 按0装入。
+其余 tile 仍为8 B/行，因此各 tile 起始 offset 不变；权重区总长相应减少 `groups×16` B。
+ABI 2.0 的模型包须重新编译；主机按寄存器0拒绝版本不符的硬件或模型包。
 一般 Conv 的 K 顺序为 KH→KW→IC，FC 为连续输入特征。
 特殊但与网络尺寸无关的快速布局：3×3 且 IC=1 时，每个 kernel 行存 `[kx0,kx1,kx2,0]`，
 共三个四行组；由 kernel/IC 字段明确推导，不使用 TinyCNN 专用标志。

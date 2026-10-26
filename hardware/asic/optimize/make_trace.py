@@ -18,6 +18,6 @@ def main(output):
     host.load_model(package)
     for _ in range(2):
         assert host.infer(encoded(frame,'i8'))==expected
-    recorder.rows+=['09 0 0 0 0 0','01 0 0 0 ffffffff 00020000']
+    recorder.rows+=['09 0 0 0 0 0','01 0 0 0 ffffffff 00020001']
     Path(output).write_text('\n'.join(recorder.rows)+'\n')
 if __name__=='__main__':main(sys.argv[1])

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 2 host: reusable model loading and arbitrary input/output tensors over JTAG."""
+"""ABI 2.1 host: reusable model loading and arbitrary input/output tensors over JTAG."""
 from __future__ import annotations
 import argparse
 from enum import IntEnum
@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 import socket
 import time
+
+ABI=0x20001  # must match npu_program.ABI and the controller's register 0
 
 
 class Op(IntEnum):
@@ -107,7 +109,7 @@ def signed32(value):
 class Npu:
     def __init__(self,transport):
         self.transport=transport
-        if self.read(0)!=0x20000:raise RuntimeError('requires NPU ABI 2.0')
+        if self.read(0)!=ABI:raise RuntimeError('requires NPU ABI 2.1; recompile packages for this hardware')
     def command(self,op,addr=0,data=0):return self.transport.exchange(op,addr,data)
     def read(self,addr):return self.command(Op.READ,addr)
     def write(self,addr,data):return self.command(Op.WRITE,addr,int(data)&0xffffffff)
@@ -175,7 +177,7 @@ class Npu:
         m=package.manifest
         # All host checks happen before MODEL_BEGIN invalidates the old model.
         caps={r:self.read(r) for r in (0x50,0x54,0x58,0x5c,0x60)}
-        if m['abi']!=0x20000 or m['cols']!=(caps[0x58]&65535):raise ValueError('ABI/array mismatch; recompile package')
+        if m['abi']!=ABI or m['cols']!=(caps[0x58]&65535):raise ValueError('ABI/array mismatch; recompile package')
         if len(package.image)!=m['model_bytes'] or len(package.image)%4 or len(package.image)>caps[0x54]:raise ValueError('model capacity/length')
         if not 0<m['op_count']<=caps[0x60] or m['activation_peak']>caps[0x50]:raise ValueError('program/activation capacity')
         self.command(Op.MODEL_BEGIN)
