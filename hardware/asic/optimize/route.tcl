@@ -34,6 +34,11 @@ globalNetConnect VDD -type pgpin -pin VDD -all
 globalNetConnect VSS -type pgpin -pin VSS -all
 source $here/repair_antenna.tcl
 repair_process_antenna
+# Floating metal fill on M5/M6, the only layers below the foundry 30% density
+# (Calibre M5.R.1/M6.R.1). Added before the final DRC and extraction so both
+# see it; timing-aware fill avoids critical nets.
+setMetalFill -layer {METAL5 METAL6} -minDensity 30 -preferredDensity 35 -maxDensity 70 -windowSize 200 200 -windowStep 100 100
+addMetalFill -layer {METAL5 METAL6} -timingAware sta
 checkPlace placement.rpt -ignoreOutOfCore
 verify_drc -check_only default -limit 100000 -report drc.rpt
 verify_drc -check_only special -limit 100000 -report pg_drc.rpt
