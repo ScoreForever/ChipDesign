@@ -8,9 +8,11 @@ set init_lef_file [list $std_lef $io_lef $io_ant_lef $bond_lef $macro_lef $macro
 set fp [open mmmc.tcl w]
 puts $fp "create_library_set -name libs -timing [list [list $std_lib $io_lib $macro_lib]]"
 puts $fp "create_rc_corner -name rc -temperature 25 -cap_table [list $captable]"
-puts $fp {create_delay_corner -name delay -library_set libs -rc_corner rc}
+# Corner name matches the course scripts (init_pnr_standard.tcl sets the
+# CCOpt primary corner to tt_1p80v_25c).
+puts $fp {create_delay_corner -name tt_1p80v_25c -library_set libs -rc_corner rc}
 puts $fp "create_constraint_mode -name func -sdc_files [list [list $sdc]]"
-puts $fp {create_analysis_view -name func_tt_io -constraint_mode func -delay_corner delay}
+puts $fp {create_analysis_view -name func_tt_io -constraint_mode func -delay_corner tt_1p80v_25c}
 puts $fp {set_analysis_view -setup {func_tt_io} -hold {func_tt_io}}
 close $fp
 set init_mmmc_file [file normalize mmmc.tcl]

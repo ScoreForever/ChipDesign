@@ -8,7 +8,7 @@ set_clock_groups -asynchronous -group core_clk -group jtag_clk
 set_clock_uncertainty 0.2 [get_clocks {core_clk jtag_clk}]
 set_input_transition 0.5 [get_ports {clk_i tck_i}]
 set_interactive_constraint_modes {}
-set_ccopt_property primary_delay_corner delay
+set_ccopt_property primary_delay_corner tt_1p80v_25c
 set_ccopt_property update_io_latency false
 set_ccopt_property force_update_io_latency false
 create_ccopt_clock_tree_spec -views {func_tt_io}
