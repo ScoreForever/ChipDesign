@@ -26,8 +26,9 @@ module tb_fullchip;
  $fatal(1,"JTAG response cmd=%0d reply=%h error=%h",commands,reply,expected_error);
  value=reply[31:0];end endtask
  initial begin
+ // SDF is annotated at elaboration via xrun -sdf_cmd_file (scope tb_fullchip.dut);
+ // Xcelium ignores a run-time $sdf_annotate with a non-constant file name.
  if(!$value$plusargs("SDF=%s",sdf_path))$fatal(1,"SDF required");
- $sdf_annotate(sdf_path,dut,,"sdf_annotation.log","MAXIMUM");
  if(!$value$plusargs("TRACE=%s",trace_path))$fatal(1,"TRACE required");
  fd=$fopen(trace_path,"r");if(!fd)$fatal(1,"Trace missing");
  #1;rst_n=1;#1;rst_n=0;#503;rst_n=1;

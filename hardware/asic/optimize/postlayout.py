@@ -28,8 +28,12 @@ def main():
         with gzip.open(candidate/'outputs/routed.sdf.gz','rt') as source:
             (out/'routed.sdf').write_text(source.read())
         subprocess.run(['python3',str(HERE/'make_trace.py'),str(out/'commands.txt')],check=True,cwd=ROOT)
-        save(out/'inputs_sha256.json',{str(p):digest(p) for p in [candidate/'outputs/simulation.v',out/'routed.sdf',out/'commands.txt',testbench]})
+        sdf=out/'routed.sdf'
+        (out/'sdf.cmd').write_text('SDF_FILE = "%s",\nSCOPE = tb_fullchip.dut,\n'
+                                   'LOG_FILE = "sdf_annotation.log",\nMTM_CONTROL = "MAXIMUM";\n' % sdf)
+        save(out/'inputs_sha256.json',{str(p):digest(p) for p in [candidate/'outputs/simulation.v',out/'routed.sdf',out/'sdf.cmd',out/'commands.txt',testbench]})
         command=['xrun','-64bit','-sv','-timescale','1ns/1ps','-access','+rwc','-top','tb_fullchip',
+          '-sdf_cmd_file',str(out/'sdf.cmd'),
           str(libs['std_verilog']),str(libs['io_verilog']),str(libs['macro_verilog']),
           str(candidate/'outputs/simulation.v'),str(testbench),
           '+SDF='+str(out/'routed.sdf'),'+TRACE='+str(out/'commands.txt'),'-l','simulation.log']
