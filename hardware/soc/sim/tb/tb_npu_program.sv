@@ -12,7 +12,7 @@ module tb_npu_program;
 `ifdef JTAG_TEST
  reg tck=1,tms=1,tdi=0;wire tdo;
  my_soc_top dut(.clk_i(clk),.rst_ni(rst_n),.tck_i(tck),.tms_i(tms),.td_i(tdi),.td_o(tdo),.irq_o(irq));
- wire event_valid=dut.i_control.aw;
+ wire event_valid=dut.i_control.aw && dut.i_control.i_npu.w_ready;
  wire [15:0] event_addr=dut.i_control.wa;
  wire [31:0] event_data=dut.i_control.wd;
  wire [3:0] event_mask=dut.i_control.wm;
@@ -47,7 +47,7 @@ module tb_npu_program;
  npu_control_subsystem #(.COLS(C)) dut(.clk_i(clk),.rst_ni(rst_n),.cmd_valid_i(cv),.cmd_ready_o(cr),
   .cmd_op_i(op),.cmd_addr_i(addr),.cmd_data_i(data),.rsp_valid_o(rv),.rsp_ready_i(rr),
   .rsp_error_o(err),.rsp_data_o(rd),.irq_o(irq));
- wire event_valid=dut.aw;wire [15:0] event_addr=dut.wa;
+ wire event_valid=dut.aw && dut.i_npu.w_ready;wire [15:0] event_addr=dut.wa;
  wire [31:0] event_data=dut.wd;wire [3:0] event_mask=dut.wm;
  task exchange;
  reg [31:0] saved;reg [4:0] saved_error;

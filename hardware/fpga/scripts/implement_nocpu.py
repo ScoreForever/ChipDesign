@@ -24,9 +24,13 @@ def main():
     stage=Path(tempfile.mkdtemp(prefix='npu_route_'));run=stage/'run';run.mkdir()
     checkpoint=stage/'synth.dcp';shutil.copy2(source/'synth.dcp',checkpoint)
     script=stage/'implement.tcl';original=ROOT/'hardware/fpga/scripts/implement_nocpu.tcl';shutil.copy2(original,script)
+    cdc_original=ROOT/'hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl'
+    cdc_script=stage/'npu_jtag_cdc.tcl';shutil.copy2(cdc_original,cdc_script)
+    io_original=ROOT/'hardware/fpga/scripts/audit_jtag_io.tcl'
+    io_script=stage/'audit_jtag_io.tcl';shutil.copy2(io_original,io_script)
     vivado=args.vivado_root/'bin'/('vivado.bat' if os.name=='nt' else 'vivado')
     command=[str(vivado),'-mode','batch','-source',str(script),'-log',str(run/'vivado.log'),
-             '-journal',str(run/'vivado.jou'),'-tclargs',str(checkpoint),str(run)]
+             '-journal',str(run/'vivado.jou'),'-tclargs',str(checkpoint),str(run),str(cdc_script),str(io_script)]
     env=os.environ.copy();tmp=stage/'tmp';tmp.mkdir();env['TEMP']=env['TMP']=str(tmp)
     env['XILINX_LOCAL_USER_DATA']='no'
     startup=None
@@ -40,7 +44,9 @@ def main():
         shutil.copytree(run,out)
         (out/'provenance.json').write_text(json.dumps(dict(synthesis_dir=str(source),
              source_sha256=provenance['source_sha256'],checkpoint_sha256=hashlib.sha256(checkpoint.read_bytes()).hexdigest(),
-             implementation_script_sha256=hashlib.sha256(original.read_bytes()).hexdigest()),indent=2)+'\n')
+             implementation_script_sha256=hashlib.sha256(original.read_bytes()).hexdigest(),
+             cdc_script_sha256=hashlib.sha256(cdc_original.read_bytes()).hexdigest(),
+             io_audit_script_sha256=hashlib.sha256(io_original.read_bytes()).hexdigest()),indent=2)+'\n')
     if result.returncode or not (out/'metrics.tsv').exists():
         print((out/'console.log').read_text(errors='replace')[-4000:]);raise SystemExit(result.returncode or 1)
     print((out/'metrics.tsv').read_text())

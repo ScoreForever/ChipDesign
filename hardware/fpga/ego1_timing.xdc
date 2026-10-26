@@ -23,6 +23,8 @@ set_output_delay -clock [get_clocks tck_i] -clock_fall -max 541.000 -add_delay [
 # LED indicators have no synchronous receiver or setup/hold specification.
 # Their internal launching registers remain fully timed.
 set_false_path -to [get_ports {led_locked_o led_heartbeat_o led_tck_o}]
-# DMI crossings receive endpoint-specific max_delay constraints after synthesis
-# in scripts/constrain_dmi_cdc.tcl. No blanket asynchronous clock-group cut:
+# The dedicated NPU i_host TAP crossings receive endpoint-specific constraints
+# after synthesis in scripts/constrain_npu_jtag_cdc.tcl, including bounded
+# bundled payload paths and cuts only at toggle/reset synchronizer entry pins.
+# No blanket asynchronous clock-group cut:
 # it would override the bundled-data delay requirements.

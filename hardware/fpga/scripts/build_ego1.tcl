@@ -132,8 +132,10 @@ if {[catch {
     read_xdc [file join $repo hardware/fpga/ego1_configuration.xdc]
     set stage synth
     synth_design -top fpga_top -part xc7a35tcsg324-1
-    source [file join $repo hardware/fpga/scripts/constrain_dmi_cdc.tcl]
-    constrain_dmi_cdc
+    # This filelist has the dedicated NPU TAP, not the CPU DMI mailbox.
+    source [file join $repo hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl]
+    constrain_npu_jtag_cdc
+    audit_npu_jtag_cdc [file join $out synth_npu_jtag_cdc.tsv]
     write_checkpoint -force [file join $out synth.dcp]
     reports synth
     bram_guard synth
@@ -172,7 +174,7 @@ if {[catch {
     set last_stage place
     set stage route
     route_design
-    audit_dmi_cdc [file join $out dmi_constraints.tsv]
+    audit_npu_jtag_cdc [file join $out route_npu_jtag_cdc.tsv]
     source [file join $repo hardware/fpga/scripts/audit_jtag_io.tcl]
     audit_jtag_io [file join $out io_audit]
     write_checkpoint -force [file join $out route.dcp]

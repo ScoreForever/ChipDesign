@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 module npu_control_subsystem #(
- parameter ACT_BYTES=4096,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
+ parameter ACT_BYTES=8192,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
 )(
  input wire clk_i,rst_ni,cmd_valid_i,output wire cmd_ready_o,
  input wire [7:0] cmd_op_i,input wire [31:0] cmd_addr_i,cmd_data_i,
@@ -24,9 +24,10 @@ module npu_control_subsystem #(
   .control(trace_control),.offset(trace_offset),.read_request(trace_read),.read_addr(trace_addr),
   .read_valid(trace_valid),.read_data(trace_data),.read_error(trace_error));
  wire mw,mready,mv,mr,mrv; wire [15:0] mwa,ma; wire [31:0] mwd,md;
- wire host_aw,host_ar,host_arr,host_rsp_ready;
+ wire host_aw,host_ar,host_arr,host_rsp_ready,host_flush;
  wire [15:0] host_wa,host_ra; wire [31:0] host_wd; wire [3:0] host_wm;
  wire av,arv,arr,aw; wire [15:0] aa,wa; wire [31:0] wd,act_data; wire [3:0] wm;
+ wire act_write_ready,act_idle,core_flush;
  npu_command_controller #(.ACT_BYTES(ACT_BYTES),.MODEL_BYTES(MODEL_BYTES),.COLS(COLS),
   .MAX_OPS(MAX_OPS),.MAX_K(MAX_K),.DEFAULT_TIMEOUT(DEFAULT_TIMEOUT)) i_controller (
   .clk_i(clk_i),.rst_ni(rst_ni),.cmd_valid_i(cmd_valid_i),.cmd_ready_o(cmd_ready_o),
@@ -43,6 +44,7 @@ module npu_control_subsystem #(
   .output_base_o(output_base),.output_bytes_o(output_bytes),.op_count_o(op_count),.input_i32_o(input_i32),
   .model_we_o(mw),.model_addr_o(mwa),.model_data_o(mwd),.model_ready_i(mready),
   .act_we_o(host_aw),.act_addr_o(host_wa),.act_data_o(host_wd),.act_mask_o(host_wm),
+  .act_write_ready_i(act_write_ready && !running),.act_idle_i(act_idle),.act_flush_o(host_flush),
   .read_valid_o(host_ar),.read_ready_i(host_arr),.read_addr_o(host_ra),
   .read_rsp_valid_i(arv && !running),.read_rsp_ready_o(host_rsp_ready),.read_data_i(act_data));
  npu_model_store #(.BYTES(MODEL_BYTES)) i_model_store (
@@ -55,7 +57,8 @@ module npu_control_subsystem #(
   .clk(clk_i),.rst(rst),.read_valid(running ? av : host_ar),.read_ready(arr),.read_addr(running ? aa : host_ra),
   .rsp_valid(arv),.rsp_ready(running ? 1'b1 : host_rsp_ready),.rsp_data(act_data),
   .write_valid(running ? aw : host_aw),.write_addr(running ? wa : host_wa),
-  .write_data(running ? wd : host_wd),.write_mask(running ? wm : host_wm));
+  .write_data(running ? wd : host_wd),.write_mask(running ? wm : host_wm),
+  .write_ready(act_write_ready),.flush(running ? core_flush : host_flush),.idle(act_idle));
  npu_program_core #(.ACT_BYTES(ACT_BYTES),.MODEL_BYTES(MODEL_BYTES),.COLS(COLS),.MAX_OPS(MAX_OPS),.MAX_K(MAX_K)) i_npu (
   .clk(clk_i),.rst(rst),.validate(validate),.run(run),.ready(ready),.busy(busy),
   .model_bytes(model_bytes),.input_base(input_base),.input_bytes(input_bytes),
@@ -67,5 +70,6 @@ module npu_control_subsystem #(
   .trace_events(trace_events),.trace_descriptor(trace_descriptor),
   .m_valid(mv),.m_ready(mr),.m_addr(ma),.m_rsp_valid(mrv),.m_rsp_ready(),.m_data(md),
   .a_valid(av),.a_ready(arr && running),.a_addr(aa),.a_rsp_valid(arv && running),.a_rsp_ready(),.a_data(act_data),
-  .w_valid(aw),.w_addr(wa),.w_data(wd),.w_mask(wm));
+  .w_valid(aw),.w_ready(act_write_ready && running),.w_addr(wa),.w_data(wd),.w_mask(wm),
+  .memory_flush(core_flush),.memory_idle(act_idle));
 endmodule
