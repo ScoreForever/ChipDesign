@@ -146,11 +146,14 @@ class Npu:
             ('flags',0x190),('count',0x194),('first_cycle',0x198),('last_cycle',0x19c),
             ('sample_stride',0x1a0),('operator_stride',0x1a4),('max_ops',0x1a8),
             ('captured_control',0x1ac),('captured_offset',0x1b0))}
-        if header['depth'] not in (0,1024) or header['count']>header['depth'] or header['sample_stride']!=16 or header['operator_stride']!=32 or header['max_ops']!=16:
+        if header['depth'] not in (0,1024) or header['count']>header['depth'] or header['sample_stride']!=16 or header['operator_stride']!=32 or header['max_ops'] not in (0,16):
             raise RuntimeError('unsupported/corrupt trace geometry')
         if include_samples and header['depth']==0:
             raise RuntimeError('waveform trace is not enabled in this hardware build; use trace(include_samples=False) for operator summaries')
-        op_count=self.read(0x14)
+        if not include_samples and header['max_ops']==0:
+            raise RuntimeError('per-operator summaries are not enabled in this hardware build (ASIC default); the global performance counters remain available')
+        # Summaries absent (max_ops 0): waveform-only capture, no operator rows.
+        op_count=self.read(0x14) if header['max_ops'] else 0
         if op_count>16:raise RuntimeError('corrupt trace operator count')
         names=('start_cycle','end_cycle','descriptor','flags','wait_activation_cycles','wait_weight_cycles','wait_slot_cycles','mac_issues')
         operators=[]

@@ -1,5 +1,6 @@
 `timescale 1ns/1ps
-// Configuration matrix test: waveform payload is optional, summaries are not.
+// Configuration matrix test: waveform payload and per-operator summaries are
+// independently optional; the header and global behavior are not.
 module tb_npu_trace_configuration;
  reg clk=0;always #5 clk=~clk;
  reg clear=1,active=0,request=0;
@@ -23,10 +24,12 @@ module tb_npu_trace_configuration;
  begin
   @(negedge clk);active=1;events=ev;sample={32'd0,32'd0,signals,stamp};
  end endtask
- integer expected_wave;
+ integer expected_wave,expected_ops;
  initial begin
   if(!$value$plusargs("WAVE=%d",expected_wave))$fatal(1,"WAVE expectation required");
+  if(!$value$plusargs("OPS=%d",expected_ops))$fatal(1,"OPS expectation required");
   if(dut.WAVE_ENABLE!==expected_wave)$fatal(1,"wave default/override mismatch");
+  if(dut.OPS_ENABLE!==expected_ops)$fatal(1,"operator-summary default/override mismatch");
   repeat(2)@(negedge clk);clear=0;
   emit(10,1,'h80);emit(11,4,'h100);emit(12,2,'h600);
   @(negedge clk);active=0;events=0;repeat(4)@(negedge clk);
@@ -34,14 +37,19 @@ module tb_npu_trace_configuration;
   read_check('h190,expected_wave ? 5 : 4,0);read_check('h194,expected_wave ? 3 : 0,0);
   read_check('h198,expected_wave ? 10 : 0,0);read_check('h19c,expected_wave ? 12 : 0,0);
   read_check('h188,1,0);read_check('h1ac,expected_wave ? 1 : 0,0);read_check('h1b0,0,0);
-  // Summaries must be identical for every waveform configuration.
-  read_check('h200,10,0);read_check('h204,13,0);read_check('h208,'h301,0);read_check('h20c,11,0);
-  read_check('h210,1,0);read_check('h214,1,0);read_check('h218,1,0);read_check('h21c,1,0);
+  read_check('h1a8,expected_ops ? 16 : 0,0);
+  // Summaries are identical for every waveform configuration, or absent.
+  if(expected_ops)begin
+   read_check('h200,10,0);read_check('h204,13,0);read_check('h208,'h301,0);read_check('h20c,11,0);
+   read_check('h210,1,0);read_check('h214,1,0);read_check('h218,1,0);read_check('h21c,1,0);
+  end else begin
+   read_check('h200,0,2);read_check('h20c,0,2);read_check('h21c,0,2);
+  end
   read_check('h1000,expected_wave ? 10 : 0,expected_wave ? 0 : 2);
   read_check('h1001,0,3);read_check('h1030,0,2);
   @(negedge clk);clear=1;@(negedge clk);clear=0;
-  read_check('h20c,0,0);read_check('h194,0,0);read_check('h1000,0,2);
-  $display("PASS waveform configuration and operator summaries WAVE=%0d",expected_wave);
+  read_check('h20c,0,expected_ops ? 0 : 2);read_check('h194,0,0);read_check('h1000,0,2);
+  $display("PASS waveform configuration and operator summaries WAVE=%0d OPS=%0d",expected_wave,expected_ops);
   $finish;
  end
  initial begin #100000;$fatal(1,"trace configuration timeout");end

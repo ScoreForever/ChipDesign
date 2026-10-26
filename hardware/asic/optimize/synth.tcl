@@ -10,8 +10,9 @@ foreach line [split [read $fh] \n] {
 }
 close $fh
 # Both stores map to the course SRAM macro; the waveform RAM is an FPGA/simulation
-# debug option and is explicitly excluded from the ASIC build.
-read_hdl -sv -define {SYNTHESIS NPU_USE_RA1SHD_MODEL NPU_USE_RA1SHD_ACTIVATION NPU_ENABLE_WAVE_TRACE=0} $sources
+# debug option and is explicitly excluded from the ASIC build, as are the
+# per-operator summaries (global performance counters remain).
+read_hdl -sv -define {SYNTHESIS NPU_USE_RA1SHD_MODEL NPU_USE_RA1SHD_ACTIVATION NPU_ENABLE_WAVE_TRACE=0 NPU_ENABLE_OP_TRACE=0} $sources
 elaborate my_soc_top
 check_design -unresolved > check_design.rpt
 set_units -time ns -capacitance pF

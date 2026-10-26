@@ -48,7 +48,7 @@ python software/host/nocpu_jtag.py trace --package <package_dir> --output build/
 | 0x194 | 已采集样本数，0..1024 |
 | 0x198 / 0x19c | 首/末样本在整次推理中的绝对周期 |
 | 0x1a0 / 0x1a4 | 样本/算子汇总步长：16 / 32 bytes |
-| 0x1a8 | 最多 16 个算子 |
+| 0x1a8 | 算子汇总条目数：16；未综合逐算子摘要时为 0（ASIC 默认） |
 | 0x1ac / 0x1b0 | 本次采集的 control / offset 快照 |
 | 0x200..0x3ff | 算子汇总，PC × 32 bytes |
 | 0x1000..0x4fff | 样本 RAM，index × 16 bytes |

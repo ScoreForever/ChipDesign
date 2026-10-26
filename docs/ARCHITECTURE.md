@@ -12,7 +12,7 @@ my_soc_top
    ├─ npu_command_controller：模型/输入事务、完成保护、超时、复位
    ├─ npu_model_store：8 KiB 模型 SRAM，独立同步 32-bit 端口
    ├─ npu_activation_store：8 KiB 激活 SRAM、64 B 读缓存、字节写合并及转发、8项写队列
-   ├─ npu_trace_capture：逐算子摘要；可选1024×128bit波形RAM
+   ├─ npu_trace_capture：可选逐算子摘要；可选1024×128bit波形RAM
    └─ npu_program_core：描述符验证、顺序调度、算子执行
       ├─ npu_mac_array：Conv/FC 共享 4×8 MAC、双权重 bank
       └─ requant_lane：单路 Q31 流水，II=1
@@ -100,6 +100,9 @@ Genus/DC 使用 `EDA_NPU_MODEL_SRAM=1` 同时选择模型与激活两颗硬宏�
 完整性能计数器与逐算子起止/描述符/等待统计仍保留。`0x184`报告波形深度0，
 波形数据窗口返回地址错误；主机可用 `trace(include_samples=False)` 读取算子摘要。
 Genus/DC通过 `EDA_NPU_WAVE_TRACE=0|1` 可覆盖该默认，显式开启需另行评估调试存储的ASIC映射成本。
+逐算子摘要（16算子×8个32位计数器，全部为触发器，约0.2 mm²）同样可选：宏 `NPU_ENABLE_OP_TRACE`、
+Genus/DC变量 `EDA_NPU_OP_TRACE=0|1`；ASIC默认关闭，仿真和FPGA默认开启，`0x1a8` 报告0或16。
+关闭不改变任何计算、周期或全局性能计数器；逐层分析在FPGA或仿真上进行，RTL行为一致。
 芯片目标为2×2 mm²，作为本轮面积估算和结构选择依据，不要求EDA结果严格对标面积门槛。
 功能回归、宏仿真、综合和物理验证分别记录；旧2026-10-23/24的周期、面积、FPGA/板级
 证据属于当时冻结源码，不能当作双SRAM实现的新验证结果。见
