@@ -41,6 +41,9 @@ set init_top_cell my_soc_top
 setDesignMode -bottomRoutingLayer METAL2 -topRoutingLayer METAL6
 setDelayCalMode -SIAware true
 setOptMode -fixHoldAllowSetupTnsDegrade false -holdTargetSlack 0.02
+# The course default caps optimization at 75% density; above that hold fixing
+# stops inserting buffers and leaves violations (seen at 70% utilization).
+setOptMode -maxDensity 0.9
 if {$congestion} {
     setOptMode -checkRoutingCongestion true -honorDensityScreenInOpt true
     setPlaceMode -place_global_cong_effort high

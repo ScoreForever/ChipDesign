@@ -112,8 +112,9 @@ defOut -routing outputs/routed.def
 write_lef_abstract -5.8 -cutObsMinSpacing -specifyTopLayer METAL6 outputs/chip.lef
 setStreamOutMode -labelAllPinShape true -virtualConnection false
 streamOut outputs/chip.gds.gz -mapFile $gds_map -merge [list $std_gds $io_gds $bond_gds $macro_gds] -mode ALL -units 2000
-# True tool-rendered views; retain report failures rather than inventing images.
-dumpPictures -dir images -prefix fullchip
+# True tool-rendered views. dumpPictures needs the GUI and fails under
+# -no_gui; a missing picture must not discard a finished layout.
+if {[catch {dumpPictures -dir images -prefix fullchip} msg]} {puts "PNR_OPT_PICTURES_SKIPPED: $msg"}
 saveDesign final.enc
 puts "PNR_OPT_PHYSICAL_COMPLETE"
 exit
