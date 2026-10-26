@@ -227,6 +227,82 @@ def unit_tests(out,defines,macro_model=None):
         run(['vvp',simage,f'+DATA={case.relative_to(ROOT).as_posix()}'],case/'rtl.log')
     print('PASS 20000 quant vectors, dual-SRAM memory semantics, trace, random read/write stalls and drain',flush=True)
 
+def simulate(out,image,name,model,frame,cols,fuse,jtag,wave_disabled=False):
+    """Run one compiled model through the real host API on an RTL image; check every tensor write."""
+    case=out/f'{name}_c{cols}_f{int(fuse)}_j{int(jtag)}';case.mkdir(exist_ok=True)
+    pkg=compile_model(model,cols=cols,fuse=fuse);pkg.save(case)
+    logical=reference(model,frame);expected=logical[model['nodes'][-1]['output']]
+    output=encoded(expected,pkg.manifest['output_dtype']);rec=Recorder(pkg,output)
+    rec.check_live_perf=not jtag
+    host=Npu(rec)
+    host.load_model(pkg)
+    for _ in range(2):
+        got=host.infer(encoded(frame,model['input'].get('dtype','i8')))
+        assert got==output
+        rec.rows.extend(['01 00000038 0 0 0 0','01 00000040 0 0 0 0'])
+        rec.rows.append('01 00000068 0 0 ffffffff 00010018')
+        rec.rows.extend(f'01 {0x100+4*i:08x} 0 0 0 0' for i in range(24))
+        rec.rows.extend(['01 00000180 0 0 ffffffff 00010080',
+                         f'01 00000184 0 0 ffffffff {0 if wave_disabled else 1024:08x}'])
+        rec.rows.extend(f'01 {addr:08x} 0 0 0 0' for addr in range(0x190,0x1a0,4))
+        rec.rows.extend(f'01 {0x200+4*i:08x} 0 0 0 0' for i in range(pkg.manifest['op_count']*8))
+        # Exercise the synchronous RAM port through both transports.
+        rec.rows.extend(f'01 {0x1000+4*i:08x} 0 {2 if wave_disabled else 0:x} 0 0' for i in range(8))
+    trace=case/'commands.txt';trace.write_text('\n'.join(rec.rows)+'\n')
+    # Check every materialized tensor write, including values that
+    # are subsequently overwritten through lifetime reuse.
+    events=[]
+    for tensor,info in list(pkg.manifest['tensors'].items())[1:]:
+        values=logical[tensor];channels=info['shape'][2]
+        for oc in range(0,channels,cols):
+            for pos in range(len(values)//channels):
+                for lane in range(min(cols,channels-oc)):
+                    index=pos*channels+oc+lane;size=4 if info['dtype']=='i32' else 1
+                    address=info['base']+index*size;mask=15 if size==4 else 1
+                    events.append((address<<48)|(mask<<32)|(values[index]&0xffffffff))
+    events*=2;event_file=case/'writes.hex';event_file.write_text(''.join(f'{v:016x}\n' for v in events))
+    log=run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}',
+             f'+EVENTS={event_file.relative_to(ROOT).as_posix()}',f'+EVENT_COUNT={len(events)}'],case/'rtl.log')
+    if 'PASS program' not in log:raise RuntimeError(log)
+    metrics=re.findall(r'METRIC reg=([0-9a-f]+) value=(\d+)',log)
+    row=dict(case=case.name,commands=len(rec.rows),bytes=len(pkg.image),peak=pkg.manifest['activation_peak'],groups=pkg.manifest['groups'],
+             cycles=[int(v) for a,v in metrics if int(a,16)==0x38],writes=[int(v) for a,v in metrics if int(a,16)==0x40],checked_write_events=len(events))
+    perf=re.findall(r'PERF reg=([0-9a-f]+) value=(\d+)',log)
+    assert len(perf)==48,case
+    banks=[[int(v) for _,v in perf[i:i+24]] for i in (0,24)]
+    for n,bank in enumerate(banks):
+        assert bank[0]==row['cycles'][n] and bank[11]==row['writes'][n],case
+        assert bank[1]==bank[4] and bank[6]==bank[9],case
+        assert bank[3]<=bank[2] and bank[8]<=bank[7],case
+        assert bank[17]<=4 and bank[18]<=2 and bank[19]<=32,case
+    # SRAM read-cache contents persist across jobs. Latencies,
+    # stalls and peak occupancy may differ on the warm second run;
+    # deterministic operator work must repeat without accumulation.
+    work_indices=(1,4,6,9,11,12,16,20,21,22,23)
+    assert all(banks[0][i]==banks[1][i] for i in work_indices),f'{case}: work counters did not reset/repeat'
+    if name=='slot_pressure' and cols==8:
+        assert banks[0][17]==4 and banks[0][15]>0,case
+    row['performance']=banks
+    op_values=[int(v) for _,v in re.findall(r'OPTRACE reg=([0-9a-f]+) value=(\d+)',log)]
+    n=pkg.manifest['op_count'];assert len(op_values)==n*8*2,case
+    op_banks=[[op_values[j:j+8] for j in range(at,at+n*8,8)] for at in (0,n*8)]
+    for run_index,ops in enumerate(op_banks):
+        assert ops[0][0]==0 and ops[-1][1]==row['cycles'][run_index],case
+        assert all(x[3]==11 and x[1]>x[0] for x in ops),case
+        assert all(x[1]==y[0] for x,y in zip(ops,ops[1:])),case
+        assert all(x[2]==struct.unpack_from('<I',pkg.image,pc*64)[0] for pc,x in enumerate(ops)),case
+        for index,perf_index in ((4,13),(5,14),(6,15),(7,12)):
+            assert sum(x[index] for x in ops)==banks[run_index][perf_index],case
+    assert all(x[2]==y[2] and x[7]==y[7] for x,y in zip(*op_banks)),case
+    hdr=[int(v) for _,v in re.findall(r'TRACEHDR reg=([0-9a-f]+) value=(\d+)',log)]
+    for run_index,at in enumerate((0,4)):
+        duration=op_banks[run_index][0][1];expected_count=min(1024,duration)
+        expected_header=([4,0,0,0] if wave_disabled else
+                         [5|(2 if duration>=1024 else 0)|(8 if duration>1024 else 0),expected_count,0,expected_count-1])
+        assert hdr[at:at+4]==expected_header,case
+    row['operator_trace']=op_banks
+    return row
+
 def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',type=Path,default=ROOT/'build/program_regression')
     ap.add_argument('--quick',action='store_true');ap.add_argument('--macro-model',type=Path)
@@ -254,79 +330,8 @@ def main():
             if jtag and name!='cnn':continue
             for fuse in (True,False):
                 if name in ('tinycnn','trained') and not fuse:continue # raw Conv alone needs 10240 B, exceeding 8 KiB
-                case=out/f'{name}_c{cols}_f{int(fuse)}_j{int(jtag)}';case.mkdir(exist_ok=True)
-                pkg=compile_model(model,cols=cols,fuse=fuse);pkg.save(case)
-                logical=reference(model,frame);expected=logical[model['nodes'][-1]['output']]
-                output=encoded(expected,pkg.manifest['output_dtype']);rec=Recorder(pkg,output)
-                rec.check_live_perf=not jtag
-                host=Npu(rec)
-                host.load_model(pkg)
-                for _ in range(2):
-                    got=host.infer(encoded(frame,model['input'].get('dtype','i8')))
-                    assert got==output
-                    rec.rows.extend(['01 00000038 0 0 0 0','01 00000040 0 0 0 0'])
-                    rec.rows.append('01 00000068 0 0 ffffffff 00010018')
-                    rec.rows.extend(f'01 {0x100+4*i:08x} 0 0 0 0' for i in range(24))
-                    rec.rows.extend(['01 00000180 0 0 ffffffff 00010080',
-                                     f'01 00000184 0 0 ffffffff {0 if args.wave_disabled else 1024:08x}'])
-                    rec.rows.extend(f'01 {addr:08x} 0 0 0 0' for addr in range(0x190,0x1a0,4))
-                    rec.rows.extend(f'01 {0x200+4*i:08x} 0 0 0 0' for i in range(pkg.manifest['op_count']*8))
-                    # Exercise the synchronous RAM port through both transports.
-                    rec.rows.extend(f'01 {0x1000+4*i:08x} 0 {2 if args.wave_disabled else 0:x} 0 0' for i in range(8))
-                trace=case/'commands.txt';trace.write_text('\n'.join(rec.rows)+'\n')
-                # Check every materialized tensor write, including values that
-                # are subsequently overwritten through lifetime reuse.
-                events=[]
-                for tensor,info in list(pkg.manifest['tensors'].items())[1:]:
-                    values=logical[tensor];channels=info['shape'][2]
-                    for oc in range(0,channels,cols):
-                        for pos in range(len(values)//channels):
-                            for lane in range(min(cols,channels-oc)):
-                                index=pos*channels+oc+lane;size=4 if info['dtype']=='i32' else 1
-                                address=info['base']+index*size;mask=15 if size==4 else 1
-                                events.append((address<<48)|(mask<<32)|(values[index]&0xffffffff))
-                events*=2;event_file=case/'writes.hex';event_file.write_text(''.join(f'{v:016x}\n' for v in events))
-                log=run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}',
-                         f'+EVENTS={event_file.relative_to(ROOT).as_posix()}',f'+EVENT_COUNT={len(events)}'],case/'rtl.log')
-                if 'PASS program' not in log:raise RuntimeError(log)
-                metrics=re.findall(r'METRIC reg=([0-9a-f]+) value=(\d+)',log)
-                row=dict(case=case.name,commands=len(rec.rows),bytes=len(pkg.image),peak=pkg.manifest['activation_peak'],groups=pkg.manifest['groups'],
-                         cycles=[int(v) for a,v in metrics if int(a,16)==0x38],writes=[int(v) for a,v in metrics if int(a,16)==0x40],checked_write_events=len(events))
-                perf=re.findall(r'PERF reg=([0-9a-f]+) value=(\d+)',log)
-                assert len(perf)==48,case
-                banks=[[int(v) for _,v in perf[i:i+24]] for i in (0,24)]
-                for n,bank in enumerate(banks):
-                    assert bank[0]==row['cycles'][n] and bank[11]==row['writes'][n],case
-                    assert bank[1]==bank[4] and bank[6]==bank[9],case
-                    assert bank[3]<=bank[2] and bank[8]<=bank[7],case
-                    assert bank[17]<=4 and bank[18]<=2 and bank[19]<=32,case
-                # SRAM read-cache contents persist across jobs. Latencies,
-                # stalls and peak occupancy may differ on the warm second run;
-                # deterministic operator work must repeat without accumulation.
-                work_indices=(1,4,6,9,11,12,16,20,21,22,23)
-                assert all(banks[0][i]==banks[1][i] for i in work_indices),f'{case}: work counters did not reset/repeat'
-                if name=='slot_pressure' and cols==8:
-                    assert banks[0][17]==4 and banks[0][15]>0,case
-                row['performance']=banks
-                op_values=[int(v) for _,v in re.findall(r'OPTRACE reg=([0-9a-f]+) value=(\d+)',log)]
-                n=pkg.manifest['op_count'];assert len(op_values)==n*8*2,case
-                op_banks=[[op_values[j:j+8] for j in range(at,at+n*8,8)] for at in (0,n*8)]
-                for run_index,ops in enumerate(op_banks):
-                    assert ops[0][0]==0 and ops[-1][1]==row['cycles'][run_index],case
-                    assert all(x[3]==11 and x[1]>x[0] for x in ops),case
-                    assert all(x[1]==y[0] for x,y in zip(ops,ops[1:])),case
-                    assert all(x[2]==struct.unpack_from('<I',pkg.image,pc*64)[0] for pc,x in enumerate(ops)),case
-                    for index,perf_index in ((4,13),(5,14),(6,15),(7,12)):
-                        assert sum(x[index] for x in ops)==banks[run_index][perf_index],case
-                assert all(x[2]==y[2] and x[7]==y[7] for x,y in zip(*op_banks)),case
-                hdr=[int(v) for _,v in re.findall(r'TRACEHDR reg=([0-9a-f]+) value=(\d+)',log)]
-                for run_index,at in enumerate((0,4)):
-                    duration=op_banks[run_index][0][1];expected_count=min(1024,duration)
-                    expected_header=([4,0,0,0] if args.wave_disabled else
-                                     [5|(2 if duration>=1024 else 0)|(8 if duration>1024 else 0),expected_count,0,expected_count-1])
-                    assert hdr[at:at+4]==expected_header,case
-                row['operator_trace']=op_banks
-                results.append(row);print('PASS',case.name,flush=True)
+                row=simulate(out,image,name,model,frame,cols,fuse,jtag,args.wave_disabled)
+                results.append(row);print('PASS',row['case'],flush=True)
         if cols==8 and not jtag:negatives=negative_tests(out,image)
     # A common post chain must demonstrate physical savings, not only equal outputs.
     cnn={r['case']:r for r in results if r['case'].startswith('cnn_c8_') and r['case'].endswith('j0')}
