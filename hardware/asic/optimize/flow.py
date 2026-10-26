@@ -185,9 +185,11 @@ def finish_tool(directory, marker, state):
         data=(directory/'console.log').read_text(errors='replace')
         errors=re.findall(r'(?mi)^(?:Error\s*:|\*\*ERROR:|\*E,|FATAL:|.*\*E,).*$',data)
         diagnostics=[e for e in errors if 'IMPSP-9099' in e and Path(state['command'][0]).name=='innovus']
-        fatal=[e for e in errors if e not in diagnostics]
+        # Caller-declared message codes known not to affect the result; kept on record.
+        accepted=[e for e in errors if any('('+code+')' in e for code in state.get('accepted_codes',()))]
+        fatal=[e for e in errors if e not in diagnostics and e not in accepted]
         completed=bool(re.search(r'(?m)^'+re.escape(marker)+r'(?:\s|$)',data))
-        state.update(exit_code=record['exit_code'],marker=completed,errors=errors,unresolved_scan_diagnostics=diagnostics)
+        state.update(exit_code=record['exit_code'],marker=completed,errors=errors,unresolved_scan_diagnostics=diagnostics,accepted_diagnostics=accepted)
         state['status']='complete' if record['exit_code']==0 and record['command_sha256']==expected and completed and not fatal else 'failed'
         state['finished']=record['finished']
     state.setdefault('finished',time.time());save(directory/'status.json',state)
@@ -213,10 +215,10 @@ def recover_tool(directory, marker):
     return finish_tool(directory,marker,state)
 
 
-def launch(command, directory, marker, timeout=14400):
+def launch(command, directory, marker, timeout=14400, accepted_codes=()):
     command=list(map(str,command));directory.mkdir(parents=True,exist_ok=True)
     if (directory/'status.json').exists():raise RuntimeError('refusing to overwrite previous run: '+str(directory))
-    state=dict(command=command,started=time.time(),status='running',timeout_seconds=timeout)
+    state=dict(command=command,started=time.time(),status='running',timeout_seconds=timeout,accepted_codes=list(accepted_codes))
     save(directory/'status.json',state)
     try:
         with (directory/'console.log').open('w') as log:
