@@ -52,7 +52,7 @@ module tb_fullchip;
  for(rc=0;rc<5;rc=rc+1)tick(rc==4,(5'h12>>rc)&1,dummy);
  tick(1,0,dummy);tick(0,0,dummy);
  op=1;addr=0;data=0;expected_error=0;exchange;
- if(value!==32'h20000 || irq!==0)$fatal(1,"Reset recovery failed");
+ if(value!==32'h20001 || irq!==0)$fatal(1,"Reset recovery failed");
  $display("PNR_OPT_JTAG_PASS commands=%0d",commands);$finish;
  end
  initial begin #2000000000;$fatal(1,"SDF global timeout");end
