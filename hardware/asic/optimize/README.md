@@ -65,12 +65,47 @@ cell density, estimated global congestion and final detailed-route DRC are
 different measures and must not be conflated.
 
 The default is 20ns core and 1000ns JTAG, 2ns IO budget, 0.2ns uncertainty,
-TT libraries and the course captable. No new timing exceptions, frequency
-reduction or disabled timing checks are used for acceptance. Hold optimization
-targets +0.020ns; physical eligibility still requires >=0. Independent repeat
+TT libraries and the course captable. No new timing exceptions or frequency
+reduction are used for acceptance. Hold optimization targets +0.020ns, with the
+optimization density cap raised from the course 0.75 to 0.9 (at 70% utilization
+the default stopped hold buffering); physical eligibility still requires >=0.
+After routing the flow adds floating M5/M6 metal fill (foundry minimum density
+30%) and trims dangling special-wire stubs (`editTrim`) before the final checks
+and extraction, so DRC, connectivity, SPEF and SDF all include them. Independent repeat
 and baseline/final SDF checks are required before reporting an optimized result.
 The physical JTAG test loads nonzero oracle data, compares two inference results,
-checks IRQ and protocol/physical reset recovery without hierarchy backdoors.
+checks IRQ and protocol/physical reset recovery (ABI 2.1) without hierarchy
+backdoors. SDF is annotated at elaboration through `xrun -sdf_cmd_file`
+(Xcelium ignores a run-time `$sdf_annotate` with a non-constant file name).
+Timing checks are disabled on exactly six CDC capture flops, the req/ack
+toggle-synchronizer first stages and both reset-synchronizer stages, which
+sample asynchronous inputs by design; the list is matched in the netlist and
+saved as `sdf/cdc_tcheck_disabled.json`. Every other check stays enabled and
+any violation fails acceptance.
+
+## Independent signoff
+
+`signoff.py --candidate <dir>` re-checks an eligible candidate's exported
+files with engines other than Innovus, each in `<dir>/signoff/<check>/`:
+
+- `drc`: Calibre DRC with the PDK deck (PRECISION/RESOLUTION rescaled to the
+  2000 dbu GDS). Results are classified by rule and location. Accepted, and
+  listed with counts: the deck's unconditional `DRM.R.1` reminder, and ESD/
+  latch-up guideline (`…g`) or front-end-layer rules whose results all lie in
+  the IO ring (vendor IO cells; this flow draws only metal and vias). Any
+  other result blocks.
+- `lvs`: Calibre LVS of the GDS against the physical netlist (v2lvs) plus the
+  IO, standard-cell and SRAM SPICE. The POC rail gets a top-level label, and
+  split gates are reduced (the IO pad NOR2 is fingered). Passes on CORRECT, or
+  when the only discrepancies are IO-pad poly-resistor values within 5% (the IO
+  SPICE 270a and GDS 280a differ by 3.47%); topology must match exactly.
+- `sta`: PrimeTime with the routed netlist, SDC and Innovus SPEF. There is no
+  Library Compiler on the node, so the SRAM `.lib` cannot be read: both SRAMs
+  are black boxes and their interface timing is covered by Innovus only.
+- `lec`: Formality, synthesized versus routed netlist (SRAMs black-boxed).
+
+`signoff/summary.json` records every result. This is course-level signoff at
+the TT corner: no multi-corner STA, IR/EM, seal ring or chip-level ESD review.
 
 The summaries distinguish physical eligibility from gate/SDF acceptance. TT
 and vectorless power are course implementation estimates, not foundry signoff,
@@ -120,7 +155,7 @@ constraint source, so historical netlists cannot be mislabeled as current.
 
 `prects_cells.tsv/json` and `final_cells.tsv/json` retain actual instance boxes
 and active-cell counts/areas, excluding fillers, taps, decaps, antenna and IO
-cells. The reported macro count/area refers specifically to the model SRAM;
+cells. The reported macro count/area covers both SRAMs (model and activation);
 wire-bond opening blocks are physical IO, not functional SRAMs. The difference
 between final and pre-CTS active area is the net CTS/timing-repair change, not
 an attribution of every added cell to the clock tree. All bond openings must
