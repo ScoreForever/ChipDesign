@@ -9,7 +9,9 @@ foreach line [split [read $fh] \n] {
     if {$line ne "" && ![string match +* $line]} {lappend sources $source_root/$line}
 }
 close $fh
-read_hdl -sv -define {SYNTHESIS NPU_USE_RA1SHD_MODEL} $sources
+# Both stores map to the course SRAM macro; the waveform RAM is an FPGA/simulation
+# debug option and is explicitly excluded from the ASIC build.
+read_hdl -sv -define {SYNTHESIS NPU_USE_RA1SHD_MODEL NPU_USE_RA1SHD_ACTIVATION NPU_ENABLE_WAVE_TRACE=0} $sources
 elaborate my_soc_top
 check_design -unresolved > check_design.rpt
 set_units -time ns -capacitance pF
@@ -34,7 +36,7 @@ foreach inst [get_db insts] {
         incr macro_count
     }
 }
-if {$macro_count != 1 || $total <= $macro_area} {error "Invalid mapped area or SRAM count"}
+if {$macro_count != 2 || $total <= $macro_area} {error "Invalid mapped area or SRAM count (expected two macros)"}
 set fp [open area.json w]
 puts $fp [format {"total_area_um2":%.9f,"standard_cell_area_um2":%.9f,"macro_area_um2":%.9f,"macro_count":%d} $total [expr {$total-$macro_area}] $macro_area $macro_count]
 close $fp

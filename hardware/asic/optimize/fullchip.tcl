@@ -86,11 +86,20 @@ foreach {side ori} {top R180 bottom R0 left R270 right R90} {
 globalNetConnect VDDPST -type pgpin -pin VDDPST -all
 globalNetConnect VSSPST -type pgpin -pin VSSPST -all
 set macro_insts [dbGet -p2 top.insts.cell.name RA1SHD_2048x32M8]
-if {[llength $macro_insts]!=1 || $macro_insts eq "0x0"} {error "Expected exactly one mapped SRAM"}
-set macro_name [dbGet $macro_insts.name]
-lassign $macro_box mx my mw mh
-placeInstance $macro_name $mx $my R0 -fixed
-addHaloToBlock $halo_um $halo_um $halo_um $halo_um $macro_name -snapToSite
+if {[llength $macro_insts]!=2 || $macro_insts eq "0x0"} {error "Expected exactly two mapped SRAMs (model and activation)"}
+# macros: list of {instance x y w h}, matched by role so each store keeps its box.
+set macros {}
+foreach box $macro_boxes {
+    lassign $box role mx my mw mh
+    set pattern [expr {$role eq "model" ? "*model_store*" : "*activation*"}]
+    set match {}
+    foreach inst $macro_insts {if {[string match $pattern [dbGet $inst.name]]} {lappend match [dbGet $inst.name]}}
+    if {[llength $match]!=1} {error "Cannot identify the $role SRAM instance: $match"}
+    set name [lindex $match 0]
+    placeInstance $name $mx $my R0 -fixed
+    addHaloToBlock $halo_um $halo_um $halo_um $halo_um $name -snapToSite
+    lappend macros [list $name $mx $my $mw $mh]
+}
 # Label ports on package-facing PAD metal, including irq_o.
 foreach spec $pads {
     lassign $spec name master port direction side x y orient

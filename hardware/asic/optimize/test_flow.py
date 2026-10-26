@@ -9,16 +9,41 @@ SIZES={'RA1SHD_2048x32M8':[554.595,723.85],'PCORNER':[114.84,114.84],
        'PDDW0204CDG':[80,114.84],**{cell:[80,114.84] for _,cell in flow.SUPPLIES}}
 
 class FlowTests(unittest.TestCase):
-    def test_geometry_preserves_macro_clearance_and_all_seven_signals(self):
-        a=flow.geometry(3153049,SIZES,.5)
-        b=flow.geometry(3153049,SIZES,.6,(.8,.2))
+    def test_geometry_places_two_macros_with_clearance_and_all_seven_signals(self):
+        std=1100000  # roughly the expected dual-SRAM standard-cell area
+        a=flow.geometry(std,SIZES,.55)
+        b=flow.geometry(std,SIZES,.7)
         self.assertLess(b['die_side_um'],a['die_side_um'])
         self.assertEqual(len([p for p in a['pads'] if p['port']]),7)
-        x,y,w,h=b['macro'];margin=b['margin_um'];core=b['core_side_um']
-        self.assertGreater(x,margin+26);self.assertLess(x+w,margin+core-26)
-        self.assertGreater(y,margin+26);self.assertLess(y+h,margin+core-26)
         self.assertEqual({p['side'] for p in a['pads']},{'N','S','E','W'})
-        for v in [*b['macro'][:2],*(p['loc'][0] for p in a['pads'])]:self.assertAlmostEqual(v/.005,round(v/.005))
+        for layout in flow.LAYOUTS:
+            g=flow.geometry(std,SIZES,.6,layout);margin=g['margin_um'];core=g['core_side_um']
+            self.assertEqual([m[0] for m in g['macros']],['model','activation'])
+            boxes=[m[1:] for m in g['macros']]
+            for x,y,w,h in boxes:
+                self.assertGreater(x,margin+26);self.assertLess(x+w,margin+core-26)
+                self.assertGreater(y,margin+26);self.assertLess(y+h,margin+core-26)
+                for v in (x,y):self.assertAlmostEqual(v/.005,round(v/.005))
+            (x0,y0,w0,h0),(x1,y1,w1,h1)=boxes
+            # Both halos (26um each) plus a routing channel separate the macros.
+            gap=max(x1-(x0+w0),x0-(x1+w1),y1-(y0+h0),y0-(y1+h1))
+            self.assertGreaterEqual(gap,2*26)
+        with self.assertRaises(ValueError):flow.geometry(std,SIZES,.6,'nowhere')
+    def test_area_budget_skips_oversized_candidates_without_tools(self):
+        # The die cap is 2x2 mm; an oversized point never launches Innovus.
+        self.assertEqual(flow.MAX_DIE_UM,2000)
+        self.assertGreater(flow.geometry(4e6,SIZES,.55)['die_side_um'],flow.MAX_DIE_UM)
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);syn=root/'synthesis';syn.mkdir()
+            for f in ('mapped.v','mapped.sdc'):(syn/f).write_text(f)
+            flow.save(syn/'area.json',dict(standard_cell_area_um2=4e6))
+            flow.save(syn/'handoff.json',{p:flow.digest(syn/p) for p in ('mapped.v','mapped.sdc','area.json')})
+            libs=dict(macro_lef=root/'a',io_lef=root/'b',bond_lef=root/'c')
+            with patch('flow.lef_sizes',return_value=SIZES),patch('flow.launch') as launch:
+                result=flow.candidate(root,libs,'big',.55,'west_stack')
+            launch.assert_not_called()
+            self.assertFalse(result['eligible']);self.assertFalse(result['within_area_budget'])
+            self.assertFalse((root/'candidates/big/status.json').exists())
     def test_invalid_geometry_and_tcl_paths_fail(self):
         for util in (0,1,-1):
             with self.assertRaises(ValueError):flow.geometry(100,SIZES,util)
@@ -76,12 +101,17 @@ class FlowTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):flow.adopt_synthesis(output,{'macro_lib':macro},source)
             (source/'console.log').write_text('EDA_MAPPED_SYNTHESIS_COMPLETE\n')
             for name in ('run.sh','run.tcl','my_soc_top.v','my_soc_top.sdc','timing.rpt'):(source/name).write_text('retained source')
+            (source/'my_soc_top.v').write_text('module my_soc_top();\n  RA1SHD_2048x32M8 i_model(.CLK(c));\nendmodule\n')
+            (source/'my_soc_top.sdc').write_text('set_units -time ns\ncreate_clock -name core_clk -period 20 [get_ports clk_i]\ncreate_clock -name jtag_clk -period 1000 [get_ports tck_i]\n')
+            (source/'exit_code').write_text('0');(source/'area.rpt').write_text('my_soc_top 123 1500.0 200.0\n')
+            with self.assertRaisesRegex(RuntimeError,'expected 2'):flow.adopt_synthesis(output,{'macro_lib':macro},source)
+            (source/'my_soc_top.v').write_text('module my_soc_top();\n  RA1SHD_2048x32M8 i_model(.CLK(c));\n  RA1SHD_2048x32M8 i_act(.CLK(c));\nendmodule\n')
             (source/'my_soc_top.sdc').write_text('set_units -time ns\ncreate_clock -name core_clk -period 20 [get_ports clk_i]\ncreate_clock -name jtag_clk -period 1000 [get_ports tck_i]\n')
             (source/'exit_code').write_text('0')
             (source/'area.rpt').write_text('my_soc_top 123 1500.0 200.0\n')
             flow.adopt_synthesis(output,{'macro_lib':macro},source)
             area=json.loads((output/'synthesis/area.json').read_text())
-            self.assertEqual(area['standard_cell_area_um2'],1100)
+            self.assertEqual(area['standard_cell_area_um2'],700);self.assertEqual(area['macro_count'],2)
             self.assertEqual((output/'synthesis/mapped.v').read_bytes(),(source/'my_soc_top.v').read_bytes())
             with self.assertRaises(RuntimeError):flow.adopt_synthesis(output,{'macro_lib':macro},source)
 
@@ -92,6 +122,12 @@ class FlowTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):flow.verify_clocks(p)
             p.write_text('set_units -time ns\ncreate_clock -name core_clk -period 20\ncreate_clock -name jtag_clk -period 1000\n')
             self.assertEqual(flow.verify_clocks(p)['core_clk'],20)
+            # Genus writes the 1 ns unit as 1000ps; that is the same scale.
+            p.write_text('set_units -capacitance 1000fF\nset_units -time 1000ps\ncreate_clock -name "core_clk" -period 20.0 [get_ports clk_i]\ncreate_clock -name "jtag_clk" -period 1000.0 [get_ports tck_i]\n')
+            self.assertEqual(flow.verify_clocks(p)['jtag_clk'],1000)
+            for bad in ('100ps','10ns','1us'):
+                p.write_text(f'set_units -time {bad}\ncreate_clock -name core_clk -period 20\ncreate_clock -name jtag_clk -period 1000\n')
+                with self.assertRaises(RuntimeError):flow.verify_clocks(p)
 
     def test_driver_snapshot_is_independent_of_later_source_edits(self):
         with tempfile.TemporaryDirectory() as d:
@@ -155,16 +191,16 @@ proc routeDesign {args} {}
     def test_candidate_budget_and_names_fail_before_tool_launch(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d)
-            with self.assertRaises(ValueError):flow.candidate(root,{},'../escape',.5,(.2,.2))
-            for i in range(8):flow.save(root/'candidates'/str(i)/'status.json',dict(status='failed'))
-            with self.assertRaisesRegex(RuntimeError,'budget'):flow.candidate(root,{},'ninth',.5,(.2,.2))
+            with self.assertRaises(ValueError):flow.candidate(root,{},'../escape',.6,'west_stack')
+            for i in range(flow.BUDGET):flow.save(root/'candidates'/str(i)/'status.json',dict(status='failed'))
+            with self.assertRaisesRegex(RuntimeError,'budget'):flow.candidate(root,{},'extra',.6,'west_stack')
 
     def test_resume_never_reuses_a_different_parameter_point(self):
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);point=root/'candidates/u50'
             flow.save(point/'status.json',dict(status='failed'))
-            flow.save(point/'experiment.json',dict(utilization=.5,macro_xy=[.2,.2],congestion=False,geometry=dict(halo_um=26)))
-            with self.assertRaisesRegex(RuntimeError,'parameters differ'):flow.candidate(root,{},'u50',.6,(.2,.2))
+            flow.save(point/'experiment.json',dict(utilization=.5,layout='west_stack',congestion=False,geometry=dict(halo_um=26)))
+            with self.assertRaisesRegex(RuntimeError,'parameters differ'):flow.candidate(root,{},'u50',.5,'south_row')
             self.assertEqual(json.loads((point/'status.json').read_text())['status'],'failed')
 
     def test_cell_accounting_excludes_physical_fill_and_io(self):
@@ -231,6 +267,7 @@ proc attachTerm {args} {global bindings;lappend bindings $args}
             for name,area in [('u50',10),('u60',8),('repeat',8)]:
                 point=root/'candidates'/name;flow.save(point/'status.json',dict(status='complete'))
                 rows[name]=dict(directory=str(point),eligible=True,die_area_mm2=area,setup_wns_ns=.3,hold_wns_ns=.02,wire_length_um=1000)
+            flow.save(root/'baseline.json',dict(directory=str(root/'candidates/u50')))
             def read(point):return rows[point.name].copy()
             with patch('flow.metrics',side_effect=read):
                 self.assertFalse(flow.summarize(root)['release_eligible'])

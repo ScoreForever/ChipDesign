@@ -3,7 +3,10 @@
 This is an independent ABI-2 course flow for `my_soc_top`. It preserves the
 legacy six-PAD SoC scripts. The full-chip build adds all seven signal PADs,
 28 supply PADs, four corners, 35 wire-bond openings, IO/core fillers, the
-model SRAM and its power ring, a core PDN, CTS and METAL2–6 routing.
+two SRAM macros (model and activation store) with their power rings, a core
+PDN, CTS and METAL2–6 routing. The die, including the PAD ring, is capped at
+2 mm x 2 mm (`MAX_DIE_UM`); candidates whose computed die exceeds it are
+recorded as over budget and never start Innovus.
 
 Run on the authorized course node, in a frozen source checkout:
 
@@ -13,7 +16,7 @@ source /lec/eda.env
 python3 hardware/asic/optimize/flow.py preflight --output /absolute/new/experiment
 python3 hardware/asic/optimize/flow.py baseline --output /absolute/new/experiment
 python3 hardware/asic/optimize/flow.py search --output /absolute/new/experiment
-python3 hardware/asic/optimize/postlayout.py --candidate /absolute/new/experiment/candidates/u50
+python3 hardware/asic/optimize/postlayout.py --candidate /absolute/new/experiment/candidates/u60
 ```
 
 Use the Python 3.8 environment available after sourcing EDA; the system Python
@@ -23,9 +26,11 @@ Each candidate runs a private, hashed copy of the Tcl driver and saves output
 artifact hashes. Preflight proves file/tool availability, not a license checkout. Real tool
 invocation and the completion markers establish execution.
 
-`search` / `resume` run serially with four threads: 50/55/60/65% utilization,
-two macro positions at the best valid density, one congestion-policy candidate,
-and an independent repeat (eight complete-flow attempts maximum). Failed
+`search` / `resume` run serially with four threads: 55–75% utilization with
+the `west_stack` layout (stopping at the first density that fails after a
+pass), the `south_row` and `diagonal` layouts at the best valid density, one
+congestion-policy candidate, and an independent repeat (ten complete-flow
+attempts maximum). `trial --utilization U --layout L` runs one point. Failed
 existing candidates are preserved rather than silently retried. Start a new
 output directory after changing sources or flow scripts. A changed synthesis
 handoff is rejected. A process timeout kills its process group and saves a
@@ -34,8 +39,11 @@ controller disconnection. `resume` waits for the existing verified worker,
 without launching a duplicate; missing exit receipts fail closed. A controller
 lock prevents concurrent controllers for the same output directory.
 
-The macro keeps R0 and a 26um halo. Its fractional position refers to the
-legal lower-left placement interval, reserving room for rings and channels.
+Each macro keeps R0 and a 26um halo; the two macros are separated by both
+halos plus a 20um channel and kept clear of the core ring. Layouts:
+`west_stack` (stacked on the west edge), `south_row` (side by side on the
+south edge) and `diagonal` (south-west and north-east corners). Instances are
+matched by name (`*model_store*`, `*activation*`).
 Signal PADs are grouped north (clock/reset/IRQ) and south (JTAG); supply PADs
 follow the course grouping on every side. PAD coordinates scale with core
 geometry. Electrical PAD/corner/filler overlap and out-of-die boxes are checked
@@ -84,7 +92,8 @@ python3 hardware/asic/optimize/flow.py adopt --output /absolute/new/experiment \
 ```
 
 Import requires the completion marker, clean error scan, zero exit code,
-area report and explicit ns SDC with 20/1000ns clocks; it retains the original
+area report, exactly two SRAM macros in the netlist and a 1 ns SDC time unit
+(`ns`, `1ns` or Genus' `1000ps`) with 20/1000ns clocks; it retains the original
 driver and console. All candidates reuse the exact imported netlist bytes.
 The common antenna policy permits at most two selected-net reroutes, saves
 every attempt and rejects unrecognized reports or remaining violations.
@@ -93,15 +102,16 @@ otherwise completes; they do not establish DFT completion. Other tool errors
 remain fatal. CI tests the framework without private libraries or EDA licenses;
 server implementation and SDF evidence are separate acceptance gates.
 
-For a named controlled trial (within the same eight-attempt output budget):
+For a named controlled trial (within the same ten-attempt output budget):
 
 ```bash
 python3 hardware/asic/optimize/flow.py trial --output /absolute/experiment \
-  --name custom_u60 --utilization 0.60 --macro-x 0.8 --macro-y 0.2 \
+  --name custom_u60 --utilization 0.60 --layout south_row \
   --halo 26 --congestion
 ```
 
-Utilization is in (0,1), macro fractions in [0,1], and halo is at least 26um.
+Utilization is in (0,1), the layout is one of the three names above, and halo
+is at least 26um.
 A preserved name cannot be reused with changed parameters. The default search
 keeps halo at 26um. Every point uses the same post-CTS/post-route setup/hold
 repair policy. Import also requires `rtl_sources.json` from the original RTL

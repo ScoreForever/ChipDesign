@@ -7,10 +7,15 @@ setAddRingMode -avoid_short true -stacked_via_bottom_layer METAL1 -stacked_via_t
 addRing -nets {VDD VSS} -type core_rings -follow core \
     -layer {top METAL5 bottom METAL5 left METAL4 right METAL4} \
     -width 10 -spacing 2 -offset 5 -center 0
-selectInst $macro_name
-addRing -nets {VDD VSS} -type block_rings -around selected \
-    -layer {top METAL5 bottom METAL5 left METAL4 right METAL4} \
-    -width 4 -spacing 2 -offset 10 -center 0
+set macro_names {}
+foreach m $macros {
+    lappend macro_names [lindex $m 0]
+    deselectAll
+    selectInst [lindex $m 0]
+    addRing -nets {VDD VSS} -type block_rings -around selected \
+        -layer {top METAL5 bottom METAL5 left METAL4 right METAL4} \
+        -width 4 -spacing 2 -offset 10 -center 0
+}
 deselectAll
 verify_drc -check_only special -report my_soc_top_pg_drc.rpt
 saveDesign backup/my_soc_top_postRings_M4M5.enc
@@ -29,11 +34,14 @@ addStripe -nets {VDD VSS} -layer METAL5 -direction horizontal -width 4 \
     -block_ring_bottom_layer_limit METAL4 -block_ring_top_layer_limit METAL5 \
     -padcore_ring_bottom_layer_limit METAL4 -padcore_ring_top_layer_limit METAL5
 setSrouteMode -blockPinConnectRingPinCorners true
-sroute -nets {VDD VSS} -connect {blockPin} -inst {$macro_name} \
+sroute -nets {VDD VSS} -connect {blockPin} -inst $macro_names \
     -blockPin useLef -blockPinWidthRange {0.001 1000} \
     -blockPinLayerRange {METAL3 METAL4} -blockPinTarget {blockring} \
     -layerChangeRange {METAL3 METAL5} -allowLayerChange 1 -allowJogging 1 \
     -targetViaLayerRange {METAL3 METAL5} -crossoverViaLayerRange {METAL3 METAL5}
+# Distributed M6/M5 access over each SRAM.
+foreach m $macros {
+lassign $m macro_name mx my mw mh
 setAddStripeMode -reset
 setAddStripeMode -break_at none -allow_jog none \
     -stacked_via_bottom_layer METAL4 -stacked_via_top_layer METAL6 \
@@ -57,6 +65,7 @@ addStripe -nets {VDD VSS} -layer METAL5 -direction horizontal -width 4 \
     -area [list [expr {$mx-20}] [expr {$my+10}] [expr {$mx+$mw+20}] [expr {$my+$mh-10}]] \
     -block_ring_bottom_layer_limit METAL4 -block_ring_top_layer_limit METAL5 \
     -padcore_ring_bottom_layer_limit METAL4 -padcore_ring_top_layer_limit METAL5
+}
 verify_drc -check_only special -report my_soc_top_pg_drc.rpt
 verifyConnectivity -type special -net {VDD VSS} -allPGPinPort -error 100000 \
     -report my_soc_top_pg_connectivity.rpt
