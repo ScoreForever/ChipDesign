@@ -57,13 +57,23 @@ module npu_activation_store #(
     wire memory_locked=state==S_FIRST || (state==S_MEMORY && !rsp_ready);
     wire flushable=count!=0 && (flush || count>1 || q_mask[head]==4'hf ||
         (write_valid && write_mask0!=0 && !same_tail));
-    wire pop=!rst && !memory_locked && flushable;
+    // Read misses stall the compute array; queued writes do not. A waiting
+    // miss therefore gets the single SRAM port first, and new writes wait one
+    // cycle, unless the queue is nearly full or a flush must drain it. Reads
+    // still observe queued data through forwarding. A write is never accepted
+    // in the cycle a miss issues, so the cache line it fills cannot go stale.
+    // Writes cannot starve: every miss holds the port for its response cycle,
+    // and the producer stops reading once its output FIFO fills.
+    wire read_miss=!rst && read_valid && !all_hit && response_slot;
+    wire urgent=flush || count>=WRITE_DEPTH-2;
+    wire defer=read_miss && !urgent;
+    wire pop=!rst && !memory_locked && flushable && !defer;
     wire merge=same_tail && !(pop && count==1) && write_mask0!=0;
     wire [1:0] pushes=(write_mask0!=0 && !merge)+{1'b0,two_writes};
     wire [QW+1:0] available=WRITE_DEPTH-count+pop;
-    assign write_ready=!rst && !memory_locked && available>=pushes;
+    assign write_ready=!rst && !memory_locked && available>=pushes && !defer;
     wire wf=write_valid && write_ready;
-    assign read_ready=!rst && response_slot && (all_hit || (!pop && !write_valid));
+    assign read_ready=!rst && response_slot && (all_hit || (!pop && !wf));
     wire rf=read_valid && read_ready;
     wire physical_read=rf && !all_hit;
 
