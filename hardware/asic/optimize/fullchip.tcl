@@ -85,8 +85,9 @@ foreach side {N S W E} {
 foreach {side ori} {top R180 bottom R0 left R270 right R90} {
     addIoFiller -cell {PFILLER20 PFILLER10 PFILLER5 PFILLER1 PFILLER05 PFILLER0005} -prefix IOF_$side -side $side -fillerOrient $ori
 }
-globalNetConnect VDDPST -type pgpin -pin VDDPST -all
-globalNetConnect VSSPST -type pgpin -pin VSSPST -all
+# IO cells expose VDDPST/VSSPST only through abutting rails, not as LEF
+# power pins; the supply PADs are bound with attachTerm above. A global
+# connection here matches nothing and raises IMPDB-1221.
 set macro_insts [dbGet -p2 top.insts.cell.name RA1SHD_2048x32M8]
 if {[llength $macro_insts]!=2 || $macro_insts eq "0x0"} {error "Expected exactly two mapped SRAMs (model and activation)"}
 # macros: list of {instance x y w h}, matched by role so each store keeps its box.
