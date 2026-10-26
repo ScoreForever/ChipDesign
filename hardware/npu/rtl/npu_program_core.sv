@@ -65,6 +65,10 @@ module npu_program_core #(
     wire last_param=(param_word==2 &&
         (checking ? param_channel==channels-1 :
          (param_channel==channels-1 || (param_channel%COLS)==COLS-1)));
+    wire param_bad=q_enable && ((param_word==1 && m_data[31]) ||
+        (param_word==2 && ($signed(m_data)<-31 || $signed(m_data)>31)));
+    wire [15:0] next_param_channel=param_word==2 ? param_channel+1'b1 : param_channel;
+    wire [1:0] next_param_word=param_word==2 ? 2'd0 : param_word+1'b1;
     assign ready=state==IDLE && !rst;
     assign busy=state!=IDLE;
     assign m_rsp_ready=1'b1;
@@ -325,7 +329,15 @@ module npu_program_core #(
         a_addr=mac_op ? (gather_state==1 ? gather_addr[gather_row] :
             calc_addr[calc_first]) : eaddr;
         if(state==FREQ) begin m_valid=1; m_addr=pc*64+fetch_word*4; end
+        // The model store accepts one read per cycle: request the next
+        // descriptor/parameter word in the cycle the previous one returns.
+        else if(state==FWAIT && m_rsp_valid && fetch_word!=15) begin
+            m_valid=1; m_addr=pc*64+(fetch_word+1'b1)*4;
+        end
         else if(state==PREQ) begin m_valid=1; m_addr=params+param_channel*12+param_word*4; end
+        else if(state==PWAIT && m_rsp_valid && !last_param && !param_bad) begin
+            m_valid=1; m_addr=params+next_param_channel*12+next_param_word*4;
+        end
         else if(state==EXECUTE && mac_op && lstate==L_REQ) begin
             m_valid=1; m_addr=load_address+load_half*4;
         end else if(state==EXECUTE && mac_op && lstate==L_WAIT && m_rsp_valid && COLS==8 && !load_half) begin
@@ -513,7 +525,7 @@ module npu_program_core #(
                         pool_enable<=d[0][10] || d[0][7:0]==POOL;
                         state<=BASIC;
                     end
-                    else begin fetch_word<=fetch_word+1'b1; state<=FREQ; end
+                    else begin fetch_word<=fetch_word+1'b1; state<=m_ready ? FWAIT : FREQ; end
                 end
                 BASIC: if(basic_bad) fail(2); else begin
                     oh<=xoh;ow<=xow;dh<=xdh;dw<=xdw;k_count<=xk;
@@ -555,9 +567,8 @@ module npu_program_core #(
                         endcase
                         if(last_param) state<=checking ? NEXT : SETUP;
                         else begin
-                            if(param_word==2) begin param_word<=0; param_channel<=param_channel+1'b1; end
-                            else param_word<=param_word+1'b1;
-                            state<=PREQ;
+                            param_word<=next_param_word; param_channel<=next_param_channel;
+                            state<=m_ready ? PWAIT : PREQ;
                         end
                     end
                 end
