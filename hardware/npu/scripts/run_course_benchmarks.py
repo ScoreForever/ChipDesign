@@ -25,10 +25,11 @@ def main():
     ap.add_argument('--cols', type=int, nargs='+', default=[8, 4])
     ap.add_argument('--trained-model', type=Path, help='use the trained TinyCNN NPZ for KWS (needs NumPy)')
     ap.add_argument('--macro-model', type=Path, help='private course SRAM model; enables both hard macros')
+    ap.add_argument('--define', action='append', default=[], help='extra Verilog define, e.g. NPU_ENABLE_WAVE_TRACE=0')
     args = ap.parse_args()
     out = args.output.resolve(); out.mkdir(parents=True, exist_ok=True)
     sources = (ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
-    defines = []
+    defines = ['-D'+d for d in args.define]
     if args.macro_model:
         sources.append(str(args.macro_model.resolve()))
         defines += ['-DNPU_USE_RA1SHD_MODEL', '-DNPU_USE_RA1SHD_ACTIVATION']

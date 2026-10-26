@@ -308,9 +308,10 @@ def main():
     ap.add_argument('--quick',action='store_true');ap.add_argument('--macro-model',type=Path)
     ap.add_argument('--wave-disabled',action='store_true',help='exercise ASIC-style disabled waveform trace, preserving operator summaries')
     ap.add_argument('--trained-model',type=Path,help='optional real trained NPZ; needs NumPy')
+    ap.add_argument('--define',action='append',default=[],help='extra Verilog define, e.g. NPU_ENABLE_WAVE_TRACE=0')
     args=ap.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=True)
     sources=(ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
-    defines=[]
+    defines=['-D'+d for d in args.define]
     if args.wave_disabled:defines.append('-DNPU_ENABLE_WAVE_TRACE=0')
     if args.macro_model:
         sources.append(str(args.macro_model.resolve()))
