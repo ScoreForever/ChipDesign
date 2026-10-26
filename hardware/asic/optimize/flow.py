@@ -23,6 +23,9 @@ MACRO_ROLES = ('model', 'activation')
 LAYOUTS = ('west_stack', 'south_row', 'diagonal')
 # Final-project area budget: die (including the PAD ring) at most 2 mm x 2 mm.
 MAX_DIE_UM = 2000
+# floorPlan snaps the core to the site grid (one 5.6um row at most), so a
+# requested die must leave this headroom to stay within MAX_DIE_UM.
+SNAP_UM = 6
 # Complete Innovus runs allowed per experiment directory.
 BUDGET = 10
 UTILIZATIONS = (.55, .6, .65, .7, .75)
@@ -410,7 +413,7 @@ def candidate(output,libs,name,util,layout,congestion=False,halo=26):
     geo=geometry(area['standard_cell_area_um2'],sizes,util,layout,halo)
     directory.mkdir(parents=True,exist_ok=True)
     save(directory/'experiment.json',dict(utilization=util,layout=layout,congestion=congestion,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
-    if geo['die_side_um']>MAX_DIE_UM:
+    if geo['die_side_um']+SNAP_UM>MAX_DIE_UM:
         # Over the area budget before any tool runs: record it, spend no Innovus time.
         result=dict(directory=str(directory),eligible=False,within_area_budget=False,die_side_um=geo['die_side_um'],
                     reason=f"die {geo['die_side_um']}um exceeds {MAX_DIE_UM}um budget")
