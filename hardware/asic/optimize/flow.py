@@ -248,7 +248,8 @@ def validate_reports(directory):
     regular=read('connectivity.rpt')
     # Abutting native IO supply rails are checked separately from routed nets.
     infos=re.findall(r'Net (\S+): no routing',regular)
-    regular_ok='Found no problems or warnings' in regular or (len(infos)==2 and set(infos)=={'VDDPST','VSSPST'} and '2 total info(s)' in regular and '2 Problem(s) (IMPVFC-98)' in regular)
+    io_rails_only=lambda text: set(re.findall(r'Net (\S+): no routing',text))=={'VDDPST','VSSPST'} and len(re.findall(r'Net \S+:',text))==2 and '2 total info(s)' in text and '2 Problem(s) (IMPVFC-98)' in text and not re.search(r'(?i)dangling|open|unconnected',text)
+    regular_ok='Found no problems or warnings' in regular or io_rails_only(regular)
     place=read('placement.rpt')
     unplaced=re.search(r'Number of Unplaced Instances\s*=\s*(\d+)',place)
     # Bond openings intentionally overlay electrical PAD cells; all other
@@ -256,7 +257,9 @@ def validate_reports(directory):
     # independently check electrical PAD/corner/filler overlap and die bounds.
     lists=re.findall(r'set (pchk\w+) \[list',place)
     place_ok=bool(unplaced and int(unplaced[1])==0 and all(x=='pchkIoOverlapList' for x in lists))
-    pg='Found no problems or warnings' in read('pg_connectivity.rpt')
+    pg_text=read('pg_connectivity.rpt')
+    # The IO supply rails abut; only their "no routing" infos may remain.
+    pg='Found no problems or warnings' in pg_text or io_rails_only(pg_text)
     constraints=read('constraints.rpt')
     drv=bool(re.search(r'No (?:constraint )?violations|max_transition|max_capacitance|max_fanout|Setup Check|Hold Check',constraints,re.I)) and 'No constrained paths' not in constraints and not re.search(r'VIOLATED|max_(?:capacitance|transition|fanout).*-[0-9]',constraints,re.I)
     ports=read('ports.txt').split()

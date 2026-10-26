@@ -39,6 +39,9 @@ repair_process_antenna
 # see it; timing-aware fill avoids critical nets.
 setMetalFill -layer {METAL5 METAL6} -minDensity 30 -preferredDensity 35 -maxDensity 70 -windowSize 200 200 -windowStep 100 100
 addMetalFill -layer {METAL5 METAL6} -timingAware sta
+# Remove dangling special-wire stubs (stripe ends past the matching ring);
+# they connect nothing and fail the strict PG connectivity check.
+editTrim -nets {VDD VSS}
 checkPlace placement.rpt -ignoreOutOfCore
 verify_drc -check_only default -limit 100000 -report drc.rpt
 verify_drc -check_only special -limit 100000 -report pg_drc.rpt

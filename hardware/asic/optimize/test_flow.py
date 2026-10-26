@@ -91,6 +91,12 @@ class FlowTests(unittest.TestCase):
             self.assertFalse(flow.validate_reports(p)['pad_geometry'])
             (p/'placement.rpt').write_text('set pchkOverlapList [list bad]\nNumber of Unplaced Instances = 0')
             self.assertFalse(flow.validate_reports(p)['placement'])
+            rails=('Net VDDPST: no routing\nNet VSSPST: no routing\nBegin Summary\n'
+                   '    2 Problem(s) (IMPVFC-98): Net has no global routing and no special routing.\n    2 total info(s) created.\nEnd Summary\n')
+            (p/'pg_connectivity.rpt').write_text(rails)
+            self.assertTrue(flow.validate_reports(p)['pg_connectivity'])
+            (p/'pg_connectivity.rpt').write_text('Net VDD: dangling Wire at (1, 2) (1, 2) on layer: METAL5\n'+rails)
+            self.assertFalse(flow.validate_reports(p)['pg_connectivity'])
 
     def test_external_synthesis_requires_clean_marker_and_keeps_hashes(self):
         with tempfile.TemporaryDirectory() as d:
