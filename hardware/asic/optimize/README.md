@@ -81,7 +81,15 @@ Timing checks are disabled on exactly six CDC capture flops, the req/ack
 toggle-synchronizer first stages and both reset-synchronizer stages, which
 sample asynchronous inputs by design; the list is matched in the netlist and
 saved as `sdf/cdc_tcheck_disabled.json`. Every other check stays enabled and
-any violation fails acceptance.
+any violation fails acceptance. The simulation uses `+define+NTC +define+RECREM
++neg_tchk` so the TSMC models take the SDF RECREM checks, and `-ignr_warnmax`
+so the annotation log is complete. Accepted, and counted in `sdf/result.json`:
+unannotatable edge-qualified IOPATHs that the cell model declares as `ifnone`
+arcs (non-unate cells; used only for X inputs), the SRAM negedge CLK PERIOD
+(the model checks posedge only) and one time-0 BUS CONFLICT on each input PAD
+(the OEN tie cell has not propagated yet). The SRAM `(posedge CLK) Q[i]`
+IOPATHs are rewritten without the edge to match the model's `(CLK => Q[i])`;
+the count and source hash are in `sdf/sdf_rewrite.json`. Anything else fails.
 
 ## Independent signoff
 
