@@ -41,7 +41,9 @@ def main():
     sources += [filelist.as_posix(),'hardware/fpga/fpga_top.sv',
                 'hardware/fpga/ego1_pins.xdc','hardware/fpga/ego1_timing.xdc',
                 'hardware/fpga/ego1_configuration.xdc','hardware/fpga/check_bram_drc.tcl',
-                'hardware/fpga/scripts/build_ego1.tcl']
+                'hardware/fpga/scripts/build_ego1.tcl',
+                'hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl',
+                'hardware/fpga/scripts/audit_jtag_io.tcl']
     hashes={}
     for source in sources:
         src=ROOT/source;dest=repo/source;dest.parent.mkdir(parents=True,exist_ok=True)

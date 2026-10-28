@@ -1,4 +1,4 @@
-"""Static INT8 model compiler and independent integer reference, ABI 2.
+"""Static INT8 model compiler and independent integer reference, ABI 2.1.
 
 Pure Python, no framework/runtime dependency. Public input uses five logical
 operators. Fusion only removes single-consumer, non-output intermediates.
@@ -12,7 +12,9 @@ from pathlib import Path
 import struct
 import operator
 
-ABI=0x20000
+# ABI 2.1 (0x00020001): as 2.0, except that on an 8-column array an output
+# tile with at most four real channels packs four weight bytes per row.
+ABI=0x20001
 OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5}
 Q,R,P,S32,D32=1<<8,1<<9,1<<10,1<<11,1<<12
 
@@ -168,7 +170,7 @@ def reference(model,values):
         data[n['output']]=out
     return data
 
-def compile_model(model,*,fuse=True,cols=8,act_bytes=4096,model_bytes=8192,max_ops=16):
+def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_ops=16):
     tensors,nodes=analyze(model)
     if cols not in (4,8):raise ValueError('array columns must be 4 or 8')
     uses={name:0 for name in tensors}
@@ -224,8 +226,9 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=4096,model_bytes=8192,max_o
         if op in ('Conv','FC'):
             packed=[];k=n['k']
             for o_base in range(0,oc,cols):
+                width=4 if cols==8 and oc-o_base<=4 else cols
                 for ki in range(align(k,4)):
-                    for lane in range(cols):
+                    for lane in range(width):
                         o=o_base+lane
                         row_pad=n['kernel']==3 and n['input_shape'][2]==1
                         logical=(ki//4)*3+ki%4 if row_pad else ki
@@ -288,7 +291,7 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('model',type=Path);ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--no-fuse',action='store_true');ap.add_argument('--cols',type=int,default=8)
-    ap.add_argument('--act-bytes',type=int,default=4096)
+    ap.add_argument('--act-bytes',type=int,default=8192)
     args=ap.parse_args();model=from_tinycnn_npz(args.model) if args.model.suffix=='.npz' else json.loads(args.model.read_text(encoding='utf-8'))
     pkg=compile_model(model,fuse=not args.no_fuse,cols=args.cols,act_bytes=args.act_bytes);pkg.save(args.output)
     print(json.dumps(pkg.manifest,ensure_ascii=False,indent=2))

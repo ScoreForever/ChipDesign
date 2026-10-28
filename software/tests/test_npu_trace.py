@@ -6,14 +6,14 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'host'))
-from nocpu_jtag import Npu, Op
+from nocpu_jtag import Npu, Op, ABI
 from npu_trace import decode_sample, export_trace
 
 
 class TraceRegisters:
     def __init__(self, busy=False, changed=False):
         self.reads=[];self.writes=[];self.changed=changed
-        self.registers={0:0x20000,4:3 if busy else 10,0x2c:7,0x14:1,
+        self.registers={0:ABI,4:3 if busy else 10,0x2c:7,0x14:1,
             0x180:0x10080,0x184:1024,0x188:0x31,0x18c:99,0x190:5,0x194:2,
             0x198:2,0x19c:3,0x1a0:16,0x1a4:32,0x1a8:16,0x1ac:1,0x1b0:2}
         for i,value in enumerate((0,4,0x301,11,0,0,2,2)):self.registers[0x200+i*4]=value

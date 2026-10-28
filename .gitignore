@@ -40,3 +40,6 @@ software/train/runs/
 
 # Reproducible local FPGA / firmware builds
 /build/
+
+# Isolated local development checkouts
+.worktrees/

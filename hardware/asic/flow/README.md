@@ -10,11 +10,20 @@ simulation.
    root in `config/`.
 2. Synthesize `my_soc_top` with the Genus script in
    `hardware/soc/synth/scripts/synth_genus.tcl`. The mapped ASIC build selects
-   the course SRAM macro with `USE_RA1SHD_MAINMEM`.
+   two course SRAM macro instances with `NPU_USE_RA1SHD_MODEL` and
+   `NPU_USE_RA1SHD_ACTIVATION` when `EDA_NPU_MODEL_SRAM=1`.
 3. In a fresh Innovus session, source `pnr/scripts/init_pnr.tcl`, then run the
    floorplan/IO, power/placement, and CTS/route/export stages in order.
 4. Run `sim/run_postlayout_xcelium.sh` with the exported netlist and SDF to
    perform the integrated gate-level regression.
+
+The checked-in lab4 floorplan/power scripts retain the historical single
+`i_mainmem_i_mainmem` placement and power connection. They require adaptation
+before use with the current CPU-less dual-SRAM design: place and power both
+`i_control/i_model_store/i_sram` and `i_control/i_activation/i_sram`, using the
+matching macro LEF/GDS and current netlist. These templates are not a validated
+dual-macro PnR handoff. The 2 by 2 mm die target is an architecture estimate,
+not a strict post-EDA area acceptance threshold for this change.
 
 ## Environment
 

@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 module my_soc_top #(
- parameter ACT_BYTES=4096,MODEL_BYTES=8192,
+ parameter ACT_BYTES=8192,MODEL_BYTES=8192,
 `ifdef NPU_ARRAY_COLS
  parameter COLS=`NPU_ARRAY_COLS,
 `else

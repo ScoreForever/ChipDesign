@@ -3,7 +3,7 @@
 // No model geometry, layer index or output class count is hardwired.
 // Model RAM is immutable while validating/running. All memory addresses are bytes.
 module npu_program_core #(
-    parameter ACT_BYTES=4096, MODEL_BYTES=8192, COLS=8, TILE=16,
+    parameter ACT_BYTES=8192, MODEL_BYTES=8192, COLS=8, TILE=16,
     parameter MAX_OPS=16, MAX_K=1024, PSUM_BITS=26
 ) (
     input wire clk,rst, input wire validate,run,
@@ -23,8 +23,9 @@ module npu_program_core #(
     input wire m_rsp_valid, output wire m_rsp_ready, input wire [31:0] m_data,
     output reg a_valid, input wire a_ready, output reg [15:0] a_addr,
     input wire a_rsp_valid, output wire a_rsp_ready, input wire [31:0] a_data,
-    output wire w_valid, output wire [15:0] w_addr,
-    output wire [31:0] w_data, output wire [3:0] w_mask
+    output wire w_valid, input wire w_ready, output wire [15:0] w_addr,
+    output wire [31:0] w_data, output wire [3:0] w_mask,
+    output wire memory_flush, input wire memory_idle
 );
     localparam IDLE=0,FREQ=1,FWAIT=2,BASIC=3,CHECK=4,PREQ=5,PWAIT=6,
         SETUP=7,EXECUTE=8,NEXT=9,FAILED=10,INIT_A=11,INIT_B=12,DERIVE=14;
@@ -64,6 +65,10 @@ module npu_program_core #(
     wire last_param=(param_word==2 &&
         (checking ? param_channel==channels-1 :
          (param_channel==channels-1 || (param_channel%COLS)==COLS-1)));
+    wire param_bad=q_enable && ((param_word==1 && m_data[31]) ||
+        (param_word==2 && ($signed(m_data)<-31 || $signed(m_data)>31)));
+    wire [15:0] next_param_channel=param_word==2 ? param_channel+1'b1 : param_channel;
+    wire [1:0] next_param_word=param_word==2 ? 2'd0 : param_word+1'b1;
     assign ready=state==IDLE && !rst;
     assign busy=state!=IDLE;
     assign m_rsp_ready=1'b1;
@@ -130,9 +135,16 @@ module npu_program_core #(
     reg [1:0] bank_ready;
     reg [4:0] inflight[0:1];
     wire load_bank=load_seq[0];
-    wire load_return=lstate==L_WAIT && m_rsp_valid && (COLS==4 || load_half);
+    // ABI 2.1: on an 8-column array, an output-channel tile with at most four
+    // real channels (always the last tile) stores one 32-bit word per weight
+    // row instead of two; the upper four lanes load as zero.
+    wire [15:0] tile_channels=channels-oct*COLS;
+    wire narrow=COLS==8 && tile_channels<=4;
+    wire [15:0] row_bytes=narrow ? 16'd4 : COLS;
+    wire load_return=lstate==L_WAIT && m_rsp_valid && (COLS==4 || load_half || narrow);
     wire array_weight_we=state==EXECUTE && mac_op && (lstate==L_HAVE || load_return) && inflight[load_bank]==0;
-    wire [COLS*8-1:0] array_weights=load_return ? (COLS==8 ? {m_data,load_low} : m_data) : load_data;
+    wire [COLS*8-1:0] response_row=COLS==8 ? (narrow ? {{(COLS*8-32){1'b0}},m_data} : {m_data,load_low}) : m_data;
+    wire [COLS*8-1:0] array_weights=load_return ? response_row : load_data;
     reg [15:0] weight_tile_base,load_address;
     wire load_start=load_more && lstate==L_IDLE && !bank_ready[load_bank] &&
         (load_seq==issue_seq || load_seq==issue_seq+1'b1);
@@ -146,7 +158,18 @@ module npu_program_core #(
     reg [1:0] read_slot;
     reg [$clog2(COLS)-1:0] read_lane;
     reg [4:0] rq_pending;
-    wire post_fire=state==EXECUTE && slot_ready[read_slot];
+    // Reserve space for every quantization result before entering its fixed
+    // four-stage pipeline. The output FIFO decouples all five operators from
+    // activation-SRAM backpressure without stalling or dropping pipeline data.
+    localparam WRITE_DEPTH=8;
+    reg [15:0] write_addr[0:WRITE_DEPTH-1];
+    reg [31:0] write_data[0:WRITE_DEPTH-1];
+    reg [3:0] write_mask[0:WRITE_DEPTH-1];
+    reg [2:0] write_head,write_tail;
+    reg [3:0] write_count;
+    wire write_fire=w_valid && w_ready;
+    wire post_credit=({1'b0,write_count}+rq_pending<WRITE_DEPTH) || write_fire;
+    wire post_fire=state==EXECUTE && slot_ready[read_slot] && post_credit;
     wire [15:0] post_channel=oct*COLS+read_lane;
     wire post_last=read_lane==COLS-1 || post_channel==channels-1;
     wire [31:0] post_raw=results[read_slot][read_lane*32+:32];
@@ -159,10 +182,11 @@ module npu_program_core #(
         .in_multiplier(mult_cache[read_lane]),.in_shift(shift_cache[read_lane]),
         .activation_min(effective_min),.activation_max(clamp_max),.in_tag(post_addr),
         .out_valid(rq_valid),.out_data(rq_data),.out_tag(rq_addr));
-    assign w_valid=state==EXECUTE && (rq_valid || (post_fire && !q_enable));
-    assign w_addr=q_enable ? rq_addr : post_addr;
-    assign w_data=q_enable ? {24'd0,rq_data} : post_value;
-    assign w_mask=dst32 ? 4'b1111 : 4'b0001;
+    wire write_push=state==EXECUTE && (rq_valid || (post_fire && !q_enable));
+    assign w_valid=state==EXECUTE && write_count!=0;
+    assign w_addr=write_addr[write_head];
+    assign w_data=write_data[write_head];
+    assign w_mask=write_mask[write_head];
 
     // Activation gather. A four-byte consecutive group uses one synchronous
     // read. Boundary/nonconsecutive groups use scalar reads with zero masks.
@@ -312,13 +336,21 @@ module npu_program_core #(
         a_addr=mac_op ? (gather_state==1 ? gather_addr[gather_row] :
             calc_addr[calc_first]) : eaddr;
         if(state==FREQ) begin m_valid=1; m_addr=pc*64+fetch_word*4; end
+        // The model store accepts one read per cycle: request the next
+        // descriptor/parameter word in the cycle the previous one returns.
+        else if(state==FWAIT && m_rsp_valid && fetch_word!=15) begin
+            m_valid=1; m_addr=pc*64+(fetch_word+1'b1)*4;
+        end
         else if(state==PREQ) begin m_valid=1; m_addr=params+param_channel*12+param_word*4; end
+        else if(state==PWAIT && m_rsp_valid && !last_param && !param_bad) begin
+            m_valid=1; m_addr=params+next_param_channel*12+next_param_word*4;
+        end
         else if(state==EXECUTE && mac_op && lstate==L_REQ) begin
             m_valid=1; m_addr=load_address+load_half*4;
-        end else if(state==EXECUTE && mac_op && lstate==L_WAIT && m_rsp_valid && COLS==8 && !load_half) begin
+        end else if(state==EXECUTE && mac_op && lstate==L_WAIT && m_rsp_valid && COLS==8 && !load_half && !narrow) begin
             m_valid=1; m_addr=load_address+4;
         end else if(state==EXECUTE && mac_op && array_weight_we && load_row!=3) begin
-            m_valid=1; m_addr=load_address+COLS;
+            m_valid=1; m_addr=load_address+row_bytes;
         end
         if(state==EXECUTE) begin
             if(mac_op && !kernel_prepare && issue_more && (gather_state==0 || (issue_fire && has_next))) begin
@@ -336,6 +368,7 @@ module npu_program_core #(
             bank_ready<=0; inflight[0]<=0; inflight[1]<=0; issue_p<=0;
             gather_state<=0; gather_row<=0; slot_busy<=0; slot_ready<=0;
             read_slot<=0; read_lane<=0; rq_pending<=0;
+            write_head<=0;write_tail<=0;write_count<=0;
             estate<=0; element_pos<=0; element_lane<=0; element_tap<=0; element_slot<=0;
             cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;
             tile_positions<=TILE;last_group<=0;
@@ -345,9 +378,13 @@ module npu_program_core #(
     task automatic fail(input [4:0] code);
         begin error<=code; error_op<=pc; state<=FAILED; end
     endtask
-    wire drained=mac_op ? (!issue_more && inflight[0]==0 && inflight[1]==0 &&
+    wire compute_drained=write_count==0 && (mac_op ? (!issue_more && inflight[0]==0 && inflight[1]==0 &&
         slot_busy==0 && rq_pending==0 && !rq_valid && lstate==L_IDLE && !load_more) :
-        (element_pos==dh*dw && estate==0 && slot_busy==0 && rq_pending==0 && !rq_valid);
+        (element_pos==dh*dw && estate==0 && slot_busy==0 && rq_pending==0 && !rq_valid));
+    // A partial write-combining word must reach physical SRAM before the next
+    // channel tile/layer can reuse its address, or before done is published.
+    assign memory_flush=state==EXECUTE && compute_drained;
+    wire drained=compute_drained && memory_idle;
 
     // Passive one-cycle sampled monitoring; no feedback into datapath control.
     // Count execution only. The bank settles one cycle after execution ends.
@@ -358,6 +395,7 @@ module npu_program_core #(
         {2'b0,slot_busy[2]}+{2'b0,slot_busy[3]};
     wire [1:0] perf_banks={1'b0,bank_ready[0]}+{1'b0,bank_ready[1]};
     wire [5:0] perf_inflight={1'b0,inflight[0]}+{1'b0,inflight[1]};
+    wire perf_clear=rst || (state==IDLE && (validate || run));
     assign trace_clear=perf_clear;
     assign trace_active=perf_active;
     assign trace_events={state==FAILED,state==BASIC,state==NEXT,state==FREQ && fetch_word==0};
@@ -367,14 +405,14 @@ module npu_program_core #(
     assign trace_sample={
         (state==FREQ || state==FWAIT ? 1'b0 : q_enable),
         (state==FREQ || state==FWAIT ? 3'b0 : op),pc[3:0],state,
-        (w_valid ? w_mask : 4'b0),(w_valid ? w_addr : 16'b0),
+        (write_fire ? w_mask : 4'b0),(write_fire ? w_addr : 16'b0),
         (a_valid ? a_addr : 16'b0),(m_valid ? m_addr : 16'b0),
         lstate,gather_state,perf_inflight,bank_ready,slot_ready,slot_busy,
         kernel_prepare,
         (perf_mac && !slot_available),
         (perf_mac && slot_available && !bank_ready[issue_seq[0]]),
         (perf_mac && slot_available && bank_ready[issue_seq[0]] && !gather_full),
-        issue_fire,w_valid,a_rsp_valid,a_ready,a_valid,m_rsp_valid,m_ready,m_valid,
+        issue_fire,write_fire,a_rsp_valid,a_ready,a_valid,m_rsp_valid,m_ready,m_valid,
         cycles};
     reg perf_sample_active;
     reg [17:0] perf_events;
@@ -384,7 +422,6 @@ module npu_program_core #(
     reg [31:0] perf_count[0:23];
     reg [31:0] perf_m_streak,perf_a_streak;
     reg perf_m_pending,perf_a_pending;
-    wire perf_clear=rst || (state==IDLE && (validate || run));
     integer pi;
     genvar pg;
     generate for(pg=0;pg<24;pg=pg+1) begin:g_perf
@@ -408,7 +445,7 @@ module npu_program_core #(
                 perf_mac && !slot_available,
                 perf_mac && slot_available && !bank_ready[issue_seq[0]],
                 perf_mac && slot_available && bank_ready[issue_seq[0]] && !gather_full,
-                issue_fire,w_valid,
+                issue_fire,write_fire,
                 perf_a_pending && !a_rsp_valid,a_rsp_valid,a_valid && !a_ready,a_valid && a_ready,
                 perf_m_pending && !m_rsp_valid,m_rsp_valid,m_valid && !m_ready,m_valid && m_ready};
             perf_sample_slots<=perf_slots;perf_sample_banks<=perf_banks;perf_sample_inflight<=perf_inflight;
@@ -469,7 +506,7 @@ module npu_program_core #(
             if(state!=IDLE && !checking) cycles<=cycles+1;
             if(m_valid && m_ready) model_reads<=model_reads+1;
             if(a_valid && a_ready) act_reads<=act_reads+1;
-            if(w_valid) act_writes<=act_writes+1;
+            if(write_fire) act_writes<=act_writes+1;
             case(state)
                 IDLE: if(validate || run) begin
                     checking<=validate; pc<=0; fetch_word<=0; error<=0; error_op<=0;
@@ -495,7 +532,7 @@ module npu_program_core #(
                         pool_enable<=d[0][10] || d[0][7:0]==POOL;
                         state<=BASIC;
                     end
-                    else begin fetch_word<=fetch_word+1'b1; state<=FREQ; end
+                    else begin fetch_word<=fetch_word+1'b1; state<=m_ready ? FWAIT : FREQ; end
                 end
                 BASIC: if(basic_bad) fail(2); else begin
                     oh<=xoh;ow<=xow;dh<=xdh;dw<=xdw;k_count<=xk;
@@ -505,7 +542,7 @@ module npu_program_core #(
                 DERIVE:begin
                     src_span<=src_pixels*ic*(src32 ? 4 : 1);
                     dst_span<=dst_pixels*channels*(dst32 ? 4 : 1);
-                    weight_span<=((oc+COLS-1)/COLS)*groups*4*COLS;param_span<=channels*12;
+                    weight_span<=((oc+COLS-1)/COLS)*groups*4*COLS-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*16 : 0);param_span<=channels*12;
                     row_stride<=iw*ic*(src32 ? 4 : 1);
                     positions<=dst_pixels*(pool_enable ? 4 : 1);state<=CHECK;
                 end
@@ -537,9 +574,8 @@ module npu_program_core #(
                         endcase
                         if(last_param) state<=checking ? NEXT : SETUP;
                         else begin
-                            if(param_word==2) begin param_word<=0; param_channel<=param_channel+1'b1; end
-                            else param_word<=param_word+1'b1;
-                            state<=PREQ;
+                            param_word<=next_param_word; param_channel<=next_param_channel;
+                            state<=m_ready ? PWAIT : PREQ;
                         end
                     end
                 end
@@ -566,6 +602,14 @@ module npu_program_core #(
                     element_row_jump<=element_row_step-element_scan_product;state<=EXECUTE;
                 end
                 EXECUTE: begin
+                    write_count<=write_count+write_push-write_fire;
+                    if(write_fire)write_head<=write_head+1'b1;
+                    if(write_push)begin
+                        write_addr[write_tail]<=q_enable ? rq_addr : post_addr;
+                        write_data[write_tail]<=q_enable ? {24'd0,rq_data} : post_value;
+                        write_mask[write_tail]<=dst32 ? 4'b1111 : 4'b0001;
+                        write_tail<=write_tail+1'b1;
+                    end
                     inflight[0]<=inflight[0]+(issue_fire && !issue_seq[0])-(out_valid && !out_bank);
                     inflight[1]<=inflight[1]+(issue_fire && issue_seq[0])-(out_valid && out_bank);
                     rq_pending<=rq_pending+(post_fire && q_enable)-rq_valid;
@@ -587,12 +631,12 @@ module npu_program_core #(
                         if(load_start) lstate<=L_REQ;
                         if(lstate==L_REQ && m_ready) lstate<=L_WAIT;
                         if(lstate==L_WAIT && m_rsp_valid) begin
-                            if(COLS==8 && !load_half) begin load_low<=m_data; load_half<=1; lstate<=m_ready ? L_WAIT : L_REQ; end
-                            else if(!array_weight_we) begin load_data<=COLS==8 ? {m_data,load_low} : m_data; lstate<=L_HAVE; end
+                            if(COLS==8 && !load_half && !narrow) begin load_low<=m_data; load_half<=1; lstate<=m_ready ? L_WAIT : L_REQ; end
+                            else if(!array_weight_we) begin load_data<=response_row; lstate<=L_HAVE; end
                         end
                         if(array_weight_we) begin
                             load_half<=0;
-                            load_address<=load_row==3 && load_g==groups-1 ? weight_tile_base : load_address+COLS;
+                            load_address<=load_row==3 && load_g==groups-1 ? weight_tile_base : load_address+row_bytes;
                             if(load_row==3) begin
                                 load_row<=0; lstate<=L_IDLE; bank_ready[load_bank]<=1; load_seq<=load_seq+1'b1;
                                 if(load_g!=groups-1) load_g<=load_g+1'b1;

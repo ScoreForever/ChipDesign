@@ -1,0 +1,186 @@
+{
+ "date": "2026-10-26",
+ "branch": "feature/asic-pnr-optimization",
+ "pnr_source_commit": "1bc4a68",
+ "scope": "TT 1.8V 25C only; 50 MHz core, 1 MHz JTAG; no multi-corner STA, IR/EM, seal ring or chip-level ESD review; vectorless power",
+ "rtl": {
+  "program_cases": 70,
+  "memories": [
+   "behavioral SRAM",
+   "course SRAM model"
+  ],
+  "tinycnn_kws_cycles_4x8": {
+   "main_4KiB": 3470,
+   "dual_sram_baseline_edcb86e": 3826,
+   "final": 3262
+  },
+  "course_benchmarks_final": {
+   "c8": {
+    "kws": 3262,
+    "mnist": 5777,
+    "har": 1025,
+    "ecg": "unsupported (MaxPool1D)"
+   },
+   "c4": {
+    "kws": 5886,
+    "mnist": 5762,
+    "har": 1240,
+    "ecg": "unsupported (MaxPool1D)"
+   }
+  },
+  "abi": "0x20001 (2.1; narrow tiles change weight layout, recompile model packages)"
+ },
+ "synthesis": {
+  "standard_cell_mm2": 1.312866,
+  "macro_mm2": 0.802887,
+  "total_mm2": 2.115753,
+  "macros": 2,
+  "op_trace_asic": false
+ },
+ "search": [
+  {
+   "name": "u55-u65",
+   "result": "over 2x2 mm budget, not run"
+  },
+  {
+   "name": "u70",
+   "die_mm2": 3.765152,
+   "setup_ns": 0.035,
+   "hold_ns": 0.021,
+   "eligible": true
+  },
+  {
+   "name": "u75",
+   "die_mm2": 3.687322,
+   "setup_ns": -0.099,
+   "hold_ns": 0.02,
+   "eligible": false,
+   "failed": [
+    "drv",
+    "setup"
+   ]
+  },
+  {
+   "name": "south_row_u70",
+   "setup_ns": -0.231,
+   "hold_ns": 0.018,
+   "eligible": false
+  },
+  {
+   "name": "diagonal_u70",
+   "setup_ns": -0.082,
+   "hold_ns": 0.021,
+   "eligible": false
+  },
+  {
+   "name": "congestion (selected)",
+   "die_mm2": 3.765152,
+   "setup_ns": 0.165,
+   "hold_ns": 0.025,
+   "eligible": true
+  },
+  {
+   "name": "repeat",
+   "setup_ns": 0.165,
+   "hold_ns": 0.025,
+   "eligible": true,
+   "identical_to_selected": true
+  }
+ ],
+ "selected": {
+  "die_um": 1940.4,
+  "die_mm2": 3.765152,
+  "core_um": 1640,
+  "core_mm2": 2.690387,
+  "layout": "west_stack",
+  "utilization": 0.7,
+  "congestion_driven": true,
+  "standard_cells": 55190,
+  "standard_area_mm2": 1.333002,
+  "density_area_percent": 70.6,
+  "innovus_density_percent": 78.725,
+  "setup_wns_ns": 0.165,
+  "hold_wns_ns": 0.025,
+  "tns_ns": 0,
+  "wire_length_m": 3.665,
+  "global_overflow_percent": {
+   "H": 0.48,
+   "V": 0.28
+  },
+  "static_power_mW": 129.0,
+  "checks": [
+   "drc",
+   "pg_drc",
+   "antenna",
+   "connectivity",
+   "pg_connectivity",
+   "placement",
+   "ports",
+   "pad_geometry",
+   "drv"
+  ],
+  "flow": {
+   "opt_max_density": 0.9,
+   "metal_fill": "M5/M6 floating",
+   "edit_trim": true
+  }
+ },
+ "signoff": {
+  "drc": {
+   "tool": "Calibre 2022.3",
+   "passed": true,
+   "results": 2427,
+   "accepted": {
+    "ESD/LUP guidelines in IO ring": 2425,
+    "CO.R.4 in IO ring": 1,
+    "DRM.R.1 reminder": 1
+   },
+   "blocking": 0
+  },
+  "lvs": {
+   "tool": "Calibre 2022.3",
+   "passed": true,
+   "topology": "exact",
+   "io_pad_resistor_property_errors": 45,
+   "max_deviation_percent": 3.47
+  },
+  "sta": {
+   "tool": "PrimeTime R-2020.09",
+   "passed": true,
+   "setup_wns_ns": 0.671,
+   "hold_wns_ns": 0.015,
+   "srams": "black box (no Library Compiler)"
+  },
+  "lec": {
+   "tool": "Formality R-2020.09",
+   "passed": true
+  }
+ },
+ "sdf": {
+  "candidates": [
+   "u70",
+   "congestion"
+  ],
+  "passed": true,
+  "jtag_commands": 70,
+  "timing_violations": 0,
+  "accepted": {
+   "ifnone_edge_iopaths": {
+    "u70": 65676,
+    "congestion": 65664
+   },
+   "sram_negedge_period_lines": 6,
+   "time0_input_pad_conflicts": 5,
+   "sram_clk_q_iopaths_rewritten": 64
+  },
+  "cdc_tcheck_disabled": 6,
+  "options": [
+   "-sdf_cmd_file",
+   "+define+NTC",
+   "+define+RECREM",
+   "+neg_tchk",
+   "-ignr_warnmax SDFNEP/SDFNET"
+  ]
+ },
+ "server_archive": "chip-fullstack-2026/pnr-dual-1bc4a68 (GDS/DEF/SPEF/SDF/databases/logs; not in repository)"
+}

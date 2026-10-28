@@ -13,14 +13,14 @@ if {$mapped} {
     }
     set target_libs $::env(EDA_TARGET_LIBS)
     if {$use_model_sram} {
-        # DC needs a compiled .db, not the course Liberty accepted by Genus.
+        # Both 8 KiB stores use this macro type. DC needs its compiled .db.
         if {![info exists ::env(EDA_MODEL_SRAM_DB)] || ![file isfile $::env(EDA_MODEL_SRAM_DB)]} {
-            error "Set EDA_MODEL_SRAM_DB to the matching SRAM .db, or EDA_NPU_MODEL_SRAM=0 for the FF comparison"
+            error "Set EDA_MODEL_SRAM_DB to the matching dual-store SRAM .db, or EDA_NPU_MODEL_SRAM=0 for inferred-memory comparison"
         }
         if {[lsearch -exact $target_libs $::env(EDA_MODEL_SRAM_DB)]<0} {
             lappend target_libs $::env(EDA_MODEL_SRAM_DB)
         }
-        lappend hdl_defines NPU_USE_RA1SHD_MODEL
+        lappend hdl_defines NPU_USE_RA1SHD_MODEL NPU_USE_RA1SHD_ACTIVATION
     }
     foreach lib $target_libs {
         if {![file isfile $lib]} {error "Target library does not exist: $lib"}

@@ -1,4 +1,4 @@
-# 无 CPU 主机控制与模型 ABI 2.0
+# 无 CPU 主机控制与模型 ABI 2.1
 
 本协议用于五算子可配置 NPU，不兼容旧固定 TinyCNN JTAG/MMIO ABI。
 数据包仍由专用 JTAG TAP 传输；主机无需 RISC-V Debug Module。
@@ -24,7 +24,7 @@ OpenOCD 的数值解析器默认按十进制解释，可能把 READ 的 opcode �
 | 3 | MODEL_BEGIN | 立即使旧模型/输入失效，开始新事务 |
 | 4 | MODEL_COMMIT | 检查完整性并预验证整个程序，成功后 model_valid |
 | 5 | INPUT_BEGIN | 开始输入事务 |
-| 6 | INPUT_COMMIT | 确认输入完整 |
+| 6 | INPUT_COMMIT | 确认输入完整，并等待写缓冲刷新到激活 SRAM |
 | 7 | START | 消费输入有效性，启动一次完整程序，返回 job ID |
 | 8 | ACK | 空闲时释放完成结果所有权 |
 | 9 | RESET | 中止、清有效性/故障，恢复默认 watchdog，RAM 不清零 |
@@ -38,7 +38,7 @@ OpenOCD 的数值解析器默认按十进制解释，可能把 READ 的 opcode �
 
 | 地址 | 含义 |
 |---|---|
-| 0x00 | ABI=0x00020000 |
+| 0x00 | ABI=0x00020001（2.1） |
 | 0x04 | bit0 busy、1 model_valid、2 input_valid、3 done、4 model_loading、5 input_loading、6 fault |
 | 0x08 | 最近错误码 |
 | 0x0c | 支持算子位图=0x1f |
@@ -50,9 +50,9 @@ OpenOCD 的数值解析器默认按十进制解释，可能把 READ 的 opcode �
 | 0x2c / 0x30 | 提交 / 完成 job ID |
 | 0x34 | 故障物理 op index |
 | 0x38 / 0x3c | 执行周期 / MAC 向量发射次数 |
-| 0x40 / 0x44 / 0x48 | 激活写事务 / 模型读事务 / 激活读事务 |
+| 0x40 / 0x44 / 0x48 | 激活逻辑写握手 / 模型读事务 / 激活读事务 |
 | 0x4c | 控制器任务经过周期 |
-| 0x50 / 0x54 | 激活 / 模型 byte 容量 |
+| 0x50 / 0x54 | 激活 / 模型 byte 容量，当前默认均为8192 |
 | 0x58 | 高16位阵列行数、低16位列数 |
 | 0x5c / 0x60 | MAX_K / MAX_OPS |
 | 0x64 | 输入 dtype：0=INT8、1=INT32，模型装载时必须配置 |
@@ -62,7 +62,24 @@ OpenOCD 的数值解析器默认按十进制解释，可能把 READ 的 opcode �
 MODEL_BEGIN 后先写完 0x10..0x24 六个配置及 0x64 输入 dtype，再从模型 offset=0 顺序写完整模型。
 开始模型数据传输后配置不可再改；MODEL_COMMIT 会等待全部描述符/参数检查结束才应答。
 INPUT_BEGIN 后从输入基址顺序写入，最后一个 word 不足 4 B 的部分按长度屏蔽。
+WRITE 成功代表存储已按握手接收数据；INPUT_COMMIT 等待部分word和在途写入全部提交。
+硬件每层结束及最终完成前也会等待激活存储排空，done/ACK不会早于结果写入完成。
+RESET/超时取消缓存和队列，不清 SRAM 内容，之后必须重新完成模型和输入事务。
 读输出按 32-bit 小端读取，主机截取准确 output_bytes；不足一 word 的高位不是有效输出。
+
+性能计数器和trace的寄存器布局、事件bit位置保留既有定义。激活写事件按
+`w_valid && w_ready` 接受握手统计，背压期间保持valid不会重复计数。
+`0x40`及性能bank的写次数是计算核逻辑写事务数；多个字节写合并为一次物理SRAM写后，
+该逻辑计数不会随之减少，不能把它直接当作物理SRAM写命令数。
+
+波形trace是可选调试配置。`0x180`扩展版本始终存在；`0x200`起的逐算子摘要表也是可选配置，
+`0x1a8`为16表示存在，为0表示本硬件未综合（ASIC默认，约0.2 mm²触发器），此时摘要窗口读返回地址错误2，
+`trace(include_samples=False)`明确报未启用；24个全局性能计数器不受影响。
+`0x184`为实际波形深度：1024表示启用，0表示本硬件未启用波形RAM。
+深度0时采样count、first/last timestamp和captured control/offset为0；
+flags只保留任务完成位bit2，started/full/truncated均为0，波形数据窗口读返回地址错误2。
+`Npu.trace(include_samples=False)`仍可读取算子摘要；波形导出会明确报未启用，而非生成空波形。
+ASIC综合默认关闭波形RAM，仿真/FPGA默认开启，构建时可显式覆盖。
 
 ## 64-byte 物理执行描述符
 
@@ -92,6 +109,10 @@ FC 输入 H=W=1、C=展平长度；展平顺序必须与权重一致，主机负
 
 阵列 COLS=4 或 8。权重按 `[输出通道 tile][K 行][lane]` 存放，lane 为连续 byte，
 K 按每四行补齐，未用输出 lane 和 K 行必须填0，起始 offset 8-byte 对齐。
+ABI 2.1：COLS=8 时，若某个输出通道 tile 的真实通道数不超过4（只可能是最后一个 tile），
+该 tile 每个 K 行只存4个 lane（4 B），硬件每行只读一个32-bit word，高4个 lane 按0装入。
+其余 tile 仍为8 B/行，因此各 tile 起始 offset 不变；权重区总长相应减少 `groups×16` B。
+ABI 2.0 的模型包须重新编译；主机按寄存器0拒绝版本不符的硬件或模型包。
 一般 Conv 的 K 顺序为 KH→KW→IC，FC 为连续输入特征。
 特殊但与网络尺寸无关的快速布局：3×3 且 IC=1 时，每个 kernel 行存 `[kx0,kx1,kx2,0]`，
 共三个四行组；由 kernel/IC 字段明确推导，不使用 TinyCNN 专用标志。
@@ -132,3 +153,5 @@ python software/host/nocpu_jtag.py infer --package build/program --input build/n
 
 `Npu.load_model(Package)` 先查询容量和阵列宽度；`Npu.infer(bytes)` 返回准确长度的输出 bytes。
 输出 dtype/shape 在 manifest 中，INT32 按小端有符号解码。预处理和分类由主机负责。
+编译器默认按8 KiB激活容量分配；`--act-bytes` 可明确选择较小硬件配置。
+模型包仍由描述符/权重/参数组成，新增激活SRAM无需改动算子编码或JTAG命令格式。

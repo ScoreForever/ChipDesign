@@ -46,3 +46,36 @@ STA参考时钟在FPGA的`tck_i`端口。设FTDI→FPGA时钟传播为C、数据
 - 汇总为`status=PASS, functional_status=PASS, physical_status=PASS_WITH_ASSUMPTIONS`，只适用于本文声明的包络。不能将本结果写成无条件电气/温压签核，亦未关闭ISR、忙时复位和覆盖率等其他测试缺口。
 
 [可读汇总](../verification/fpga/results/2026-10-20-jtag-io/report.md)与[机器汇总](../verification/fpga/results/2026-10-20-jtag-io/report.json)保留哈希和范围；原始数据、构建产物及首次失败探查记录留在本地build目录。此前schema1/2报告不回填升级。
+
+## 无CPU NPU TAP的CDC构建修复（2026-10-26）
+
+以上DMI及2026-10-20板级结论属于原CPU流程。当前无CPU设计使用 `u_soc/i_host` 专用TAP，
+不能套用 `u_soc/i_dmi_jtag/...` 的旧端点选择。合并后的FPGA入口曾存在此错配，本轮改为
+`hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl`，综合后施加约束并审计，布局布线后再次审计。
+TDI/TMS/TDO的FT232H外部min/max及边沿预算保持原值，不用内部CDC例外放宽外部接口。
+
+| 路径 | 位数 | 约束方式 |
+|---|---:|---|
+| req_payload → cmd_op_o/cmd_addr_o/cmd_data_o | 72 | `max_delay -datapath_only min(core period,TCK period)` |
+| rsp_mailbox_data/error → reply_data/error | 37 | 同上 |
+| req_toggle → req_sync[0]/D | 1 | 仅异步首级D端点false-path |
+| ack_toggle → ack_sync[0]/D | 1 | 仅异步首级D端点false-path |
+| 顶层及TAP的core/TCK复位同步器 | 4组、各2个CLR | 仅同步器异步断言端点false-path |
+
+请求payload在请求完成前保持稳定，响应mailbox在下一响应前保持稳定；两个接收域均通过两级toggle同步
+后才采样payload。min周期的飞行时间约束使109位bundled payload在这段等待期间到达。
+源端使用实际源寄存器作为合法时序起点，目标为精确D引脚，避免从Q引脚强制path segmentation。
+不设置全局异步clock group或payload false-path；若payload被其他例外切断，端点审计必须失败。
+
+审计检查109个payload目标路径确实存在且采用该预算；检查req/ack两级同步器的ASYNC_REG与级间直接连线，
+首级到次级的setup/hold路径继续正常计时；复位同步器后的recovery/removal路径也继续计时。
+窄范围的CDC控制/异步复位例外不等同于对全部功能路径签核。旧bitstream和旧板级结果不能复用为本轮物理证据。
+
+局部诊断已在 `build/dual_sram_vivado/synth.dcp` 上单独施加新约束并审计，产物为
+`build/dual_sram_cdc_checkpoint_check/`。72条请求、37条响应均保留20 ns最大飞行时间路径，
+最小余量分别18.964/18.975 ns；同步器次级setup/hold均存在，四组复位同步器各有两个CLR端点例外。
+六组外部JTAG setup/hold路径保留原预算且无数据路径例外。
+局部WNS仍为−0.778 ns，WHS由未约束异步首级路径造成的−4.775 ns恢复为+0.045 ns；
+CDC报告有109项CE控制bundled-data警告、无Critical CDC，该分类依赖上述握手保持协议。
+此诊断没有重新综合或布局布线，不能当作最终源码一致的物理结果；最终仍需使用新脚本重新构建。
+`audit_summary.json`记录此范围、脚本指纹、同步器属性/连线断言和各组实际路径数。
