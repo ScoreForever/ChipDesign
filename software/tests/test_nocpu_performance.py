@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'host'))
-from nocpu_jtag import Npu, Op, PERF_NAMES
+from nocpu_jtag import Npu, Op, PERF_NAMES, ABI
 
 
 class Registers:
@@ -15,7 +15,7 @@ class Registers:
     def exchange(self, op, addr=0, data=0):
         assert op == Op.READ, 'Performance reads must not ACK/reset/write'
         self.reads.append(addr)
-        if addr == 0: return 0x20000
+        if addr == 0: return ABI
         if addr == 0x68: return self.signature
         if addr == 0x2c: return 8 if self.changed and self.reads.count(addr)>1 else 7
         if addr == 4: return self.status

@@ -1,6 +1,8 @@
 `timescale 1ns/1ps
-// Complete per-descriptor summaries plus optional synchronous waveform RAM.
-// ASIC synthesis omits waveform payload by default; simulation/FPGA keeps it.
+// Optional per-descriptor summaries plus optional synchronous waveform RAM.
+// ASIC synthesis omits both by default (the summaries are 16x8 32-bit
+// counters in flip-flops, about 0.2 mm^2 in TSMC 180); simulation/FPGA keep
+// them. Register 0x1a8 reports 0 entries when summaries are absent.
 // RAM payload is never reset. Only captured words may be read through the ABI.
 module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
 `ifdef NPU_ENABLE_WAVE_TRACE
@@ -13,6 +15,18 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
 `endif
 `else
  parameter WAVE_ENABLE=1
+`endif
+,
+`ifdef NPU_ENABLE_OP_TRACE
+ parameter OPS_ENABLE=`NPU_ENABLE_OP_TRACE
+`elsif SYNTHESIS
+`ifdef CHIPDESIGN_FPGA_MEM
+ parameter OPS_ENABLE=1
+`else
+ parameter OPS_ENABLE=0
+`endif
+`else
+ parameter OPS_ENABLE=1
 `endif
 )(
  input wire clk,clear,active,
@@ -86,15 +100,19 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
    if(active_q)begin
     if(WAVE_ENABLE && !saw_active)begin captured_control<=control;captured_offset<=offset;end
     saw_active<=1;age<=current_age+1'b1;
-    if(events_q[0] && !op_flags[pc][0])begin op_start[pc]<=stamp;op_flags[pc][0]<=1;end
-    if(events_q[1] || events_q[3])begin
-     op_end[pc]<=stamp+1'b1;op_flags[pc][1]<=events_q[1];op_flags[pc][2]<=events_q[3];
+    // Never written when disabled: the reset-to-zero arrays are then constant
+    // and synthesis removes them together with their read multiplexer.
+    if(OPS_ENABLE)begin
+     if(events_q[0] && !op_flags[pc][0])begin op_start[pc]<=stamp;op_flags[pc][0]<=1;end
+     if(events_q[1] || events_q[3])begin
+      op_end[pc]<=stamp+1'b1;op_flags[pc][1]<=events_q[1];op_flags[pc][2]<=events_q[3];
+     end
+     if(events_q[2])begin op_descriptor[pc]<=descriptor_q;op_flags[pc][3]<=1;end
+     if(signals[8])wait_activation[pc]<=wait_activation[pc]+1'b1;
+     if(signals[9])wait_weight[pc]<=wait_weight[pc]+1'b1;
+     if(signals[10])wait_slot[pc]<=wait_slot[pc]+1'b1;
+     if(signals[7])mac_issues[pc]<=mac_issues[pc]+1'b1;
     end
-    if(events_q[2])begin op_descriptor[pc]<=descriptor_q;op_flags[pc][3]<=1;end
-    if(signals[8])wait_activation[pc]<=wait_activation[pc]+1'b1;
-    if(signals[9])wait_weight[pc]<=wait_weight[pc]+1'b1;
-    if(signals[10])wait_slot[pc]<=wait_slot[pc]+1'b1;
-    if(signals[7])mac_issues[pc]<=mac_issues[pc]+1'b1;
    end else if(saw_active)finished<=1;
    if(capture)begin
     count<=count+1'b1;started<=1;last_stamp<=stamp;
@@ -105,7 +123,8 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
     register_data<=0;
     if(read_addr[1:0]!=0)read_error<=3;
     else if(read_addr>='h200 && read_addr<'h200+MAX_OPS*32)begin
-     case(read_addr[4:2])
+     if(!OPS_ENABLE)read_error<=2;
+     else case(read_addr[4:2])
       0:register_data<=op_start[op_index];1:register_data<=op_end[op_index];
       2:register_data<=op_descriptor[op_index];3:register_data<=op_flags[op_index];
       4:register_data<=wait_activation[op_index];5:register_data<=wait_weight[op_index];
@@ -118,13 +137,13 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
      'h188:register_data<=control;'h18c:register_data<=offset;
      'h190:register_data<={28'd0,truncated,finished,(count==DEPTH),started};
      'h194:register_data<=count;'h198:register_data<=first_stamp;'h19c:register_data<=last_stamp;
-     'h1a0:register_data<=16;'h1a4:register_data<=32;'h1a8:register_data<=MAX_OPS;
+     'h1a0:register_data<=16;'h1a4:register_data<=32;'h1a8:register_data<=OPS_ENABLE ? MAX_OPS : 0;
      'h1ac:register_data<=captured_control;'h1b0:register_data<=captured_offset;
      default:read_error<=2;
     endcase
    end
   end
  end
- initial if(DEPTH!=1024 || MAX_OPS!=16 || (WAVE_ENABLE!=0 && WAVE_ENABLE!=1))
+ initial if(DEPTH!=1024 || MAX_OPS!=16 || (WAVE_ENABLE!=0 && WAVE_ENABLE!=1) || (OPS_ENABLE!=0 && OPS_ENABLE!=1))
   $fatal(1,"unsupported trace geometry/configuration");
 endmodule

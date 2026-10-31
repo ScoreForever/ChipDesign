@@ -1,10 +1,10 @@
 name: Programmable NPU regression
 on:
   pull_request:
-    paths: ['hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
+    paths: ['hardware/asic/**', 'hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
   push:
     branches: [main]
-    paths: ['hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
+    paths: ['hardware/asic/**', 'hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -34,3 +34,16 @@ jobs:
             build/trace_configuration_ci
             build/conv_streaming.json
           retention-days: 14
+
+  pnr-framework:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Tcl for isolated routing-policy tests
+        run: sudo apt-get update && sudo apt-get install -y tcl
+      - name: Geometry, acceptance, timeouts and immutable handoff tests
+        run: python -m unittest discover -s hardware/asic/optimize -p 'test_*.py' -v

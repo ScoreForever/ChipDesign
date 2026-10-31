@@ -1,0 +1,416 @@
+{
+  "date": "2026-10-31",
+  "baseline_rtl_commit": "f63a49132ec1b2131d1c59adf86ec9cfc0bd5a3a",
+  "report_commit": "346808f",
+  "branch": "codex/npu-fpga-timing-fix-20261031",
+  "tool": "Vivado 2025.2",
+  "part": "xc7a35tcsg324-1",
+  "core_mhz": 50,
+  "tck_mhz": 1,
+  "optimization": [
+    "prepare next gather independently of response-valid",
+    "six kernel pair-contiguity flags",
+    "align full-build physical optimization with existing checkpoint flow"
+  ],
+  "rejected_coordinate_bounds_candidate": {
+    "wns_ns": 0.027,
+    "tns_ns": 0.0,
+    "setup_failing_endpoints": 0.0,
+    "setup_total_endpoints": 38624.0,
+    "whs_ns": 0.033,
+    "ths_ns": 0.0,
+    "hold_failing_endpoints": 0.0,
+    "hold_total_endpoints": 38515.0,
+    "wpws_ns": 3.0,
+    "tpws_ns": 0.0,
+    "pulse_failing_endpoints": 0.0,
+    "pulse_total_endpoints": 12402.0,
+    "resources": {
+      "lut": 16677,
+      "ff": 10808,
+      "bram_tiles": 8,
+      "dsp": 48
+    },
+    "worst_path": {
+      "source": "u_soc/i_control/i_npu/cursor_x_reg[5]/C",
+      "destination": "u_soc/i_control/i_activation/held_data_reg[24]/D",
+      "data_delay": "19.599ns  (logic 5.268ns (26.879%)  route 14.331ns (73.121%))",
+      "logic_levels": "24  (CARRY4=5 LUT3=4 LUT4=2 LUT5=3 LUT6=10)"
+    },
+    "cdc15_warnings": 109,
+    "drc_errors": 0
+  },
+  "baseline_route": {
+    "wns_ns": -0.713,
+    "tns_ns": -52.51,
+    "setup_failing_endpoints": 369.0,
+    "setup_total_endpoints": 38411.0,
+    "whs_ns": 0.033,
+    "ths_ns": 0.0,
+    "hold_failing_endpoints": 0.0,
+    "hold_total_endpoints": 38302.0,
+    "wpws_ns": 3.0,
+    "tpws_ns": 0.0,
+    "pulse_failing_endpoints": 0.0,
+    "pulse_total_endpoints": 12352.0,
+    "resources": {
+      "lut": 16579,
+      "ff": 10759,
+      "bram_tiles": 8,
+      "dsp": 48
+    },
+    "worst_path": {
+      "source": "u_soc/i_control/i_npu/cursor_x_reg[3]/C",
+      "destination": "u_soc/i_control/i_activation/held_data_reg[31]/D",
+      "data_delay": "20.820ns  (logic 5.357ns (25.730%)  route 15.463ns (74.270%))",
+      "logic_levels": "25  (CARRY4=5 LUT3=5 LUT4=1 LUT5=3 LUT6=11)"
+    },
+    "cdc15_warnings": 109,
+    "drc_errors": 0
+  },
+  "selected_checkpoint_route": {
+    "wns_ns": 0.22,
+    "tns_ns": 0.0,
+    "setup_failing_endpoints": 0.0,
+    "setup_total_endpoints": 38329.0,
+    "whs_ns": 0.035,
+    "ths_ns": 0.0,
+    "hold_failing_endpoints": 0.0,
+    "hold_total_endpoints": 38220.0,
+    "wpws_ns": 3.0,
+    "tpws_ns": 0.0,
+    "pulse_failing_endpoints": 0.0,
+    "pulse_total_endpoints": 12325.0,
+    "resources": {
+      "lut": 16564,
+      "ff": 10735,
+      "bram_tiles": 8,
+      "dsp": 48
+    },
+    "worst_path": {
+      "source": "u_soc/i_control/i_npu/scan_last_x_reg[4]/C",
+      "destination": "u_soc/i_control/i_controller/rsp_data_o_reg[15]/CE",
+      "data_delay": "19.497ns  (logic 4.948ns (25.378%)  route 14.549ns (74.622%))",
+      "logic_levels": "25  (CARRY4=4 LUT2=2 LUT3=3 LUT4=3 LUT5=4 LUT6=9)"
+    },
+    "cdc15_warnings": 109,
+    "drc_errors": 0
+  },
+  "full_build": {
+    "wns_ns": 0.064,
+    "tns_ns": 0.0,
+    "setup_failing_endpoints": 0.0,
+    "setup_total_endpoints": 38329.0,
+    "whs_ns": 0.035,
+    "ths_ns": 0.0,
+    "hold_failing_endpoints": 0.0,
+    "hold_total_endpoints": 38220.0,
+    "wpws_ns": 3.0,
+    "tpws_ns": 0.0,
+    "pulse_failing_endpoints": 0.0,
+    "pulse_total_endpoints": 12325.0,
+    "resources": {
+      "lut": 16564,
+      "ff": 10735,
+      "bram_tiles": 8,
+      "dsp": 48
+    },
+    "worst_path": {
+      "source": "u_soc/i_control/i_npu/issue_p_reg[1]/C",
+      "destination": "u_soc/i_control/i_activation/cache_data_reg[7][7]/D",
+      "data_delay": "19.534ns  (logic 5.223ns (26.738%)  route 14.311ns (73.262%))",
+      "logic_levels": "24  (CARRY4=4 LUT3=4 LUT4=1 LUT5=4 LUT6=9 MUXF7=1 MUXF8=1)"
+    },
+    "check_timing": {
+      "no_clock": [
+        0,
+        0
+      ],
+      "unconstrained_internal_endpoints": [
+        0,
+        0
+      ],
+      "multiple_clock": [
+        0,
+        0
+      ]
+    },
+    "async_io_check_timing": {
+      "no_input_delay": [
+        1,
+        1
+      ],
+      "no_output_delay": [
+        2,
+        2
+      ]
+    },
+    "cdc": [
+      {
+        "group": "request_payload",
+        "kind": "bundled_max_delay",
+        "source_registers": "72",
+        "target_pins": "72",
+        "paths": "72",
+        "bound_ns": "20.0",
+        "min_slack_ns": "18.061",
+        "launch_clock": "tck_i",
+        "capture_clock": "clk_out1_clk_wiz_0"
+      },
+      {
+        "group": "response_payload",
+        "kind": "bundled_max_delay",
+        "source_registers": "37",
+        "target_pins": "37",
+        "paths": "37",
+        "bound_ns": "20.0",
+        "min_slack_ns": "18.063",
+        "launch_clock": "clk_out1_clk_wiz_0",
+        "capture_clock": "tck_i"
+      },
+      {
+        "group": "request_toggle",
+        "kind": "second_stage_max",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "20.000",
+        "min_slack_ns": "18.788",
+        "launch_clock": "clk_out1_clk_wiz_0",
+        "capture_clock": "clk_out1_clk_wiz_0"
+      },
+      {
+        "group": "request_toggle",
+        "kind": "second_stage_min",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "0.000",
+        "min_slack_ns": "0.270",
+        "launch_clock": "clk_out1_clk_wiz_0",
+        "capture_clock": "clk_out1_clk_wiz_0"
+      },
+      {
+        "group": "request_toggle",
+        "kind": "async_entry_D_only",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "response_toggle",
+        "kind": "second_stage_max",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "1000.000",
+        "min_slack_ns": "998.907",
+        "launch_clock": "tck_i",
+        "capture_clock": "tck_i"
+      },
+      {
+        "group": "response_toggle",
+        "kind": "second_stage_min",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "1",
+        "bound_ns": "0.000",
+        "min_slack_ns": "0.245",
+        "launch_clock": "tck_i",
+        "capture_clock": "tck_i"
+      },
+      {
+        "group": "response_toggle",
+        "kind": "async_entry_D_only",
+        "source_registers": "1",
+        "target_pins": "1",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "fpga_core_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "fpga_tck_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "tap_core_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      },
+      {
+        "group": "tap_tck_reset",
+        "kind": "async_CLR_only",
+        "source_registers": "NA",
+        "target_pins": "2",
+        "paths": "0",
+        "bound_ns": "NA",
+        "min_slack_ns": "NA",
+        "launch_clock": "NA",
+        "capture_clock": "NA"
+      }
+    ],
+    "cdc15_warnings": 109,
+    "drc_errors": 0,
+    "jtag_io": [
+      {
+        "port": "td_i",
+        "type": "max",
+        "paths": "4",
+        "io_delay_ns": "532.500",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "1000.000",
+        "min_slack_ns": "467.319",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "td_i",
+        "type": "min",
+        "paths": "4",
+        "io_delay_ns": "475.000",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "0.000",
+        "min_slack_ns": "472.623",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "tms_i",
+        "type": "max",
+        "paths": "4",
+        "io_delay_ns": "532.500",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "1000.000",
+        "min_slack_ns": "467.628",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "tms_i",
+        "type": "min",
+        "paths": "4",
+        "io_delay_ns": "475.000",
+        "launch_edge_ns": "0.000",
+        "capture_edge_ns": "0.000",
+        "min_slack_ns": "472.539",
+        "direct_paths": "0",
+        "equivalent_paths": "4"
+      },
+      {
+        "port": "td_o",
+        "type": "max",
+        "paths": "1",
+        "io_delay_ns": "541.000",
+        "launch_edge_ns": "500.000",
+        "capture_edge_ns": "1500.000",
+        "min_slack_ns": "447.635",
+        "direct_paths": "0",
+        "equivalent_paths": "1"
+      },
+      {
+        "port": "td_o",
+        "type": "min",
+        "paths": "1",
+        "io_delay_ns": "480.000",
+        "launch_edge_ns": "500.000",
+        "capture_edge_ns": "500.000",
+        "min_slack_ns": "483.398",
+        "direct_paths": "0",
+        "equivalent_paths": "1"
+      }
+    ]
+  },
+  "functional": {
+    "cases_per_backend": 74,
+    "inferences_per_case": 2,
+    "checked_write_events_per_backend": 135284,
+    "backend_metrics_identical": true,
+    "existing_70_metrics_identical": true,
+    "frozen_baseline_34_metrics_identical": true,
+    "quant_vectors": 20000,
+    "cdc_reset": "PASS",
+    "board_validator_unit_tests": 8,
+    "trained_cycles": [
+      3262,
+      3262
+    ],
+    "tinycnn_cycles": [
+      3362,
+      3362
+    ]
+  },
+  "source_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+    "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+    "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+    "hardware/npu/rtl/npu_activation_store.sv": "9ca2b9062b0a1d4c1e461190e2ae38bb13f4088cc4d24832b436825d3dc98ac6",
+    "hardware/npu/rtl/npu_program_core.sv": "47c9f168fda6a6f46b0d5b98a8b62a2e7aad39f1724f1ecfca2d88081b1546ba",
+    "hardware/npu/rtl/npu_trace_capture.sv": "eb6b9619dc757c6a519a86967c92cd0608aa19b1b62e2d1125edcf6913f24ca0",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "611269b1a5bb159abb3879a51beeab47b251cc53011a1d2cf85953a6040de925",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "2d47d05ef5c4553b2f40def5581484a34eb5be952e9746d3570d3f51b279970c",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "819e2eef2990d0a7a52d4b88b93d60444bf9713e2117cd691d8f0dafe8ba9c70",
+    "hardware/soc/sim/filelists/chipdesign_nocpu.f": "daf29f3a90b9e95aa9b713416aaa25b5934b781d450d0693d4795e421d6bd61f",
+    "hardware/fpga/fpga_top.sv": "236ed0f77c6b0379e848edffb8a81cbfcfe233ff7e61eb0b599b60d0dbb31080",
+    "hardware/fpga/ego1_pins.xdc": "8628583cf2f2078a50d72a42e1da6fda8b80dfef77192f7f43272e7e92c517bc",
+    "hardware/fpga/ego1_timing.xdc": "1053d6db3987abd5eb558c72a9d5b4be7944633cf329439c766173e87aa5c0d0",
+    "hardware/fpga/ego1_configuration.xdc": "c25b411c7385ff165e341597cd0680af860adc87cf73fb682b3667f9b79050cf",
+    "hardware/fpga/check_bram_drc.tcl": "ecd6c298117a6e7bdafd04e17b0545db07fee86dbff9cfbe383c5948e57bd835",
+    "hardware/fpga/scripts/build_ego1.tcl": "47da65b6acc8d3011b9492ad3ee95b41eb18d6c3faf05f9c63a1fc44ca27674e",
+    "hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl": "d87badffaa5b77e506c4150a1dfd9d4a7d7cb5e0e2188cbaa7e8daf04c620722",
+    "hardware/fpga/scripts/audit_jtag_io.tcl": "81c5d6831abb805b075f8339f80c37b12206fe0a4071db1905de5eac811dea9a"
+  },
+  "artifact_sha256": {
+    "build/timing_20261031_release_full/summary.md": "75ab9858ecced37431579024accbae3a23961641450a32e6b981fc718a87da8c",
+    "build/timing_20261031_release_full/provenance.json": "11ecd6ff559c0e916c5493d8cafa38e56ae734679791124e7d9b7d1f900c16ae",
+    "build/timing_20261031_release_full/route_timing_summary.rpt": "925b1676f24695352bebfea84a8e51999a061810cd37cbe4fd64b4b10ab2cb95",
+    "build/timing_20261031_release_full/route_setup_paths.rpt": "e2f1a8b901ba77d6116c1218e6bcb3b5c7aac1893cbe2fec0ab3518adfec1608",
+    "build/timing_20261031_release_full/route_hold_paths.rpt": "0b3665ab24c7f1091bccf48f556c016ff8f50ae1cb4613e6ec9e9187bc779eb0",
+    "build/timing_20261031_release_full/route_utilization.rpt": "a34795378aab9853808c4299a715c590593a6d3804d0186c5f14ef5b3eb1c600",
+    "build/timing_20261031_release_full/route_cdc.rpt": "caa3de6153df7131e59fcd1171142c8372aa70e213eca65d9e75c798aff37a35",
+    "build/timing_20261031_release_full/route_npu_jtag_cdc.tsv": "9ee34139ee28e5943eb7fd3b78dd84edec7f4618db1c02f6c2fe4d4d7d9946f3",
+    "build/timing_20261031_release_full/route_drc.rpt": "d1a5fd14045222a7e5bdcd8ecd8746e1254d4562a37cb31c68f91543b9c5017d",
+    "build/timing_20261031_release_full/synth.dcp": "3987df5a6203eb3ff3dea4188afb07d24c8784d9b1ae4e9566fca90518c87fde",
+    "build/timing_20261031_release_full/route.dcp": "b342639258b8d44e3c6781d4746e17dd754b4548b2e23cefbed3e91bc215f2a3",
+    "build/timing_20261031_release_full/fpga_top.bit": "1ef35851eb7c72267c252e320374cf57e38ab72a8a790b892acff1fa6cc73d33",
+    "build/timing_20261031_release_regression/summary.json": "84e3b09f6fe3db172ddb0d83c8ec5ed8de601a0efd27ffedd57b174454241936",
+    "build/timing_20261031_release_macro_regression/summary.json": "84e3b09f6fe3db172ddb0d83c8ec5ed8de601a0efd27ffedd57b174454241936",
+    "build/timing_20261031_release_full/io_audit/jtag_io.tsv": "9734a447e192d3174903a0cade8d510a0bcd9c80aad8b4dc6018c7feccf9aa75"
+  },
+  "scope": {
+    "bitstream_generated": true,
+    "board_programmed": false,
+    "board_inference": false,
+    "new_asic_signoff": false
+  }
+}

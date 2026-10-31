@@ -173,12 +173,26 @@ if {[catch {
     reports place
     set last_stage place
     set stage route
+    # Match implement_nocpu.tcl: preserve the clock/I/O/CDC requirements and
+    # improve placement before routing. The full build must use the same
+    # physical flow as the source-verified checkpoint implementation helper.
+    phys_opt_design
     route_design
+    set initial_wns [get_property SLACK [lindex [get_timing_paths -delay_type max -max_paths 1] 0]]
+    if {$initial_wns < 0} {
+        phys_opt_design -directive AggressiveExplore
+        route_design -directive Explore
+    }
     audit_npu_jtag_cdc [file join $out route_npu_jtag_cdc.tsv]
     source [file join $repo hardware/fpga/scripts/audit_jtag_io.tcl]
     audit_jtag_io [file join $out io_audit]
     write_checkpoint -force [file join $out route.dcp]
     reports route
+    report_timing -delay_type max -max_paths 50 -nworst 1 -input_pins -nets -file [file join $out route_setup_paths.rpt]
+    report_timing -delay_type min -max_paths 20 -nworst 1 -input_pins -nets -file [file join $out route_hold_paths.rpt]
+    report_high_fanout_nets -max_nets 50 -file [file join $out route_high_fanout.rpt]
+    report_cdc -details -file [file join $out route_cdc.rpt]
+    report_clock_interaction -file [file join $out route_clock_interaction.rpt]
     bram_guard route
     if {$ppa_mode} {
         # Actual MMCM clock period, rather than the requested wizard frequency.

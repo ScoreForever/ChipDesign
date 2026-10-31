@@ -11,6 +11,11 @@ if {[info exists ::env(EDA_NPU_WAVE_TRACE)]} {
     if {$wave_trace ni {0 1}} {error "EDA_NPU_WAVE_TRACE must be 0 or 1"}
     lappend hdl_defines "NPU_ENABLE_WAVE_TRACE=$wave_trace"
 }
+if {[info exists ::env(EDA_NPU_OP_TRACE)]} {
+    set op_trace $::env(EDA_NPU_OP_TRACE)
+    if {$op_trace ni {0 1}} {error "EDA_NPU_OP_TRACE must be 0 or 1"}
+    lappend hdl_defines "NPU_ENABLE_OP_TRACE=$op_trace"
+}
 if {[info exists ::env(EDA_NPU_COLS)]} {
     set cols $::env(EDA_NPU_COLS)
     if {$cols ni {4 8}} {error "EDA_NPU_COLS must be 4 or 8"}
