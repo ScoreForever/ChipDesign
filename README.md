@@ -13,7 +13,8 @@
 
 - [架构与实现边界](docs/ARCHITECTURE.md)
 - [模型格式、命令协议及主机使用](docs/CPU_LESS_CONTROL.md)
-- [INT4 重构、验证与后续面积优化](docs/NPU_INT4_REFACTOR_20261031.md)
+- [INT4 重构与验证](docs/NPU_INT4_REFACTOR_20261031.md)
+- [后续面积优化分析](docs/NPU_INT4_AREA_OPTIONS_20261031.md)
 - [双SRAM实施与验证记录](docs/NPU_DUAL_SRAM_IMPLEMENTATION_20261026.md)
 - [2026-10-23冻结基线验证结果](docs/NPU_PROGRAMMABLE_VALIDATION_20261023.md)
 

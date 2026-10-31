@@ -1,0 +1,152 @@
+{
+  "scope": "post-refactor structural analysis, not EDA area prediction",
+  "int4_commit": "fb99fbe",
+  "current_rtl_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "8c2479b6a4a63b5755916bd34ead0993335ff2512f70c696e58559116f01aa76",
+    "hardware/npu/rtl/requant_lane.sv": "ac69a0da0e2a128f36d034ba35e9e86139af716eacbac607756aeb000e608a2d",
+    "hardware/npu/rtl/npu_model_store.sv": "f03880d44737e4798b790b6b0e519b1e7f316e8941757fcdcba506ef4cb3bf4b",
+    "hardware/npu/rtl/npu_activation_store.sv": "769563a898b506de63c7cc434b2ed85e4142e17573ca8463ce4e00eed7a45f80",
+    "hardware/npu/rtl/npu_program_core.sv": "94f3481e821c771b9a4b8ed5b92f652d39d19cbd618131350c38bb94881c3fa7",
+    "hardware/npu/rtl/npu_trace_capture.sv": "bb736481f668845a28b88adb47359b09a78357d518fc02c3b3a53e90544c6645",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "d5b1604bb6eaf6816e1e65566fa4072563835386920329c6df3099613ecbbcd9",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "b72b6a105a4f9447d0bebe4759839c764d19a36ddcaed8fcd87548c63dec75f5",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "819e2eef2990d0a7a52d4b88b93d60444bf9713e2117cd691d8f0dafe8ba9c70"
+  },
+  "int8_to_int4_selected_payload_bit_reduction": {
+    "psum_tile": 1024,
+    "weight_banks": 256,
+    "activation_links": 128,
+    "activation_row_skew": 24,
+    "pe_local_sums": 256,
+    "column_sum_deskew": 224,
+    "subtotal_declared_bits": 1912
+  },
+  "cols8_to_cols4_selected_payload_bit_reduction": {
+    "psum_tile": 1152,
+    "results": 512,
+    "weight_banks": 128,
+    "activation_links": 64,
+    "pe_local_sums": 160,
+    "column_sum_deskew": 220,
+    "bias_cache": 128,
+    "multiplier_cache": 64,
+    "shift_cache": 24,
+    "array_valid_bank_tags": 32,
+    "core_tile_tags": 64,
+    "subtotal_declared_bits": 2548
+  },
+  "caveat": "Declared register-array bits are not mapped FF counts or silicon area. Excludes other shrinkage, new nibble masks and RMW logic.",
+  "column_cycle_tradeoff": [
+    {
+      "network": "mnist",
+      "cycles_c8": 5696,
+      "cycles_c4": 5781,
+      "cycle_increase_percent": 1.4922752808988804,
+      "model_bytes_c8": 1608,
+      "model_bytes_c4": 1608,
+      "activation_peak_c8": 784,
+      "activation_peak_c4": 784
+    },
+    {
+      "network": "kws",
+      "cycles_c8": 3234,
+      "cycles_c4": 5866,
+      "cycle_increase_percent": 81.38528138528139,
+      "model_bytes_c8": 1008,
+      "model_bytes_c4": 1008,
+      "activation_peak_c8": 480,
+      "activation_peak_c4": 480
+    },
+    {
+      "network": "har",
+      "cycles_c8": 823,
+      "cycles_c4": 1202,
+      "cycle_increase_percent": 46.05103280680438,
+      "model_bytes_c8": 1584,
+      "model_bytes_c4": 1584,
+      "activation_peak_c8": 48,
+      "activation_peak_c4": 48
+    }
+  ],
+  "geomean_cycle_ratio_c4_over_c8": 1.3905284794620987,
+  "selected_runtime_pressure": [
+    {
+      "case": "cnn_c8_f1_j0",
+      "slot_peak": 4,
+      "slot_wait": 0,
+      "activation_wait": 151,
+      "weight_wait": 108
+    },
+    {
+      "case": "slot_pressure_c8_f1_j0",
+      "slot_peak": 4,
+      "slot_wait": 430,
+      "activation_wait": 0,
+      "weight_wait": 5
+    },
+    {
+      "case": "trained_c8_f1_j0",
+      "slot_peak": 4,
+      "slot_wait": 0,
+      "activation_wait": 148,
+      "weight_wait": 247
+    }
+  ],
+  "hypothetical_macro_geometry": [
+    {
+      "assumed_std_area_um2": 800000,
+      "utilization": 0.6,
+      "layout": "west_stack",
+      "core_side_um": 1620,
+      "die_side_um": 1920,
+      "scope": "hypothetical geometry arithmetic only; no synthesis/PnR or placement legalization"
+    },
+    {
+      "assumed_std_area_um2": 800000,
+      "utilization": 0.6,
+      "layout": "south_row",
+      "core_side_um": 1480,
+      "die_side_um": 1780,
+      "scope": "hypothetical geometry arithmetic only; no synthesis/PnR or placement legalization"
+    },
+    {
+      "assumed_std_area_um2": 1000000,
+      "utilization": 0.6,
+      "layout": "west_stack",
+      "core_side_um": 1620,
+      "die_side_um": 1920,
+      "scope": "hypothetical geometry arithmetic only; no synthesis/PnR or placement legalization"
+    },
+    {
+      "assumed_std_area_um2": 1000000,
+      "utilization": 0.6,
+      "layout": "south_row",
+      "core_side_um": 1580,
+      "die_side_um": 1880,
+      "scope": "hypothetical geometry arithmetic only; no synthesis/PnR or placement legalization"
+    },
+    {
+      "assumed_std_area_um2": 1200000,
+      "utilization": 0.6,
+      "layout": "west_stack",
+      "core_side_um": 1680,
+      "die_side_um": 1980,
+      "scope": "hypothetical geometry arithmetic only; no synthesis/PnR or placement legalization"
+    },
+    {
+      "assumed_std_area_um2": 1200000,
+      "utilization": 0.6,
+      "layout": "south_row",
+      "core_side_um": 1680,
+      "die_side_um": 1980,
+      "scope": "hypothetical geometry arithmetic only; no synthesis/PnR or placement legalization"
+    }
+  ],
+  "macro_size_um": [
+    554.595,
+    723.85
+  ],
+  "macro_area_pair_mm2": 0.8028871815,
+  "density_note": "Historical 78.7% is standard-cell density excluding SRAM halos/power rings, not routing utilization"
+}
