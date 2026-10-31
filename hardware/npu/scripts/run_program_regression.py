@@ -71,6 +71,11 @@ def fixtures(seed=7):
     yield 'tiny_padded',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
         dict(op='Conv',input='x',output='a',channels=1,kernel=3,pads=[2]*4,weights=list(range(-4,5)),bias=[-7]),
         dict(op='MaxPool',input='a',output='y')]),[-128]
+    # One-pixel, stride-two asymmetric padding exercises empty tap ranges
+    # (extent+padding-tap <= 0) and rounded-up lower/upper coordinate bounds.
+    yield 'tiny_strided_asymmetric',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
+        dict(op='Conv',input='x',output='y',channels=2,kernel=3,stride=[2,2],
+             pads=[0,2,2,0],weights=list(range(-9,9)),bias=[-7,9])]),[-128]
     yield 'one_mac',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
         dict(op='FC',input='x',output='y',channels=1,weights=[-128],bias=[2**31-1])]),[-128]
     yield 'negative_pool',dict(input=dict(name='x',shape=[3,3,1]),nodes=[

@@ -240,6 +240,10 @@ module npu_program_core #(
     reg [1:0] kernel_y,kernel_x;
     reg [15:0] kernel_offset,k_offsets[0:3],cursor_base,tile_base;
     reg [2:0] k_ys[0:3],k_xs[0:3];reg [3:0] k_valid;
+    // Pairwise byte contiguity is invariant across a kernel group. Keep six
+    // flags instead of putting a first-valid mux and 16-bit offset arithmetic
+    // after the spatial boundary mask on every activation request.
+    reg [5:0] k_consecutive;
     reg kernel_prepare;
     reg [15:0] x_step,y_step,origin,scan_jump,pool_scan_jump,kernel_row_jump;
     reg [31:0] scan_product,pool_scan_product;
@@ -288,7 +292,13 @@ module npu_program_core #(
             3:next_base=cursor_base+(cursor_x==scan_last_x ? pool_scan_jump : x_step-y_step);
         endcase
         calc_p=issue_p;calc_y=cursor_y;calc_x=cursor_x;calc_base=cursor_base;
-        if(issue_can_fire && has_next)begin calc_p=issue_p+1;calc_y=next_y;calc_x=next_x;calc_base=next_base;end
+        // Once a gather has started, its metadata lives in gather_* until
+        // issue_fire. Prepare the next position throughout that interval,
+        // rather than selecting it from the returning activation response.
+        // Only issue_fire consumes this lookahead. This keeps SRAM response
+        // valid -> issue_fire out of the address/mask/contiguity arithmetic,
+        // while retaining same-cycle response/issue/next-request throughput.
+        if(gather_state!=0 && has_next)begin calc_p=issue_p+1;calc_y=next_y;calc_x=next_x;calc_base=next_base;end
         if(pool_enable)begin cy=calc_y*2+calc_p[1];cx=calc_x*2+calc_p[0];end
         else begin cy=calc_y;cx=calc_x;end
         calc_mask=0;
@@ -301,8 +311,15 @@ module npu_program_core #(
         end
         calc_first=0;
         for(r=3;r>=0;r=r-1)if(calc_mask[r])calc_first=r;
-        calc_contiguous=1;
-        for(r=0;r<4;r=r+1)if(calc_mask[r] && k_offsets[r]!=k_offsets[calc_first]+(r[2:0]-{1'b0,calc_first}))calc_contiguous=0;
+        // All selected pairs must preserve their byte-lane distance. Empty
+        // and singleton masks are contiguous, including masked padding lanes.
+        calc_contiguous=
+            (!(calc_mask[0] && calc_mask[1]) || k_consecutive[0]) &&
+            (!(calc_mask[0] && calc_mask[2]) || k_consecutive[1]) &&
+            (!(calc_mask[0] && calc_mask[3]) || k_consecutive[2]) &&
+            (!(calc_mask[1] && calc_mask[2]) || k_consecutive[3]) &&
+            (!(calc_mask[1] && calc_mask[3]) || k_consecutive[4]) &&
+            (!(calc_mask[2] && calc_mask[3]) || k_consecutive[5]);
     end
 
     // Standalone operators feed the same four result slots and postprocessor.
@@ -624,6 +641,12 @@ module npu_program_core #(
                             for(v=0;v<4;v=v+1)begin
                                 k_offsets[v]<=prep_offsets[v];k_ys[v]<=prep_ys[v];k_xs[v]<=prep_xs[v];
                             end
+                            k_consecutive[0]<=prep_offsets[1]==prep_offsets[0]+16'd1;
+                            k_consecutive[1]<=prep_offsets[2]==prep_offsets[0]+16'd2;
+                            k_consecutive[2]<=prep_offsets[3]==prep_offsets[0]+16'd3;
+                            k_consecutive[3]<=prep_offsets[2]==prep_offsets[1]+16'd1;
+                            k_consecutive[4]<=prep_offsets[3]==prep_offsets[1]+16'd2;
+                            k_consecutive[5]<=prep_offsets[3]==prep_offsets[2]+16'd1;
                             k_valid<=prep_valid;kernel_prepare<=0;
                             tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
                             last_group<=issue_g==groups-16'd1;
