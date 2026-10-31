@@ -33,7 +33,7 @@ module tb_npu_trace_configuration;
   repeat(2)@(negedge clk);clear=0;
   emit(10,1,'h80);emit(11,4,'h100);emit(12,2,'h600);
   @(negedge clk);active=0;events=0;repeat(4)@(negedge clk);
-  read_check('h180,'h10080,0);read_check('h184,expected_wave ? 1024 : 0,0);
+  read_check('h180,'h30080,0);read_check('h184,expected_wave ? 1024 : 0,0);
   read_check('h190,expected_wave ? 5 : 4,0);read_check('h194,expected_wave ? 3 : 0,0);
   read_check('h198,expected_wave ? 10 : 0,0);read_check('h19c,expected_wave ? 12 : 0,0);
   read_check('h188,1,0);read_check('h1ac,expected_wave ? 1 : 0,0);read_check('h1b0,0,0);

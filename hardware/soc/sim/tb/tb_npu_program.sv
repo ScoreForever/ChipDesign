@@ -15,7 +15,7 @@ module tb_npu_program;
  wire event_valid=dut.i_control.aw && dut.i_control.i_npu.w_ready;
  wire [15:0] event_addr=dut.i_control.wa;
  wire [31:0] event_data=dut.i_control.wd;
- wire [3:0] event_mask=dut.i_control.wm;
+ wire [7:0] event_mask=dut.i_control.wm;
  reg dummy;integer ticks=0;
  task tick(input reg m,input reg d,output reg q);
  begin tms=m;tdi=d;#3;tck=0;#9;q=tdo;tck=1;#4;ticks=ticks+1;end endtask
@@ -48,7 +48,7 @@ module tb_npu_program;
   .cmd_op_i(op),.cmd_addr_i(addr),.cmd_data_i(data),.rsp_valid_o(rv),.rsp_ready_i(rr),
   .rsp_error_o(err),.rsp_data_o(rd),.irq_o(irq));
  wire event_valid=dut.aw && dut.i_npu.w_ready;wire [15:0] event_addr=dut.wa;
- wire [31:0] event_data=dut.wd;wire [3:0] event_mask=dut.wm;
+ wire [31:0] event_data=dut.wd;wire [7:0] event_mask=dut.wm;
  task exchange;
  reg [31:0] saved;reg [4:0] saved_error;
  begin
@@ -62,10 +62,12 @@ module tb_npu_program;
   rr=1;@(negedge clk);rr=0;
  end endtask
 `endif
- wire [31:0] event_byte_mask={{8{event_mask[3]}},{8{event_mask[2]}},{8{event_mask[1]}},{8{event_mask[0]}}};
+ wire [31:0] event_byte_mask;
+ genvar em;generate for(em=0;em<8;em=em+1)begin:mask_bits
+ assign event_byte_mask[em*4+:4]={4{event_mask[em]}};end endgenerate
  always @(posedge clk)if(event_valid && event_count!=0)begin
   if(event_index>=event_count || event_addr!==events[event_index][63:48] ||
-     event_mask!==events[event_index][35:32] ||
+     event_mask!==events[event_index][39:32] ||
      (event_data&event_byte_mask)!==(events[event_index][31:0]&event_byte_mask))
    $fatal(1,"write event %0d addr=%h mask=%h data=%h expected=%h",event_index,event_addr,event_mask,event_data,events[event_index]);
   event_index=event_index+1;

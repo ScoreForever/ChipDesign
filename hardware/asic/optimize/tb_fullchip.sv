@@ -45,7 +45,7 @@ module tb_fullchip;
  else begin exchange;if((value&mask)!==(expected&mask))$fatal(1,"Mismatch cmd=%0d addr=%h got=%h expected=%h mask=%h",commands,addr,value,expected,mask);commands=commands+1;end
  end
  $fclose(fd);
- // Physical reset must return the host/controller to a usable ABI-2 state.
+ // Physical reset must return the host/controller to a usable ABI-3 INT4 state.
  @(negedge clk);rst_n=0;repeat(6)tick(1,0,dummy);
  @(negedge clk);rst_n=1;repeat(6)tick(1,0,dummy);tick(0,0,dummy);
  tick(1,0,dummy);tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);

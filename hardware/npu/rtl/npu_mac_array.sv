@@ -13,7 +13,7 @@
 module npu_mac_array #(
     parameter ARRAY_ROWS = 4,
     parameter ARRAY_COLS = 8,
-    parameter ACC_WIDTH = 32,
+    parameter ACC_WIDTH = 10,
     parameter TAG_WIDTH = 1
 ) (
     input  wire                             clk,
@@ -22,11 +22,11 @@ module npu_mac_array #(
     input  wire                             weight_we,
     input  wire                             weight_bank,
     input  wire [$clog2(ARRAY_ROWS)-1:0]    weight_row,
-    input  wire [ARRAY_COLS*8-1:0]          weight_data,
+    input  wire [ARRAY_COLS*4-1:0]          weight_data,
     // Issue: one ARRAY_ROWS-element activation vector per cycle.
     input  wire                             in_valid,
     input  wire                             in_bank,
-    input  wire [ARRAY_ROWS*8-1:0]          in_act,
+    input  wire [ARRAY_ROWS*4-1:0]          in_act,
     input  wire [TAG_WIDTH-1:0]             in_tag,
     output wire                             out_valid,
     output wire                             out_bank,
@@ -59,26 +59,26 @@ module npu_mac_array #(
 
     // Row r is delayed r clocks so that its operand meets the partial sum
     // travelling down from row r-1. The bank select is skewed identically.
-    wire [7:0] row_act [0:ARRAY_ROWS-1];
+    wire [3:0] row_act [0:ARRAY_ROWS-1];
     wire row_sel [0:ARRAY_ROWS-1];
     genvar r, c;
     generate
         for (r = 0; r < ARRAY_ROWS; r = r + 1) begin : skew
             if (r == 0) begin : direct
-                assign row_act[r] = in_act[7:0];
+                assign row_act[r] = in_act[3:0];
                 assign row_sel[r] = in_bank;
             end else begin : delayed
-                reg [7:0] act_delay [0:r-1];
+                reg [3:0] act_delay [0:r-1];
                 reg sel_delay [0:r-1];
                 integer d;
                 always @(posedge clk) begin
                     if (rst) begin
                         for (d = 0; d < r; d = d + 1) begin
-                            act_delay[d] <= 8'd0;
+                            act_delay[d] <= 4'd0;
                             sel_delay[d] <= 1'b0;
                         end
                     end else begin
-                        act_delay[0] <= in_act[r*8 +: 8];
+                        act_delay[0] <= in_act[r*4 +: 4];
                         sel_delay[0] <= in_bank;
                         for (d = 1; d < r; d = d + 1) begin
                             act_delay[d] <= act_delay[d-1];
@@ -92,7 +92,7 @@ module npu_mac_array #(
         end
     endgenerate
 
-    wire [7:0] act_link [0:ARRAY_ROWS-1][0:ARRAY_COLS];
+    wire [3:0] act_link [0:ARRAY_ROWS-1][0:ARRAY_COLS];
     wire sel_link [0:ARRAY_ROWS-1][0:ARRAY_COLS];
     wire [ACC_WIDTH-1:0] psum_link [0:ARRAY_ROWS][0:ARRAY_COLS-1];
     generate
@@ -100,26 +100,26 @@ module npu_mac_array #(
             assign act_link[r][0] = row_act[r];
             assign sel_link[r][0] = row_sel[r];
             for (c = 0; c < ARRAY_COLS; c = c + 1) begin : cols
-                reg signed [7:0] weight_bank0, weight_bank1;
-                reg [7:0] act_q;
+                reg signed [3:0] weight_bank0, weight_bank1;
+                reg [3:0] act_q;
                 reg sel_q;
                 reg [ACC_WIDTH-1:0] psum_q;
-                wire signed [7:0] weight_sel = sel_link[r][c] ? weight_bank1 : weight_bank0;
-                wire signed [15:0] product = $signed(act_link[r][c]) * weight_sel;
-                (* use_dsp = "yes" *) wire signed [ACC_WIDTH-1:0] mac =
+                wire signed [3:0] weight_sel = sel_link[r][c] ? weight_bank1 : weight_bank0;
+                wire signed [7:0] product = $signed(act_link[r][c]) * weight_sel;
+                (* use_dsp = "no" *) wire signed [ACC_WIDTH-1:0] mac =
                     $signed(psum_link[r][c]) + product;
                 always @(posedge clk) begin
                     if (rst) begin
-                        weight_bank0 <= 8'sd0;
-                        weight_bank1 <= 8'sd0;
-                        act_q <= 8'd0;
+                        weight_bank0 <= 4'sd0;
+                        weight_bank1 <= 4'sd0;
+                        act_q <= 4'd0;
                         sel_q <= 1'b0;
                         psum_q <= {ACC_WIDTH{1'b0}};
                     end else begin
                         if (weight_we && weight_row == r && !weight_bank)
-                            weight_bank0 <= weight_data[c*8 +: 8];
+                            weight_bank0 <= weight_data[c*4 +: 4];
                         if (weight_we && weight_row == r && weight_bank)
-                            weight_bank1 <= weight_data[c*8 +: 8];
+                            weight_bank1 <= weight_data[c*4 +: 4];
                         act_q <= act_link[r][c];
                         sel_q <= sel_link[r][c];
                         psum_q <= mac;

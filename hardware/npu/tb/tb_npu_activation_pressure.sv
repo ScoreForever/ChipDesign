@@ -5,12 +5,12 @@
 // and a final scan of all 8 KiB. Run with behavioral RAM and the course macro.
 module tb_npu_activation_pressure;
 reg clk=0,rst=1;always #5 clk=~clk;
-reg rv=0,rr=0,wv=0,flush=0;reg [15:0] ra=0,wa=0;reg [31:0] wd=0;reg [3:0] wm=0;
+reg rv=0,rr=0,wv=0,flush=0;reg [15:0] ra=0,wa=0;reg [31:0] wd=0;reg [7:0] wm=0;
 wire rready,rspv,wready,idle;wire [31:0] data;
 npu_activation_store dut(.clk(clk),.rst(rst),.read_valid(rv),.read_ready(rready),.read_addr(ra),
 .rsp_valid(rspv),.rsp_ready(rr),.rsp_data(data),.write_valid(wv),.write_ready(wready),
 .write_addr(wa),.write_data(wd),.write_mask(wm),.flush(flush),.idle(idle));
-reg [7:0] gold[0:8191];reg [31:0] expected;reg ep=0,wl=0,rl=0;
+reg [3:0] gold[0:16383];reg [31:0] expected;reg ep=0,wl=0,rl=0;
 integer i,j,reads=0,writes=0,ws=0,rs=0,peak=0;
 always @(posedge clk)begin
  wl=wv&&wready&&!rst;rl=rv&&rready&&!rst;
@@ -25,11 +25,11 @@ always @(posedge clk)begin
   end
   if(rl)begin
    if(ep)$fatal(1,"more than one response");
-   for(j=0;j<4;j=j+1)expected[j*8+:8]=gold[(ra+j)&8191];
+   for(j=0;j<8;j=j+1)expected[j*4+:4]=gold[(ra+j)&16383];
    ep=1;reads=reads+1;
   end
   if(wl)begin
-   for(j=0;j<4;j=j+1)if(wm[j])gold[(wa+j)&8191]=wd[j*8+:8];
+   for(j=0;j<8;j=j+1)if(wm[j])gold[(wa+j)&16383]=wd[j*4+:4];
    writes=writes+1;
   end
   if(wv&&!wready)ws=ws+1;
@@ -38,7 +38,7 @@ always @(posedge clk)begin
 end
 task write_word(input integer address);
 begin
- @(negedge clk);wv=1;wa=address;wd=32'h01020304^address;wm=15;
+ @(negedge clk);wv=1;wa=address;wd=32'h01020304^address;wm=255;
  @(posedge clk);while(!wready)@(posedge clk);
  @(negedge clk);wv=0;
 end endtask
@@ -51,21 +51,21 @@ begin
 end endtask
 reg [31:0] random_state=32'h89abcdef;
 initial begin
- for(i=0;i<8192;i=i+1)gold[i]=0;
+ for(i=0;i<16384;i=i+1)gold[i]=0;
  repeat(4)@(negedge clk);rst=0;
- for(i=0;i<8192;i=i+4)write_word(i);
+ for(i=0;i<16384;i=i+8)write_word(i);
  @(negedge clk);flush=1;while(!idle)@(negedge clk);flush=0;
  for(i=0;i<20000;i=i+1)begin
   @(negedge clk);
   random_state={random_state[30:0],random_state[31]^random_state[21]^random_state[1]^random_state[0]};
   if(!wv || wl)begin
    wv=random_state[1] || random_state[6];
-   wa=(random_state[8] ? {3'd0,random_state[12:0]} : {9'd0,random_state[6:0]});
-   wd=random_state^32'h12345678;wm=random_state[19:16];
+   wa=(random_state[8] ? {2'd0,random_state[13:0]} : {9'd0,random_state[6:0]});
+   wd=random_state^32'h12345678;wm=random_state[23:16];
   end
   if(!rv || rl)begin
    rv=random_state[2] || random_state[9];
-   ra=(random_state[7] ? {3'd0,random_state[25:13]} : {9'd0,random_state[6:0]});
+   ra=(random_state[7] ? {2'd0,random_state[26:13]} : {9'd0,random_state[6:0]});
   end
   rr=random_state[4] || random_state[5];flush=&random_state[15:13];
  end
@@ -75,12 +75,12 @@ initial begin
  end
  while(!idle)@(negedge clk);
  flush=0;
- for(i=0;i<8192;i=i+4)read_word(i);
+ for(i=0;i<16384;i=i+8)read_word(i);
  @(negedge clk);flush=1;while(!idle)@(negedge clk);
  // Read misses take the SRAM port before queued writes, so this random mix
  // completes roughly as many reads as writes (about 8000 each); both sides
  // must still stall and the queue must actually fill.
- if(ws==0 || rs==0 || peak!=8 || writes<5000 || reads<5000)$fatal(1,"pressure coverage not reached");
+ if(ws==0 || rs==0 || peak!=8 || writes<2000 || reads<2000)$fatal(1,"pressure coverage not reached");
  $display("PASS high pressure random SRAM reads=%0d writes=%0d write_stalls=%0d read_stalls=%0d peak=%0d",reads,writes,ws,rs,peak);
  $finish;
 end

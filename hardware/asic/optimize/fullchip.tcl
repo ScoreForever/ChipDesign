@@ -1,4 +1,4 @@
-# Independent ABI-2 full-chip flow. All geometry is generated in config.tcl.
+# Independent ABI-3 INT4 full-chip flow. All geometry is generated in config.tcl.
 source config.tcl
 set here [file dirname [file normalize [info script]]]
 setMultiCpuUsage -localCpu $threads

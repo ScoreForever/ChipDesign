@@ -3,11 +3,11 @@
 module tb_npu_stalls;
  reg clk=0,rst=1,validate=0,run=0;always #5 clk=~clk;
  wire ready,busy,vd,vok,done;wire [4:0] error,error_op;
- wire mv,av,wv;wire [15:0] ma,aa,wa;wire [31:0] wd;wire [3:0] wm;
+ wire mv,av,wv;wire [15:0] ma,aa,wa;wire [31:0] wd;wire [7:0] wm;
  reg mr=0,ar=0,wr=0,mrv=0,arv=0;reg [31:0] md,ad;
  integer idle_delay=0,wr_clock=0,write_stalls=0,max_write_streak=0,write_streak=0;
  wire memory_flush;wire memory_idle=idle_delay==0;
- reg [31:0] model[0:2047],cfg[0:6];reg [7:0] act[0:8191],input_data[0:8191],gold[0:8191];
+ reg [31:0] model[0:2047],cfg[0:6];reg [3:0] act[0:16383];reg [7:0] input_data[0:8191],gold[0:8191];
  npu_program_core dut(.clk(clk),.rst(rst),.validate(validate),.run(run),.ready(ready),.busy(busy),
  .model_bytes(cfg[0][15:0]),.op_count(cfg[1][4:0]),.input_i32(cfg[6][0]),.input_base(cfg[2][15:0]),.input_bytes(cfg[3][15:0]),
  .output_base(cfg[4][15:0]),.output_bytes(cfg[5][15:0]),.validation_done(vd),.validation_ok(vok),.done(done),
@@ -38,7 +38,7 @@ module tb_npu_stalls;
   if(av && !ar)begin astall=astall+1;as_=as_+1;if(as_>amax)amax=as_;end else as_=0;
   if(wv && wr)observed_writes=observed_writes+1;
  end
- reg previously_stalled=0;reg [15:0] held_addr;reg [31:0] held_data;reg [3:0] held_mask;
+ reg previously_stalled=0;reg [15:0] held_addr;reg [31:0] held_data;reg [7:0] held_mask;
  integer max_write_fifo=0,max_reserved_outputs=0;
  always @(posedge clk)begin
   if(rst)begin previously_stalled<=0;idle_delay<=0;end
@@ -67,17 +67,17 @@ module tb_npu_stalls;
  end
  always @(posedge clk)begin
   mrv<=0;arv<=0;
-  if(mv && mr)begin if(ma[1:0]!=0 || ma>=cfg[0])$fatal(1,"model address");saved_m<=ma;mt<=1+lfsr[6:4];end
+  if(mv && mr)begin if(ma[0]!=0 || ma>=cfg[0])$fatal(1,"model address");saved_m<=ma;mt<=1+lfsr[6:4];end
   else if(mt>0)mt<=mt-1;
-  else if(mt==0)begin md<=model[saved_m>>2];mrv<=1;mt<=-1;end
-  if(av && ar)begin if(aa>=8192)$fatal(1,"activation address");saved_a<=aa;at<=1+lfsr[10:8];reads<=reads+1;end
+  else if(mt==0)begin md<=model[saved_m>>2]>>(saved_m[1]*16);mrv<=1;mt<=-1;end
+  if(av && ar)begin if(aa>=16384)$fatal(1,"activation address");saved_a<=aa;at<=1+lfsr[10:8];reads<=reads+1;end
   else if(at>0)at<=at-1;
   else if(at==0)begin
-   for(i=0;i<4;i=i+1)ad[i*8+:8]<=act[(saved_a+i)&8191];arv<=1;at<=-1;
+   for(i=0;i<8;i=i+1)ad[i*4+:4]<=act[(saved_a+i)&16383];arv<=1;at<=-1;
   end
   if(wv && wr)begin
-   if(!executing || wa>=8192)$fatal(1,"write outside run/bounds");
-   for(i=0;i<4;i=i+1)if(wm[i])act[wa+i]<=wd[i*8+:8];writes<=writes+1;
+   if(!executing || wa>=16384)$fatal(1,"write outside run/bounds");
+   for(i=0;i<8;i=i+1)if(wm[i])act[wa+i]<=wd[i*4+:4];writes<=writes+1;
   end
  end
  string dir;
@@ -85,7 +85,7 @@ module tb_npu_stalls;
   if(!$value$plusargs("DATA=%s",dir))$fatal(1,"DATA required");
   $readmemh({dir,"/config.hex"},cfg);$readmemh({dir,"/model.hex"},model,0,cfg[0]/4-1);
   $readmemh({dir,"/input.hex"},input_data,0,cfg[3]-1);$readmemh({dir,"/gold.hex"},gold,0,cfg[5]-1);
-  for(i=0;i<cfg[3];i=i+1)act[cfg[2]+i]=input_data[i];
+  for(i=0;i<cfg[3];i=i+1)begin act[(cfg[2]+i)*2]=input_data[i][3:0];act[(cfg[2]+i)*2+1]=input_data[i][7:4];end
   repeat(4)@(negedge clk);rst=0;validate=1;@(negedge clk);validate=0;
   wait(vd);if(!vok || error)$fatal(1,"stalled validation error %0d op=%0d",error,error_op);
   @(negedge clk);executing=1;run=1;@(negedge clk);run=0;
@@ -101,7 +101,7 @@ module tb_npu_stalls;
    $fatal(1,"stall stimulus did not cover all interfaces and long output backpressure");
   if(dut.perf_counters[17*32+:32]>4 || dut.perf_counters[18*32+:32]>2 ||
      dut.perf_counters[19*32+:32]>32)$fatal(1,"performance occupancy bounds");
-  for(i=0;i<cfg[5];i=i+1)if(act[cfg[4]+i]!==gold[i])$fatal(1,"stalled result %0d",i);
+  for(i=0;i<cfg[5];i=i+1)if({act[(cfg[4]+i)*2+1],act[(cfg[4]+i)*2]}!==gold[i])$fatal(1,"stalled result %0d",i);
   $display("PASS random read/write stalls, stable payload, drain and performance scoreboard reads=%0d writes=%0d mstall=%0d astall=%0d wstall=%0d wmax=%0d fifo=%0d reserved=%0d",reads,writes,mstall,astall,write_stalls,max_write_streak,max_write_fifo,max_reserved_outputs);
   executing=0;rst=1;repeat(2)@(negedge clk);
   if(dut.perf_counters!==0)$fatal(1,"performance reset failed");

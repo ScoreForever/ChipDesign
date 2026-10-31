@@ -1,11 +1,11 @@
 # No-CPU full-chip physical optimization
 
-This is an independent ABI-2 course flow for `my_soc_top`. It preserves the
+This is an independent ABI-3 INT4 course flow for `my_soc_top`. It preserves the
 legacy six-PAD SoC scripts. The full-chip build adds all seven signal PADs,
 28 supply PADs, four corners, 35 wire-bond openings, IO/core fillers, the
 two SRAM macros (model and activation store) with their power rings, a core
 PDN, CTS and METAL2–6 routing. The die, including the PAD ring, is capped at
-2 mm x 2 mm (`MAX_DIE_UM`); candidates whose computed die exceeds it are
+1.95 mm x 1.95 mm (`MAX_DIE_UM`); candidates whose computed die exceeds it are
 recorded as over budget and never start Innovus.
 
 Run on the authorized course node, in a frozen source checkout:
@@ -18,6 +18,14 @@ python3 hardware/asic/optimize/flow.py baseline --output /absolute/new/experimen
 python3 hardware/asic/optimize/flow.py search --output /absolute/new/experiment
 python3 hardware/asic/optimize/postlayout.py --candidate /absolute/new/experiment/candidates/u60
 ```
+
+The 2026-10-31 INT4 refactor has functional RTL/host evidence only; ASIC EDA
+is delegated to another engineer. Use a new experiment directory, not an INT8
+handoff. `--cols 4|8` selects the array (default 8); keep the same value on every
+invocation for an experiment, including preflight. `build_profile.json` records
+INT4 operands and Q15 scaling and rejects profile changes on reuse. Source
+fingerprints still guard the exact RTL and constraints. The two physical 8 KiB
+SRAM macros are unchanged; packing doubles logical INT4 capacity, not macro area.
 
 Use the Python 3.8 environment available after sourcing EDA; the system Python
 may be too old. Never copy private PDK or SRAM views into this repository.
@@ -74,7 +82,7 @@ After routing the flow adds floating M5/M6 metal fill (foundry minimum density
 and extraction, so DRC, connectivity, SPEF and SDF all include them. Independent repeat
 and baseline/final SDF checks are required before reporting an optimized result.
 The physical JTAG test loads nonzero oracle data, compares two inference results,
-checks IRQ and protocol/physical reset recovery (ABI 2.1) without hierarchy
+checks IRQ and protocol/physical reset recovery (ABI 3.0) without hierarchy
 backdoors. SDF is annotated at elaboration through `xrun -sdf_cmd_file`
 (Xcelium ignores a run-time `$sdf_annotate` with a non-constant file name).
 Timing checks are disabled on exactly six CDC capture flops, the req/ack

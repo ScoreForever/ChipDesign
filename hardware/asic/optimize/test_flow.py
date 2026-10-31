@@ -30,8 +30,8 @@ class FlowTests(unittest.TestCase):
             self.assertGreaterEqual(gap,2*26)
         with self.assertRaises(ValueError):flow.geometry(std,SIZES,.6,'nowhere')
     def test_area_budget_skips_oversized_candidates_without_tools(self):
-        # The die cap is 2x2 mm; an oversized point never launches Innovus.
-        self.assertEqual(flow.MAX_DIE_UM,2000)
+        # The die cap is 1.95x1.95 mm; an oversized point never launches Innovus.
+        self.assertEqual(flow.MAX_DIE_UM,1950)
         self.assertGreater(flow.geometry(4e6,SIZES,.55)['die_side_um'],flow.MAX_DIE_UM)
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);syn=root/'synthesis';syn.mkdir()

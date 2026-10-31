@@ -1,4 +1,4 @@
-# ABI 2 dual-SRAM platform. This single selection maps both stores to the
+# ABI 3 INT4 dual-SRAM platform. This single selection maps both stores to the
 # same 8 KiB macro type; the library is loaded once for the two instances.
 set use_model_sram 1
 if {[info exists ::env(EDA_NPU_MODEL_SRAM)]} {

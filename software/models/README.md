@@ -1,5 +1,11 @@
 # TinyCNN-8-Flat trained deployment package
 
+This file and the accuracy numbers below describe the original INT8 training
+export. The current SoC uses ABI 3.0 packed INT4/Q15. Its NPZ importer performs
+explicit lossy PTQ; these INT8 accuracy results do not validate INT4 deployment.
+Recalibration, dataset evaluation or INT4 QAT is required separately. The
+original NPZ and training tools are preserved as source material, not relabeled.
+
 `tinycnn8_flatten_strong.npz` is the unmodified output of
 `software/tools/export_model.py`, with labels `0=yes, 1=no, 2=up, 3=down`.
 It follows the frozen `20×16×1` input, NHWC Flatten, 160-input FC and

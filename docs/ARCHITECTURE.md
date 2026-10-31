@@ -1,8 +1,8 @@
-# NPU 架构（ABI 2.1，2026-10-26）
+# NPU 架构（ABI 3.0 INT4，2026-10-31）
 
 ## 目标与默认实例树
 
-一个被外部主机调用、可执行不同静态 INT8 网络的推理加速模块，不包含指令 CPU。
+一个被外部主机调用、可执行不同静态 INT4 网络的推理加速模块，不包含指令 CPU。
 主机完成图分析、量化、布局转换、权重打包和生命周期分配；硬件验证能力与边界、顺序执行。
 
 ```text
@@ -11,11 +11,11 @@ my_soc_top
 └─ npu_control_subsystem
    ├─ npu_command_controller：模型/输入事务、完成保护、超时、复位
    ├─ npu_model_store：8 KiB 模型 SRAM，独立同步 32-bit 端口
-   ├─ npu_activation_store：8 KiB 激活 SRAM、64 B 读缓存、字节写合并及转发、8项写队列
+   ├─ npu_activation_store：8 KiB 激活 SRAM、64 B 读缓存、半字节写合并及转发、8项写队列
    ├─ npu_trace_capture：可选逐算子摘要；可选1024×128bit波形RAM
    └─ npu_program_core：描述符验证、顺序调度、算子执行
       ├─ npu_mac_array：Conv/FC 共享 4×8 MAC、双权重 bank
-      └─ requant_lane：单路 Q31 流水，II=1
+      └─ requant_lane：单路 Q15 流水，II=1，四级
 ```
 
 唯一默认源文件表为 `hardware/soc/sim/filelists/chipdesign_nocpu.f`。
@@ -26,14 +26,15 @@ my_soc_top
 
 - Conv：batch=1、NHWC、kernel=1×1/3×3、stride H/W=1/2、显式四侧 padding（每侧小于对应 kernel），groups=dilation=1。
 - FC：连续输入展平，输入长度≤1024，输出通道≤256；共享矩阵后端。
-- MaxPool：2×2、stride2、无 padding、floor 输出尺寸，支持 INT8/INT32。
-- ReLU：INT8/INT32，逐元素 max(x,0)。
-- Requant：INT8 或 INT32 输入、INT8 输出；逐通道或主机展开后的逐张量 Q31 multiplier/shift/clamp，零点为 0。
+- MaxPool：2×2、stride2、无 padding、floor 输出尺寸，支持 INT4/INT32。
+- ReLU：INT4/INT32，逐元素 max(x,0)。
+- Requant：INT4 或 INT32 输入、INT4 输出；逐通道或主机展开后的逐张量 Q15 multiplier/shift/clamp，零点为 0。
 
-Conv/FC 的逻辑输出为 INT32：无偏乘积和采用 26 bit（K≤1024），加 INT32 bias 按两补码 wrap。
-4 行阵列局部和为 18 bit；尾部 K 和 Cout 通过 mask 补零/禁止写回。
-Requant 契约为 saturating left shift、SRDHM、RoundingDivideByPOT、INT8 clamp；
-shift=-31..31，multiplier=0..INT32_MAX。Requant 不额外加 bias，不支持任意非零 zero_point。
+Conv/FC 的逻辑输出为 INT32：无偏乘积和采用18 bit（K≤1024，范围-57344..65536），加 INT32 bias 按两补码 wrap。
+单个乘积为 signed8 bit，4行阵列局部和为10 bit（最大256）；尾部 K 和 Cout 通过 mask 补零/禁止写回。
+Requant 契约为 saturating INT32 left shift、加半后取整的 Q15 乘积、RoundingDivideByPOT、INT4 clamp；
+shift=-31..31，multiplier=0..32767。乘法器由32×32缩为32×16，乘积寄存器由64缩为48 bit。
+Requant 不额外加 bias，不支持任意非零 zero_point。
 不支持的配置明确拒绝；容量约束必须与各维上限同时满足。
 
 ## 组合、融合与数据流
@@ -50,14 +51,14 @@ MAC → INT32 bias → 可旁路的窗口 MaxPool → 单路 Requant → ReLU/cl
 
 融合 Pool 采用窗口优先的空间顺序，故只需四个结果向量槽，而非缓存整幅卷积输出。
 空间 tile=16，K-major 权重复用。每个最终归约在发射前保留结果槽，覆盖仍在阵列中的返回，
-槽可复用时才发射。写回每拍最多一个 INT8 或 INT32 元素；量化在途数据由有效位/计数管理。
+槽可复用时才发射。写回每拍最多一个 INT4 或 INT32 元素；奇数 INT4 张量末尾同时清零高 padding nibble，量化在途数据由有效位/计数管理。
 读请求与写回均使用 ready/valid 握手。写回背压必须同时约束 Requant 在途量，
 避免量化流水的返回覆盖尚未被存储接受的输出；读响应在未接收时保持稳定。
 
 当相同通道的量化为非负倍率的单调变换时，允许把 MaxPool 提前至 Requant/ReLU 之前，
 减少 2×2 窗口的量化次数。INT32 bias 的 wrap 加法仍在 max 比较前，不能移动到其后。
 连续两个 Requant 不合并；多消费者中间值不省略写回；不支持的链按独立描述符执行。
-当前编译器不会融合 Conv→Conv，两层之间的 INT8 张量正常写回。
+当前编译器不会融合 Conv→Conv，两层之间的 INT4 张量正常写回。
 
 连续 Conv 的行缓存可行性、权重切换和 spatial-tile 利用代价由
 `software/host/explore_conv_streaming.py` 单独探索；它是软件调度验证，不是 RTL 流式模式。
@@ -68,7 +69,9 @@ MAC → INT32 bias → 可旁路的窗口 MaxPool → 单路 Requant → ReLU/cl
 默认激活逻辑容量 8192 B，模型区 8192 B，分别由一块独立的单端口 32-bit SRAM 支撑。
 描述符、权重、bias/multiplier/shift 共同占用模型区；输入、中间张量和输出共同占用激活区。
 最多 16 条物理描述符；执行时不做 tensor-ID 间接查表。
-主机输入可选 INT8/INT32，Conv/FC 仍只接受 INT8。主机用张量名做生命周期分析，执行描述符直接引用 byte offset，节省间接查询与元数据存储。
+主机输入可选 INT4/INT32，Conv/FC 仍只接受 INT4。INT4 每 byte 存两个元素，低 nibble 优先，整张量末尾不足一个 byte 时补0。
+主机用张量名做生命周期分析，执行描述符直接引用 byte offset；核心将其转为 nibble 地址，INT32 元素步长为8 nibbles。
+格式标识同时绑定 INT4/Q15 与阵列列数；硬件拒绝旧描述符和列数不符的包。
 
 硬件预验证所有描述符与量化参数，验证期间禁止写激活；确认全部合法才置 model_valid。
 预验证使用最多17项的有效区域表，检查源是否由声明的模型输入或先前操作覆盖，以及 dtype 是否一致；START 另行要求输入事务已提交。
@@ -77,8 +80,11 @@ MAC → INT32 bias → 可旁路的窗口 MaxPool → 单路 Requant → ReLU/cl
 
 每层配置执行期间不变，切换前等待 MAC、结果槽、Requant、模型读和激活写队列全部排空。
 激活 SRAM 每拍最多执行一次物理读或掩码写。64 B 读缓存命中时可免去物理读取，
-非对齐的连续4 B读取由缓存或两个对齐word拼接；同word的字节写可合并。
-尚未提交的字节写必须参与读转发，以保持精确原地 ReLU 和跨算子 RAW 顺序。
+非对齐的连续8 nibbles读取由缓存或两个对齐word拼接；同word的半字节写可合并。
+物理宏仅有 byte 写使能。孤立 nibble 写排队后先读旧word，再合并提交，期间锁定物理端口与前端握手，
+保留同 byte 的另一个 nibble；完整 byte/word 直接写，无需 RMW。
+尚未提交的半字节写必须参与读转发，以保持精确原地 ReLU 和跨算子 RAW 顺序。
+模型 SRAM 仍使用 byte 地址；packed 4-lane 权重行仅2 B，按地址bit1选择返回的半字。
 层边界及输入提交时强制刷新部分word；全部写入已落到 SRAM 后才发布成功完成。
 运行期间锁定模型与输入写入；完成输出保留到 ACK，结果保护通过存储所有权实现，不复制八个 logits。
 软复位/超时取消在途操作、读缓存和写队列及模型/输入有效性，不清整片 RAM，重新提交后才能执行。
@@ -97,13 +103,14 @@ Genus/DC 使用 `EDA_NPU_MODEL_SRAM=1` 同时选择模型与激活两颗硬宏�
 `EDA_NPU_COLS=4|8` 选择阵列列数。旧 tile/权重/psum 环境开关不再使用。
 波形trace由 `NPU_ENABLE_WAVE_TRACE=0|1` 显式选择；未指定时，ASIC综合默认关闭，
 普通仿真及带 `CHIPDESIGN_FPGA_MEM` 的FPGA构建默认开启。关闭只移除16 KiB波形RAM，
-完整性能计数器与逐算子起止/描述符/等待统计仍保留。`0x184`报告波形深度0，
-波形数据窗口返回地址错误；主机可用 `trace(include_samples=False)` 读取算子摘要。
+完整全局性能计数器仍保留。`0x184`报告波形深度0，波形数据窗口返回地址错误；
+启用逐算子摘要时，主机可用 `trace(include_samples=False)` 读取摘要。
 Genus/DC通过 `EDA_NPU_WAVE_TRACE=0|1` 可覆盖该默认，显式开启需另行评估调试存储的ASIC映射成本。
 逐算子摘要（16算子×8个32位计数器，全部为触发器，约0.2 mm²）同样可选：宏 `NPU_ENABLE_OP_TRACE`、
 Genus/DC变量 `EDA_NPU_OP_TRACE=0|1`；ASIC默认关闭，仿真和FPGA默认开启，`0x1a8` 报告0或16。
 关闭不改变任何计算、周期或全局性能计数器；逐层分析在FPGA或仿真上进行，RTL行为一致。
-芯片目标为2×2 mm²，作为本轮面积估算和结构选择依据，不要求EDA结果严格对标面积门槛。
+最新芯片外形限制为1950×1950 μm²，物理优化脚本按此值筛选候选；INT4 本轮只交付重构及功能验证，EDA 由另一位同事完成。
+两个8 KiB宏物理大小保持不变，INT4扩大逻辑元素容量，不能把容量压缩直接当作宏面积缩减。
 功能回归、宏仿真、综合和物理验证分别记录；旧2026-10-23/24的周期、面积、FPGA/板级
 证据属于当时冻结源码，不能当作双SRAM实现的新验证结果。见
 [双SRAM实施记录](NPU_DUAL_SRAM_IMPLEMENTATION_20261026.md)。

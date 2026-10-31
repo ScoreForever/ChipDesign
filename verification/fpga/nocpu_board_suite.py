@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 2.1 board regression; runs against a manually programmed FPGA."""
+"""ABI 3.0 INT4 board regression; runs against a manually programmed FPGA."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -47,7 +47,7 @@ def raw_upload(npu, pkg):
 def execute(args):
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    report = {'scope': 'ABI 2.1 no-CPU board functional suite', 'started_utc': datetime.now(timezone.utc).isoformat(),
+    report = {'scope': 'ABI 3.0 INT4 no-CPU board functional suite', 'started_utc': datetime.now(timezone.utc).isoformat(),
               'passed': False, 'cases': [], 'manual_pending': ['repeat START while confirmed busy', 'watchdog timeout and recovery', 'RESET while confirmed busy', 'pause TCK while confirmed busy', 'physical reset button', 'power cycle/reprogram', 'electrical/timing review'],
               'limitations': ['Board bitstream identity and build provenance require human review', 'Golden is project software reference, not independent for all cases']}
     rpc = None
@@ -105,7 +105,7 @@ def execute(args):
                 case_dir = out / case
                 case_dir.mkdir()
                 pkg.save(case_dir / 'package')
-                inp = encoded(frame, model['input'].get('dtype', 'i8'))
+                inp = encoded(frame, model['input'].get('dtype', 'i4'))
                 expected_values = reference(model, frame)[model['nodes'][-1]['output']]
                 expected = encoded(expected_values, pkg.manifest['output_dtype'])
                 (case_dir/'input.bin').write_bytes(inp)
@@ -115,7 +115,7 @@ def execute(args):
                 npu.load_model(pkg)
                 for i in range(args.repeat):
                     run_frame = frame if i % 2 == 0 else list(reversed(frame))
-                    run_input = encoded(run_frame, model['input'].get('dtype', 'i8'))
+                    run_input = encoded(run_frame, model['input'].get('dtype', 'i4'))
                     run_expected = encoded(reference(model, run_frame)[model['nodes'][-1]['output']], pkg.manifest['output_dtype'])
                     (case_dir/f'input_{i+1:03d}.bin').write_bytes(run_input)
                     (case_dir/f'expected_{i+1:03d}.bin').write_bytes(run_expected)
@@ -156,7 +156,7 @@ def execute(args):
             check(label, lambda: npu.command(Op.MODEL_COMMIT), error)
             npu.command(Op.RESET)
         npu.load_model(base)
-        inp = encoded(frame, model['input'].get('dtype', 'i8'))
+        inp = encoded(frame, model['input'].get('dtype', 'i4'))
         npu.command(Op.INPUT_BEGIN)
         for off in range(0, len(inp), 4):
             npu.write(0x20000 + base.manifest['input_base'] + off, int.from_bytes(inp[off:off+4].ljust(4, b'\0'), 'little'))

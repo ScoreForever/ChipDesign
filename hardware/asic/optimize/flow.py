@@ -21,8 +21,8 @@ SIGNALS = {'N': [('clk_i', 'input'), ('rst_ni', 'input'), ('irq_o', 'output')],
 MACROS = 2
 MACRO_ROLES = ('model', 'activation')
 LAYOUTS = ('west_stack', 'south_row', 'diagonal')
-# Final-project area budget: die (including the PAD ring) at most 2 mm x 2 mm.
-MAX_DIE_UM = 2000
+# INT4 revision budget: die (including the PAD ring) at most 1950um square.
+MAX_DIE_UM = 1950
 # floorPlan snaps the core to the site grid (one 5.6um row at most), so a
 # requested die must leave this headroom to stay within MAX_DIE_UM.
 SNAP_UM = 6
@@ -331,7 +331,7 @@ def common_config(libs):
 def synth(output,libs):
     directory=output/'synthesis'
     directory.mkdir(parents=True,exist_ok=True)
-    cfg=common_config(libs)+'set source_root '+tcl(ROOT)+'\nset threads 4\n'
+    cfg=common_config(libs)+'set source_root '+tcl(ROOT)+'\nset threads 4\nset array_cols '+os.environ.get('EDA_NPU_COLS','8')+'\n'
     (directory/'config.tcl').write_text(cfg)
     save(directory/'rtl_sources.json',dict(sources_sha256=rtl_fingerprint(),origin='captured immediately before synthesis launch'))
     state=launch(['genus','-no_gui','-batch','-files',str(HERE/'synth.tcl')],directory,'PNR_OPT_SYNTHESIS_COMPLETE')
@@ -417,7 +417,7 @@ def candidate(output,libs,name,util,layout,congestion=False,halo=26):
     sizes=lef_sizes([libs[k] for k in ('macro_lef','io_lef','bond_lef')])
     geo=geometry(area['standard_cell_area_um2'],sizes,util,layout,halo)
     directory.mkdir(parents=True,exist_ok=True)
-    save(directory/'experiment.json',dict(utilization=util,layout=layout,congestion=congestion,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
+    save(directory/'experiment.json',dict(array_cols=int(os.environ.get('EDA_NPU_COLS','8')),utilization=util,layout=layout,congestion=congestion,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
     if geo['die_side_um']+SNAP_UM>MAX_DIE_UM:
         # Over the area budget before any tool runs: record it, spend no Innovus time.
         result=dict(directory=str(directory),eligible=False,within_area_budget=False,die_side_um=geo['die_side_um'],
@@ -484,7 +484,7 @@ def search(output,libs):
         ran=row.get('within_area_budget') is not False
         if ran and not row.get('eligible') and rank(rows):break
     best=rank(rows)
-    if not best:summarize(output);raise RuntimeError('no physically valid candidate within the 2x2 mm budget')
+    if not best:summarize(output);raise RuntimeError('no physically valid candidate within the 1.95x1.95 mm budget')
     exp=json.loads((Path(best[0]['directory'])/'experiment.json').read_text());util=exp['utilization']
     for layout in ('south_row','diagonal'):rows.append(candidate(output,libs,f'{layout}_u{int(round(util*100))}',util,layout))
     best=rank(rows)[0];exp=json.loads((Path(best['directory'])/'experiment.json').read_text())
@@ -515,6 +515,7 @@ def main():
     ap.add_argument('--utilization',type=float,default=.6)
     ap.add_argument('--layout',choices=LAYOUTS,default='west_stack')
     ap.add_argument('--halo',type=float,default=26)
+    ap.add_argument('--cols',type=int,choices=(4,8),default=8)
     ap.add_argument('--congestion',action='store_true')
     args=ap.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=True)
     if args.action=='trial' and (not args.name or not re.fullmatch(r'[A-Za-z0-9_-]+',args.name) or not 0<args.utilization<1 or args.halo<26):
@@ -524,6 +525,13 @@ def main():
     lock=(output/'controller.lock').open('a')
     try:fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
     except BlockingIOError:raise RuntimeError('another controller is already running for this experiment')
+    profile=dict(array_cols=args.cols,activation_bits=4,weight_bits=4,requant_fraction_bits=15)
+    profile_path=output/'build_profile.json'
+    if profile_path.exists() and json.loads(profile_path.read_text())!=profile:
+        raise RuntimeError('hardware profile changed; use a new output directory')
+    if not profile_path.exists() and (output/'sources.json').exists():
+        raise RuntimeError('old experiment lacks a hardware profile; use a new output directory')
+    save(profile_path,profile);os.environ['EDA_NPU_COLS']=str(args.cols)
     libs=preflight(output)
     if args.action=='preflight':return
     frozen=output/'sources.json'

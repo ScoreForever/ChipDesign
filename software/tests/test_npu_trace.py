@@ -14,7 +14,7 @@ class TraceRegisters:
     def __init__(self, busy=False, changed=False):
         self.reads=[];self.writes=[];self.changed=changed
         self.registers={0:ABI,4:3 if busy else 10,0x2c:7,0x14:1,
-            0x180:0x10080,0x184:1024,0x188:0x31,0x18c:99,0x190:5,0x194:2,
+            0x180:0x30080,0x184:1024,0x188:0x31,0x18c:99,0x190:5,0x194:2,
             0x198:2,0x19c:3,0x1a0:16,0x1a4:32,0x1a8:16,0x1ac:1,0x1b0:2}
         for i,value in enumerate((0,4,0x301,11,0,0,2,2)):self.registers[0x200+i*4]=value
         for i in range(2):
@@ -32,9 +32,9 @@ class TraceRegisters:
 class TraceTests(unittest.TestCase):
     def test_decode_fields_and_bit_order(self):
         row=decode_sample([42,0xFFFFFFFF,0x04560100,0xBA810123])
-        self.assertEqual((row['cycle'],row['model_address'],row['activation_address']),(42,0x100,0x456))
+        self.assertEqual((row['cycle'],row['model_byte_address'],row['activation_nibble_address']),(42,0x100,0x456))
         self.assertEqual((row['pc'],row['opcode'],row['quantized'],row['state']),(10,3,1,8))
-        self.assertEqual((row['write_address'],row['write_mask']),(0x123,1))
+        self.assertEqual((row['write_nibble_address'],row['write_nibbles']),(0x123,1))
         self.assertEqual((row['slot_busy'],row['slot_ready'],row['weight_banks'],row['inflight']),(15,15,3,63))
         self.assertEqual((row['wait_slot'],row['gather_state'],row['load_state']),(1,3,3))
 

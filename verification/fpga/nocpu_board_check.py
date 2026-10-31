@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Record a repeatable ABI 2.1 board smoke test; programming is manual."""
+"""Record a repeatable ABI 3.0 INT4 board smoke test; programming is manual."""
 from __future__ import annotations
 
 import argparse
@@ -25,7 +25,7 @@ def run(args):
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     report = {'started_utc': datetime.now(timezone.utc).isoformat(), 'passed': False,
-              'scope': 'ABI 2.1 JTAG capability and repeated model inference smoke test',
+              'scope': 'ABI 3.0 INT4 JTAG capability and repeated model inference smoke test',
               'programming': 'manual; bitstream identity on board is not verified by this script',
               'runs': []}
     rpc = None

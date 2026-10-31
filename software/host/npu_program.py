@@ -1,4 +1,4 @@
-"""Static INT8 model compiler and independent integer reference, ABI 2.1.
+"""Packed INT4 model compiler and independent integer reference, ABI 3.0.
 
 Pure Python, no framework/runtime dependency. Public input uses five logical
 operators. Fusion only removes single-consumer, non-output intermediates.
@@ -12,25 +12,95 @@ from pathlib import Path
 import struct
 import operator
 
-# ABI 2.1 (0x00020001): as 2.0, except that on an 8-column array an output
-# tile with at most four real channels packs four weight bytes per row.
-ABI=0x20001
+# ABI 3.0: packed signed INT4 tensors/weights, INT32 raw tensors and bias,
+# Q15 multiplier + signed shift in one word, byte-addressed descriptors.
+ABI=0x30000
+FORMAT_MAGIC=0x49340f40  # I4, Q15, four rows; low nibble is array column count.
+NUMERIC_FORMAT=0x0f200404
 OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5}
 Q,R,P,S32,D32=1<<8,1<<9,1<<10,1<<11,1<<12
 
 def wrap32(x):
     return (int(x)+2**31)%2**32-2**31
 
-def requant(x,mult,shift,lo=-128,hi=127):
-    """Double-rounding Q31: saturating left shift, SRDHM, rounding POT."""
+def requant(x,mult,shift,lo=-8,hi=7):
+    """Double-rounding Q15: saturating left shift, SRDHM, rounding POT."""
+    if not 0<=mult<2**15 or not -31<=shift<=31 or not -8<=lo<=hi<=7:
+        raise ValueError('invalid INT4 Q15 parameters')
     x=max(-2**31,min(2**31-1,wrap32(x)*2**max(shift,0)))
-    y=max(-2**31,min(2**31-1,(x*mult+2**30)//2**31))
+    y=max(-2**31,min(2**31-1,(x*mult+2**14)//2**15))
     if shift<0:
         e=-shift
         base=y//2**e
         remainder=y-base*2**e
         y=base+int(remainder>((2**e-1)//2+int(y<0)))
     return max(lo,min(hi,y))
+
+def pack_i4(values):
+    """Low nibble first; odd high padding nibble is canonical zero."""
+    values=[operator.index(v) for v in values]
+    if any(v < -8 or v > 7 for v in values):raise ValueError('value outside signed INT4')
+    return bytes((values[i]&15)|((values[i+1]&15)<<4 if i+1<len(values) else 0) for i in range(0,len(values),2))
+
+def unpack_i4(payload,count):
+    if count<0 or len(payload)!=(count+1)//2:raise ValueError('packed INT4 length')
+    if count%2 and payload[-1]&0xf0:raise ValueError('nonzero INT4 padding nibble')
+    return [((payload[i//2]>>(4*(i%2))&15)^8)-8 for i in range(count)]
+
+def encode_tensor(values,dtype):
+    values=[operator.index(v) for v in values]
+    if dtype=='i4':return pack_i4(values)
+    if dtype=='i32':return struct.pack('<'+'i'*len(values),*values)
+    raise ValueError('tensor dtype must be i4 or i32')
+
+def decode_tensor(payload,dtype,count):
+    if dtype=='i4':return unpack_i4(payload,count)
+    if dtype=='i32' and len(payload)==count*4:return list(struct.unpack('<'+'i'*count,payload))
+    raise ValueError('invalid tensor dtype/length')
+
+def quantize_int8_model(model):
+    """Explicit uniform /16 PTQ import, not a lossless ABI conversion or QAT.
+
+    INT8 inputs/activations and weights use 16 old units per new unit. Bias
+    uses 256 old accumulator units. Q31 scales are recoded to Q15 with the
+    corresponding scale ratio. Dataset accuracy must be measured separately.
+    """
+    import copy
+    if model['input'].get('dtype','i8')!='i8':raise ValueError('PTQ import requires an INT8 source model')
+    result=copy.deepcopy(model)
+    result['input']['dtype']='i4'
+    units={result['input']['name']:16}
+    for node in result['nodes']:
+        source_units=units[node['input']]
+        if node['op'] in ('Conv','FC'):
+            weights=flatten(node['weights'])
+            if any(v< -128 or v>127 for v in weights):raise ValueError('PTQ source weights outside INT8')
+            node['weights']=[max(-8,min(7,round(v/16))) for v in weights]
+            units[node['output']]=source_units*16
+            node['bias']=[wrap32(round(v/units[node['output']])) for v in flatten(node.get('bias',[0]*node['channels']))]
+        elif node['op']=='Requant':
+            multipliers=[];shifts=[]
+            mm=flatten(node['multiplier']);ss=flatten(node['shift']);count=max(len(mm),len(ss))
+            if len(mm)==1:mm*=count
+            if len(ss)==1:ss*=count
+            if len(mm)!=len(ss):raise ValueError('PTQ parameter lengths')
+            for m,shift in zip(mm,ss):
+                if not 0<=m<2**31 or not -31<=shift<=31:raise ValueError('invalid source Q31 parameters')
+                scale=m/2**31 * 2**shift * source_units/16
+                fraction,exponent=math.frexp(scale)
+                q=round(fraction*2**15)
+                if q==2**15:q//=2;exponent+=1
+                if not -31<=exponent<=31:raise ValueError('PTQ scale outside Q15 shift range')
+                multipliers.append(q);shifts.append(exponent)
+            lo,hi=node.get('clamp',[-128,127]);lo=max(-8,math.ceil(lo/16));hi=min(7,math.floor(hi/16))
+            if lo>hi:raise ValueError('source clamp needs INT4 recalibration')
+            node.update(multiplier=multipliers,shift=shifts,clamp=[lo,hi]);units[node['output']]=16
+        else:units[node['output']]=source_units
+    result.setdefault('metadata',{})['int4_conversion']=dict(method='uniform_ptq_div16',accuracy_validated=False,
+        input_old_units=16,weight_old_units=16,tensor_old_units=units)
+    if isinstance(result['metadata'].get('input_scale'),(float,int)):result['metadata']['input_scale']*=16
+    result['metadata'].pop('fc_cmp_mult',None);result['metadata'].pop('fc_cmp_shift',None)
+    return result
 
 def flatten(values):
     if isinstance(values,(list,tuple)):
@@ -44,7 +114,7 @@ class Tensor:
     shape:tuple[int,int,int]
     dtype:str
     @property
-    def size(self):return math.prod(self.shape)*(4 if self.dtype=='i32' else 1)
+    def size(self):return math.prod(self.shape)*4 if self.dtype=='i32' else (math.prod(self.shape)+1)//2
 
 @dataclass
 class Package:
@@ -58,7 +128,8 @@ class Package:
     def load(cls,directory):
         p=Path(directory)
         pkg=cls((p/'model.bin').read_bytes(),json.loads((p/'manifest.json').read_text(encoding='utf-8')))
-        if pkg.manifest['abi']!=ABI or len(pkg.image)!=pkg.manifest['model_bytes']:
+        if pkg.manifest['abi']!=ABI or pkg.manifest.get('numeric_format')!=NUMERIC_FORMAT or \
+           pkg.manifest.get('packing')!='low_nibble_first' or len(pkg.image)!=pkg.manifest['model_bytes']:
             raise ValueError('invalid package ABI/length')
         return pkg
 
@@ -73,8 +144,8 @@ def analyze(model):
     name=model['input']['name'];shape=tuple(operator.index(v) for v in model['input']['shape'])
     if len(shape)!=3 or min(shape)<=0 or shape[0]>255 or shape[1]>255 or shape[2]>1024:
         raise ValueError('input must be positive HWC within hardware limits')
-    dtype=model['input'].get('dtype','i8')
-    if dtype not in ('i8','i32'):raise ValueError('input dtype must be i8 or i32')
+    dtype=model['input'].get('dtype','i4')
+    if dtype not in ('i4','i32'):raise ValueError('input dtype must be i4 or i32')
     tensors={name:Tensor(shape,dtype)}
     nodes=[]
     for original in model['nodes']:
@@ -94,7 +165,7 @@ def analyze(model):
             raise ValueError('grouped/dilated convolution is unsupported')
         t=tensors[src];h,w,c=t.shape
         if op in ('Conv','FC'):
-            if t.dtype!='i8':raise ValueError('Conv/FC input must be i8; insert Requant')
+            if t.dtype!='i4':raise ValueError('Conv/FC input must be i4; insert Requant')
             oc=operator.index(n['channels']);kernel=operator.index(n.get('kernel',3 if op=='Conv' else 1))
             stride=n.get('stride',1);pads=[operator.index(v) for v in n.get('pads',[0]*4)]
             steps=(stride,stride) if isinstance(stride,int) else tuple(stride)
@@ -111,8 +182,8 @@ def analyze(model):
             if not 1<=oc<=256 or k>1024 or not 1<=oh<=255 or not 1<=ow<=255:
                 raise ValueError('Conv/FC shape exceeds capability')
             weights=flatten(n['weights']);bias=flatten(n.get('bias',[0]*oc))
-            if len(weights)!=oc*k or len(bias)!=oc or any(v< -128 or v>127 for v in weights):
-                raise ValueError('weights must be [OC,KH,KW,IC], FC [OC,K], signed i8')
+            if len(weights)!=oc*k or len(bias)!=oc or any(v< -8 or v>7 for v in weights):
+                raise ValueError('weights must be [OC,KH,KW,IC], FC [OC,K], signed i4')
             if any(v< -2**31 or v>=2**31 for v in bias):raise ValueError('bias outside i32')
             n.update(kernel=kernel,stride_h=sh,stride_w=sw,pads=pads,channels=oc,weights=weights,bias=bias,k=k,input_shape=(h,w,c))
             result=Tensor((oh,ow,oc),'i32')
@@ -126,11 +197,11 @@ def analyze(model):
             mult=flatten(n['multiplier']);shift=flatten(n['shift'])
             if len(mult)==1:mult*=c
             if len(shift)==1:shift*=c
-            lo,hi=map(operator.index,n.get('clamp',[-128,127]))
-            if len(mult)!=c or len(shift)!=c or any(v<0 or v>=2**31 for v in mult) or any(v< -31 or v>31 for v in shift) or not -128<=lo<=hi<=127:
+            lo,hi=map(operator.index,n.get('clamp',[-8,7]))
+            if len(mult)!=c or len(shift)!=c or any(v<0 or v>=2**15 for v in mult) or any(v< -31 or v>31 for v in shift) or not -8<=lo<=hi<=7:
                 raise ValueError('invalid Requant parameters')
             n.update(multiplier=mult,shift=shift,clamp=[lo,hi])
-            result=Tensor(t.shape,'i8')
+            result=Tensor(t.shape,'i4')
         if result.shape[2]>256:raise ValueError('output channels exceed 256')
         tensors[dst]=result;nodes.append(n)
     output=model.get('output',nodes[-1]['output'] if nodes else '')
@@ -140,7 +211,7 @@ def analyze(model):
 def reference(model,values):
     """Execute logical nodes, without consulting fused descriptors or addresses."""
     tensors,nodes=analyze(model);values=[operator.index(v) for v in values]
-    limit=2**31 if tensors[model['input']['name']].dtype=='i32' else 128
+    limit=2**31 if tensors[model['input']['name']].dtype=='i32' else 8
     if len(values)!=math.prod(tensors[model['input']['name']].shape) or any(v< -limit or v>=limit for v in values):
         raise ValueError('input length/range mismatch')
     data={model['input']['name']:values}
@@ -185,7 +256,7 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
                 # Whitelist of monotone same-channel post chains. Never combine
                 # two Requants, never move ReLU before a wrapping MAC bias.
                 if candidate=='Requant' and not seen:pass
-                elif candidate=='ReLU' and 'ReLU' not in seen and ('Requant' not in seen or nodes[i-1].get('clamp',[-128,127])[1]>=0):pass
+                elif candidate=='ReLU' and 'ReLU' not in seen and ('Requant' not in seen or nodes[i-1].get('clamp',[-8,7])[1]>=0):pass
                 elif candidate=='MaxPool' and 'MaxPool' not in seen and g[0]['op']=='Conv':pass
                 else:break
                 if candidate=='Requant' and 'MaxPool' in seen:break
@@ -233,13 +304,13 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
                         row_pad=n['kernel']==3 and n['input_shape'][2]==1
                         logical=(ki//4)*3+ki%4 if row_pad else ki
                         valid=ki%4<3 if row_pad else ki<k
-                        packed.append(n['weights'][o*k+logical]&255 if o<oc and valid else 0)
-            weight_base=append(bytes(packed),8)
+                        packed.append(n['weights'][o*k+logical] if o<oc and valid else 0)
+            weight_base=append(pack_i4(packed),4)
         if op in ('Conv','FC','Requant'):
             if op=='Requant':q=n
             params=[]
             for ch in range(oc):
-                params.extend([n.get('bias',[0]*oc)[ch],q['multiplier'][ch] if q else 0,q['shift'][ch] if q else 0])
+                params.extend([n.get('bias',[0]*oc)[ch],(q['multiplier'][ch]|((q['shift'][ch]&63)<<16)) if q else 0])
             param_base=append(struct.pack('<'+'I'*len(params),*(x&0xffffffff for x in params)))
         kernel=n.get('kernel',0) if op in ('Conv','FC') else 0
         sh=n.get('stride_h',0);sw=n.get('stride_w',0)
@@ -248,15 +319,18 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         words=[OPS[op]|flags,allocation[n['input']][0],allocation[g[-1]['output']][0],
                h|(w<<16),c|(oc<<16),kernel|(kernel<<8)|(sh<<16)|(sw<<24),
                sum(v<<(8*i) for i,v in enumerate(pads)),weight_base,param_base,
-               (clamp[0]&255)|((clamp[1]&255)<<8),tout.shape[0]|(tout.shape[1]<<16),0,0,0,0,0]
+               (clamp[0]&15)|((clamp[1]&15)<<4),tout.shape[0]|(tout.shape[1]<<16),0,0,0,0,0]
+        words[15]=FORMAT_MAGIC|cols
         records.append(words)
     while len(image)%4:image.append(0)
     if len(image)>model_bytes:raise ValueError(f'model needs {len(image)} bytes, capacity {model_bytes}')
     for i,words in enumerate(records):struct.pack_into('<16I',image,i*64,*words)
     out_name=groups[-1][-1]['output']
-    manifest=dict(abi=ABI,cols=cols,model_bytes=len(image),op_count=len(groups),
+    manifest=dict(abi=ABI,numeric_format=NUMERIC_FORMAT,packing='low_nibble_first',cols=cols,model_bytes=len(image),op_count=len(groups),
+                  input_elements=math.prod(tensors[model['input']['name']].shape),
                   input_base=0,input_bytes=tensors[model['input']['name']].size,input_dtype=tensors[model['input']['name']].dtype,
                   output_base=allocation[out_name][0],output_bytes=tensors[out_name].size,
+                  output_elements=math.prod(tensors[out_name].shape),
                   output_dtype=tensors[out_name].dtype,output_shape=tensors[out_name].shape,
                   activation_peak=peak,groups=[[n['op'] for n in g] for g in groups],
                   tensors={name:dict(base=base,bytes=size,shape=tensors[name].shape,dtype=tensors[name].dtype)
@@ -264,7 +338,10 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
     return Package(bytes(image),manifest)
 
 def from_tinycnn_npz(path):
-    """Import training/export data into the new logical model, no legacy ABI."""
+    """Import an INT8 training export through explicit, lossy /16 PTQ to INT4.
+
+    This supplies an executable package; evaluate dataset accuracy separately.
+    """
     import numpy as np
     with np.load(path,allow_pickle=False) as z:
         classes=int(z['num_classes']);nodes=[];src='input'
@@ -285,7 +362,7 @@ def from_tinycnn_npz(path):
         nodes.append(dict(op='FC',input=src,output='logits',channels=classes,
                           weights=fc[:,:classes].T.tolist(),bias=z['fc_bias'][:classes].tolist()))
         metadata={key:z[key].tolist() for key in ('labels','fc_cmp_mult','fc_cmp_shift','input_scale') if key in z}
-        return dict(input=dict(name='input',shape=[20,16,1]),nodes=nodes,metadata=metadata)
+        return quantize_int8_model(dict(input=dict(name='input',shape=[20,16,1]),nodes=nodes,metadata=metadata))
 
 def main():
     ap=argparse.ArgumentParser(description=__doc__)

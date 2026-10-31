@@ -1,10 +1,11 @@
 `timescale 1ns/1ps
 // One synchronous 32-bit 1RW SRAM, 64-byte direct-mapped read cache and a
-// bounded byte-combining write queue. No full-tensor standard-cell array.
+// bounded nibble-combining write queue. No full-tensor standard-cell array.
 //
 // Reads observe previously accepted writes. Simultaneous read/write acceptance
-// uses read-before-write ordering. Four-byte reads and masked writes can cross
-// a word; addresses wrap at capacity for unused tail bytes.
+// uses read-before-write ordering. Eight-nibble reads and masked writes can cross
+// a word; addresses wrap at capacity for unused tail nibbles.
+// Addresses/masks are in nibbles; BYTES/CACHE_BYTES are physical byte sizes.
 //
 // flush commits partial combining words. Owners wait for idle before done or
 // ownership changes. Reset cancels queue/cache/responses, retaining SRAM data.
@@ -15,16 +16,16 @@ module npu_activation_store #(
     input wire read_valid, output wire read_ready, input wire [15:0] read_addr,
     output wire rsp_valid, input wire rsp_ready, output wire [31:0] rsp_data,
     input wire write_valid, output wire write_ready, input wire [15:0] write_addr,
-    input wire [31:0] write_data, input wire [3:0] write_mask,
+    input wire [31:0] write_data, input wire [7:0] write_mask,
     input wire flush, output wire idle
 );
     localparam AW=$clog2(BYTES/4), CW=CACHE_BYTES/4, CI=$clog2(CW);
     localparam CT=AW>CI ? AW-CI : 1, QW=$clog2(WRITE_DEPTH);
-    localparam S_IDLE=0,S_CACHED=1,S_FIRST=2,S_MEMORY=3,S_HELD=4;
+    localparam S_IDLE=0,S_CACHED=1,S_FIRST=2,S_MEMORY=3,S_HELD=4,S_RMW=5;
     reg [2:0] state;
     reg [AW-1:0] q_addr[0:WRITE_DEPTH-1];
     reg [31:0] q_data[0:WRITE_DEPTH-1];
-    reg [3:0] q_mask[0:WRITE_DEPTH-1];
+    reg [7:0] q_mask[0:WRITE_DEPTH-1];
     reg [QW-1:0] head,tail;
     reg [QW:0] count;
     wire [QW-1:0] last=tail-1'b1;
@@ -32,30 +33,32 @@ module npu_activation_store #(
     reg [31:0] cache_data[0:CW-1];
     reg [CT-1:0] cache_tag[0:CW-1];
     reg [CW-1:0] cache_valid;
-    wire [AW-1:0] read_word0=read_addr[AW+1:2];
+    wire [AW-1:0] read_word0=read_addr[AW+2:3];
     wire [AW-1:0] read_word1=read_word0+1'b1;
     wire hit0=cache_valid[read_word0[CI-1:0]] &&
         cache_tag[read_word0[CI-1:0]]==(read_word0>>CI);
     wire hit1=cache_valid[read_word1[CI-1:0]] &&
         cache_tag[read_word1[CI-1:0]]==(read_word1>>CI);
-    wire need_second=read_addr[1:0]!=0;
+    wire need_second=read_addr[2:0]!=0;
     wire all_hit=hit0 && (!need_second || hit1);
 
-    // Normalize arbitrary four-byte masks to at most two aligned word writes.
-    wire [63:0] shifted_data={32'd0,write_data}<<(write_addr[1:0]*8);
-    wire [7:0] shifted_mask={4'd0,write_mask}<<write_addr[1:0];
-    wire first_low=|shifted_mask[3:0];
-    wire [AW-1:0] write_word0=write_addr[AW+1:2]+(!first_low);
-    wire [AW-1:0] write_word1=write_addr[AW+1:2]+1'b1;
+    // Normalize eight-nibble masks to at most two aligned word writes.
+    wire [63:0] shifted_data={32'd0,write_data}<<(write_addr[2:0]*4);
+    wire [15:0] shifted_mask={8'd0,write_mask}<<write_addr[2:0];
+    wire first_low=|shifted_mask[7:0];
+    wire [AW-1:0] write_word0=write_addr[AW+2:3]+(!first_low);
+    wire [AW-1:0] write_word1=write_addr[AW+2:3]+1'b1;
     wire [31:0] write_value0=first_low ? shifted_data[31:0] : shifted_data[63:32];
-    wire [3:0] write_mask0=first_low ? shifted_mask[3:0] : shifted_mask[7:4];
-    wire two_writes=first_low && |shifted_mask[7:4];
+    wire [7:0] write_mask0=first_low ? shifted_mask[7:0] : shifted_mask[15:8];
+    wire two_writes=first_low && |shifted_mask[15:8];
     wire same_tail=count!=0 && q_addr[last]==write_word0;
     wire response_slot=state==S_IDLE ||
         ((state==S_CACHED || state==S_HELD || state==S_MEMORY) && rsp_ready);
     // A pending multiword snapshot excludes new writes until it is complete.
-    wire memory_locked=state==S_FIRST || (state==S_MEMORY && !rsp_ready);
-    wire flushable=count!=0 && (flush || count>1 || q_mask[head]==4'hf ||
+    wire memory_locked=state==S_FIRST || state==S_RMW || (state==S_MEMORY && !rsp_ready);
+    wire partial_byte=(q_mask[head][0]^q_mask[head][1]) || (q_mask[head][2]^q_mask[head][3]) ||
+        (q_mask[head][4]^q_mask[head][5]) || (q_mask[head][6]^q_mask[head][7]);
+    wire flushable=count!=0 && (flush || count>1 || q_mask[head]==8'hff ||
         (write_valid && write_mask0!=0 && !same_tail));
     // Read misses stall the compute array; queued writes do not. A waiting
     // miss therefore gets the single SRAM port first, and new writes wait one
@@ -67,30 +70,32 @@ module npu_activation_store #(
     wire read_miss=!rst && read_valid && !all_hit && response_slot;
     wire urgent=flush || count>=WRITE_DEPTH-2;
     wire defer=read_miss && !urgent;
-    wire pop=!rst && !memory_locked && flushable && !defer;
+    wire drain=!rst && !memory_locked && flushable && !defer && (!partial_byte || response_slot);
+    wire start_rmw=drain && partial_byte;
+    wire pop=(drain && !partial_byte) || (!rst && state==S_RMW);
     wire merge=same_tail && !(pop && count==1) && write_mask0!=0;
     wire [1:0] pushes=(write_mask0!=0 && !merge)+{1'b0,two_writes};
     wire [QW+1:0] available=WRITE_DEPTH-count+pop;
-    assign write_ready=!rst && !memory_locked && available>=pushes && !defer;
+    assign write_ready=!rst && !memory_locked && available>=pushes && !defer && !start_rmw;
     wire wf=write_valid && write_ready;
-    assign read_ready=!rst && response_slot && (all_hit || (!pop && !wf));
+    assign read_ready=!rst && !start_rmw && response_slot && (all_hit || (!drain && !wf));
     wire rf=read_valid && read_ready;
     wire physical_read=rf && !all_hit;
 
     function automatic [31:0] overlay(
-        input [31:0] original,input [31:0] forwarded,input [3:0] mask
+        input [31:0] original,input [31:0] forwarded,input [7:0] mask
     );
         integer b;
         begin
             overlay=original;
-            for(b=0;b<4;b=b+1)
-                if(mask[b])overlay[b*8+:8]=forwarded[b*8+:8];
+            for(b=0;b<8;b=b+1)
+                if(mask[b])overlay[b*4+:4]=forwarded[b*4+:4];
         end
     endfunction
     // Keep queue references in the combinational block itself. Function calls
     // with implicit global array inputs can miss same-address queue updates in
     // Verilog simulators; explicit reads also make forwarding dependencies clear.
-    reg [3:0] forward_mask0,forward_mask1;
+    reg [7:0] forward_mask0,forward_mask1;
     reg [31:0] forward_data0,forward_data1;
     integer fn;
     reg [QW-1:0] forward_at;
@@ -116,19 +121,19 @@ module npu_activation_store #(
     wire [63:0] cached_pair={cached_word1,cached_word0};
 
     reg [AW-1:0] saved_word0,saved_word1;
-    reg [3:0] saved_mask0,saved_mask1;
+    reg [7:0] saved_mask0,saved_mask1;
     reg [31:0] saved_data0,saved_data1;
     reg [31:0] low_word,high_word,held_data;
-    reg [1:0] rotation;
+    reg [2:0] rotation;
     reg memory_high;
 
     // Physical-port signal names are stable verification observation points.
     wire sram_we=pop;
-    wire sram_en=!rst && (pop || state==S_FIRST || physical_read);
-    wire [AW-1:0] sram_addr=pop ? q_addr[head] :
+    wire sram_en=!rst && (pop || state==S_FIRST || physical_read || start_rmw);
+    wire [AW-1:0] sram_addr=(pop || start_rmw) ? q_addr[head] :
         state==S_FIRST ? saved_word1 : (hit0 ? read_word1 : read_word0);
-    wire [31:0] sram_wdata=q_data[head];
-    wire [3:0] sram_wmask=q_mask[head];
+    wire [31:0] sram_wdata=state==S_RMW ? overlay(sram_q,q_data[head],q_mask[head]) : q_data[head];
+    wire [3:0] sram_wmask={|q_mask[head][7:6],|q_mask[head][5:4],|q_mask[head][3:2],|q_mask[head][1:0]};
     wire [31:0] sram_q;
 `ifdef NPU_USE_RA1SHD_ACTIVATION
     wire [10:0] macro_address=sram_addr;
@@ -152,7 +157,7 @@ module npu_activation_store #(
         memory_high ? saved_mask1 : saved_mask0);
     wire [63:0] memory_pair=memory_high ? {memory_word,low_word} : {high_word,memory_word};
     assign rsp_valid=!rst && (state==S_CACHED || state==S_MEMORY || state==S_HELD);
-    assign rsp_data=state==S_MEMORY ? memory_pair>>(rotation*8) : held_data;
+    assign rsp_data=state==S_MEMORY ? memory_pair>>(rotation*4) : held_data;
     assign idle=!rst && state==S_IDLE && count==0;
 
     wire [QW-1:0] second_slot=tail+(!merge && write_mask0!=0);
@@ -163,7 +168,7 @@ module npu_activation_store #(
     // index as a new store: merge only for the same tag, otherwise preserve the
     // new fill. Stores to unrelated tags do not evict useful input cache lines.
     task automatic update_cached_word(
-        input [AW-1:0] address,input [31:0] value,input [3:0] mask
+        input [AW-1:0] address,input [31:0] value,input [7:0] mask
     );
         begin
             if(cache_fill && fill_word[CI-1:0]==address[CI-1:0])begin
@@ -203,6 +208,7 @@ module npu_activation_store #(
                 else begin held_data<=rsp_data;state<=S_HELD;end
             end
 
+            if(state==S_RMW)state<=S_IDLE;
             if(pop)head<=head+1'b1;
             if(wf || pop)count<=count+(wf ? pushes : 0)-pop;
             if(wf)begin
@@ -219,14 +225,18 @@ module npu_activation_store #(
                 if(two_writes)begin
                     q_addr[second_slot]<=write_word1;
                     q_data[second_slot]<=shifted_data[63:32];
-                    q_mask[second_slot]<=shifted_mask[7:4];
-                    update_cached_word(write_word1,shifted_data[63:32],shifted_mask[7:4]);
+                    q_mask[second_slot]<=shifted_mask[15:8];
+                    update_cached_word(write_word1,shifted_data[63:32],shifted_mask[15:8]);
                 end
             end
 
+            // The physical macro has byte enables: an isolated nibble needs
+            // a read/modify/write. Lock both interfaces until its commit so
+            // the head and the SRAM snapshot stay coherent.
+            if(start_rmw)state<=S_RMW;
             if(rf)begin
-                rotation<=read_addr[1:0];
-                if(all_hit)begin held_data<=cached_pair>>(read_addr[1:0]*8);state<=S_CACHED;end
+                rotation<=read_addr[2:0];
+                if(all_hit)begin held_data<=cached_pair>>(read_addr[2:0]*4);state<=S_CACHED;end
                 else begin
                     saved_word0<=read_word0;saved_word1<=read_word1;
                     saved_mask0<=forward_mask0;saved_mask1<=forward_mask1;

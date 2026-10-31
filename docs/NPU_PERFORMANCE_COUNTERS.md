@@ -1,6 +1,6 @@
 # no_cpu 接口级性能观测
 
-性能扩展 v1 在系统时钟域被动记录每次推理的接口活动。使用 ABI 2 原有 READ 命令读取，无需 CPU、固件或新增 JTAG 指令。运行频率保持 50 MHz。
+性能扩展 v1 在系统时钟域被动记录每次推理的接口活动。使用 ABI 3.0 READ 命令读取，无需 CPU、固件或新增 JTAG 指令。目标运行频率50 MHz。
 
 ```powershell
 python software/host/nocpu_jtag.py perf --host 127.0.0.1 --port 6666
@@ -10,7 +10,7 @@ python software/host/nocpu_jtag.py perf --host 127.0.0.1 --port 6666
 
 ## 寄存器
 
-`0x68` 是只读布局标识，返回 `0x00010018`（version=1，count=24）；原有 ABI 版本和寄存器保持兼容。计数 bank 位于 `0x100..0x15c`，每项 32 bits。运行/验证期间读取 bank 返回 busy 错误 4，非对齐读取返回错误 3；`0x160` 不属于 bank。
+`0x68` 是只读布局标识，返回 `0x00010018`（version=1，count=24）；INT4 的 ABI 版本为3.0，性能 bank 布局保持不变。计数 bank 位于 `0x100..0x15c`，每项 32 bits。运行/验证期间读取 bank 返回 busy 错误 4，非对齐读取返回错误 3；`0x160` 不属于 bank。
 
 | 地址 | 名称 | 含义 |
 | --- | --- | --- |

@@ -5,6 +5,9 @@ set jobs [lindex $argv 2]
 set frequency_mhz 50
 set ppa_mode [expr {[llength $argv] > 3}]
 set synth_only [expr {[llength $argv] > 4 && [lindex $argv 4] eq "synth_only"}]
+set array_cols 8
+if {[llength $argv] > 5} {set array_cols [lindex $argv 5]}
+if {$array_cols ni {4 8}} {error "Array columns must be 4 or 8"}
 if {[llength $argv] > 3} { set frequency_mhz [lindex $argv 3] }
 if {![string is double -strict $frequency_mhz] || $frequency_mhz <= 0} {
     error "Output frequency must be positive MHz"
@@ -124,7 +127,7 @@ if {[catch {
         }
     }
     set_property include_dirs $includes [current_fileset]
-    set_property verilog_define {SYNTHESIS CHIPDESIGN_FPGA_MEM} [current_fileset]
+    set_property verilog_define [list SYNTHESIS CHIPDESIGN_FPGA_MEM NPU_ARRAY_COLS=$array_cols] [current_fileset]
     read_verilog -sv $sources
     read_verilog -sv [file join $repo hardware/fpga/fpga_top.sv]
     read_xdc [file join $repo hardware/fpga/ego1_pins.xdc]

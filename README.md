@@ -1,15 +1,19 @@
 # ChipDesign：可编程无 CPU NPU
 
-当前默认系统是 **主机 JTAG → 事务控制器 → 描述符调度 → 共享 NPU 后端**，协议 ABI 2.1（2.0 的基础上压缩通道数不足4的末尾权重 tile，旧模型包需重新编译）。
+当前默认系统是 **主机 JTAG → 事务控制器 → 描述符调度 → 共享 INT4 NPU 后端**，协议 ABI 3.0。
+激活和权重为 signed INT4（-8..7），每 byte 打包两个值；原始结果和 bias 保留 INT32，量化系数采用 Q15。
+旧 INT8 硬件及模型包不兼容，必须重新编译。
 支持 Conv、FC、MaxPool、ReLU、Requant；形状、参数、执行顺序由模型包提供。
 常见 Conv/FC 后处理链通过局部缓冲直接传递，避免完整中间张量写回。
 默认模型与激活分别使用8 KiB存储；ASIC入口将两者映射为独立SRAM硬宏，
-激活端保留64 B读缓存、字节写合并/转发和小写队列，避免完整张量寄存器阵列。
+激活端保留64 B读缓存、半字节写合并/转发和小写队列，避免完整张量寄存器阵列。
+物理 SRAM 宏大小不变，8 KiB 激活区可容纳16384个 INT4 元素。
 波形trace为可选调试配置：ASIC默认关闭16 KiB波形RAM，仿真/FPGA默认开启；
 性能计数器和逐算子时间线摘要保留，主机根据能力寄存器判断波形是否可用。
 
 - [架构与实现边界](docs/ARCHITECTURE.md)
 - [模型格式、命令协议及主机使用](docs/CPU_LESS_CONTROL.md)
+- [INT4 重构、验证与后续面积优化](docs/NPU_INT4_REFACTOR_20261031.md)
 - [双SRAM实施与验证记录](docs/NPU_DUAL_SRAM_IMPLEMENTATION_20261026.md)
 - [2026-10-23冻结基线验证结果](docs/NPU_PROGRAMMABLE_VALIDATION_20261023.md)
 
@@ -22,7 +26,7 @@ python software/host/make_demo.py --output build/npu_demo
 python software/host/npu_program.py build/npu_demo/model.json --output build/npu_demo/recompiled
 ```
 
-也可导入已有训练 NPZ（此路径需要 NumPy）：
+也可对已有 INT8 训练 NPZ 进行显式有损 PTQ 导入（需要 NumPy）；此操作不保证分类精度，需另行校准、评估或 QAT：
 
 ```powershell
 python software/host/npu_program.py software/models/tinycnn8_flatten_strong.npz --output build/trained_program
@@ -40,7 +44,7 @@ python hardware/npu/scripts/run_trace_configuration.py --output build/trace_conf
 python software/host/explore_conv_streaming.py --output build/conv_streaming.json
 ```
 
-回归覆盖 4×8/4×4、五种算子、融合/独立、旧模型数值迁移、控制事务、JTAG 引脚、
+回归覆盖 4×8/4×4、五种算子、融合/独立、INT4 全范围 MAC、Q15 舍入、PTQ 包执行、控制事务、JTAG 引脚、
 随机存储响应延迟、存储背压、复位与非法模型。`--quick` 只运行 4×8 原生控制接口。
 真实课程宏仿真可以追加 `--macro-model build/private_ip/RA1SHD_2048x32M8.v`；工艺 IP 不提交。
 该模式为模型和激活各实例化一颗同类型宏；未提供宏时使用同步行为存储。
