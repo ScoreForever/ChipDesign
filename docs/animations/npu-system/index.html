@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>ChipDesign · 看见芯片如何计算</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="#overview"><span class="chipmark">N</span><span>ChipDesign<small>芯片运行原理 · 交互实验室</small></span></a>
+    <div class="edition">ABI 2.0 · 双 SRAM · 4 × 8</div>
+    <nav id="chapters" aria-label="教学章节"></nav>
+    <button id="sourcesBtn" class="source-button">源码与证据 ↗</button>
+    <p class="side-note">完全离线 · 无外部依赖<br>基于当前项目源码生成</p>
+  </aside>
+  <main>
+    <header><div><span class="eyebrow" id="chapterNumber"></span><h1 id="chapterTitle"></h1></div><span class="evidence-tag" id="modeTag"></span></header>
+    <div class="intro" id="chapterIntro"></div>
+    <div class="toolbar"><div id="chapterTools"></div><button id="factsBtn">阅读组件说明</button></div>
+    <section class="stage" aria-label="当前动画画面"><div id="visual"></div></section>
+    <section class="explanation" aria-live="polite" aria-atomic="true">
+      <div class="step-number" id="stepNumber"></div><div><h2 id="stepTitle"></h2><p id="stepText"></p><div class="signal-line" id="stepSignal"></div><div class="source-line" id="stepSource"></div></div>
+    </section>
+    <div class="boundary" id="boundary"></div>
+    <section class="fact-panel" id="facts" hidden></section>
+    <footer>项目事实快照 <span id="snapshot"></span> · 动画速度不代表硬件运行速度</footer>
+  </main>
+</div>
+<div class="transport" aria-label="动画播放控制">
+  <button id="prev" aria-label="上一步">←</button><button id="play" class="primary">播放</button><button id="next" aria-label="下一步">→</button>
+  <span class="position" id="position"></span><input type="range" min="0" value="0" id="scrub" aria-label="步骤或周期位置">
+  <label>速度 <select id="speed"><option value="1600">慢速</option><option value="900" selected>标准</option><option value="280">快速</option><option value="70">浏览</option></select></label>
+  <button id="restart" title="回到本章开头">重播</button>
+</div>
+<dialog id="sourceDialog"><div class="dialog-head"><h2>事实、源码与验证边界</h2><button id="closeSources" aria-label="关闭">关闭</button></div><div id="sourceContent"></div></dialog>
+<script src="data.js"></script><script src="app.js"></script>
+</body>
+</html>

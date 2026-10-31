@@ -11,6 +11,7 @@
 - [架构与实现边界](docs/ARCHITECTURE.md)
 - [模型格式、命令协议及主机使用](docs/CPU_LESS_CONTROL.md)
 - [双SRAM实施与验证记录](docs/NPU_DUAL_SRAM_IMPLEMENTATION_20261026.md)
+- [芯片工作原理交互动画（离线 HTML）](docs/animations/npu-system/standalone.html)：11 章教学、卷积与阵列逐步演示、当前 RTL 真实逐周期回放；[使用与复现说明](docs/animations/npu-system/README.md)。
 - [2026-10-23冻结基线验证结果](docs/NPU_PROGRAMMABLE_VALIDATION_20261023.md)
 
 ## 生成可运行模型包

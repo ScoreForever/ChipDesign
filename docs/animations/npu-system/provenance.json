@@ -1,0 +1,27 @@
+{
+  "commit": "edcb86e630336fd4b46efb722a52509e0a305771",
+  "date": "2026-10-27",
+  "source_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+    "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+    "hardware/npu/rtl/npu_model_store.sv": "82b99cad6a96eca34eff8f49e64a31477d1695df4861a928da38c7578381a1bc",
+    "hardware/npu/rtl/npu_activation_store.sv": "3e2f7a734dfb929954da8b08b69ae5a8b84dcb86fab3b1a418fb347a84673f99",
+    "hardware/npu/rtl/npu_program_core.sv": "cd303750a578ae08207e88badd8abb23115ad4ea166cc6bc9f7c7c77e417e377",
+    "hardware/npu/rtl/npu_trace_capture.sv": "52be2b1991bf897f38499e2f123c5377c41ae68c7413e05d06da7f367e244866",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "ac2a59f127705c8c15d3c248e40d0203f61144c886704d8345a650528386e422",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "2d47d05ef5c4553b2f40def5581484a34eb5be952e9746d3570d3f51b279970c",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "819e2eef2990d0a7a52d4b88b93d60444bf9713e2117cd691d8f0dafe8ba9c70",
+    "software/host/npu_program.py": "13bd8a4824e638603bf55c0c5d46a569f8d59386f9588e74e332dc8dee061ccb",
+    "software/host/make_demo.py": "3049aa3572057c247fd1e516ec78c0de55c007ee5e827c69da0a6995943c190b",
+    "software/host/nocpu_jtag.py": "138312a85c2269fa1b770a7ddf21f71e24fdb14447e08b2b76541ead7b9cea9b",
+    "hardware/fpga/fpga_top.sv": "236ed0f77c6b0379e848edffb8a81cbfcfe233ff7e61eb0b599b60d0dbb31080",
+    "hardware/soc/sim/tb/tb_npu_program.sv": "76843e1a3bb2977f569d02bc262313d4f55ca02922dcf4daecdf290ee434e404",
+    "docs/CPU_LESS_CONTROL.md": "872d4aec0b0aeb88b12d97a27fcdd53d620f090b250cc792e2e67d979709b7aa",
+    "docs/NPU_DUAL_SRAM_IMPLEMENTATION_20261026.md": "d6c9c623e4f79e39d83d470afc223b6647696f13ad372c35d665fe51cce52796",
+    "docs/validation/npu_dual_sram_20261026.json": "bf7ca7a83119443bb1e3ce88b767e1baccbf6cc59a0c2f80cf3ee80c3f393781"
+  },
+  "capture_sha256": "14b42846b6b495fa4475a9f5e74e3db2be1a4dbf13e329f5a1be099cd46d1bdd",
+  "sampling": "pre-posedge; native control interface; behavioral synchronous SRAM; TB clock period 10 ns; cycles only",
+  "validation": "Every materialized tensor write checked against independent logical reference by existing tb_npu_program; both output vectors checked."
+}
