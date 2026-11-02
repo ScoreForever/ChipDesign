@@ -1,0 +1,2 @@
+PASS packed INT4 memories, byte-neighbour RMW, halfword model reads, held snapshots, masks/wrap/full scan/reset rmw=700
+hardware/npu/tb/tb_npu_memories.sv:97: $finish called at 155220000 (1ps)

@@ -236,6 +236,9 @@ module npu_program_core #(
     // Layer setup computes strides; group setup computes four kernel offsets.
     // The issue path contains only bounded additions/comparisons, no multipliers.
     reg [7:0] cursor_y,cursor_x,tile_y,tile_x;
+    // Keep the row-end comparison off the gather/address path. The cursor
+    // advances only on issue_fire, so this flag can be updated with it.
+    reg cursor_at_last_x;
     reg [7:0] scan_last_x,element_last_x;
     reg [10:0] kernel_c;
     reg [1:0] kernel_y,kernel_x;
@@ -283,14 +286,14 @@ module npu_program_core #(
     always @* begin
         next_y=cursor_y;next_x=cursor_x;next_base=cursor_base;
         if(!pool_enable || issue_p[1:0]==3)begin
-            if(cursor_x==scan_last_x)begin next_x=0;next_y=cursor_y+1;end
+            if(cursor_at_last_x)begin next_x=0;next_y=cursor_y+1;end
             else next_x=cursor_x+1;
         end
-        if(!pool_enable) next_base=cursor_base+(cursor_x==scan_last_x ? scan_jump : x_step);
+        if(!pool_enable) next_base=cursor_base+(cursor_at_last_x ? scan_jump : x_step);
         else case(issue_p[1:0])
             0,2:next_base=cursor_base+x_step;
             1:next_base=cursor_base+y_step-x_step;
-            3:next_base=cursor_base+(cursor_x==scan_last_x ? pool_scan_jump : x_step-y_step);
+            3:next_base=cursor_base+(cursor_at_last_x ? pool_scan_jump : x_step-y_step);
         endcase
         calc_p=issue_p;calc_y=cursor_y;calc_x=cursor_x;calc_base=cursor_base;
         // Once a gather has started, its metadata lives in gather_* until
@@ -387,7 +390,7 @@ module npu_program_core #(
             read_slot<=0; read_lane<=0; rq_pending<=0;
             write_head<=0;write_tail<=0;write_count<=0;
             estate<=0; element_pos<=0; element_lane<=0; element_tap<=0; element_slot<=0;
-            cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;
+            cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;cursor_at_last_x<=0;
             tile_positions<=TILE;last_group<=0;
             kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1; element_y<=0; element_x<=0;
         end
@@ -604,6 +607,7 @@ module npu_program_core #(
                 end
                 INIT_A:begin
                     scan_last_x<=(pool_enable ? dw : ow)-1; element_last_x<=dw-1;
+                    cursor_at_last_x<=(pool_enable ? dw : ow)==1;
                     origin<=src-(pt==0 ? 16'd0 : pt==1 ? row_stride : row_stride<<1)-
                                 (pl==0 ? 16'd0 : pl==1 ? ic : ic<<1);
                     scan_product<=(ow-1)*x_step;pool_scan_product<=(dw*2-1)*x_step;
@@ -703,16 +707,23 @@ module npu_program_core #(
                                     kernel_c<=prep_kc;kernel_x<=prep_kx;kernel_y<=prep_ky;kernel_offset<=prep_offset;
                                     kernel_prepare<=1;cursor_base<=tile_base;
                                     cursor_y<=tile_y; cursor_x<=tile_x;
+                                    cursor_at_last_x<=tile_x==scan_last_x;
                                 end
                                 else begin
                                     issue_g<=0;
                                     kernel_c<=0;kernel_x<=0;kernel_y<=0;kernel_offset<=0;kernel_prepare<=1;
                                     cursor_base<=next_base;tile_base<=next_base;
-                                    cursor_y<=next_y; cursor_x<=next_x; tile_y<=next_y; tile_x<=next_x;
+                                    cursor_y<=next_y; cursor_x<=next_x;
+                                    cursor_at_last_x<=next_x==scan_last_x;
+                                    tile_y<=next_y; tile_x<=next_x;
                                     if((issue_tile+1)*TILE<positions) issue_tile<=issue_tile+1'b1;
                                     else issue_more<=0;
                                 end
-                            end else begin issue_p<=issue_p+1'b1;cursor_base<=next_base; cursor_y<=next_y; cursor_x<=next_x; end
+                            end else begin
+                                issue_p<=issue_p+1'b1;cursor_base<=next_base;
+                                cursor_y<=next_y;cursor_x<=next_x;
+                                cursor_at_last_x<=next_x==scan_last_x;
+                            end
                         end
                         if(out_valid) begin
                             for(lane=0;lane<COLS;lane=lane+1) begin

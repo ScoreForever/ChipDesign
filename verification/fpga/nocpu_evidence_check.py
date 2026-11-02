@@ -7,7 +7,8 @@ from pathlib import Path
 
 REQUIRED_FIXTURES = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k',
                      'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac',
-                     'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure')
+                     'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure',
+                     'max_k_int4', 'odd_packed_relu', 'tiny_strided_asymmetric')
 
 
 def main():
