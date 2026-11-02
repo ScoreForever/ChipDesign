@@ -1,5 +1,7 @@
 # INT4 50 MHz 实板 CDC 与复位验证（2026-11-02）
 
+> 后续追加：[忙时 RST/S6 功能采样与断电后重下载恢复已通过](../2026-11-02-physical-followup/report.md)。本报告末尾未覆盖说明反映追加测试前的状态；电气波形仍未实测。
+
 本轮重新下载前次时序通过的 50 MHz 镜像；SHA-256 为 `BCEC1C7476F1D2423144D9E25C7D188B484C4CA1DCEDDB71B18305B00F3DCDCA`，Hardware Manager 下载完成、DONE=1、CRC=0。配置线为 Xilinx/1234-tulA；独立 FT232H fabric TAP 为 0403:6014、序列号 210512180081，OpenOCD 识别 IDCODE 0x00000001，TCK 1 MHz。
 
 ## 自动实板检查：PASS
