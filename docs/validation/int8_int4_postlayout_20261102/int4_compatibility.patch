@@ -1,0 +1,24 @@
+--- a/hardware/npu/rtl/npu_activation_store.sv
++++ b/hardware/npu/rtl/npu_activation_store.sv
+@@ -132,9 +132,9 @@
+     wire sram_en=!rst && (pop || state==S_FIRST || physical_read || start_rmw);
+     wire [AW-1:0] sram_addr=(pop || start_rmw) ? q_addr[head] :
+         state==S_FIRST ? saved_word1 : (hit0 ? read_word1 : read_word0);
++    wire [31:0] sram_q;
+     wire [31:0] sram_wdata=state==S_RMW ? overlay(sram_q,q_data[head],q_mask[head]) : q_data[head];
+     wire [3:0] sram_wmask={|q_mask[head][7:6],|q_mask[head][5:4],|q_mask[head][3:2],|q_mask[head][1:0]};
+-    wire [31:0] sram_q;
+ `ifdef NPU_USE_RA1SHD_ACTIVATION
+     wire [10:0] macro_address=sram_addr;
+     RA1SHD_2048x32M8 i_sram(
+--- a/hardware/asic/optimize/tb_fullchip.sv
++++ b/hardware/asic/optimize/tb_fullchip.sv
+@@ -52,7 +52,7 @@
+  for(rc=0;rc<5;rc=rc+1)tick(rc==4,(5'h12>>rc)&1,dummy);
+  tick(1,0,dummy);tick(0,0,dummy);
+  op=1;addr=0;data=0;expected_error=0;exchange;
+- if(value!==32'h20001 || irq!==0)$fatal(1,"Reset recovery failed");
++ if(value!==32'h30000 || irq!==0)$fatal(1,"Reset recovery failed");
+  $display("PNR_OPT_JTAG_PASS commands=%0d",commands);$finish;
+  end
+  initial begin #2000000000;$fatal(1,"SDF global timeout");end

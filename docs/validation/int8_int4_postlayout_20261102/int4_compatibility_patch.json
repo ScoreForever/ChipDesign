@@ -1,0 +1,6 @@
+{
+  "file": "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_source/hardware/npu/rtl/npu_activation_store.sv",
+  "before_sha256": "769563a898b506de63c7cc434b2ed85e4142e17573ca8463ce4e00eed7a45f80",
+  "after_sha256": "cc8a27ac7dbfb4cae296c475948b3d435dceb7717af7cc149b79ea2611114047",
+  "change": "Move sram_q declaration before its first use; no logic change"
+}

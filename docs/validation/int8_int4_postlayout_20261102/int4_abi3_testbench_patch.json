@@ -1,0 +1,6 @@
+{
+  "file": "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_source/hardware/asic/optimize/tb_fullchip.sv",
+  "before": "4ad4747662accb43c90bae8d194fc2da6fc506d06dfc352694455a14975a1d52",
+  "after": "da8dab55c1823f6699252d543c3522af6391f5a6895687e0b647bad64b099708",
+  "reason": "Correct stale reset recovery expected ABI to match ABI3 INT4 hardware and host"
+}

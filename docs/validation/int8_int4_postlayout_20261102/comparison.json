@@ -1,0 +1,302 @@
+{
+  "scope": "TT 1.8V 25C; 50MHz core; 1MHz JTAG; no independent signoff",
+  "versions": {
+    "INT8": {
+      "commit": "fea96a2cc272875cfd860922edf5bc29405547aa",
+      "physical": {
+        "active_standard_area_um2": 1335700.172799858,
+        "active_standard_instances": 55340,
+        "checks": {
+          "antenna": true,
+          "connectivity": true,
+          "drc": true,
+          "drv": true,
+          "pad_geometry": true,
+          "pg_connectivity": true,
+          "pg_drc": true,
+          "placement": true,
+          "ports": true
+        },
+        "core_area_mm2": 2.690387258,
+        "cts_and_repair_area_change_um2": 8785.1904,
+        "die_area_mm2": 3.76515216,
+        "directory": "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int8_run/candidates/course",
+        "eligible": true,
+        "hold_tns_ns": 0.0,
+        "hold_wns_ns": 0.02,
+        "macro_area_um2": 802887.1815,
+        "macro_count": 2,
+        "missing": [],
+        "runtime_seconds": 2577.802030801773,
+        "setup_tns_ns": 0.0,
+        "setup_wns_ns": 0.457,
+        "wire_length_um": 3725215.115,
+        "within_area_budget": true
+      },
+      "synthesis": {
+        "total_area_um2": 2118071.021155,
+        "standard_cell_area_um2": 1315183.833655,
+        "macro_area_um2": 802887.1875,
+        "macro_count": 2
+      },
+      "sdf": {
+        "accepted_time0_input_pad_conflicts": 5,
+        "annotation_log_present": true,
+        "diagnostics": {
+          "accepted_ifnone_paths": {
+            "by_arc": {
+              "CKMUX2D1BWP7T S->Z": 48,
+              "CKXOR2D0BWP7T A1->Z": 108,
+              "CKXOR2D0BWP7T A2->Z": 108,
+              "CKXOR2D1BWP7T A1->Z": 738,
+              "CKXOR2D1BWP7T A2->Z": 738,
+              "FA1D0BWP7T A->S": 19896,
+              "FA1D0BWP7T B->S": 19896,
+              "FA1D0BWP7T CI->S": 19896,
+              "HA1D0BWP7T A->S": 786,
+              "HA1D0BWP7T B->S": 786,
+              "MUX2D1BWP7T S->Z": 42,
+              "MUX2D2BWP7T S->Z": 30,
+              "MUX2ND0BWP7T S->ZN": 108,
+              "MUX3ND0BWP7T S0->ZN": 6,
+              "MUX3ND0BWP7T S1->ZN": 6,
+              "XNR2D1BWP7T A1->ZN": 858,
+              "XNR2D1BWP7T A2->ZN": 858,
+              "XNR2D2BWP7T A1->ZN": 6,
+              "XNR2D2BWP7T A2->ZN": 6,
+              "XNR3D0BWP7T A1->ZN": 6,
+              "XNR3D0BWP7T A2->ZN": 6,
+              "XNR3D0BWP7T A3->ZN": 6,
+              "XNR3D1BWP7T A1->ZN": 12,
+              "XNR3D1BWP7T A2->ZN": 12,
+              "XNR3D1BWP7T A3->ZN": 12,
+              "XNR4D1BWP7T A1->ZN": 48,
+              "XNR4D1BWP7T A2->ZN": 48,
+              "XNR4D1BWP7T A3->ZN": 48,
+              "XNR4D1BWP7T A4->ZN": 48,
+              "XOR3D0BWP7T A1->Z": 210,
+              "XOR3D0BWP7T A2->Z": 210,
+              "XOR3D0BWP7T A3->Z": 210,
+              "XOR3D1BWP7T A1->Z": 18,
+              "XOR3D1BWP7T A2->Z": 18,
+              "XOR3D1BWP7T A3->Z": 18
+            },
+            "total": 65850
+          },
+          "accepted_sram_negedge_period": 6,
+          "fatal": [],
+          "unexpected_sdfnep": [],
+          "unexpected_sdfnet": []
+        },
+        "jtag_commands": 70,
+        "passed": true,
+        "sources_sha256": {
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int8_run/candidates/course/driver/tb_fullchip.sv": "2a9f4a22952d1711a809243bf0bd423891eacad3b176c628969c88007713b59e",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int8_run/candidates/course/outputs/simulation.v": "b929b90c829ee375ad22a82443f15f70c1c5c42a9e97b2db538d872870bcfe8e",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int8_run/candidates/course/sdf/cdc.tfile": "94bdcc76ce030ce421ce4ea2737fbe67b08a200e911e04e223034dad1018adfb",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int8_run/candidates/course/sdf/commands.txt": "fbaf514e2d6e967d72a9a37aeb046a08ff26e56340b66825b6a4396c9056ded1",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int8_run/candidates/course/sdf/routed.sdf": "43f86a1b2c9924f8a81f3fcc1b8c07f6f69c22ce308648b830da50efbe704488",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int8_run/candidates/course/sdf/sdf.cmd": "0edb2122fd97966fd701247de4099efb8eb47c7e6d63270e67dcd4feab187fcc"
+        },
+        "timing_diagnostics": false
+      },
+      "physical_area_groups": {
+        "host_jtag": {
+          "count": 499,
+          "area_um2": 21526.13119999994
+        },
+        "other_flattened_or_implementation": {
+          "count": 3244,
+          "area_um2": 60692.88959999923
+        },
+        "physical_or_io": {
+          "count": 56835,
+          "area_um2": 1423258.700798878
+        },
+        "activation": {
+          "count": 9347,
+          "area_um2": 164776.10240001298
+        },
+        "model_store": {
+          "count": 3,
+          "area_um2": 65.85600000000024
+        },
+        "npu": {
+          "count": 42247,
+          "area_um2": 1088639.193600034
+        },
+        "macro": {
+          "count": 2,
+          "area_um2": 802887.1815000001
+        }
+      },
+      "note": "Name-based disjoint physical grouping; residual explicit; NPU descendants included in NPU bucket",
+      "exports": {
+        "mapped.sdc": 1583,
+        "chip.gds.gz": 14935254,
+        "routed.spef.gz": 30071942,
+        "simulation.v": 10060623,
+        "physical.v": 17061555,
+        "routed.sdf.gz": 13810567,
+        "routed.def": 86233455,
+        "chip.lef": 6222
+      }
+    },
+    "INT4": {
+      "commit": "02185d8cb04542181facf264deb93b8eee2fc4e4",
+      "physical": {
+        "active_standard_area_um2": 1130343.603200159,
+        "active_standard_instances": 49730,
+        "checks": {
+          "antenna": true,
+          "connectivity": true,
+          "drc": true,
+          "drv": true,
+          "pad_geometry": true,
+          "pg_connectivity": true,
+          "pg_drc": true,
+          "placement": true,
+          "ports": true
+        },
+        "core_area_mm2": 2.624659206,
+        "cts_and_repair_area_change_um2": 7244.16000002,
+        "die_area_mm2": 3.687321658,
+        "directory": "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_run_abi3/candidates/course",
+        "eligible": true,
+        "hold_tns_ns": 0.0,
+        "hold_wns_ns": 0.02,
+        "macro_area_um2": 802887.1815,
+        "macro_count": 2,
+        "missing": [],
+        "runtime_seconds": 2150.7616155147552,
+        "setup_tns_ns": 0.0,
+        "setup_wns_ns": 0.612,
+        "wire_length_um": 3160417.3,
+        "within_area_budget": true
+      },
+      "synthesis": {
+        "total_area_um2": 1915465.037226,
+        "standard_cell_area_um2": 1112577.849726,
+        "macro_area_um2": 802887.1875,
+        "macro_count": 2
+      },
+      "sdf": {
+        "accepted_time0_input_pad_conflicts": 5,
+        "annotation_log_present": true,
+        "diagnostics": {
+          "accepted_ifnone_paths": {
+            "by_arc": {
+              "CKMUX2D1BWP7T S->Z": 66,
+              "CKXOR2D0BWP7T A1->Z": 84,
+              "CKXOR2D0BWP7T A2->Z": 84,
+              "CKXOR2D1BWP7T A1->Z": 1314,
+              "CKXOR2D1BWP7T A2->Z": 1314,
+              "CKXOR2D2BWP7T A1->Z": 48,
+              "CKXOR2D2BWP7T A2->Z": 48,
+              "FA1D0BWP7T A->S": 11550,
+              "FA1D0BWP7T B->S": 11550,
+              "FA1D0BWP7T CI->S": 11550,
+              "HA1D0BWP7T A->S": 78,
+              "HA1D0BWP7T B->S": 78,
+              "MUX2D0BWP7T S->Z": 6,
+              "MUX2D1BWP7T S->Z": 108,
+              "MUX2D2BWP7T S->Z": 18,
+              "MUX2ND0BWP7T S->ZN": 150,
+              "XNR2D1BWP7T A1->ZN": 1290,
+              "XNR2D1BWP7T A2->ZN": 1290,
+              "XNR3D0BWP7T A1->ZN": 6,
+              "XNR3D0BWP7T A2->ZN": 6,
+              "XNR3D0BWP7T A3->ZN": 6,
+              "XNR3D1BWP7T A1->ZN": 30,
+              "XNR3D1BWP7T A2->ZN": 30,
+              "XNR3D1BWP7T A3->ZN": 30,
+              "XNR4D1BWP7T A1->ZN": 54,
+              "XNR4D1BWP7T A2->ZN": 54,
+              "XNR4D1BWP7T A3->ZN": 54,
+              "XNR4D1BWP7T A4->ZN": 54,
+              "XOR3D0BWP7T A1->Z": 186,
+              "XOR3D0BWP7T A2->Z": 186,
+              "XOR3D0BWP7T A3->Z": 186,
+              "XOR3D1BWP7T A1->Z": 60,
+              "XOR3D1BWP7T A2->Z": 60,
+              "XOR3D1BWP7T A3->Z": 60,
+              "XOR4D1BWP7T A1->Z": 12,
+              "XOR4D1BWP7T A2->Z": 12,
+              "XOR4D1BWP7T A3->Z": 12,
+              "XOR4D1BWP7T A4->Z": 12
+            },
+            "total": 41736
+          },
+          "accepted_sram_negedge_period": 6,
+          "fatal": [],
+          "unexpected_sdfnep": [],
+          "unexpected_sdfnet": []
+        },
+        "jtag_commands": 64,
+        "passed": true,
+        "sources_sha256": {
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_run_abi3/candidates/course/driver/tb_fullchip.sv": "da8dab55c1823f6699252d543c3522af6391f5a6895687e0b647bad64b099708",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_run_abi3/candidates/course/outputs/simulation.v": "7dffafb820c2d97f0f21ddd1f81d90ff15b1bca537211a831c0b45ee059e354f",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_run_abi3/candidates/course/sdf/cdc.tfile": "94bdcc76ce030ce421ce4ea2737fbe67b08a200e911e04e223034dad1018adfb",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_run_abi3/candidates/course/sdf/commands.txt": "57c79580379002db6c9a42f2ea5ea16fac78ffd1987f3440f9fcc7520f421801",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_run_abi3/candidates/course/sdf/routed.sdf": "b6727c7ce959157c8436657ce8d4eefc6b90d12fb3a7b27eb9601973e83e0f3f",
+          "/home/s2400012724/chip-fullstack-2026/postlayout_latest_20261031/int4_run_abi3/candidates/course/sdf/sdf.cmd": "b2a0208dc0c572816f01c16748a8166eb46676479dfe3feab3343dbc54b446fa"
+        },
+        "timing_diagnostics": false
+      },
+      "physical_area_groups": {
+        "physical_or_io": {
+          "count": 74566,
+          "area_um2": 1554554.7327981554
+        },
+        "host_jtag": {
+          "count": 493,
+          "area_um2": 21409.78559999993
+        },
+        "other_flattened_or_implementation": {
+          "count": 3169,
+          "area_um2": 60170.431999999084
+        },
+        "model_store": {
+          "count": 3,
+          "area_um2": 107.56480000000025
+        },
+        "activation": {
+          "count": 11133,
+          "area_um2": 183424.32640001213
+        },
+        "macro": {
+          "count": 2,
+          "area_um2": 802887.1815000001
+        },
+        "npu": {
+          "count": 34932,
+          "area_um2": 865231.4944000313
+        }
+      },
+      "note": "Name-based disjoint physical grouping; residual explicit; NPU descendants included in NPU bucket",
+      "exports": {
+        "mapped.sdc": 1583,
+        "chip.gds.gz": 13732111,
+        "routed.spef.gz": 24912743,
+        "simulation.v": 6962091,
+        "physical.v": 14672757,
+        "routed.sdf.gz": 11762481,
+        "routed.def": 76473046,
+        "chip.lef": 6222
+      }
+    }
+  },
+  "patches": [
+    "INT4: moved sram_q declaration before first use for Xcelium compatibility; no logic change",
+    "INT4 testbench: reset ABI expected value 0x20001 corrected to 0x30000"
+  ],
+  "limitations": [
+    "One controlled PnR point per version; no new layout search or independent repeat",
+    "SDF is representative two-inference physical-JTAG test, not entire 74/82-case gate-level regression",
+    "Six enumerated asynchronous CDC capture flops have timing checks disabled, as in prior flow",
+    "SDF ifnone and SRAM negedge period annotation warnings classified as in prior flow; 5 time-zero input-pad conflicts accepted",
+    "IMPSP-9099 scan diagnostics retained (INT8 16.54%, INT4 15.62%); DFT not completed",
+    "No Calibre DRC/LVS/PEX, PrimeTime/Formality, multi-corner STA, IR/EM or tapeout signoff"
+  ]
+}
