@@ -1,5 +1,7 @@
 # no_cpu_INT4 FPGA 50 MHz 实板验证报告
 
+> 2026-11-02 追加验证：[实际 TAP 动态与结构复核](../2026-11-02-cdc-review/report.md)、[实板停 TCK、忙时协议复位和 RST/S6 物理复位验证](../2026-11-02-cdc-board/report.md)已完成并通过。本文及原始 suite JSON 保留 11 月 1 日的历史范围，后续覆盖状态以追加报告为准。
+
 **结论：50 MHz 时序验收通过，EGo1 FPGA 下载和 ABI 3.0 INT4 实板自动功能回归通过。**
 
 验证对象是 `no_cpu_INT4` 的 ABI 3.0 CPU-less NPU，目标器件 `xc7a35tcsg324-1`。50 MHz 全实现、修改后的 RTL 回归、FPGA 配置、板上 JTAG 推理和独立证据复核分别留有证据。自动 suite 的结果是 `passed=true`；证据复核器返回“自动证据已核实，仍有人工项待执行”。这不是完整板级签核：忙时暂停 TCK、物理按键复位、断电重配及电气测试尚未执行。
