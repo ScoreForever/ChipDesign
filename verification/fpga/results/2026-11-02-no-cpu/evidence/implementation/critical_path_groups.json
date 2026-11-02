@@ -1,0 +1,10 @@
+{
+  "top_paths": 50,
+  "sources": {
+    "u_soc/i_control/i_npu/issue_p_reg[1]/C": 50
+  },
+  "destination_pins": {
+    "D": 16,
+    "CE": 34
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "dynamic_simulation": "PASS",
+  "raw_cdc15_warnings": 109,
+  "reviewed_request_bits": 72,
+  "reviewed_response_bits": 37,
+  "unexpected_warning_rows": 0,
+  "waivers_created": false,
+  "limitation": "Digital simulation does not model metastability; physical checks apply to supplied routed build only.",
+  "sha256": {
+    "D:\\IWS\\Advanced_SoC\\ChipDesign\\build\\no_cpu_validate_20261102\\hardware\\soc\\rtl\\control\\npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "D:\\IWS\\Advanced_SoC\\ChipDesign\\build\\no_cpu_validate_20261102\\verification\\fpga\\tb_npu_jtag_cdc.sv": "6ed60bb3890adc6753fc58c7f9b4b98c4cbf5a4eae0e17e143e9a8808649fc00",
+    "build\\nocpu_50mhz_20261102\\route_cdc.rpt": "5f21c79462f69e24bab1eb51f8f20fadd6a11aa4c3d82d9ec4e882e676191259",
+    "build\\nocpu_50mhz_20261102\\route_npu_jtag_cdc.tsv": "9ee34139ee28e5943eb7fd3b78dd84edec7f4618db1c02f6c2fe4d4d7d9946f3"
+  }
+}

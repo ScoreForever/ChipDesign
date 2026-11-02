@@ -1,0 +1,13 @@
+{
+  "passed": false,
+  "checks": [
+    {
+      "name": "pause_TCK_while_busy",
+      "before": 3,
+      "after": 10,
+      "pause_seconds": 1.0,
+      "output_matches": true
+    }
+  ],
+  "physical_reset": "pending"
+}

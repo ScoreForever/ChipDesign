@@ -1,0 +1,98 @@
+{
+  "abi": 131073,
+  "cols": 4,
+  "model_bytes": 1744,
+  "op_count": 3,
+  "input_base": 0,
+  "input_bytes": 320,
+  "input_dtype": "i8",
+  "output_base": 160,
+  "output_bytes": 16,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    4
+  ],
+  "activation_peak": 960,
+  "groups": [
+    [
+      "Conv",
+      "Requant",
+      "ReLU",
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant",
+      "ReLU",
+      "MaxPool"
+    ],
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "input": {
+      "base": 0,
+      "bytes": 320,
+      "shape": [
+        20,
+        16,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "pool1": {
+      "base": 320,
+      "bytes": 640,
+      "shape": [
+        10,
+        8,
+        8
+      ],
+      "dtype": "i8"
+    },
+    "pool2": {
+      "base": 0,
+      "bytes": 160,
+      "shape": [
+        5,
+        4,
+        8
+      ],
+      "dtype": "i8"
+    },
+    "logits": {
+      "base": 160,
+      "bytes": 16,
+      "shape": [
+        1,
+        1,
+        4
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {
+    "labels": [
+      "yes",
+      "no",
+      "up",
+      "down"
+    ],
+    "fc_cmp_mult": [
+      1836963328,
+      1571452544,
+      1175191808,
+      1794207872
+    ],
+    "fc_cmp_shift": [
+      -8,
+      -8,
+      -7,
+      -8
+    ],
+    "input_scale": 0.1813059151172638
+  }
+}

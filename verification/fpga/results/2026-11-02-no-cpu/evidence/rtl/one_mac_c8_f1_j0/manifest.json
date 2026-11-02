@@ -1,0 +1,46 @@
+{
+  "abi": 131073,
+  "cols": 8,
+  "model_bytes": 92,
+  "op_count": 1,
+  "input_base": 0,
+  "input_bytes": 1,
+  "input_dtype": "i8",
+  "output_base": 4,
+  "output_bytes": 4,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    1
+  ],
+  "activation_peak": 8,
+  "groups": [
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 1,
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "y": {
+      "base": 4,
+      "bytes": 4,
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {}
+}

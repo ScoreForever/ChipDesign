@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "runs": [
+    {
+      "matches": true,
+      "output_sha256": "30cd5a2d3a999253450978897a006d19f0cd8c1e7d3c53d608a9334d466247f5",
+      "trace_performance_consistent": true
+    },
+    {
+      "matches": true,
+      "output_sha256": "54a97f32902257d14947b3fa140327c07aa10f53bd0a6a08b56e1ec7f6e4d16a",
+      "trace_performance_consistent": true
+    }
+  ],
+  "model_sha256": "1732c470ec65f2d2c0ebc96dd93326dabb058277b71eef1bb3717d2ddee2f83a",
+  "limitation": "Synthetic input tests numeric execution, not dataset classification accuracy.",
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  }
+}

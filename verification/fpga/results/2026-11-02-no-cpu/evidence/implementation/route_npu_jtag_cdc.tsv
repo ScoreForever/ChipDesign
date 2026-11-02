@@ -1,0 +1,13 @@
+group	kind	source_registers	target_pins	paths	bound_ns	min_slack_ns	launch_clock	capture_clock
+request_payload	bundled_max_delay	72	72	72	20.0	18.061	tck_i	clk_out1_clk_wiz_0
+response_payload	bundled_max_delay	37	37	37	20.0	18.063	clk_out1_clk_wiz_0	tck_i
+request_toggle	second_stage_max	1	1	1	20.000	18.788	clk_out1_clk_wiz_0	clk_out1_clk_wiz_0
+request_toggle	second_stage_min	1	1	1	0.000	0.270	clk_out1_clk_wiz_0	clk_out1_clk_wiz_0
+request_toggle	async_entry_D_only	1	1	0	NA	NA	NA	NA
+response_toggle	second_stage_max	1	1	1	1000.000	998.907	tck_i	tck_i
+response_toggle	second_stage_min	1	1	1	0.000	0.245	tck_i	tck_i
+response_toggle	async_entry_D_only	1	1	0	NA	NA	NA	NA
+fpga_core_reset	async_CLR_only	NA	2	0	NA	NA	NA	NA
+fpga_tck_reset	async_CLR_only	NA	2	0	NA	NA	NA	NA
+tap_core_reset	async_CLR_only	NA	2	0	NA	NA	NA	NA
+tap_tck_reset	async_CLR_only	NA	2	0	NA	NA	NA	NA

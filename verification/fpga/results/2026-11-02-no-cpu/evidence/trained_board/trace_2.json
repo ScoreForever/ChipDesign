@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "job": 74,
+  "status": 2,
+  "header": {
+    "depth": 1024,
+    "configured_control": 1,
+    "configured_offset": 0,
+    "flags": 15,
+    "count": 1024,
+    "first_cycle": 0,
+    "last_cycle": 1023,
+    "sample_stride": 16,
+    "operator_stride": 32,
+    "max_ops": 16,
+    "captured_control": 1,
+    "captured_offset": 0
+  },
+  "operators": [
+    {
+      "start_cycle": 0,
+      "end_cycle": 1175,
+      "descriptor": 1793,
+      "flags": 11,
+      "wait_activation_cycles": 59,
+      "wait_weight_cycles": 9,
+      "wait_slot_cycles": 0,
+      "mac_issues": 960,
+      "pc": 0,
+      "opcode": 1,
+      "duration_cycles": 1175
+    },
+    {
+      "start_cycle": 1175,
+      "end_cycle": 2890,
+      "descriptor": 1793,
+      "flags": 11,
+      "wait_activation_cycles": 89,
+      "wait_weight_cycles": 9,
+      "wait_slot_cycles": 0,
+      "mac_issues": 1440,
+      "pc": 1,
+      "opcode": 1,
+      "duration_cycles": 1715
+    },
+    {
+      "start_cycle": 2890,
+      "end_cycle": 3262,
+      "descriptor": 4098,
+      "flags": 11,
+      "wait_activation_cycles": 0,
+      "wait_weight_cycles": 237,
+      "wait_slot_cycles": 0,
+      "mac_issues": 40,
+      "pc": 2,
+      "opcode": 2,
+      "duration_cycles": 372
+    }
+  ],
+  "samples": []
+}

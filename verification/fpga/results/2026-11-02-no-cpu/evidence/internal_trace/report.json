@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "reset_scope": "protocol",
+  "initial_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  },
+  "job": 8806,
+  "actual_hex": "fbffffff0c000000dcffffff",
+  "expected_hex": "fbffffff0c000000dcffffff",
+  "internal_trace_samples": 64,
+  "trace_timestamps_checked": true,
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  }
+}

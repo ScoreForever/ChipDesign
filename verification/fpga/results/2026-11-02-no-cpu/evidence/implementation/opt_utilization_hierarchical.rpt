@@ -1,0 +1,39 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Mon Nov  2 11:13:52 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu__rrgs2_l/run/opt_utilization_hierarchical.rpt
+| Design       : fpga_top
+| Device       : xc7a35tcsg324-1
+| Speed File   : -1
+| Design State : Optimized
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++--------------------+------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|      Instance      |         Module         | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++--------------------+------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| fpga_top           |                  (top) |      16749 |      15807 |     832 |  110 | 10734 |      8 |      0 |         48 |
+|   (fpga_top)       |                  (top) |         15 |         15 |       0 |    0 |    47 |      0 |      0 |          0 |
+|   u_soc            |             my_soc_top |      16734 |      15792 |     832 |  110 | 10687 |      8 |      0 |         48 |
+|     i_control      |  npu_control_subsystem |      16625 |      15683 |     832 |  110 | 10366 |      8 |      0 |         48 |
+|       i_trace      |      npu_trace_capture |       1921 |       1921 |       0 |    0 |  4042 |      4 |      0 |          0 |
+|       i_activation |   npu_activation_store |       2653 |       2653 |       0 |    0 |  1222 |      2 |      0 |          0 |
+|       i_controller | npu_command_controller |       3793 |       3793 |       0 |    0 |   512 |      0 |      0 |          0 |
+|       i_npu        |       npu_program_core |       8220 |       7278 |     832 |  110 |  4578 |      0 |      0 |         48 |
+|         (i_npu)    |       npu_program_core |       5923 |       5077 |     832 |   14 |  3343 |      0 |      0 |         12 |
+|         i_array    |          npu_mac_array |       1537 |       1458 |       0 |   79 |  1012 |      0 |      0 |         32 |
+|         i_requant  |           requant_lane |        768 |        751 |       0 |   17 |   223 |      0 |      0 |          4 |
+|     i_host         |     npu_jtag_transport |        109 |        109 |       0 |    0 |   321 |      0 |      0 |          0 |
++--------------------+------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+
+

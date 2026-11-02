@@ -1,0 +1,2 @@
+PASS random read/write stalls, stable payload, drain and performance scoreboard reads=64 writes=512 mstall=147 astall=59 wstall=1035 wmax=37 fifo=8 reserved=8
+hardware/npu/tb/tb_npu_stalls.sv:108: $finish called at 23890000 (1ps)

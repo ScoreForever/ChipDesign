@@ -1,0 +1,257 @@
+{
+  "abi": 131073,
+  "cols": 8,
+  "model_bytes": 2044,
+  "op_count": 16,
+  "input_base": 0,
+  "input_bytes": 4096,
+  "input_dtype": "i8",
+  "output_base": 0,
+  "output_bytes": 4096,
+  "output_dtype": "i8",
+  "output_shape": [
+    64,
+    64,
+    1
+  ],
+  "activation_peak": 8192,
+  "groups": [
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q0": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q1": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q2": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q3": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q4": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q5": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q6": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q7": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q8": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q9": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q10": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q11": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q12": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q13": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q14": {
+      "base": 4096,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "q15": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    }
+  },
+  "metadata": {}
+}

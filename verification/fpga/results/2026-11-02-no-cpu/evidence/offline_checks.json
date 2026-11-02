@@ -1,0 +1,19 @@
+{
+  "host_transport_performance": {
+    "tests": 7,
+    "result": "PASS"
+  },
+  "host_trace": {
+    "tests": 7,
+    "result": "PASS"
+  },
+  "board_suite_offline": {
+    "tests": 4,
+    "result": "PASS"
+  },
+  "evidence_checker_offline": {
+    "tests": 4,
+    "result": "PASS"
+  },
+  "note": "Execution summaries; original tool-call stdout is in the chat. Initial sandbox TEMP access failures were rerun outside the sandbox successfully."
+}

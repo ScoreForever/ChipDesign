@@ -1,0 +1,2 @@
+PASS high pressure random SRAM reads=8006 writes=9329 write_stalls=10004 read_stalls=11713 peak=8
+hardware/npu/tb/tb_npu_activation_pressure.sv:85: $finish called at 302540000 (1ps)

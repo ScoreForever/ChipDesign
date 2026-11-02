@@ -1,0 +1,41 @@
+{
+  "staging": "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\chipdesign_nocpu__rrgs2_l",
+  "command": [
+    "D:\\AMDDesignTools\\2025.2\\Vivado\\bin\\vivado.bat",
+    "-mode",
+    "batch",
+    "-source",
+    "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\chipdesign_nocpu__rrgs2_l\\source\\hardware\\fpga\\scripts\\build_ego1.tcl",
+    "-log",
+    "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\chipdesign_nocpu__rrgs2_l\\run\\vivado.log",
+    "-journal",
+    "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\chipdesign_nocpu__rrgs2_l\\run\\vivado.jou",
+    "-tclargs",
+    "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\chipdesign_nocpu__rrgs2_l\\source",
+    "C:\\Users\\Lenovo\\AppData\\Local\\Temp\\chipdesign_nocpu__rrgs2_l\\run",
+    "4",
+    "50.0"
+  ],
+  "source_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "094954b869831830013a91500db935c334943ddb47bd4c751adc3a5332624a9d",
+    "hardware/npu/rtl/requant_lane.sv": "117fe1083ab87f85612c1f22d134b1359589232c48a90f22dd6f88c279632aab",
+    "hardware/npu/rtl/npu_model_store.sv": "4f12c59c05fecf021835c9196f834079936a1b2b95a48e779a4f3c234b3a5408",
+    "hardware/npu/rtl/npu_activation_store.sv": "9ca2b9062b0a1d4c1e461190e2ae38bb13f4088cc4d24832b436825d3dc98ac6",
+    "hardware/npu/rtl/npu_program_core.sv": "47c9f168fda6a6f46b0d5b98a8b62a2e7aad39f1724f1ecfca2d88081b1546ba",
+    "hardware/npu/rtl/npu_trace_capture.sv": "eb6b9619dc757c6a519a86967c92cd0608aa19b1b62e2d1125edcf6913f24ca0",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "611269b1a5bb159abb3879a51beeab47b251cc53011a1d2cf85953a6040de925",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "2d47d05ef5c4553b2f40def5581484a34eb5be952e9746d3570d3f51b279970c",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "8112b1b5d1a0df0ec6d431967e837d55415413082b42b5f171be6f64229d8033",
+    "hardware/soc/sim/filelists/chipdesign_nocpu.f": "daf29f3a90b9e95aa9b713416aaa25b5934b781d450d0693d4795e421d6bd61f",
+    "hardware/fpga/fpga_top.sv": "236ed0f77c6b0379e848edffb8a81cbfcfe233ff7e61eb0b599b60d0dbb31080",
+    "hardware/fpga/ego1_pins.xdc": "8628583cf2f2078a50d72a42e1da6fda8b80dfef77192f7f43272e7e92c517bc",
+    "hardware/fpga/ego1_timing.xdc": "1053d6db3987abd5eb558c72a9d5b4be7944633cf329439c766173e87aa5c0d0",
+    "hardware/fpga/ego1_configuration.xdc": "c25b411c7385ff165e341597cd0680af860adc87cf73fb682b3667f9b79050cf",
+    "hardware/fpga/check_bram_drc.tcl": "ecd6c298117a6e7bdafd04e17b0545db07fee86dbff9cfbe383c5948e57bd835",
+    "hardware/fpga/scripts/build_ego1.tcl": "47da65b6acc8d3011b9492ad3ee95b41eb18d6c3faf05f9c63a1fc44ca27674e",
+    "hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl": "75692598e1c4ba5b6d12b4c47641eed07f787ca887677a72d0eb289466df8e75",
+    "hardware/fpga/scripts/audit_jtag_io.tcl": "81c5d6831abb805b075f8339f80c37b12206fe0a4071db1905de5eac811dea9a"
+  },
+  "synthesis_only": false
+}

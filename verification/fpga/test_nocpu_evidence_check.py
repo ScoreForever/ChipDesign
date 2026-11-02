@@ -19,7 +19,7 @@ class EvidenceCLI(unittest.TestCase):
             self.assertIn('incomplete', result.stdout.lower())
 
     def test_tampered_actual_output_fails_review(self):
-        names = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k', 'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac', 'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure')
+        names = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k', 'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac', 'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure', 'tiny_strided_asymmetric')
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             cases = []
@@ -42,7 +42,7 @@ class EvidenceCLI(unittest.TestCase):
             self.assertIn('mismatch', result.stdout.lower())
 
     def test_claimed_pass_without_negative_cases_is_incomplete(self):
-        names = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k', 'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac', 'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure')
+        names = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k', 'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac', 'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure', 'tiny_strided_asymmetric')
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
             cases = []
@@ -65,7 +65,7 @@ class EvidenceCLI(unittest.TestCase):
             self.assertIn('negative', result.stdout.lower())
 
     def test_manual_pending_does_not_claim_complete(self):
-        names = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k', 'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac', 'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure')
+        names = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k', 'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac', 'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure', 'tiny_strided_asymmetric')
         errors = {'start_without_model':5, 'input_commit_without_begin':5, 'start_without_input':5, 'incomplete_input_commit':7, 'input_out_of_order':6, 'incomplete_model_commit':7, 'illegal_descriptor_opcode':18, 'reserved_word':18, 'invalid_stride':18, 'invalid_shape':19, 'invalid_destination':20, 'unknown_source':21, 'start_before_ack':9, 'input_before_ack':9}
         with tempfile.TemporaryDirectory() as d:
             root = Path(d); cases = []

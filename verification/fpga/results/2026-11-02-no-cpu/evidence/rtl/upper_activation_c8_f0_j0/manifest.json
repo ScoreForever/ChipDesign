@@ -1,0 +1,59 @@
+{
+  "abi": 131073,
+  "cols": 8,
+  "model_bytes": 140,
+  "op_count": 2,
+  "input_base": 0,
+  "input_bytes": 4096,
+  "input_dtype": "i32",
+  "output_base": 4096,
+  "output_bytes": 1024,
+  "output_dtype": "i8",
+  "output_shape": [
+    32,
+    32,
+    1
+  ],
+  "activation_peak": 5120,
+  "groups": [
+    [
+      "Requant"
+    ],
+    [
+      "ReLU"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        32,
+        32,
+        1
+      ],
+      "dtype": "i32"
+    },
+    "a": {
+      "base": 4096,
+      "bytes": 1024,
+      "shape": [
+        32,
+        32,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "y": {
+      "base": 4096,
+      "bytes": 1024,
+      "shape": [
+        32,
+        32,
+        1
+      ],
+      "dtype": "i8"
+    }
+  },
+  "metadata": {}
+}

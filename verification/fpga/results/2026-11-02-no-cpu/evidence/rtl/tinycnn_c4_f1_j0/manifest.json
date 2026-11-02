@@ -1,0 +1,78 @@
+{
+  "abi": 131073,
+  "cols": 4,
+  "model_bytes": 2432,
+  "op_count": 3,
+  "input_base": 0,
+  "input_bytes": 320,
+  "input_dtype": "i8",
+  "output_base": 160,
+  "output_bytes": 32,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    8
+  ],
+  "activation_peak": 960,
+  "groups": [
+    [
+      "Conv",
+      "Requant",
+      "ReLU",
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant",
+      "ReLU",
+      "MaxPool"
+    ],
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 320,
+      "shape": [
+        20,
+        16,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "p1": {
+      "base": 320,
+      "bytes": 640,
+      "shape": [
+        10,
+        8,
+        8
+      ],
+      "dtype": "i8"
+    },
+    "p2": {
+      "base": 0,
+      "bytes": 160,
+      "shape": [
+        5,
+        4,
+        8
+      ],
+      "dtype": "i8"
+    },
+    "y": {
+      "base": 160,
+      "bytes": 32,
+      "shape": [
+        1,
+        1,
+        8
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {}
+}

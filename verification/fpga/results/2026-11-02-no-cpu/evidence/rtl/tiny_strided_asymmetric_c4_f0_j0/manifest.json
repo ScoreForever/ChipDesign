@@ -1,0 +1,46 @@
+{
+  "abi": 131073,
+  "cols": 4,
+  "model_bytes": 136,
+  "op_count": 1,
+  "input_base": 0,
+  "input_bytes": 1,
+  "input_dtype": "i8",
+  "output_base": 4,
+  "output_bytes": 8,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    2
+  ],
+  "activation_peak": 12,
+  "groups": [
+    [
+      "Conv"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 1,
+      "shape": [
+        1,
+        1,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "y": {
+      "base": 4,
+      "bytes": 8,
+      "shape": [
+        1,
+        1,
+        2
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {}
+}

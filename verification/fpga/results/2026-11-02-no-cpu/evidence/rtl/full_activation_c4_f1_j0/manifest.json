@@ -1,0 +1,46 @@
+{
+  "abi": 131073,
+  "cols": 4,
+  "model_bytes": 64,
+  "op_count": 1,
+  "input_base": 0,
+  "input_bytes": 4096,
+  "input_dtype": "i8",
+  "output_base": 0,
+  "output_bytes": 4096,
+  "output_dtype": "i8",
+  "output_shape": [
+    64,
+    64,
+    1
+  ],
+  "activation_peak": 4096,
+  "groups": [
+    [
+      "ReLU"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    },
+    "y": {
+      "base": 0,
+      "bytes": 4096,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i8"
+    }
+  },
+  "metadata": {}
+}

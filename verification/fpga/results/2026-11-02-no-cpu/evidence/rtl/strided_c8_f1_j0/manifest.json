@@ -1,0 +1,61 @@
+{
+  "abi": 131073,
+  "cols": 8,
+  "model_bytes": 908,
+  "op_count": 2,
+  "input_base": 0,
+  "input_bytes": 75,
+  "input_dtype": "i8",
+  "output_base": 0,
+  "output_bytes": 30,
+  "output_dtype": "i8",
+  "output_shape": [
+    2,
+    5,
+    3
+  ],
+  "activation_peak": 176,
+  "groups": [
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 75,
+      "shape": [
+        3,
+        5,
+        5
+      ],
+      "dtype": "i8"
+    },
+    "b": {
+      "base": 76,
+      "bytes": 100,
+      "shape": [
+        2,
+        5,
+        10
+      ],
+      "dtype": "i8"
+    },
+    "y": {
+      "base": 0,
+      "bytes": 30,
+      "shape": [
+        2,
+        5,
+        3
+      ],
+      "dtype": "i8"
+    }
+  },
+  "metadata": {}
+}

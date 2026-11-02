@@ -1,0 +1,18 @@
++====================+====================+=================================================+
+| Launch Setup Clock | Launch Hold Clock  | Pin                                             |
++====================+====================+=================================================+
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/gather_state_reg[1]/D     |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/slot_ready_reg[1]/D       |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/slot_busy_reg[2]/D        |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/slot_busy_reg[1]/D        |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/read_lane_reg[2]/D        |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/slot_ready_reg[0]/D       |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/read_lane_reg[0]/D        |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/slot_busy_reg[3]/D        |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/slot_busy_reg[0]/D        |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/read_lane_reg[1]/D        |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/estate_reg[1]/D           |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/write_tail_reg[2]/D       |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/write_tail_reg[0]/D       |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_activation/q_addr_reg[4][1]/D |
++--------------------+--------------------+-------------------------------------------------+

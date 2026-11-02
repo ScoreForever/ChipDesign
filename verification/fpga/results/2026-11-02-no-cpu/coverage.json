@@ -1,0 +1,71 @@
+{
+  "status": "AUTOMATED_PASS_PHYSICAL_PENDING",
+  "generated_sgt": "2026-11-02T11:57:42.754826+08:00",
+  "branch": "codex/fpga-nocpu-validation-20261102",
+  "base_commit": "175484e63073b314c1f2465c06c5a921d6673e4a",
+  "abi": "2.1",
+  "format": "INT8/Q31",
+  "system_mhz": 50,
+  "bitstream_sha256": "60465500bd464c7161de9f8d1dc7f4203ee5a2fb07e1ee84453cbdcc110969e9",
+  "rtl": {
+    "standard_tests": 72,
+    "trained_weight_tests": 2,
+    "total_program_tests": 74,
+    "result": "PASS"
+  },
+  "timing": {
+    "wns_ns": 0.064,
+    "tns_ns": 0.0,
+    "whs_ns": 0.035,
+    "result": "PASS"
+  },
+  "cdc": {
+    "dynamic": "PASS",
+    "raw_cdc15": 109,
+    "reviewed_endpoints": 109,
+    "waivers_created": false
+  },
+  "board_suite": {
+    "cases": {
+      "PASS": 35,
+      "EXPECTED_HOST_REJECTION": 1
+    },
+    "repeat_per_hardware_case": 2,
+    "negative_cases": 14,
+    "result": "PASS"
+  },
+  "trained_board": {
+    "runs": 2,
+    "golden_matches": true,
+    "performance_operator_trace_consistent": true,
+    "rtl_cycles_writes_match": true
+  },
+  "internal_digital_trace": {
+    "samples": 64,
+    "timestamps_checked": true,
+    "reset_scope": "protocol",
+    "result": "PASS"
+  },
+  "automatic_recovery": {
+    "checks": 5,
+    "window_misses": [],
+    "result": "PASS"
+  },
+  "physical_button": {
+    "result": "NOT_COVERED",
+    "reason": "operator window expired without reset confirmation"
+  },
+  "power_cycle_reprogram": {
+    "result": "NOT_RUN",
+    "reason": "requires operator power removal/reconnection"
+  },
+  "electrical_waveforms": {
+    "result": "NOT_RUN",
+    "reason": "operator previously reported no scope/logic analyzer"
+  },
+  "flash_autoboot": {
+    "result": "NOT_RUN",
+    "reason": "Flash not programmed"
+  },
+  "final_board": "Validated no_cpu ABI 2.1 50 MHz image retained; NPU idle; OpenOCD shut down; USB forwarding detached"
+}

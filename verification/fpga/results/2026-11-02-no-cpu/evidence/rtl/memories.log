@@ -1,0 +1,2 @@
+PASS dual SRAM memories: held responses, coalescing/forwarding, alias, upper 8KiB, unaligned/wrap, flush and reset accepted=364 physical=393
+hardware/npu/tb/tb_npu_memories.sv:153: $finish called at 24310000 (1ps)

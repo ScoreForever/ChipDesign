@@ -1,0 +1,40 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Mon Nov  2 11:15:33 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu__rrgs2_l/run/place_utilization_hierarchical.rpt
+| Design       : fpga_top
+| Device       : xc7a35tcsg324-1
+| Speed File   : -1
+| Design State : Fully Placed
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++--------------------+------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+|      Instance      |         Module         | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs  | RAMB36 | RAMB18 | DSP Blocks |
++--------------------+------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+| fpga_top           |                  (top) |      16538 |      15620 |     814 |  104 | 10735 |      8 |      0 |         48 |
+|   (fpga_top)       |                  (top) |         15 |         15 |       0 |    0 |    47 |      0 |      0 |          0 |
+|   u_soc            |             my_soc_top |      16523 |      15605 |     814 |  104 | 10688 |      8 |      0 |         48 |
+|     i_control      |  npu_control_subsystem |      16418 |      15500 |     814 |  104 | 10367 |      8 |      0 |         48 |
+|       i_trace      |      npu_trace_capture |       1920 |       1920 |       0 |    0 |  4042 |      4 |      0 |          0 |
+|       i_activation |   npu_activation_store |       2726 |       2726 |       0 |    0 |  1222 |      2 |      0 |          0 |
+|       i_controller | npu_command_controller |       3799 |       3799 |       0 |    0 |   512 |      0 |      0 |          0 |
+|       i_npu        |       npu_program_core |       7944 |       7026 |     814 |  104 |  4579 |      0 |      0 |         48 |
+|         (i_npu)    |       npu_program_core |       5860 |       5038 |     814 |    8 |  3343 |      0 |      0 |         12 |
+|         i_array    |          npu_mac_array |       1335 |       1256 |       0 |   79 |  1012 |      0 |      0 |         32 |
+|         i_requant  |           requant_lane |        759 |        742 |       0 |   17 |   224 |      0 |      0 |          4 |
+|     i_host         |     npu_jtag_transport |        105 |        105 |       0 |    0 |   321 |      0 |      0 |          0 |
++--------------------+------------------------+------------+------------+---------+------+-------+--------+--------+------------+
+* Note: The sum of lower-level cells may be larger than their parent cells total, due to cross-hierarchy LUT combining
+
+
