@@ -1,6 +1,6 @@
 {
-  "status": "AUTOMATED_PASS_PHYSICAL_PENDING",
-  "generated_sgt": "2026-11-02T11:57:42.754826+08:00",
+  "status": "PASS_WITH_UNTESTED_SCOPES",
+  "generated_sgt": "2026-11-02T12:16:06.740622+08:00",
   "branch": "codex/fpga-nocpu-validation-20261102",
   "base_commit": "175484e63073b314c1f2465c06c5a921d6673e4a",
   "abi": "2.1",
@@ -52,12 +52,23 @@
     "result": "PASS"
   },
   "physical_button": {
-    "result": "NOT_COVERED",
-    "reason": "operator window expired without reset confirmation"
+    "result": "PASS_SAMPLED_FUNCTIONAL",
+    "last_valid_status": 3,
+    "global_reset_and_fresh_inference_verified": true,
+    "edge_waveform_measured": false,
+    "operator_confirmation": "operator_confirmations.md"
   },
   "power_cycle_reprogram": {
-    "result": "NOT_RUN",
-    "reason": "requires operator power removal/reconnection"
+    "result": "PASS",
+    "operator_leds_off_confirmed": true,
+    "usb_devices_disappeared_and_reenumerated": true,
+    "minimum_wait_after_off_check_seconds": 10,
+    "same_bitstream_sha256": "60465500bd464c7161de9f8d1dc7f4203ee5a2fb07e1ee84453cbdcc110969e9",
+    "done": 1,
+    "crc_error": 0,
+    "global_reset_and_fresh_inference_verified": true,
+    "internal_trace_samples": 64,
+    "automatic_flash_boot_verified": false
   },
   "electrical_waveforms": {
     "result": "NOT_RUN",

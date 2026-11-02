@@ -34,7 +34,7 @@ def burst(operations):
     commands=['set finished 0', 'set rr {}']
     for i,(op,addr,data) in enumerate(operations):
         body=[f'drscan npu.tap 32 0x{data:x} 32 0x{addr:x} 8 0x{int(op):x} -endstate IDLE',
-                     'drscan npu.tap 32 0 32 0 8 0 -endstate IDLE',
+                     'runtest 8',
                      f'set r{i} [drscan npu.tap 32 0 32 0 8 0 -endstate IDLE]',f'lappend rr $r{i}']
         if op==Op.READ and addr==4:
             body += [f'scan [lindex $r{i} 0] %x state', 'if {$state & 8} {set finished 1}']
@@ -45,20 +45,20 @@ try:
     npu.command(Op.RESET)
     nodes=[]; src='x'
     for i in range(16):
-        channels=16
+        channels=27
         weights=[0]*(channels*9*channels)
         for c in range(channels): weights[c*9*channels+4*channels+c]=1
-        nodes += [dict(op='Conv',input=src,output=f'a{i}',channels=channels,kernel=3,pads=[2 if i<5 else 1]*4,weights=weights,bias=[0]*channels),
+        nodes += [dict(op='Conv',input=src,output=f'a{i}',channels=channels,kernel=3,pads=[2 if i<4 else 1]*4,weights=weights,bias=[0]*channels),
                   dict(op='Requant',input=f'a{i}',output=f'q{i}',multiplier=[0x40000000]*channels,shift=[1]*channels)]
         src=f'q{i}'
-    model=dict(input=dict(name='x',shape=[1,1,16]),nodes=nodes)
+    model=dict(input=dict(name='x',shape=[1,1,27]),nodes=nodes)
     package=compile_model(model,cols=npu.read(0x58)&65535,model_bytes=200000)
     # Legal descriptors may share identical immutable weight/parameter blocks.
     # Deduplicate compiler output to fit the physical 8 KiB model SRAM.
     image=bytearray(16*64); blocks={}
     for i in range(16):
         words=list(struct.unpack_from('<16I',package.image,i*64))
-        for field,size in [(7,2304),(8,192)]:
+        for field,size in [(7,6832),(8,324)]:
             payload=package.image[words[field]:words[field]+size]
             if len(payload)!=size: raise RuntimeError('invalid parameter block')
             if payload not in blocks:
@@ -69,11 +69,25 @@ try:
     package.manifest['model_bytes']=len(image)
     package=Package(bytes(image),package.manifest)
     (args.output/'model.json').write_text(json.dumps(model))
-    package.save(args.output/'package'); npu.load_model(package)
+    package.save(args.output/'package')
+    # Same ABI 2.1 model transaction as Npu.load_model, batched to avoid
+    # thousands of host TCP round trips while retaining every reply check.
+    m=package.manifest
+    npu.command(Op.MODEL_BEGIN)
+    upload=[(Op.WRITE,reg,m[key]) for reg,key in zip(range(0x10,0x28,4),
+            ('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes'))]
+    upload.append((Op.WRITE,0x64,0))
+    upload += [(Op.WRITE,0x10000+i,int.from_bytes(package.image[i:i+4],'little'))
+               for i in range(0,len(package.image),4)]
+    for at in range(0,len(upload),64):
+        replies=burst(upload[at:at+64])
+        if any(len(r)!=3 or r[2]!=128 for r in replies):
+            raise RuntimeError('model upload reply failed')
+    npu.command(Op.MODEL_COMMIT); npu.manifest=dict(m)
     npu.write(0x28,1_000_000_000)
-    inp=encode_tensor([7]*16,'i8')
+    inp=encode_tensor([7]*27,'i8')
     (args.output/'input.bin').write_bytes(inp)
-    expected=encode_tensor(reference(model,[7]*16)[src],package.manifest['output_dtype'])
+    expected=encode_tensor(reference(model,[7]*27)[src],package.manifest['output_dtype'])
     actual=npu.infer(inp,timeout=30)
     (args.output/'expected.bin').write_bytes(expected)
     (args.output/'pre_reset_actual.bin').write_bytes(actual)

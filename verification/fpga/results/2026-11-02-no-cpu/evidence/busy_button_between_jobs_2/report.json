@@ -1,0 +1,22 @@
+{
+  "passed": false,
+  "last_valid_status": 10,
+  "scope": "sampled busy immediately preceding physical reset; no waveform",
+  "pre_reset_inference_matches": true,
+  "interruption": "disturbance between jobs",
+  "observed_at": 1793592381.6323845,
+  "after": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  },
+  "job_after": 0,
+  "timeout_after": 10000000
+}

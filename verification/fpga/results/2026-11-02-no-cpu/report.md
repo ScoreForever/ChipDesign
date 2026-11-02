@@ -2,7 +2,7 @@
 
 日期：2026-11-02（Asia/Singapore）。对象为 `origin/exp/no_cpu`，提交 `175484e63073b314c1f2465c06c5a921d6673e4a`，INT8/Q31、ABI 2.1。此报告独立于 no_cpu_INT4 / ABI 3.0，不沿用其功能或实板结果。
 
-**结论：本报告列出的自动项目全部通过；no_cpu 物理按键、断电重下载恢复和电气波形尚未覆盖。** RTL、50 MHz routed timing、CDC 动态/结构审查、实板完整功能套件、训练权重、停钟/协议复位恢复均有本次独立证据。物理操作等待现场确认，未引用 INT4 的物理测试代替本版本。
+**结论：本报告定义的功能与指定 50MHz 实现检查通过。** RTL、routed setup/hold、CDC 动态/结构审查、实板完整功能套件、训练权重、停钟/协议恢复、RST/S6 物理复位功能采样及断电重下载恢复均有本次 no_cpu 独立证据。电气波形、Flash 自动启动和温压/MTBF 等范围未测试；没有引用 INT4 的结果替代本版本。
 
 ## 版本与可追溯性
 
@@ -94,14 +94,24 @@ route DRC 无 error，保留 DSP pipeline 提示 76 条（DPIP-1 46、DPOP-1 9�
 
 ## 物理按键、断电与测量范围
 
-已准备 ABI 2.1 专用连续运算工作负载：16 通道、16 层 Conv3×3 + Requant，模型内复用相同只读权重/参数块。按键前已完成一次全部 1936 字节输出的 golden 比较，通过。等待窗口内连续运行，最终记录 job ID 8806、无 fault/error；该 ID 是累计计数，不能当作本窗口执行次数。未收到按键操作确认，180 秒窗口到期，原始报告 `passed=false`、原因 `operator window expired without reset`，属于未覆盖，不能签成物理复位通过。
+最初的 16 通道连续窗口先完成全部 1936 字节输出 golden 比较；等待期间累计 job ID 达 8806、无 fault/error，但窗口到期未收到现场确认，原始报告为 `passed=false`。job ID 是累计计数，不能当作该窗口的执行次数；这轮未计入物理覆盖。用户稍后回复的按键确认也未追记为旧窗口通过。
 
-窗口结束后执行协议 RESET 清理，保存 idle/无错误状态。此清理不是物理复位证据。现场可用后需重开窗口，收到操作确认并取得最后 busy 采样→复位状态清零的证据，再运行新推理；采样测试仍不能代替边沿级电气捕获。
+重新开启窗口后，两次按键均落在任务之间（最后有效状态 0x0a），全局状态/计数确实清零，但不计入 busy 覆盖。第一次实际按键后单独执行 `global` recovery smoke，确认 job=0、状态清零、新 FC 输出正确及 64 条内部数字 trace 正常。保留 `busy_button_between_jobs_1/2` 和 `after_button_between_jobs` 原始记录。
+
+最终加长负载为 27 通道、16 层 Conv3×3 + Requant，输入 27 字节、最终输出 9×9×27=2187 字节。前四层 padding=2，后续 padding=1；复用相同只读权重/参数块后模型为 8180 字节，activation_peak=4459。模型硬件校验及按键前完整输出比较通过。初始化及控制命令按 ABI 2.1 原顺序批量传输；用 8 个 idle TCK 等待 toggle 回复，每条应答仍检查。未修改 RTL 或降低系统时钟。
+
+最后一次用户在当前 no_cpu 窗口明确确认按下并松开 RST/S6。原始记录 `physical_button/report.json`：最后有效状态 **0x03（busy）** → TAP 应答中断 → 重新初始化 TAP 后 `job=0`、`timeout=10000000`，busy/model/input ready/done/fault/error/error_op/cycles/issues/writes 全零。在读取这些全局复位状态前没有发送协议 RESET 或重新配置 FPGA。随后 `after_physical_reset` 的新 FC 输出 `fbffffff0c000000dcffffff` 与参考一致，64 条内部 trace 时间戳/PC 检查通过。
+
+此项为“最后有效采样 busy、按键后全局清零”的功能覆盖，不能确定模拟复位边沿与 busy 的精确相对时刻，也不能排除采样之间存在未观测的完成事件；它不代替边沿级电气捕获。
+
+断电恢复由用户现场执行：先关闭 OpenOCD、释放 USB 转发，用户确认全部供电/配置 USB 和 FT232H USB 已拔除、灯全部熄灭；主机确认 0403:6014 与 0403:6010 均从 Connected 列表消失。再等待至少 10 秒后提示重新接电，用户确认 USB 已重新连接。FT232H 此次重新枚举为 BUSID 3-4。随后通过 `Xilinx/1234-tulA` 重新下载同一 SHA-256 的 50MHz 镜像，PROGRAM_COMMAND=PASS、DONE=1、CRC=0；未写 Flash。
+
+`after_power_cycle` 再次确认初始状态及 job 全零，新 FC 输出一致，并读取校验 64 条内部 trace；最后才协议 RESET 清理。灯灭及 USB 消失是功能断电证据，未测量电源轨降至零或放电曲线。最终 FPGA 保持本次 ABI 2.1 / 50MHz 镜像，NPU idle，OpenOCD 关闭、临时 USB 转发释放。
 
 | 范围 | 当前状态 | 原因/后续 |
 |---|---|---|
-| no_cpu busy 时 RST/S6 | NOT COVERED | 未收到现场操作确认；负载和监测脚本已准备并验证 |
-| no_cpu 断电、重上电、重下载恢复 | NOT RUN | 等待现场断电/接电操作；不得套用 INT4 的断电证据 |
+| no_cpu RST/S6 物理复位 | PASS（功能采样） | 任务间与 busy 前采样覆盖；清零及新推理正确，未测精确边沿 |
+| no_cpu 断电、重上电、重下载恢复 | PASS | 本轮用户操作、USB 消失/重现、同镜像 DONE/CRC、新推理与 trace |
 | Flash 自动加载当前镜像 | NOT RUN | 没有写入 Flash；常规验证只配置 FPGA SRAM |
 | TCK/复位/电源电气波形 | NOT RUN | 现场没有示波器/逻辑分析仪；内部数字 trace 不能替代 |
 | 温压/多 seed/长期老化/MTBF | NOT RUN | 本轮功能与指定实现验收不构成这些范围的签核 |
@@ -120,4 +130,4 @@ python verification/fpga/nocpu_recovery_smoke.py --output build/nocpu_recovery_f
 
 各输出目录需尚不存在。上板前必须确认同次构建 Result=PASS、bitstream SHA-256、器件及源哈希；不能用 bitstream 已生成替代 timing 验收。归档保存原始时序/CDC/DRC、构建 provenance、编程记录、板测输入/期望/实际输出及日志；本地 .bit/.dcp 不纳入 Git 证据归档。`evidence/source_snapshot` 保存实际 Vivado 输入的原始字节，以便复核 provenance（跨平台换行转换也会改变源码哈希）；`evidence/test_scripts` 保存测试工具源码快照。
 
-主要入口：`coverage.json` 为按范围汇总，`evidence/implementation/summary.md` 与 timing/CDC/DRC 为物理报告，`evidence/rtl/` 为 72+2 项 RTL 证据，`evidence/board_suite/` 为 35 项硬件与 14 项负向测试，`evidence/trained_board/` 为两轮训练权重和计数/trace，`evidence/nocpu_board_cdc_20261102_r2/` 为最终自动恢复专项，`evidence/busy_button_window_expired/` 为尚未覆盖的物理窗口记录。大日志使用无损 gzip 归档。`evidence_sha256.json` 对归档文件做完整性校验。
+主要入口：`coverage.json` 为按范围汇总，`evidence/implementation/summary.md` 与 timing/CDC/DRC 为物理报告，`evidence/rtl/` 为 72+2 项 RTL 证据，`evidence/board_suite/` 为 35 项硬件与 14 项负向测试，`evidence/trained_board/` 为两轮训练权重和计数/trace，`evidence/nocpu_board_cdc_20261102_r2/` 为自动恢复专项。`evidence/physical_button`、`after_physical_reset` 为最终按键覆盖，`power_cycle`、`after_power_cycle` 为断电恢复，`operator_confirmations.md` 为当前对话操作摘要。过期/未覆盖窗口保留为历史诊断证据。大日志使用无损 gzip 归档。`evidence_sha256.json` 对归档文件做完整性校验。

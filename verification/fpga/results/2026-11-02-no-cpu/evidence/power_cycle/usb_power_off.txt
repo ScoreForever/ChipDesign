@@ -1,0 +1,13 @@
+Connected:
+BUSID  VID:PID    DEVICE                                                        STATE
+1-6    048d:c106  USB 输入设备                                                      Not shared
+1-8    046d:c548  Logitech USB Input Device, USB 输入设备                           Not shared
+1-11   174f:246a  Integrated Camera, Camera DFU Device, Tobii Experience        Not shared
+1-14   8087:0033  英特尔(R) 无线 Bluetooth(R)                                        Not shared
+4-1    050d:009c  USB-C 7-in-1 Multiport Hub                                    Not shared
+4-4    373b:10c9  USB 输入设备                                                      Not shared
+
+Persisted:
+GUID                                  DEVICE
+4344a70b-e0d9-4f44-a52e-d65994ab05fb  USB Serial Converter
+
