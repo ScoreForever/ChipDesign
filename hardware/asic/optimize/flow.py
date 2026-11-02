@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import time
+from cdc_check import validate as validate_cdc
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
@@ -141,7 +142,7 @@ def geometry(std_area, sizes, utilization=.6, layout='west_stack', halo=26):
 
 def rtl_fingerprint():
     listing=ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f'
-    paths=[listing,ROOT/'hardware/soc/synth/scripts/soc_constraints.tcl']
+    paths=[listing,ROOT/'hardware/soc/synth/scripts/soc_constraints.tcl',HERE/'npu_jtag_cdc.tcl',HERE/'synth.tcl']
     paths += [ROOT/line.strip() for line in listing.read_text().splitlines() if line.strip() and not line.startswith('+')]
     return {str(p.relative_to(ROOT)):digest(p) for p in paths}
 
@@ -283,7 +284,7 @@ def validate_reports(directory):
         for b in boxes[i+1:]:
             if min(a[3],b[3])-max(a[1],b[1])>.001 and min(a[4],b[4])-max(a[2],b[2])>.001:
                 pad_ok=False
-    return dict(placement=place_ok,drc=drc(read('drc.rpt')),pg_drc=drc(read('pg_drc.rpt')),connectivity=regular_ok,pg_connectivity=pg,antenna=antenna,drv=drv,ports=ports_ok,pad_geometry=pad_ok)
+    return dict(placement=place_ok,drc=drc(read('drc.rpt')),pg_drc=drc(read('pg_drc.rpt')),connectivity=regular_ok,pg_connectivity=pg,antenna=antenna,drv=drv,ports=ports_ok,pad_geometry=pad_ok,cdc=validate_cdc(directory/'cdc_paths.tsv'))
 
 
 def def_wire_length(path):
@@ -307,6 +308,7 @@ def def_wire_length(path):
 def metrics(directory):
     directory=Path(directory)
     required=['metrics.json','checks.json','timing_setup.rpt','timing_hold.rpt','drc.rpt','pg_drc.rpt','connectivity.rpt','pg_connectivity.rpt','antenna.rpt','placement.rpt','io_geometry.tsv','io_connectivity.tsv','ports.txt','constraints.rpt','outputs/physical.v','outputs/simulation.v','outputs/routed.sdf.gz','outputs/routed.spef.gz','outputs/routed.def','outputs/chip.gds.gz','outputs/chip.lef','outputs/mapped.sdc']
+    required.append('cdc_paths.tsv')
     missing=[p for p in required if not (directory/p).is_file() or (directory/p).stat().st_size==0]
     state=json.loads((directory/'status.json').read_text()) if (directory/'status.json').exists() else {}
     result=dict(directory=str(directory),eligible=False,missing=missing,runtime_seconds=max(0,state.get('finished',0)-state.get('started',0)))
@@ -316,7 +318,7 @@ def metrics(directory):
     finite=all(isinstance(result.get(k),(int,float)) and math.isfinite(result[k]) for k in ('setup_wns_ns','hold_wns_ns','setup_tns_ns','hold_tns_ns','die_area_mm2','wire_length_um'))
     result['eligible']=finite and all(result['checks'].get(k) is True for k in ('placement','drc','pg_drc','connectivity','pg_connectivity','antenna','drv','ports','pad_geometry')) and result['setup_wns_ns']>=0 and result['hold_wns_ns']>=0 and result['setup_tns_ns']==0 and result['hold_tns_ns']==0 and result.get('macro_count')==MACROS
     result['within_area_budget']=finite and result['die_area_mm2']<=(MAX_DIE_UM/1000)**2+1e-9
-    result['eligible']=result['eligible'] and result['within_area_budget']
+    result['eligible']=result['eligible'] and result['within_area_budget'] and result['checks'].get('cdc') is True and validate_cdc(directory/'cdc_paths.tsv')
     return result
 
 
@@ -337,11 +339,14 @@ def synth(output,libs):
     state=launch(['genus','-no_gui','-batch','-files',str(HERE/'synth.tcl')],directory,'PNR_OPT_SYNTHESIS_COMPLETE')
     if state['status']!='complete':raise RuntimeError('synthesis failed: '+str(directory))
     verify_clocks(directory/'mapped.sdc')
+    if not validate_cdc(directory/'cdc_paths.tsv'):raise RuntimeError('mapped CDC audit failed')
     save(directory/'handoff.json',{p:digest(directory/p) for p in ('mapped.v','mapped.sdc','area.json')})
 
 
 def verify_clocks(path):
     text=Path(path).read_text().replace('\\\n',' ')
+    if re.search(r'(?m)^\s*set_clock_groups\b',text):
+        raise RuntimeError('clock-group exceptions cannot cover mailbox payload; regenerate scoped CDC synthesis')
     unit=re.search(r'set_units[^\n]*-time\s+(\S+)',text)
     # Genus writes "1000ps"; accept any spelling that is exactly 1 ns so clock
     # numbers are used as written, and reject every other scale.
