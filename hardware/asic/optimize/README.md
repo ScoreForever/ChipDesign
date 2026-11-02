@@ -1,5 +1,59 @@
 # No-CPU full-chip physical optimization
 
+## Scoped mailbox CDC constraints (2026-11-02)
+
+The optimize flow now opts into scoped CDC constraints with
+`EDA_NPU_CDC_SCOPED=1` before sourcing the shared clock/IO constraints. Legacy
+DC/course synthesis drivers retain their existing behavior; they are **not**
+covered by this change or qualified for mailbox CDC signoff.
+
+`npu_jtag_cdc.tcl` applies mapped-register constraints after `syn_map`, before
+`syn_opt`, and again when P&R rebuilds the clock roots. There is no whole-domain
+clock-group cut in this path. It resolves exactly 72 request and 37 response
+Q-to-D pairs, applies a 20 ns maximum excluding clock latency, and cuts only
+their asynchronous phase-based hold checks. Toggle false paths terminate only
+at stage-zero D; reset assertion cuts terminate only at the four reset-bank
+CDN pins. Stage-zero to stage-one setup/hold remains timed. No mailbox RTL is
+changed and no synchronizer protection/placement or MTBF qualification is
+claimed by this patch.
+
+The option `set_max_delay -ignore_clock_latency` and timing-path properties
+`arrival_time`, `required_time`, `slack` must be qualified against the installed
+Genus/Innovus versions. This checkout has **not** run those tools for this patch.
+Unsupported commands/properties, a different reset-cell pin, or renamed/missing
+registers must stop the flow; do not silently fall back to plain max-delay or
+whole-clock false paths. The local Tcl API model is not vendor-tool evidence.
+
+The budget is deliberately Q-to-D: launch tCQ is excluded and must fit within
+the remaining protocol margin. At 50 MHz the ideal earliest request capture is
+about two destination periods after asynchronous launch (about 40 ns, depending
+on phase), not a guaranteed 60 ns. The 20 ns data budget is a conservative
+engineering target; library tCQ/setup, reset assumptions, jitter and permitted
+clock frequencies still need real-tool/protocol review before signoff.
+
+Both synthesis and routed stages export `cdc_paths.tsv`: 109 exact payload
+paths with finite nonnegative slack and an effective required time no greater
+than 20 ns, plus setup/hold paths for both toggle synchronizers (113 rows).
+The Python checker rejects duplicates, missing/changed endpoints, NaN, negative
+slack and inconsistent/looser budgets. Candidate eligibility requires the live
+audit file and a positive CDC check; old successful `checks.json` files alone
+cannot qualify a candidate. Synthesis imports with any `set_clock_groups`
+command are rejected instead of trying to override inherited exceptions.
+Generate a new handoff and use a new experiment directory after this change.
+
+Local regression (from this directory):
+
+```bash
+python -m unittest test_cdc -v
+```
+
+Four CDC tests and five affected flow tests passed locally. Negative cases
+include cut paths, a missing register, an overridden 1000 ns budget, negative
+slack and stale eligibility. Real synthesis, P&R and extracted STA are pending;
+no prior physical acceptance or FPGA WNS is evidence for this modified ASIC
+flow. This audit is a timing gate, not a replacement for CDC/RDC protocol or
+metastability analysis.
+
 This is an independent ABI-3 INT4 course flow for `my_soc_top`. It preserves the
 legacy six-PAD SoC scripts. The full-chip build adds all seven signal PADs,
 28 supply PADs, four corners, 35 wire-bond openings, IO/core fillers, the
@@ -73,8 +127,8 @@ cell density, estimated global congestion and final detailed-route DRC are
 different measures and must not be conflated.
 
 The default is 20ns core and 1000ns JTAG, 2ns IO budget, 0.2ns uncertainty,
-TT libraries and the course captable. No new timing exceptions or frequency
-reduction are used for acceptance. Hold optimization targets +0.020ns, with the
+TT libraries and the course captable. The scoped CDC exceptions above bound
+mailbox transfers without changing clock frequencies. Hold optimization targets +0.020ns, with the
 optimization density cap raised from the course 0.75 to 0.9 (at 70% utilization
 the default stopped hold buffering); physical eligibility still requires >=0.
 After routing the flow adds floating M5/M6 metal fill (foundry minimum density
