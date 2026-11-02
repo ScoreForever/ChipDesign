@@ -1,6 +1,7 @@
 {
   "verification/fpga/nocpu_busy_button.py": "e08e626e93bec15bd764c2b3e59aaecebbe0626f86b118a184d3020b20fb43ba",
   "verification/fpga/nocpu_recovery_smoke.py": "f0529d3a9dcd077f6138f1d3f01748a83cdd8c524a7dbde71db0d690ff854637",
+  "verification/fpga/results/2026-11-02-physical-followup/.gitattributes": "37c32581aacf6980e25cdcee8b8ae264b3120086a4748fb27436163bd2a80b51",
   "verification/fpga/results/2026-11-02-physical-followup/after_busy_reset/actual.bin": "d79dafdd2639c839b87e6543d7a098cfbb4e3d72a29bc4f0ce332094412c5080",
   "verification/fpga/results/2026-11-02-physical-followup/after_busy_reset/commands.jsonl.gz": "eb7803d44cc37904741476c368ded5629ded1f0dc3dd9d522114bdc1b4b81f54",
   "verification/fpga/results/2026-11-02-physical-followup/after_busy_reset/expected.bin": "d79dafdd2639c839b87e6543d7a098cfbb4e3d72a29bc4f0ce332094412c5080",
