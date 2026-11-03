@@ -176,6 +176,7 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--balanced', action='store_true', help='inverse-frequency class weights')
     ap.add_argument('--distill', action='store_true', help='distill the float model during QAT')
+    ap.add_argument('--teacher', choices=sorted(SPECS), help='wide float teacher spec distilled into both phases')
     ap.add_argument('--capacity-only', action='store_true', help='check SRAM/descriptor fit and stop')
     ap.add_argument('--affine', action='store_true', help='random affine augmentation (image tasks)')
     ap.add_argument('--relu-max', type=int, default=15, choices=(7, 15),
@@ -217,10 +218,23 @@ def main():
         return
     del probe
     log(f'{args.name}: {net.weight_count()} weights, train {len(data["train"][1])} val {len(data["val"][1])} test {len(data["test"][1])}')
-    fp_val = fit(net, data, args.name, args.fp_epochs, args.lr, args.batch, device, False, log)
+    big = None
+    if args.teacher:
+        # A wide float-only teacher (no SRAM limit) distills into both phases.
+        tcfg = SPECS[args.teacher]
+        big = Net(tcfg['spec'], tcfg['input']).to(device)
+        cache = args.out / f'{args.teacher}_teacher_s{args.seed}.pt'
+        if cache.exists():
+            big.load_state_dict(torch.load(cache))
+        else:
+            fit(big, data, args.name, args.fp_epochs, args.lr, args.batch, device, False, log)
+            torch.save(big.state_dict(), cache)
+        big.eval()
+        log(f'teacher {args.teacher}: float val {float_accuracy(big, *data["val"]):.4f} test {float_accuracy(big, *data["test"]):.4f}')
+    fp_val = fit(net, data, args.name, args.fp_epochs, args.lr, args.batch, device, False, log, big)
     fp_test = float_accuracy(net, *data['test'])
     log(f'float val {fp_val:.4f} test {fp_test:.4f}')
-    teacher = copy.deepcopy(net).eval() if args.distill else None
+    teacher = big if big is not None else (copy.deepcopy(net).eval() if args.distill else None)
     net.to_qat()
     net.train()
     with torch.no_grad():  # calibrate activation scales on one batch

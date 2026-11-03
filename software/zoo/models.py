@@ -105,4 +105,14 @@ SPECS = {
         *ds(72),
         dict(type='gap'),
         dict(type='fc', out=10, last=True)]),
+    # Float-only teacher for distillation (not deployed; no SRAM limit).
+    'fashion_teacher': dict(input=(28, 28, 1), classes=10, spec=[
+        dict(type='conv', out=96, k=[3, 3], p=[1, 1, 1, 1]),
+        dict(type='conv', out=96, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *res('r1', 96),
+        dict(type='conv', out=192, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *res('r2', 192),
+        dict(type='conv', out=256, k=[3, 3], p=[1, 1, 1, 1]),
+        dict(type='gap'),
+        dict(type='fc', out=10, last=True)]),
 }
