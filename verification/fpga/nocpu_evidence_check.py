@@ -8,7 +8,11 @@ from pathlib import Path
 REQUIRED_FIXTURES = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges', 'long_k',
                      'tinycnn', 'host_i32_quant', 'host_i32_pool', 'tiny_padded', 'one_mac',
                      'negative_pool', 'full_activation', 'full_activation_8k', 'upper_activation', 'slot_pressure',
-                     'max_k_int4', 'odd_packed_relu', 'tiny_strided_asymmetric')
+                     'max_k_int4', 'odd_packed_relu', 'tiny_strided_asymmetric',
+                     # ABI 4 operators, u4 tensors, in-place Add and row-padded kernels.
+                     'dwconv', 'dw_rect_pool', 'conv1d', 'rect_kernels', 'pool_general', 'gap_head',
+                     'residual_add', 'u4_chain', 'add_inplace_src2', 'rowpad_kernels', 'rowpad_4x2',
+                     'pool_i32_window')
 
 
 def main():

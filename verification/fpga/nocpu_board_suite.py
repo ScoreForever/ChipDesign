@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 3.0 INT4 board regression; runs against a manually programmed FPGA."""
+"""ABI 4.0 INT4 board regression; runs against a manually programmed FPGA."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -47,7 +47,7 @@ def raw_upload(npu, pkg):
 def execute(args):
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    report = {'scope': 'ABI 3.0 INT4 no-CPU board functional suite', 'started_utc': datetime.now(timezone.utc).isoformat(),
+    report = {'scope': 'ABI 4.0 INT4 no-CPU board functional suite', 'started_utc': datetime.now(timezone.utc).isoformat(),
               'passed': False, 'cases': [], 'manual_pending': ['repeat START while confirmed busy', 'watchdog timeout and recovery', 'RESET while confirmed busy', 'pause TCK while confirmed busy', 'physical reset button', 'power cycle/reprogram', 'electrical/timing review'],
               'limitations': ['Board bitstream identity and build provenance require human review', 'Golden is project software reference, not independent for all cases']}
     rpc = None
