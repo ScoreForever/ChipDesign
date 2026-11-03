@@ -58,7 +58,7 @@ class Int4Tests(unittest.TestCase):
             self.assertEqual(struct.unpack_from('<2I', package.image, words[8]), (123, 0x003e4000))
             self.assertEqual(package.manifest['input_bytes'], 2)
             self.assertEqual(package.manifest['output_bytes'], 1)
-            self.assertEqual(words[9], 0x78)
+            self.assertEqual(words[9], 0xf8)  # ABI 4: 5-bit clamp fields, -8 | 7<<5
             self.assertEqual(package.manifest['numeric_format'], NUMERIC_FORMAT)
 
     def test_native_input_and_weights_reject_int8_range(self):

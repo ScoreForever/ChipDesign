@@ -27,6 +27,8 @@ module npu_mac_array #(
     input  wire                             in_valid,
     input  wire                             in_bank,
     input  wire [ARRAY_ROWS*4-1:0]          in_act,
+    // Activation codes are signed INT4, or unsigned 0..15 (u4) when set.
+    input  wire                             in_unsigned,
     input  wire [TAG_WIDTH-1:0]             in_tag,
     output wire                             out_valid,
     output wire                             out_bank,
@@ -59,26 +61,27 @@ module npu_mac_array #(
 
     // Row r is delayed r clocks so that its operand meets the partial sum
     // travelling down from row r-1. The bank select is skewed identically.
-    wire [3:0] row_act [0:ARRAY_ROWS-1];
+    // Operands travel as 5-bit signed values: u4 zero-extends, i4 sign-extends.
+    wire [4:0] row_act [0:ARRAY_ROWS-1];
     wire row_sel [0:ARRAY_ROWS-1];
     genvar r, c;
     generate
         for (r = 0; r < ARRAY_ROWS; r = r + 1) begin : skew
             if (r == 0) begin : direct
-                assign row_act[r] = in_act[3:0];
+                assign row_act[r] = {!in_unsigned && in_act[3], in_act[3:0]};
                 assign row_sel[r] = in_bank;
             end else begin : delayed
-                reg [3:0] act_delay [0:r-1];
+                reg [4:0] act_delay [0:r-1];
                 reg sel_delay [0:r-1];
                 integer d;
                 always @(posedge clk) begin
                     if (rst) begin
                         for (d = 0; d < r; d = d + 1) begin
-                            act_delay[d] <= 4'd0;
+                            act_delay[d] <= 5'd0;
                             sel_delay[d] <= 1'b0;
                         end
                     end else begin
-                        act_delay[0] <= in_act[r*4 +: 4];
+                        act_delay[0] <= {!in_unsigned && in_act[r*4+3], in_act[r*4 +: 4]};
                         sel_delay[0] <= in_bank;
                         for (d = 1; d < r; d = d + 1) begin
                             act_delay[d] <= act_delay[d-1];
@@ -92,7 +95,7 @@ module npu_mac_array #(
         end
     endgenerate
 
-    wire [3:0] act_link [0:ARRAY_ROWS-1][0:ARRAY_COLS];
+    wire [4:0] act_link [0:ARRAY_ROWS-1][0:ARRAY_COLS];
     wire sel_link [0:ARRAY_ROWS-1][0:ARRAY_COLS];
     wire [ACC_WIDTH-1:0] psum_link [0:ARRAY_ROWS][0:ARRAY_COLS-1];
     generate
@@ -101,18 +104,19 @@ module npu_mac_array #(
             assign sel_link[r][0] = row_sel[r];
             for (c = 0; c < ARRAY_COLS; c = c + 1) begin : cols
                 reg signed [3:0] weight_bank0, weight_bank1;
-                reg [3:0] act_q;
+                reg [4:0] act_q;
                 reg sel_q;
                 reg [ACC_WIDTH-1:0] psum_q;
                 wire signed [3:0] weight_sel = sel_link[r][c] ? weight_bank1 : weight_bank0;
-                wire signed [7:0] product = $signed(act_link[r][c]) * weight_sel;
+                // |u4 x i4| <= 120 and four rows <= 480 fit the 10-bit local sum.
+                wire signed [8:0] product = $signed(act_link[r][c]) * weight_sel;
                 (* use_dsp = "no" *) wire signed [ACC_WIDTH-1:0] mac =
                     $signed(psum_link[r][c]) + product;
                 always @(posedge clk) begin
                     if (rst) begin
                         weight_bank0 <= 4'sd0;
                         weight_bank1 <= 4'sd0;
-                        act_q <= 4'd0;
+                        act_q <= 5'd0;
                         sel_q <= 1'b0;
                         psum_q <= {ACC_WIDTH{1'b0}};
                     end else begin

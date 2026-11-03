@@ -3,7 +3,7 @@
 module tb_requant_lane;
  reg clk=0,rst=1,iv=0;always #5 clk=~clk;
  reg signed [31:0] value;reg signed [15:0] multiplier;reg signed [5:0] shift;
- reg signed [3:0] lo,hi;reg [15:0] tag;
+ reg signed [4:0] lo,hi;reg [15:0] tag;
  wire ov;wire [3:0] result;wire [15:0] ot;
  requant_lane #(.TAG_WIDTH(16)) dut(.clk(clk),.rst(rst),.in_valid(iv),.in_value(value),
  .in_multiplier(multiplier),.in_shift(shift),.activation_min(lo),.activation_max(hi),

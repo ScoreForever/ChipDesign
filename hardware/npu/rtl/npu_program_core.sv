@@ -41,6 +41,8 @@ module npu_program_core #(
     wire [2:0] op=d[0][2:0];
     reg q_enable,relu_enable,pool_enable,mac_op,dwconv,pool1d,elem_pool;
     wire src32=d[0][11],dst32=d[0][12];
+    // u4: 4-bit tensors holding unsigned 0..15 (post-ReLU activations).
+    wire su=d[0][15],su2=d[0][16],du=d[0][17];
     wire [15:0] src={d[1][14:0],1'b0},dst={d[2][14:0],1'b0};
     wire [15:0] ih=d[3][15:0],iw=d[3][31:16];
     wire [15:0] ic=d[4][15:0],oc=d[4][31:16];
@@ -53,7 +55,7 @@ module npu_program_core #(
     wire signed [7:0] add_wa=d[12][7:0],add_wb=d[12][15:8];
     wire [7:0] pt=d[6][7:0],pl=d[6][15:8],pb=d[6][23:16],pr=d[6][31:24];
     wire [15:0] weights=d[7][15:0],params=d[8][15:0];
-    wire signed [3:0] clamp_min=d[9][3:0],clamp_max=d[9][7:4];
+    wire signed [4:0] clamp_min=d[9][4:0],clamp_max=d[9][9:5];
     reg [15:0] oh,ow,dh,dw,k_count,groups,octs,row_stride;
     reg [31:0] src_span,dst_span,weight_span,param_span;
     reg [15:0] positions;
@@ -85,11 +87,12 @@ module npu_program_core #(
     integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam,j;
     reg basic_bad,shape_bad,range_bad,source_known,source2_known;
     always @* begin
-        basic_bad=d[0][31:15]!=0 || d[0][7:0]<CONV || d[0][7:0]>ADD ||
+        basic_bad=d[0][31:18]!=0 || d[0][7:0]<CONV || d[0][7:0]>ADD ||
             d[1][31:15]!=0 || d[2][31:15]!=0 || d[7][31:16]!=0 || d[8][31:16]!=0 ||
             ih==0 || ih>255 || iw==0 || iw>255 || ic==0 || ic>MAX_K ||
             oc==0 || oc>256 || d[1][1:0]!=0 || d[2][1:0]!=0 ||
-            d[9][31:8]!=0 || d[13]!=0 || d[14]!=0 || d[15]!=(32'h49340f40|COLS) ||
+            d[9][31:10]!=0 || d[13]!=0 || d[14]!=0 || d[15]!=(32'h49340f40|COLS) ||
+            (su && src32) || (su2 && op!=ADD) || (du && dst32) ||
             (op==ADD ? (d[11][31:15]!=0 || d[11][1:0]!=0 || d[12][31:16]!=0) : (d[11]!=0 || d[12]!=0));
         if(mac_op) begin
             // Rectangular kernels up to 7x7. Depthwise convolution keeps one
@@ -108,12 +111,13 @@ module npu_program_core #(
                 ((op==RELU || op==REQUANT) && d[0][9:8]!=0);
             case(op)
                 REQUANT:basic_bad=basic_bad || dst32;
-                RELU:basic_bad=basic_bad || src32!=dst32;
-                POOL:basic_bad=basic_bad || (q_enable ? dst32 : src32!=dst32);
+                RELU:basic_bad=basic_bad || src32!=dst32 || su!=du;
+                POOL:basic_bad=basic_bad || (q_enable ? dst32 : (src32!=dst32 || su!=du));
                 default:basic_bad=basic_bad || src32 || dst32==q_enable; // AvgPool/Add: i4 in, raw INT32
             endcase
         end
-        if(q_enable) basic_bad=basic_bad || clamp_min>clamp_max || (relu_enable && clamp_max<0);
+        if(q_enable) basic_bad=basic_bad || clamp_min>clamp_max || (relu_enable && clamp_max<0) ||
+            (du ? clamp_min<0 : clamp_max>7);
         else basic_bad=basic_bad || d[9]!=0;
         xoh=ih; xow=iw; xk=ic;
         if(mac_op && sh!=0 && sw!=0) begin
@@ -210,7 +214,7 @@ module npu_program_core #(
     // 16-bit nibble address space, so no 32-bit adder is needed here.
     wire [15:0] packed_tail_addr=dst+dst_span[15:0]-16'd2;
     wire rq_valid; wire [3:0] rq_data; wire [15:0] rq_addr;
-    wire signed [3:0] effective_min=relu_enable && clamp_min<0 ? 4'sd0 : clamp_min;
+    wire signed [4:0] effective_min=relu_enable && clamp_min<0 ? 5'sd0 : clamp_min;
     requant_lane #(.TAG_WIDTH(16)) i_requant (
         .clk(clk),.rst(rst),.in_valid(post_fire && q_enable),.in_value(post_raw),
         .in_multiplier(mult_cache[read_lane]),.in_shift(shift_cache[read_lane]),
@@ -256,7 +260,7 @@ module npu_program_core #(
     npu_mac_array #(.ARRAY_ROWS(4),.ARRAY_COLS(COLS),.ACC_WIDTH(10),.TAG_WIDTH(6)) i_array (
         .clk(clk),.rst(rst),.weight_we(array_weight_we),.weight_bank(load_bank),
         .weight_row(load_row),.weight_data(array_weights),.in_valid(issue_fire),
-        .in_bank(issue_seq[0]),.in_act(gather_return ? returned_vector : gathered),.in_tag(in_tag),
+        .in_bank(issue_seq[0]),.in_act(gather_return ? returned_vector : gathered),.in_unsigned(su),.in_tag(in_tag),
         .out_valid(out_valid),.out_bank(out_bank),.out_tag(out_tag),.out_psum(out_sum));
     wire [3:0] ret_p=out_tag[3:0];
     wire ret_last=out_tag[4],ret_first=out_tag[5];
@@ -381,10 +385,11 @@ module npu_program_core #(
     reg [15:0] element_base,element_base2,element_col_step,element_row_step,element_row_jump;
     reg [31:0] element_scan_product;
     reg signed [31:0] element_acc;
-    wire signed [31:0] element_value=src32 ? $signed(a_data) : $signed({{28{a_data[3]}},a_data[3:0]});
+    wire signed [31:0] element_value=src32 ? $signed(a_data) : $signed({{28{a_data[3] && !su}},a_data[3:0]});
     wire tap_first=tap_y==0 && tap_x==0;
     wire tap_last=!elem_pool || (tap_y==pkh-8'd1 && tap_x==pkw-8'd1);
-    wire signed [11:0] add_term=$signed(add_second ? add_wb : add_wa)*$signed(a_data[3:0]);
+    wire signed [12:0] add_term=$signed(add_second ? add_wb : add_wa)*
+        $signed({a_data[3] && !(add_second ? su2 : su),a_data[3:0]});
     reg signed [31:0] selected_element;
     always @* begin
         selected_element=element_value;

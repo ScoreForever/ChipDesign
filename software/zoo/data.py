@@ -140,7 +140,11 @@ def speech_commands(root, n_mfcc=10):
                 files[split].append((f, label))
         # Unknown words are subsampled to one keyword's share; silence comes
         # from 1 s background-noise crops at random gains.
-        noise = [torchaudio.load(str(p))[0][0] for p in sorted((base / '_background_noise_').glob('*.wav'))]
+        import soundfile
+
+        def load(path):
+            return torch.tensor(soundfile.read(str(path), dtype='float32')[0])
+        noise = [load(p) for p in sorted((base / '_background_noise_').glob('*.wav'))]
         mfcc = torchaudio.transforms.MFCC(16000, n_mfcc, melkwargs=dict(n_fft=640, win_length=640, hop_length=320,
                                                                           n_mels=40, center=False))
         out = {}
@@ -152,7 +156,7 @@ def speech_commands(root, n_mfcc=10):
             chosen = known + unknown[:share]
             waves, labels = [], []
             for f, label in chosen:
-                w = torchaudio.load(str(f))[0][0]
+                w = load(f)
                 w = torch.nn.functional.pad(w, (0, max(0, 16000 - len(w))))[:16000]
                 waves.append(w)
                 labels.append(label)
@@ -199,4 +203,5 @@ def gtsrb(root):
     return cached(root, 'gtsrb', build)
 
 
-LOADERS = dict(mnist=mnist, fashion=fashion, har=uci_har, ecg=mitbih, kws=speech_commands, gtsrb=gtsrb)
+LOADERS = dict(mnist=mnist, fashion=fashion, har=uci_har, ecg=mitbih, kws=speech_commands, gtsrb=gtsrb,
+               fashion_l=fashion, kws_l=speech_commands)

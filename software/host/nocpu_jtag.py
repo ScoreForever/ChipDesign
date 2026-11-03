@@ -201,7 +201,7 @@ class Npu:
         frame=bytes(frame);base=self.read(0x18);length=self.read(0x1c)
         if len(frame)!=length:raise ValueError(f'expected {length} input bytes')
         m=getattr(self,'manifest',None)
-        if m and m['input_dtype']=='i4' and m['input_elements']%2 and frame[-1]&0xf0:
+        if m and m['input_dtype'] in ('i4','u4') and m['input_elements']%2 and frame[-1]&0xf0:
             raise ValueError('nonzero INT4 input padding nibble')
         self.command(Op.INPUT_BEGIN)
         for offset in range(0,len(frame),4):self.write(0x20000+base+offset,int.from_bytes(frame[offset:offset+4].ljust(4,b'\0'),'little'))

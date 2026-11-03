@@ -23,6 +23,9 @@ FORMAT_MAGIC=0x49340f40  # I4, Q15, four rows; low nibble is array column count.
 NUMERIC_FORMAT=0x0f200404
 OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5,'AvgPool':6,'Add':7}
 Q,R,P,S32,D32,DW,P1D=1<<8,1<<9,1<<10,1<<11,1<<12,1<<13,1<<14
+# u4: 4-bit tensors holding unsigned 0..15 (typically post-ReLU activations).
+SU,SU2,DU=1<<15,1<<16,1<<17
+NIBBLE=('i4','u4')
 MAX_KERNEL=7
 # Fusion kinds a head operator may absorb. A switch is either a bare kind
 # ('requant', 'relu', 'maxpool') or one qualified by the head ('add.relu').
@@ -35,8 +38,8 @@ def wrap32(x):
 def requant(x,mult,shift,lo=-8,hi=7):
     """Q15 with one rounding: saturating left shift for shift>0, then
     round-half-up of x*mult/2^(15+max(-shift,0)), then INT4 clamp."""
-    if not 0<=mult<2**15 or not -31<=shift<=31 or not -8<=lo<=hi<=7:
-        raise ValueError('invalid INT4 Q15 parameters')
+    if not 0<=mult<2**15 or not -31<=shift<=31 or not -8<=lo<=hi<=15 or (lo<0 and hi>7):
+        raise ValueError('invalid INT4/u4 Q15 parameters')
     x=max(-2**31,min(2**31-1,wrap32(x)*2**max(shift,0)))
     s=15+max(-shift,0)
     y=(x*mult+2**(s-1))>>s
@@ -56,11 +59,15 @@ def unpack_i4(payload,count):
 def encode_tensor(values,dtype):
     values=[operator.index(v) for v in values]
     if dtype=='i4':return pack_i4(values)
+    if dtype=='u4':
+        if any(v<0 or v>15 for v in values):raise ValueError('value outside unsigned u4')
+        return pack_i4([v-16 if v>7 else v for v in values])
     if dtype=='i32':return struct.pack('<'+'i'*len(values),*values)
     raise ValueError('tensor dtype must be i4 or i32')
 
 def decode_tensor(payload,dtype,count):
     if dtype=='i4':return unpack_i4(payload,count)
+    if dtype=='u4':return [v&15 for v in unpack_i4(payload,count)]
     if dtype=='i32' and len(payload)==count*4:return list(struct.unpack('<'+'i'*count,payload))
     raise ValueError('invalid tensor dtype/length')
 
@@ -157,7 +164,7 @@ def analyze(model):
     if len(shape)!=3 or min(shape)<=0 or shape[0]>255 or shape[1]>255 or shape[2]>1024:
         raise ValueError('input must be positive HWC within hardware limits')
     dtype=model['input'].get('dtype','i4')
-    if dtype not in ('i4','i32'):raise ValueError('input dtype must be i4 or i32')
+    if dtype not in ('i4','u4','i32'):raise ValueError('input dtype must be i4, u4 or i32')
     tensors={name:Tensor(shape,dtype)}
     nodes=[]
     for original in model['nodes']:
@@ -167,7 +174,7 @@ def analyze(model):
         fields={'Conv':{'channels','weights','bias','kernel','stride','pads','groups','dilation','weight_zero_point'},
                 'FC':{'channels','weights','bias','kernel','stride','pads'},
                 'MaxPool':{'kernel','stride','pads'},'AvgPool':{'kernel','stride','pads'},'ReLU':set(),
-                'Requant':{'multiplier','shift','clamp','input_zero_point','output_zero_point'},
+                'Requant':{'multiplier','shift','clamp','dtype','input_zero_point','output_zero_point'},
                 'Add':{'input2','weights'}}
         unknown=set(n)-({'op','input','output','metadata','name','layout','zero_point','fuse'}|fields[op])
         if unknown:raise ValueError(f'unknown {op} fields: {sorted(unknown)}')
@@ -178,7 +185,7 @@ def analyze(model):
         t=tensors[src];h,w,c=t.shape
         n['inputs']=[src]
         if op in ('Conv','FC'):
-            if t.dtype!='i4':raise ValueError('Conv/FC input must be i4; insert Requant')
+            if t.dtype not in NIBBLE:raise ValueError('Conv/FC input must be i4/u4; insert Requant')
             oc=operator.index(n['channels'])
             kh,kw=pair(n.get('kernel',3 if op=='Conv' else 1),'kernel')
             sh,sw=pair(n.get('stride',1),'stride')
@@ -210,15 +217,15 @@ def analyze(model):
             if any(n.get('pads',[0]*4)):raise ValueError('pooling has no padding')
             if not (1<=kh<=255 and 1<=kw<=255 and 1<=sh<=255 and 1<=sw<=255):raise ValueError('pool window/stride')
             if h<kh or w<kw:raise ValueError('empty pool output')
-            if op=='AvgPool' and t.dtype!='i4':raise ValueError('AvgPool sums i4 inputs; insert Requant')
+            if op=='AvgPool' and t.dtype not in NIBBLE:raise ValueError('AvgPool sums i4/u4 inputs; insert Requant')
             n.update(kernel_h=kh,kernel_w=kw,stride_h=sh,stride_w=sw)
             # AvgPool yields the INT32 window sum; the 1/N scale belongs to a Requant.
             result=Tensor(((h-kh)//sh+1,(w-kw)//sw+1,c),'i32' if op=='AvgPool' else t.dtype)
         elif op=='Add':
             other=n.get('input2')
             if other not in tensors:raise ValueError('Add needs a known input2')
-            if t.dtype!='i4' or tensors[other].dtype!='i4' or tensors[other].shape!=t.shape:
-                raise ValueError('Add inputs must be i4 tensors of one shape')
+            if t.dtype not in NIBBLE or tensors[other].dtype not in NIBBLE or tensors[other].shape!=t.shape:
+                raise ValueError('Add inputs must be i4/u4 tensors of one shape')
             wa,wb=map(operator.index,n.get('weights',[1,1]))
             if not (-128<=wa<=127 and -128<=wb<=127):raise ValueError('Add weights must be signed 8-bit')
             n.update(weights=[wa,wb]);n['inputs']=[src,other]
@@ -228,11 +235,14 @@ def analyze(model):
             mult=flatten(n['multiplier']);shift=flatten(n['shift'])
             if len(mult)==1:mult*=c
             if len(shift)==1:shift*=c
-            lo,hi=map(operator.index,n.get('clamp',[-8,7]))
-            if len(mult)!=c or len(shift)!=c or any(v<0 or v>=2**15 for v in mult) or any(v< -31 or v>31 for v in shift) or not -8<=lo<=hi<=7:
+            out=n.get('dtype','i4')
+            if out not in NIBBLE:raise ValueError('Requant output dtype must be i4 or u4')
+            lo,hi=map(operator.index,n.get('clamp',[-8,7] if out=='i4' else [0,15]))
+            limits=(-8,7) if out=='i4' else (0,15)
+            if len(mult)!=c or len(shift)!=c or any(v<0 or v>=2**15 for v in mult) or any(v< -31 or v>31 for v in shift) or not limits[0]<=lo<=hi<=limits[1]:
                 raise ValueError('invalid Requant parameters')
             n.update(multiplier=mult,shift=shift,clamp=[lo,hi])
-            result=Tensor(t.shape,'i4')
+            result=Tensor(t.shape,out)
         if result.shape[2]>256:raise ValueError('output channels exceed 256')
         tensors[dst]=result;nodes.append(n)
     output=model.get('output',nodes[-1]['output'] if nodes else '')
@@ -242,8 +252,8 @@ def analyze(model):
 def reference(model,values):
     """Execute logical nodes, without consulting fused descriptors or addresses."""
     tensors,nodes=analyze(model);values=[operator.index(v) for v in values]
-    limit=2**31 if tensors[model['input']['name']].dtype=='i32' else 8
-    if len(values)!=math.prod(tensors[model['input']['name']].shape) or any(v< -limit or v>=limit for v in values):
+    lo,hi={'i32':(-2**31,2**31),'i4':(-8,8),'u4':(0,16)}[tensors[model['input']['name']].dtype]
+    if len(values)!=math.prod(tensors[model['input']['name']].shape) or any(v<lo or v>=hi for v in values):
         raise ValueError('input length/range mismatch')
     data={model['input']['name']:values}
     for n in nodes:
@@ -351,6 +361,8 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         n=g[0];op=n['op'];tin=tensors[n['input']];tout=tensors[g[-1]['output']]
         h,w,c=n.get('input_shape',tin.shape);oc=n.get('channels',c)
         flags=(S32 if tin.dtype=='i32' else 0)|(D32 if tout.dtype=='i32' else 0)
+        flags|=(SU if tin.dtype=='u4' else 0)|(DU if tout.dtype=='u4' else 0)
+        if op=='Add' and tensors[n['input2']].dtype=='u4':flags|=SU2
         q=next((v for v in g if v['op']=='Requant'),None)
         if op!='Requant':
             if q:flags|=Q
@@ -396,7 +408,7 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         words=[OPS[op]|flags,allocation[n['input']][0],allocation[g[-1]['output']][0],
                h|(w<<16),c|(oc<<16),geometry,
                sum(v<<(8*i) for i,v in enumerate(pads)),weight_base,param_base,
-               (clamp[0]&15)|((clamp[1]&15)<<4),tout.shape[0]|(tout.shape[1]<<16),
+               (clamp[0]&31)|((clamp[1]&31)<<5),tout.shape[0]|(tout.shape[1]<<16),
                allocation[n['input2']][0] if op=='Add' else 0,
                ((n['weights'][0]&255)|((n['weights'][1]&255)<<8)) if op=='Add' else 0,0,0,0]
         words[15]=FORMAT_MAGIC|cols

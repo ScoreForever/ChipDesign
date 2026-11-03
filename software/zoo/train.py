@@ -31,6 +31,7 @@ from zoo.qat import Net, annotate_shapes, export  # noqa: E402
 def augment(name, x):
     """Light, label-preserving augmentation on a GPU batch [N,C,H,W]."""
     n = x.shape[0]
+    name = name.split('_')[0]
     if name in ('mnist', 'fashion', 'gtsrb'):
         pad = 2 if name != 'gtsrb' else 3
         xp = F.pad(x, (pad,) * 4, value=float(x.min()))
@@ -89,7 +90,7 @@ def int_accuracy(model, x, y, device, per_class=None):
 FAKE_ONLY = False
 
 
-def fit(net, data, name, epochs, lr, batch, device, qat, log):
+def fit(net, data, name, epochs, lr, batch, device, qat, log, teacher=None):
     params = [p for p in net.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(params, lr=lr, weight_decay=0 if qat else 5e-4)
     steps = epochs * math.ceil(len(data['train'][1]) / batch)
@@ -101,7 +102,13 @@ def fit(net, data, name, epochs, lr, batch, device, qat, log):
         net.train()
         for xb, yb in batches(x, y, batch, True):
             xb = augment(name, xb)
-            loss = F.cross_entropy(net(xb), yb, weight=weights, label_smoothing=0.05)
+            logits = net(xb)
+            loss = F.cross_entropy(logits, yb, weight=weights, label_smoothing=0.05)
+            if teacher is not None:
+                # Distill the float model into the quantized one (T=4).
+                with torch.no_grad():
+                    soft = F.softmax(teacher(xb) / 4, 1)
+                loss = 0.3 * loss + 0.7 * 16 * F.kl_div(F.log_softmax(logits / 4, 1), soft, reduction='batchmean')
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -150,6 +157,7 @@ def main():
     ap.add_argument('--batch', type=int, default=256)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--balanced', action='store_true', help='inverse-frequency class weights')
+    ap.add_argument('--distill', action='store_true', help='distill the float model during QAT')
     ap.add_argument('--relu-max', type=int, default=7, choices=(7, 15),
                     help='15 models unsigned post-ReLU activations (fake-quant only until the hardware supports it)')
     args = ap.parse_args()
@@ -179,13 +187,14 @@ def main():
     fp_val = fit(net, data, args.name, args.fp_epochs, args.lr, args.batch, device, False, log)
     fp_test = float_accuracy(net, *data['test'])
     log(f'float val {fp_val:.4f} test {fp_test:.4f}')
+    teacher = copy.deepcopy(net).eval() if args.distill else None
     net.to_qat()
     net.train()
     with torch.no_grad():  # calibrate activation scales on one batch
         net(data['train'][0][:2048])
     global FAKE_ONLY
     FAKE_ONLY = args.relu_max != 7
-    qat_val = fit(net, data, args.name, args.qat_epochs, args.qat_lr, args.batch, device, True, log)
+    qat_val = fit(net, data, args.name, args.qat_epochs, args.qat_lr, args.batch, device, True, log, teacher)
     if FAKE_ONLY:
         result = dict(name=args.name, relu_max=args.relu_max, float_val=fp_val, float_test=fp_test,
                       fake_quant_val=qat_val, fake_quant_test=float_accuracy(net, *data['test']))

@@ -12,8 +12,9 @@ module requant_lane #(
     input  wire signed [31:0]           in_value,
     input  wire signed [15:0]           in_multiplier,
     input  wire signed [SHIFT_WIDTH-1:0] in_shift,
-    input  wire signed [3:0]            activation_min,
-    input  wire signed [3:0]            activation_max,
+    // Clamp bounds: -8..7 for INT4 outputs, 0..15 for unsigned u4 outputs.
+    input  wire signed [4:0]            activation_min,
+    input  wire signed [4:0]            activation_max,
     input  wire [TAG_WIDTH-1:0]         in_tag,
     output reg                          out_valid,
     output reg  [3:0]                   out_data,
@@ -47,7 +48,7 @@ module requant_lane #(
 
     reg signed [47:0] s2_product;
     reg signed [31:0] s3_scaled;
-    reg signed [3:0] s1_min, s1_max, s2_min, s2_max, s3_min, s3_max;
+    reg signed [4:0] s1_min, s1_max, s2_min, s2_max, s3_min, s3_max;
     reg [TAG_WIDTH-1:0] s1_tag, s2_tag, s3_tag;
 
     // |product| < 2^46, so adding 2^(rshift-1) <= 2^45 cannot overflow 48 bits,
@@ -61,8 +62,8 @@ module requant_lane #(
             s1_value <= 32'sd0; s1_multiplier <= 16'sd0; s1_rshift <= 6'd15;
             s2_rshift <= 6'd15;
             s2_product <= 48'sd0; s3_scaled <= 32'sd0;
-            s1_min <= 4'sd0; s1_max <= 4'sd0; s2_min <= 4'sd0; s2_max <= 4'sd0;
-            s3_min <= 4'sd0; s3_max <= 4'sd0;
+            s1_min <= 5'sd0; s1_max <= 5'sd0; s2_min <= 5'sd0; s2_max <= 5'sd0;
+            s3_min <= 5'sd0; s3_max <= 5'sd0;
             s1_tag <= '0; s2_tag <= '0; s3_tag <= '0; out_tag <= '0;
             out_data <= 4'd0;
         end else begin
@@ -83,9 +84,9 @@ module requant_lane #(
             out_valid <= s3_valid;
             out_tag <= s3_tag;
             if (s3_scaled < s3_min)
-                out_data <= s3_min;
+                out_data <= s3_min[3:0];
             else if (s3_scaled > s3_max)
-                out_data <= s3_max;
+                out_data <= s3_max[3:0];
             else
                 out_data <= s3_scaled[3:0];
         end

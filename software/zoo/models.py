@@ -65,4 +65,17 @@ SPECS = {
         *ds(48, pool='max2'),
         dict(type='gap'),
         dict(type='fc', out=43, last=True)]),
+    'fashion_l': dict(input=(28, 28, 1), classes=10, spec=[
+        dict(type='conv', out=32, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *res('r1', 32),
+        *ds(64, pool='max2'),
+        *res('r2', 64),
+        *ds(96),
+        dict(type='gap'),
+        dict(type='fc', out=10, last=True)]),
+    'kws_l': dict(input=(49, 10, 1), classes=12, spec=[
+        dict(type='conv', out=48, k=[7, 3], s=[2, 2], p=[3, 1, 3, 1]),
+        *ds(48), *ds(48), *ds(48), *ds(48),
+        dict(type='gap'),
+        dict(type='fc', out=12, last=True)]),
 }

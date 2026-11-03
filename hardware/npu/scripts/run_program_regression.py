@@ -12,7 +12,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'software/host'))
-from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz,ABI,pack_i4,quantize_int8_model
+from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz,ABI,pack_i4,quantize_int8_model,encode_tensor
 from nocpu_jtag import Npu,Op
 
 def fixtures(seed=7):
@@ -136,6 +136,19 @@ def fixtures_v4(r,mac,q):
         dict(op='Requant',input='c',output='d',multiplier=[0x4000]*8,shift=[-2]*8),relu('d','e'),
         dict(op='Add',input='e',input2='b',output='y',weights=[-128,127])]),frame(shape)
     shape=[2,9,3]
+    # u4 tensors: unsigned post-ReLU codes 0..15 into Conv, pooling and Add.
+    uq=lambda s,d,c,shift=-3,lo=0,hi=15:dict(op='Requant',input=s,output=d,dtype='u4',clamp=[lo,hi],
+                                               multiplier=[0x6000]*c,shift=[shift]*c)
+    shape=[6,6,8]
+    yield 'u4_chain',dict(input=dict(name='x',shape=shape,dtype='u4'),nodes=[
+        mac('Conv','x','a',9*8,8,kernel=3,pads=[1]*4),uq('a','b',8),relu('b','c'),
+        dict(op='MaxPool',input='c',output='d'),
+        dw('d','e',8,3,pads=[1]*4),uq('e','f',8,lo=2,hi=11),
+        dict(op='Add',input='f',input2='d',output='g',weights=[5,-7]),uq('g','h',8,-2),
+        dict(op='AvgPool',input='h',output='i',kernel=[2,2],stride=[1,1]),q('i','j',8,-5),
+        dict(op='MaxPool',input='h',output='k',kernel=[2,2],stride=[1,1]),
+        dict(op='Add',input='j',input2='k',output='y',weights=[-3,2])]),[r.randrange(0,16) for _ in range(288)]
+    shape=[2,9,3]
     yield 'pool_i32_window',dict(input=dict(name='x',shape=shape,dtype='i32'),nodes=[
         dict(op='MaxPool',input='x',output='a',kernel=[2,4],stride=[1,3]),relu('a','y')]),\
         [r.randrange(-2**31,2**31) for _ in range(54)]
@@ -167,7 +180,7 @@ class Recorder:
         return value
 
 def encoded(values,dtype):
-    return struct.pack('<'+'i'*len(values),*values) if dtype=='i32' else pack_i4(values)
+    return encode_tensor(values,dtype)
 
 def run(command,log):
     try:
@@ -240,7 +253,7 @@ def unit_tests(out,defines,macro_model=None):
     for i in range(20000):
         x=edges[i%len(edges)] if i%3==0 else r.randrange(-2**31,2**31)
         m=r.choice([0,1,0x7fff,0x4000,r.randrange(0,2**15)])
-        shift=r.randrange(-31,32);lo,hi=r.choice([(-8,7),(0,7),(-4,3)])
+        shift=r.randrange(-31,32);lo,hi=r.choice([(-8,7),(0,7),(-4,3),(0,15),(2,11)])
         # Independent single-rounding model: exact rational, ties toward +inf.
         sx=max(-2**31,min(2**31-1,x*(1<<max(shift,0))))
         from fractions import Fraction
