@@ -164,7 +164,7 @@ class Recorder:
     """Records the real host API. Expected data comes only from logical oracle."""
     def __init__(self,pkg,output):
         self.rows=[];self.regs={0:ABI,0x50:8192,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16,0x6c:0x0f200404}
-        self.output=output;self.started=False;self.completed=False;self.pkg=pkg
+        self.output=output;self.started=False;self.completed=False;self.pkg=pkg;self.burst_addr=0
         self.check_live_perf=False
     def exchange(self,op,addr=0,data=0):
         value=0;mask=0xffffffff
@@ -181,10 +181,23 @@ class Recorder:
                 chunk=self.output[at:at+4];value=int.from_bytes(chunk.ljust(4,b'\0'),'little');mask=(1<<(8*len(chunk)))-1
             else:value=self.regs.get(addr,0)
         if op==Op.ACK:self.started=False
+        if op in (Op.READ,Op.WRITE):self.burst_addr=addr+4
         self.rows.append(f'{int(op):02x} {addr:08x} {int(data)&0xffffffff:08x} 00 {mask:08x} {value:08x}')
         if op==Op.START and self.check_live_perf:
             self.rows.extend(['01 00000100 0 04 0 0','01 00000194 0 04 0 0','0a 0 0 0 0 0'])
         return value
+    # Burst rows: 80 = write next word, 81 = read next word (expected value);
+    # the testbench maps them to IR 13h/14h scans or to plain commands.
+    def burst_write(self,words):
+        for w in words:
+            self.rows.append(f'80 {self.burst_addr:08x} {w&0xffffffff:08x} 00 00000000 00000000');self.burst_addr+=4
+    def burst_read(self,count):
+        values=[]
+        for _ in range(count):
+            at=self.burst_addr-0x20000-self.pkg.manifest['output_base']
+            chunk=self.output[at:at+4];value=int.from_bytes(chunk.ljust(4,b'\0'),'little');mask=(1<<(8*len(chunk)))-1
+            self.rows.append(f'81 {self.burst_addr:08x} 0 00 {mask:08x} {value:08x}');self.burst_addr+=4;values.append(value)
+        return values
 
 def encoded(values,dtype):
     return encode_tensor(values,dtype)

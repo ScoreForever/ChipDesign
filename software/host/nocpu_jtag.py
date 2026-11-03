@@ -101,6 +101,37 @@ class JtagTransport:
         # In particular, do not automatically retry START/COMMIT after timeout.
         raise TimeoutError('JTAG response timed out; operation may have executed; inspect status before retrying')
 
+    # Burst transfers: one 32-bit scan per word at the address following the
+    # last IR=12h command; many scans travel in one Tcl RPC round trip.
+    def burst_write(self, words):
+        self.rpc.execute(f'irscan {self.tap} 0x13 -endstate IDLE')
+        for i in range(0,len(words),64):
+            self.rpc.execute(' ; '.join(f'drscan {self.tap} 32 0x{w&0xffffffff:08x} -endstate IDLE' for w in words[i:i+64]))
+        self.burst_check()
+
+    def burst_read(self, count):
+        """Read `count` words after the last command's address."""
+        if count<=0:return []
+        self.rpc.execute(f'irscan {self.tap} 0x14 -endstate IDLE')
+        values=[]
+        for i in range(0,count,64):
+            n=min(64,count-i)
+            # Tcl returns only the last command's value, so collect explicitly.
+            # runtest 4: the read must cross back through the TCK synchronizer
+            # before the next Capture-DR returns it.
+            script='set _r {}; '+' ; '.join(f'lappend _r [drscan {self.tap} 32 0] ; runtest 4' for _ in range(n))+' ; set _r'
+            values.extend(int(v,16) for v in self.rpc.execute(script).split())
+        last=self.burst_check()
+        # Each scan returned the previous read; the first one is stale.
+        return (values[1:]+[last&0xffffffff])
+
+    def burst_check(self):
+        self.rpc.execute(f'irscan {self.tap} 0x12 -endstate IDLE')
+        response=self.scan(0)
+        if (response>>69)&1:
+            raise RuntimeError('JTAG burst fault (busy mailbox or NPU error); the transfer is incomplete')
+        return response
+
 
 def signed32(value):
     return value if value<2**31 else value-2**32
@@ -111,6 +142,18 @@ class Npu:
         self.transport=transport
         if self.read(0)!=ABI:raise RuntimeError('requires NPU ABI 4.0 INT4; recompile packages for this hardware')
     def command(self,op,addr=0,data=0):return self.transport.exchange(op,addr,data)
+    def write_block(self,addr,words):
+        """Write consecutive words; bursts after the first when the transport can."""
+        if not words:return
+        self.write(addr,words[0])
+        if len(words)>1 and hasattr(self.transport,'burst_write'):self.transport.burst_write(list(words[1:]))
+        else:
+            for i,w in enumerate(words[1:],1):self.write(addr+4*i,w)
+    def read_block(self,addr,count):
+        if count<=0:return []
+        first=self.read(addr)
+        if count>1 and hasattr(self.transport,'burst_read'):return [first]+self.transport.burst_read(count-1)
+        return [first]+[self.read(addr+4*i) for i in range(1,count)]
     def read(self,addr):return self.command(Op.READ,addr)
     def write(self,addr,data):return self.command(Op.WRITE,addr,int(data)&0xffffffff)
     def status(self):
@@ -189,7 +232,7 @@ class Npu:
         for reg,key in zip(range(0x10,0x28,4),('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes')):
             self.write(reg,m[key])
         self.write(0x64,int(m['input_dtype']=='i32'))
-        for offset in range(0,len(package.image),4):self.write(0x10000+offset,int.from_bytes(package.image[offset:offset+4],'little'))
+        self.write_block(0x10000,[int.from_bytes(package.image[o:o+4],'little') for o in range(0,len(package.image),4)])
         self.command(Op.MODEL_COMMIT)
         self.manifest=dict(m)
     def infer_values(self,values,timeout=10):
@@ -204,7 +247,7 @@ class Npu:
         if m and m['input_dtype'] in ('i4','u4') and m['input_elements']%2 and frame[-1]&0xf0:
             raise ValueError('nonzero INT4 input padding nibble')
         self.command(Op.INPUT_BEGIN)
-        for offset in range(0,len(frame),4):self.write(0x20000+base+offset,int.from_bytes(frame[offset:offset+4].ljust(4,b'\0'),'little'))
+        self.write_block(0x20000+base,[int.from_bytes(frame[o:o+4].ljust(4,b'\0'),'little') for o in range(0,len(frame),4)])
         self.command(Op.INPUT_COMMIT);self.command(Op.START)
         deadline=time.monotonic()+timeout
         while True:
@@ -214,7 +257,7 @@ class Npu:
             if time.monotonic()>deadline:raise TimeoutError('inference still active; inspect status, do not automatically retry START')
             time.sleep(0.001)
         base=self.read(0x20);length=self.read(0x24)
-        result=b''.join(self.read(0x20000+base+i).to_bytes(4,'little') for i in range(0,length,4))[:length]
+        result=b''.join(v.to_bytes(4,'little') for v in self.read_block(0x20000+base,(length+3)//4))[:length]
         self.command(Op.ACK)
         return result
 

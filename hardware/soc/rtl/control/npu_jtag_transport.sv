@@ -4,6 +4,13 @@
 // Response = {valid,busy,overrun,error[4:0], address[31:0], data[31:0]}.
 // One outstanding request. CDC data is bundled with a two-flop toggle handshake:
 // request payload stays stable until reply; reply stays stable until next job.
+// Burst IRs move one 32-bit word per scan at an address that continues from the
+// last IR=12h request (+4 each): 13h writes the shifted word; 14h reads, and
+// each scan returns the previous read's data (the last one via IR=12h). A burst
+// scan that finds the mailbox busy, or a burst reply with an error, sets the
+// sticky overrun bit reported by the next IR=12h capture. A read's data reaches
+// the TCK domain about two clocks after Update-DR, so the host idles four TCKs
+// in Run-Test/Idle between burst reads.
 module npu_jtag_transport #(
     parameter [31:0] IDCODE = 32'h0000_0001
 ) (
@@ -26,6 +33,8 @@ module npu_jtag_transport #(
     reg [4:0] reply_error;
     reg ack_toggle;
     reg [31:0] rsp_mailbox_data;
+    reg [31:0] burst_addr;
+    reg burst_request;
     reg [4:0] rsp_mailbox_error;
     (* ASYNC_REG = "TRUE" *) reg [1:0] req_sync, ack_sync;
     reg req_seen, waiting_reply;
@@ -70,12 +79,14 @@ module npu_jtag_transport #(
             tap <= TLR; ir <= 1; ir_shift <= 1; dr <= 0;
             req_payload <= 0; req_toggle <= 0; ack_sync <= 0;
             pending <= 0; have_reply <= 0; overrun <= 0; reply_data <= 0; reply_error <= 0;
+            burst_addr <= 0; burst_request <= 0;
         end else begin
             tap <= tap_next;
             ack_sync <= {ack_sync[0],ack_toggle};
             if (pending && ack_sync[1] == req_toggle) begin
                 pending <= 0; have_reply <= 1;
                 reply_data <= rsp_mailbox_data; reply_error <= rsp_mailbox_error;
+                if (burst_request && rsp_mailbox_error != 0) overrun <= 1;
             end
             // TMS reset only resets scan selection. It must not cancel a CDC
             // transaction or generate a duplicate request when TCK restarts.
@@ -88,11 +99,12 @@ module npu_jtag_transport #(
                     if (ir == 1) dr <= {40'd0,IDCODE};
                     else if (ir == 'h12) dr <= {have_reply,pending,overrun,reply_error,
                         req_payload[63:32],reply_data};
+                    else if (ir == 'h14) dr <= {40'd0,reply_data};
                     else dr <= 0;
                 end
                 SHDR: begin
                     if (ir == 'h12) dr <= {td_i,dr[71:1]};
-                    else if (ir == 1) dr <= {40'd0,td_i,dr[31:1]};
+                    else if (ir == 1 || ir == 'h13 || ir == 'h14) dr <= {40'd0,td_i,dr[31:1]};
                     else dr <= {71'd0,td_i};
                 end
                 UDR: if (ir == 'h12 && dr[71:64] != 0) begin
@@ -100,6 +112,15 @@ module npu_jtag_transport #(
                     else begin
                         req_payload <= dr; req_toggle <= !req_toggle;
                         pending <= 1; have_reply <= 0; overrun <= 0;
+                        burst_addr <= dr[63:32] + 32'd4; burst_request <= 0;
+                    end
+                end else if (ir == 'h13 || ir == 'h14) begin
+                    if (pending) overrun <= 1;
+                    else begin
+                        // Opcode 2 writes, 1 reads, as the host protocol.
+                        req_payload <= {ir == 'h13 ? 8'd2 : 8'd1, burst_addr, ir == 'h13 ? dr[31:0] : 32'd0};
+                        req_toggle <= !req_toggle; pending <= 1; have_reply <= 0;
+                        burst_addr <= burst_addr + 32'd4; burst_request <= 1;
                     end
                 end
                 default: ;

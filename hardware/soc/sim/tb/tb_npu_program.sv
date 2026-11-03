@@ -5,7 +5,7 @@ module tb_npu_program;
  wire irq;
  reg [7:0] op; reg [31:0] addr,data,mask,expected,value;
  reg [4:0] expected_error;
- integer fd,rc,commands=0,waits=0;
+ integer fd,rc,commands=0,waits=0,bursts=0;
  string trace_path;
  reg [63:0] events[0:65535];integer event_count=0,event_index=0;
  string event_path;
@@ -17,8 +17,29 @@ module tb_npu_program;
  wire [31:0] event_data=dut.i_control.wd;
  wire [7:0] event_mask=dut.i_control.wm;
  reg dummy;integer ticks=0;
+ // TCK period in ns (+TCK_NS, default 16 for fast regression; 1000 = 1 MHz).
+ real tck_ns=16;
  task tick(input reg m,input reg d,output reg q);
- begin tms=m;tdi=d;#3;tck=0;#9;q=tdo;tck=1;#4;ticks=ticks+1;end endtask
+ begin tms=m;tdi=d;#(tck_ns*3/16);tck=0;#(tck_ns*9/16);q=tdo;tck=1;#(tck_ns*4/16);ticks=ticks+1;end endtask
+ reg [4:0] cur_ir=5'h12;
+ task ir_select(input [4:0] code);
+ integer k;
+ begin
+  if(cur_ir!==code)begin
+   tick(1,0,dummy);tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);
+   for(k=0;k<5;k=k+1)tick(k==4,code[k],dummy);
+   tick(1,0,dummy);tick(0,0,dummy);cur_ir=code;
+  end
+ end endtask
+ task scan32(input [31:0] request,output reg [31:0] response);
+ integer n;reg q;
+ begin
+  response=0;tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);
+  for(n=0;n<32;n=n+1)begin tick(n==31,request[n],q);response[n]=q;end
+  tick(1,0,dummy);tick(0,0,dummy);
+ end endtask
+ // Burst reads return the previous word; compare it one scan later.
+ reg have_prev=0;reg [31:0] prev_expected,prev_mask,burst_reply;
  task scan(input [71:0] request,output reg [71:0] response);
  integer n;reg q;
  begin
@@ -29,7 +50,12 @@ module tb_npu_program;
  task exchange;
  reg [71:0] reply;integer n;
  begin
-  scan({op,addr,data},reply);n=0;reply=0;
+  ir_select(5'h12);
+  scan({op,addr,data},reply);
+  if(reply[69])$fatal(1,"JTAG burst fault before cmd=%0d",commands);
+  if(have_prev && (reply[31:0]&prev_mask)!==(prev_expected&prev_mask))
+   $fatal(1,"burst read tail got=%h expected=%h",reply[31:0],prev_expected);
+  have_prev=0;n=0;reply=0;
   while(!reply[71] || reply[70])begin
    scan(0,reply);n=n+1;if(n>100)$fatal(1,"JTAG command timeout cmd=%0d op=%h addr=%h tap=%h ir=%h reply=%h pending=%h cv=%h cr=%h controller=%h",commands,op,addr,dut.i_host.tap,dut.i_host.ir,reply,dut.i_host.pending,dut.cv,dut.cr,dut.i_control.i_controller.state);
   end
@@ -78,6 +104,9 @@ module tb_npu_program;
    $readmemh(event_path,events,0,event_count-1);
   end
   if(!$value$plusargs("TRACE=%s",trace_path))$fatal(1,"TRACE required");
+`ifdef JTAG_TEST
+  if($value$plusargs("TCK_NS=%f",tck_ns))$display("TCK period %0.1f ns",tck_ns);
+`endif
   fd=$fopen(trace_path,"r");if(!fd)$fatal(1,"trace missing");
   // An explicit assertion edge initializes the stopped TCK domain too.
   #1;rst_n=1;#1;rst_n=0;
@@ -93,6 +122,26 @@ module tb_npu_program;
    if(rc!=6)$fatal(1,"malformed trace");
    if(op=='hf0)begin waits=0;while(!irq)begin @(negedge clk);waits=waits+1;if(waits>2000000)$fatal(1,"job timeout");end end
    else if(op=='hf1)repeat(data)@(negedge clk);
+`ifdef JTAG_TEST
+   else if(op=='h80)begin ir_select(5'h13);scan32(data,burst_reply);bursts=bursts+1;end
+   else if(op=='h81)begin
+    // Four Run-Test/Idle clocks let the read cross back through the TCK
+    // synchronizer before the next Capture-DR (host: runtest 4).
+    // The fast default TCK (16 ns) is barely slower than the 10 ns system
+    // clock, so the system-side latency also counts: idle 8 clocks there.
+    ir_select(5'h14);
+    if(dut.i_host.pending)$fatal(1,"burst read captured before the previous read completed");
+    scan32(0,burst_reply);repeat(tck_ns<100 ? 8 : 4)tick(0,0,dummy);bursts=bursts+1;
+    if(have_prev && (burst_reply&prev_mask)!==(prev_expected&prev_mask))
+     $fatal(1,"burst read got=%h expected=%h",burst_reply,prev_expected);
+    have_prev=1;prev_expected=expected;prev_mask=mask;
+   end
+`else
+   else if(op=='h80 || op=='h81)begin
+    op=op=='h80 ? 2 : 1;exchange;bursts=bursts+1;
+    if((value&mask)!==(expected&mask))$fatal(1,"burst cmd=%0d addr=%h got=%h expected=%h",commands,addr,value,expected);
+   end
+`endif
    else begin
     exchange;
     if(op==1 && (addr=='h38 || addr=='h40))$display("METRIC reg=%h value=%0d",addr,value);
@@ -105,6 +154,11 @@ module tb_npu_program;
   end
   $fclose(fd);
   if(event_index!=event_count)$fatal(1,"missing write events %0d/%0d",event_index,event_count);
+`ifdef JTAG_TEST
+  // Flush a trailing burst read and its sticky fault through IR=12h.
+  if(have_prev)begin op=1;addr=4;data=0;expected_error=0;exchange;end
+  $display("JTAG ticks=%0d tck_ns=%0.1f bursts=%0d sim_ns=%0t",ticks,tck_ns,bursts,$time);
+`endif
   $display("PASS program commands=%0d",commands);$finish;
  end
  initial begin #1000000000;$fatal(1,"global timeout");end

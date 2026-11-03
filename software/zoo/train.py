@@ -32,7 +32,23 @@ def augment(name, x):
     """Light, label-preserving augmentation on a GPU batch [N,C,H,W]."""
     n = x.shape[0]
     name = name.split('_')[0]
-    if name in ('mnist', 'fashion', 'gtsrb'):
+    if name in ('mnist', 'fashion', 'gtsrb') and AFFINE:
+        # Random rotation (+-12 deg), scale (0.9-1.1) and shift (+-10%).
+        angle = (torch.rand(n, device=x.device) - 0.5) * (24 * math.pi / 180)
+        scale = 0.9 + 0.2 * torch.rand(n, device=x.device)
+        theta = torch.zeros(n, 2, 3, device=x.device)
+        theta[:, 0, 0] = torch.cos(angle) / scale
+        theta[:, 0, 1] = -torch.sin(angle) / scale
+        theta[:, 1, 0] = torch.sin(angle) / scale
+        theta[:, 1, 1] = torch.cos(angle) / scale
+        theta[:, :, 2] = (torch.rand(n, 2, device=x.device) - 0.5) * 0.2
+        grid = F.affine_grid(theta, x.shape, align_corners=False)
+        x = F.grid_sample(x - x.amin((1, 2, 3), keepdim=True), grid, align_corners=False) + x.amin((1, 2, 3), keepdim=True)
+        if name == 'fashion' and random.random() < 0.5:
+            x = x.flip(3)
+        if name == 'gtsrb':
+            x = x * (0.8 + 0.4 * torch.rand(n, 1, 1, 1, device=x.device))
+    elif name in ('mnist', 'fashion', 'gtsrb'):
         pad = 2 if name != 'gtsrb' else 3
         xp = F.pad(x, (pad,) * 4, value=float(x.min()))
         dy, dx = random.randint(0, 2 * pad), random.randint(0, 2 * pad)
@@ -88,6 +104,7 @@ def int_accuracy(model, x, y, device, per_class=None):
 
 
 FAKE_ONLY = False
+AFFINE = False
 
 
 def fit(net, data, name, epochs, lr, batch, device, qat, log, teacher=None):
@@ -159,11 +176,14 @@ def main():
     ap.add_argument('--balanced', action='store_true', help='inverse-frequency class weights')
     ap.add_argument('--distill', action='store_true', help='distill the float model during QAT')
     ap.add_argument('--capacity-only', action='store_true', help='check SRAM/descriptor fit and stop')
+    ap.add_argument('--affine', action='store_true', help='random affine augmentation (image tasks)')
     ap.add_argument('--relu-max', type=int, default=15, choices=(7, 15),
                     help='15: unsigned u4 post-ReLU tensors (ABI 4); 7: signed INT4 (ABI 3 behaviour)')
     args = ap.parse_args()
     import zoo.qat
     zoo.qat.RELU_MAX = args.relu_max
+    global AFFINE
+    AFFINE = args.affine
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
