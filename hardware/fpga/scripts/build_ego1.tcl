@@ -127,7 +127,12 @@ if {[catch {
         }
     }
     set_property include_dirs $includes [current_fileset]
-    set_property verilog_define [list SYNTHESIS CHIPDESIGN_FPGA_MEM NPU_ARRAY_COLS=$array_cols] [current_fileset]
+    # Debug traces are off by default: with the ABI 4 operators a yosys XC7
+    # estimate gives ~15.7k LUT without them versus ~18.9k with them (the
+    # last board-validated build used 17.3k of 20.8k). Set CHIPDESIGN_TRACE=1
+    # in the environment to build them in for bring-up.
+    set trace_defines [expr {[info exists ::env(CHIPDESIGN_TRACE)] && $::env(CHIPDESIGN_TRACE) ? {} : {NPU_ENABLE_WAVE_TRACE=0 NPU_ENABLE_OP_TRACE=0}}]
+    set_property verilog_define [list SYNTHESIS CHIPDESIGN_FPGA_MEM NPU_ARRAY_COLS=$array_cols {*}$trace_defines] [current_fileset]
     read_verilog -sv $sources
     read_verilog -sv [file join $repo hardware/fpga/fpga_top.sv]
     read_xdc [file join $repo hardware/fpga/ego1_pins.xdc]
