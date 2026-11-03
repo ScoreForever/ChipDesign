@@ -132,9 +132,9 @@ module npu_activation_store #(
     wire sram_en=!rst && (pop || state==S_FIRST || physical_read || start_rmw);
     wire [AW-1:0] sram_addr=(pop || start_rmw) ? q_addr[head] :
         state==S_FIRST ? saved_word1 : (hit0 ? read_word1 : read_word0);
+    wire [31:0] sram_q;
     wire [31:0] sram_wdata=state==S_RMW ? overlay(sram_q,q_data[head],q_mask[head]) : q_data[head];
     wire [3:0] sram_wmask={|q_mask[head][7:6],|q_mask[head][5:4],|q_mask[head][3:2],|q_mask[head][1:0]};
-    wire [31:0] sram_q;
 `ifdef NPU_USE_RA1SHD_ACTIVATION
     wire [10:0] macro_address=sram_addr;
     RA1SHD_2048x32M8 i_sram(
