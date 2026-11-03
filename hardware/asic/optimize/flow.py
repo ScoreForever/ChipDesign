@@ -419,14 +419,14 @@ def snapshot_driver(directory):
     return driver
 
 
-def candidate(output,libs,name,util,layout,congestion=False,halo=26):
+def candidate(output,libs,name,util,layout,congestion=False,halo=26,hold_target=0.02):
     if not re.fullmatch(r'[A-Za-z0-9_-]+',name) or halo<26:raise ValueError('invalid candidate name or halo below 26um')
     directory=output/'candidates'/name
     if (output/'sources.json').exists() and json.loads((output/'sources.json').read_text())!=fingerprint():
         raise RuntimeError('inputs changed between candidates')
     if (directory/'status.json').exists():
         saved=json.loads((directory/'experiment.json').read_text())
-        if (saved['utilization'],saved.get('layout'),saved['congestion'],saved['geometry']['halo_um'])!=(util,layout,bool(congestion),halo):
+        if (saved['utilization'],saved.get('layout'),saved['congestion'],saved['geometry']['halo_um'],saved.get('hold_target',0.02))!=(util,layout,bool(congestion),halo,hold_target):
             raise RuntimeError('candidate parameters differ from preserved run')
         state=json.loads((directory/'status.json').read_text())
         if state.get('status')=='running':state=recover_tool(directory,'PNR_OPT_PHYSICAL_COMPLETE')
@@ -439,13 +439,13 @@ def candidate(output,libs,name,util,layout,congestion=False,halo=26):
     sizes=lef_sizes([libs[k] for k in ('macro_lef','io_lef','bond_lef')])
     geo=geometry(area['standard_cell_area_um2'],sizes,util,layout,halo)
     directory.mkdir(parents=True,exist_ok=True)
-    save(directory/'experiment.json',dict(array_cols=int(os.environ.get('EDA_NPU_COLS','8')),utilization=util,layout=layout,congestion=congestion,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
+    save(directory/'experiment.json',dict(array_cols=int(os.environ.get('EDA_NPU_COLS','8')),utilization=util,layout=layout,congestion=congestion,hold_target=hold_target,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
     if geo['die_side_um']+SNAP_UM>MAX_DIE_UM:
         # Over the area budget before any tool runs: record it, spend no Innovus time.
         result=dict(directory=str(directory),eligible=False,within_area_budget=False,die_side_um=geo['die_side_um'],
                     reason=f"die {geo['die_side_um']}um exceeds {MAX_DIE_UM}um budget")
         save(directory/'result.json',result);return result
-    cfg=common_config(libs)+f'set threads 4\nset congestion {int(congestion)}\nset source_root '+tcl(ROOT)+'\nset netlist '+tcl(output/'synthesis/mapped.v')+'\nset sdc '+tcl(output/'synthesis/mapped.sdc')+'\n'
+    cfg=common_config(libs)+f'set threads 4\nset congestion {int(congestion)}\nset hold_target {hold_target}\nset source_root '+tcl(ROOT)+'\nset netlist '+tcl(output/'synthesis/mapped.v')+'\nset sdc '+tcl(output/'synthesis/mapped.sdc')+'\n'
     for key in ('core_side_um','die_side_um','margin_um','corner_um','halo_um','bond_depth_um'):
         cfg+='set '+key+' '+str(geo[key])+'\n'
     cfg+='set macro_boxes {\n'+''.join(' {'+' '.join(map(str,m))+'}\n' for m in geo['macros'])+'}\nset pads {\n'
@@ -539,6 +539,8 @@ def main():
     ap.add_argument('--halo',type=float,default=26)
     ap.add_argument('--cols',type=int,choices=(4,8),default=8)
     ap.add_argument('--congestion',action='store_true')
+    # Innovus hold target; PrimeTime on the SPEF reads hold ~0.1 ns worse than Innovus.
+    ap.add_argument('--hold-target',type=float,default=0.02)
     args=ap.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=True)
     if args.action=='trial' and (not args.name or not re.fullmatch(r'[A-Za-z0-9_-]+',args.name) or not 0<args.utilization<1 or args.halo<26):
         ap.error('trial requires a simple name, utilization in (0,1) and halo >=26um')
@@ -568,7 +570,7 @@ def main():
         frozen=output/'sources.json'
         if not frozen.exists():save(frozen,fingerprint())
         if not (output/'synthesis/handoff.json').exists():synth(output,libs)
-        result=candidate(output,libs,args.name,args.utilization,args.layout,args.congestion,args.halo)
+        result=candidate(output,libs,args.name,args.utilization,args.layout,args.congestion,args.halo,args.hold_target)
         summarize(output)
         if not result.get('eligible'):raise RuntimeError('trial physical acceptance failed')
     elif args.action=='baseline':

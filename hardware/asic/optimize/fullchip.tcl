@@ -40,7 +40,8 @@ set init_mmmc_file [file normalize mmmc.tcl]
 set init_top_cell my_soc_top
 setDesignMode -bottomRoutingLayer METAL2 -topRoutingLayer METAL6
 setDelayCalMode -SIAware true
-setOptMode -fixHoldAllowSetupTnsDegrade false -holdTargetSlack 0.02
+if {![info exists hold_target]} {set hold_target 0.02}
+setOptMode -fixHoldAllowSetupTnsDegrade false -holdTargetSlack $hold_target
 # The course default caps optimization at 75% density; above that hold fixing
 # stops inserting buffers and leaves violations (seen at 70% utilization).
 setOptMode -maxDensity 0.9
