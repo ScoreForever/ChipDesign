@@ -19,7 +19,8 @@ class FlowTests(unittest.TestCase):
         for layout in flow.LAYOUTS:
             g=flow.geometry(std,SIZES,.6,layout);margin=g['margin_um'];core=g['core_side_um']
             self.assertEqual([m[0] for m in g['macros']],['model','activation'])
-            boxes=[m[1:] for m in g['macros']]
+            boxes=[m[1:5] for m in g['macros']]
+            self.assertTrue(all(m[5] in flow.PIN_SIDE for m in g['macros']))
             for x,y,w,h in boxes:
                 self.assertGreater(x,margin+26);self.assertLess(x+w,margin+core-26)
                 self.assertGreater(y,margin+26);self.assertLess(y+h,margin+core-26)

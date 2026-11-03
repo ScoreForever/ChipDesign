@@ -21,7 +21,13 @@ SIGNALS = {'N': [('clk_i', 'input'), ('rst_ni', 'input'), ('irq_o', 'output')],
 # Two RA1SHD_2048x32M8 instances: the model store and the activation store.
 MACROS = 2
 MACRO_ROLES = ('model', 'activation')
-LAYOUTS = ('west_stack', 'south_row', 'diagonal')
+LAYOUTS = ('west_stack', 'south_row', 'diagonal', 'west_stack_r90', 'south_row_mx')
+# Every RA1SHD_2048x32M8 signal pin (A/D/Q/CEN/WEN/OEN/CLK) sits on the R0
+# bottom edge and the two PG pins on the top edge; the orientation decides
+# which side the 109-pin bus faces after placement.
+PIN_SIDE = {'R0': 'S', 'MX': 'N', 'R90': 'E', 'R270': 'W'}
+# Layouts whose macros are rotated by 90 degrees (footprint is mh x mw).
+ROTATED = ('west_stack_r90',)
 # INT4 revision budget: die (including the PAD ring) at most 1950um square.
 MAX_DIE_UM = 1950
 # floorPlan snaps the core to the site grid (one 5.6um row at most), so a
@@ -90,10 +96,16 @@ def snap(v):
 
 
 def macro_layout(layout, xlo, ylo, xhi, yhi, mw, mh, gap):
-    """Lower-left corners of the model and activation SRAMs inside [xlo,xhi]x[ylo,yhi]."""
-    if layout=='west_stack':return [(xlo,ylo),(xlo,ylo+mh+gap)]
-    if layout=='south_row':return [(xlo,ylo),(xlo+mw+gap,ylo)]
-    if layout=='diagonal':return [(xlo,ylo),(xhi-mw,yhi-mh)]
+    """Lower-left corners and orientations of the model and activation SRAMs
+    inside [xlo,xhi]x[ylo,yhi]; mw x mh is the placed (oriented) footprint."""
+    if layout=='west_stack':return [(xlo,ylo,'R0'),(xlo,ylo+mh+gap,'R0')]
+    if layout=='south_row':return [(xlo,ylo,'R0'),(xlo+mw+gap,ylo,'R0')]
+    if layout=='diagonal':return [(xlo,ylo,'R0'),(xhi-mw,yhi-mh,'R0')]
+    # Pin edges face the standard-cell area instead of the core boundary or
+    # the channel between the macros: east for the west stack, north for the
+    # south row. PG pins then face the core ring.
+    if layout=='west_stack_r90':return [(xlo,ylo,'R90'),(xlo,ylo+mh+gap,'R90')]
+    if layout=='south_row_mx':return [(xlo,ylo,'MX'),(xlo+mw+gap,ylo,'MX')]
     raise ValueError('unknown macro layout: '+str(layout))
 
 
@@ -101,12 +113,14 @@ def geometry(std_area, sizes, utilization=.6, layout='west_stack', halo=26):
     if not 0 < utilization < 1 or std_area <= 0 or halo < 0 or layout not in LAYOUTS:
         raise ValueError('invalid geometry inputs')
     mw, mh = sizes['RA1SHD_2048x32M8']
+    if layout in ROTATED:mw, mh = mh, mw
     margin = 150
     # Ring width/offset, macro halo and routing channels remain clear, both
     # to the core edge and between the two macros.
     clear = max(halo, 26) + 20
     gap = 2*max(halo, 26) + 20
-    span = {'west_stack':(mw,2*mh+gap),'south_row':(2*mw+gap,mh),'diagonal':(2*mw+gap,2*mh+gap)}[layout]
+    span = {'west_stack':(mw,2*mh+gap),'south_row':(2*mw+gap,mh),'diagonal':(2*mw+gap,2*mh+gap),
+            'west_stack_r90':(mw,2*mh+gap),'south_row_mx':(2*mw+gap,mh)}[layout]
     core = math.ceil(math.sqrt(std_area/utilization + MACROS*mw*mh)/20)*20
     core = max(core, math.ceil((max(span)+2*clear)/20)*20)
     corner = sizes['PCORNER'][0]
@@ -118,10 +132,10 @@ def geometry(std_area, sizes, utilization=.6, layout='west_stack', halo=26):
     xlo,ylo=margin+clear,margin+clear
     xhi,yhi=margin+core-clear,margin+core-clear
     macros=[]
-    for role,(x,y) in zip(MACRO_ROLES,macro_layout(layout,xlo,ylo,xhi,yhi,mw,mh,gap)):
+    for role,(x,y,orient) in zip(MACRO_ROLES,macro_layout(layout,xlo,ylo,xhi,yhi,mw,mh,gap)):
         if x<xlo-1e-6 or y<ylo-1e-6 or x+mw>xhi+1e-6 or y+mh>yhi+1e-6:
             raise ValueError('macros and halos do not fit')
-        macros.append([role,snap(x),snap(y),mw,mh])
+        macros.append([role,snap(x),snap(y),mw,mh,orient])
     pads=[]
     for side,signals in SIGNALS.items():
         entries=[(p,'PDDW0204CDG',direction) for p,direction in signals]+[(p,c,'supply') for p,c in SUPPLIES]
@@ -284,7 +298,10 @@ def validate_reports(directory):
         for b in boxes[i+1:]:
             if min(a[3],b[3])-max(a[1],b[1])>.001 and min(a[4],b[4])-max(a[2],b[2])>.001:
                 pad_ok=False
-    return dict(placement=place_ok,drc=drc(read('drc.rpt')),pg_drc=drc(read('pg_drc.rpt')),connectivity=regular_ok,pg_connectivity=pg,antenna=antenna,drv=drv,ports=ports_ok,pad_geometry=pad_ok,cdc=validate_cdc(directory/'cdc_paths.tsv'))
+    # Each SRAM's D/Q bus must face the side its orientation promises.
+    pins=[line.split('\t') for line in read('macro_pins.tsv').splitlines() if line.strip()]
+    pins_ok=len(pins)==MACROS and all(len(r)==6 and PIN_SIDE.get(r[1])==r[2] and int(r[3])==64 for r in pins)
+    return dict(placement=place_ok,drc=drc(read('drc.rpt')),pg_drc=drc(read('pg_drc.rpt')),connectivity=regular_ok,pg_connectivity=pg,antenna=antenna,drv=drv,ports=ports_ok,pad_geometry=pad_ok,cdc=validate_cdc(directory/'cdc_paths.tsv'),macro_pins=pins_ok)
 
 
 def def_wire_length(path):
@@ -308,7 +325,7 @@ def def_wire_length(path):
 def metrics(directory):
     directory=Path(directory)
     required=['metrics.json','checks.json','timing_setup.rpt','timing_hold.rpt','drc.rpt','pg_drc.rpt','connectivity.rpt','pg_connectivity.rpt','antenna.rpt','placement.rpt','io_geometry.tsv','io_connectivity.tsv','ports.txt','constraints.rpt','outputs/physical.v','outputs/simulation.v','outputs/routed.sdf.gz','outputs/routed.spef.gz','outputs/routed.def','outputs/chip.gds.gz','outputs/chip.lef','outputs/mapped.sdc']
-    required.append('cdc_paths.tsv')
+    required+=['cdc_paths.tsv','macro_pins.tsv']
     missing=[p for p in required if not (directory/p).is_file() or (directory/p).stat().st_size==0]
     state=json.loads((directory/'status.json').read_text()) if (directory/'status.json').exists() else {}
     result=dict(directory=str(directory),eligible=False,missing=missing,runtime_seconds=max(0,state.get('finished',0)-state.get('started',0)))
@@ -318,7 +335,7 @@ def metrics(directory):
     finite=all(isinstance(result.get(k),(int,float)) and math.isfinite(result[k]) for k in ('setup_wns_ns','hold_wns_ns','setup_tns_ns','hold_tns_ns','die_area_mm2','wire_length_um'))
     result['eligible']=finite and all(result['checks'].get(k) is True for k in ('placement','drc','pg_drc','connectivity','pg_connectivity','antenna','drv','ports','pad_geometry')) and result['setup_wns_ns']>=0 and result['hold_wns_ns']>=0 and result['setup_tns_ns']==0 and result['hold_tns_ns']==0 and result.get('macro_count')==MACROS
     result['within_area_budget']=finite and result['die_area_mm2']<=(MAX_DIE_UM/1000)**2+1e-9
-    result['eligible']=result['eligible'] and result['within_area_budget'] and result['checks'].get('cdc') is True and validate_cdc(directory/'cdc_paths.tsv')
+    result['eligible']=result['eligible'] and result['within_area_budget'] and result['checks'].get('cdc') is True and result['checks'].get('macro_pins') is True and validate_cdc(directory/'cdc_paths.tsv')
     return result
 
 

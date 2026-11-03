@@ -93,19 +93,38 @@ foreach {side ori} {top R180 bottom R0 left R270 right R90} {
 # connection here matches nothing and raises IMPDB-1221.
 set macro_insts [dbGet -p2 top.insts.cell.name RA1SHD_2048x32M8]
 if {[llength $macro_insts]!=2 || $macro_insts eq "0x0"} {error "Expected exactly two mapped SRAMs (model and activation)"}
-# macros: list of {instance x y w h}, matched by role so each store keeps its box.
+# macros: list of {instance x y w h orient}, matched by role so each store keeps
+# its box; w x h is the placed footprint and older configs default to R0.
 set macros {}
 foreach box $macro_boxes {
-    lassign $box role mx my mw mh
+    lassign $box role mx my mw mh orient
+    if {$orient eq ""} {set orient R0}
     set pattern [expr {$role eq "model" ? "*model_store*" : "*activation*"}]
     set match {}
     foreach inst $macro_insts {if {[string match $pattern [dbGet $inst.name]]} {lappend match [dbGet $inst.name]}}
     if {[llength $match]!=1} {error "Cannot identify the $role SRAM instance: $match"}
     set name [lindex $match 0]
-    placeInstance $name $mx $my R0 -fixed
+    placeInstance $name $mx $my $orient -fixed
     addHaloToBlock $halo_um $halo_um $halo_um $halo_um $name -snapToSite
-    lappend macros [list $name $mx $my $mw $mh]
+    lappend macros [list $name $mx $my $mw $mh $orient]
 }
+# Which side the D/Q bus actually faces: mean D/Q pin position relative to the
+# placed box. flow.py compares it with the side the orientation should give.
+set pin_report [open macro_pins.tsv w]
+foreach m $macros {
+    lassign $m name mx my mw mh orient
+    set sx 0.0; set sy 0.0; set n 0
+    foreach term [dbGet [dbGet -p top.insts.name $name].instTerms] {
+        if {![string match {[DQ]\[*} [dbGet $term.cellTerm.name]]} {continue}
+        lassign [dbGet $term.pt] px py
+        set sx [expr {$sx+$px}]; set sy [expr {$sy+$py}]; incr n
+    }
+    if {$n == 0} {error "No D/Q pins found on $name"}
+    set dx [expr {($sx/$n-($mx+$mw/2.0))/$mw}]; set dy [expr {($sy/$n-($my+$mh/2.0))/$mh}]
+    if {abs($dx) > abs($dy)} {set side [expr {$dx > 0 ? "E" : "W"}]} else {set side [expr {$dy > 0 ? "N" : "S"}]}
+    puts $pin_report "$name\t$orient\t$side\t$n\t[format %.3f $dx]\t[format %.3f $dy]"
+}
+close $pin_report
 # Label ports on package-facing PAD metal, including irq_o.
 foreach spec $pads {
     lassign $spec name master port direction side x y orient
