@@ -155,6 +155,15 @@ def fixtures_v4(r,mac,q):
         mac('Conv','b','c',8,8,kernel=1),q('c','d',8),
         dict(op='Add',input='b',input2='d',output='e',weights=[7,-9]),q('e','f',8,-4),
         dict(op='Add',input='f',input2='b',output='y',weights=[1,1])]),frame(shape)
+    # Single-channel kernels up to four taps wide use one padded K group per row.
+    shape=[13,9,1]
+    yield 'rowpad_kernels',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',7*3,8,kernel=[7,3],stride=[2,2],pads=[3,1,3,1]),uq('a','b',8),
+        dict(op='AvgPool',input='b',output='c',kernel=[2,2],stride=[1,1]),q('c','d',8,-4),
+        mac('Conv','d','y',2*1*8,6,kernel=[2,1])]),frame(shape)
+    shape=[6,8,1]
+    yield 'rowpad_4x2',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','y',4*2,5,kernel=[4,2],pads=[1,0,2,1])]),frame(shape)
     shape=[2,9,3]
     yield 'pool_i32_window',dict(input=dict(name='x',shape=shape,dtype='i32'),nodes=[
         dict(op='MaxPool',input='x',output='a',kernel=[2,4],stride=[1,3]),relu('a','y')]),\
@@ -323,7 +332,8 @@ def unit_tests(out,defines,macro_model=None):
 
 def simulate(out,image,name,model,frame,cols,fuse,jtag,wave_disabled=False):
     """Run one compiled model through the real host API on an RTL image; check every tensor write."""
-    case=out/f'{name}_c{cols}_f{int(fuse)}_j{int(jtag)}';case.mkdir(exist_ok=True)
+    tag=int(fuse) if isinstance(fuse,bool) else 's'  # 's': a list of fusion switches
+    case=out/f'{name}_c{cols}_f{tag}_j{int(jtag)}';case.mkdir(exist_ok=True)
     pkg=compile_model(model,cols=cols,fuse=fuse);pkg.save(case)
     logical=reference(model,frame);expected=logical[model['nodes'][-1]['output']]
     output=encoded(expected,pkg.manifest['output_dtype']);rec=Recorder(pkg,output)

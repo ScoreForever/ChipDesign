@@ -396,23 +396,24 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         if op=='Conv' and n['depthwise']:flags|=DW
         weight_base=param_base=0
         if op in ('Conv','FC') and n['depthwise']:
-            # One row of COLS lane weights per four-row K group; the array
-            # expands it to a block diagonal. COLS/4 groups share one tap.
+            # One row of COLS lane weights per tap; the COLS/4 K groups of the
+            # tap reuse it and the array expands it to a block diagonal.
             packed=[];taps=n['kernel_h']*n['kernel_w']
             for o_base in range(0,oc,cols):
-                for tap in range(taps):
-                    for _ in range(cols//4):packed.extend(n['weights'][(o_base+lane)*taps+tap] for lane in range(cols))
+                for tap in range(taps):packed.extend(n['weights'][(o_base+lane)*taps+tap] for lane in range(cols))
             weight_base=append(pack_i4(packed),4)
         elif op in ('Conv','FC'):
-            packed=[];k=n['k']
-            row_pad=n['kernel_h']==3 and n['kernel_w']==3 and n['input_shape'][2]==1
+            packed=[];k=n['k'];kw=n['kernel_w']
+            # Single-channel kernels up to four taps wide: one padded K group per
+            # kernel row (one contiguous read each); see rowpad in the core.
+            row_pad=n['input_shape'][2]==1 and kw<=4 and n['kernel_h']>1
             for o_base in range(0,oc,cols):
                 width=4 if cols==8 and oc-o_base<=4 else cols
-                for ki in range(align(k,4)):
+                for ki in range(n['kernel_h']*4 if row_pad else align(k,4)):
                     for lane in range(width):
                         o=o_base+lane
-                        logical=(ki//4)*3+ki%4 if row_pad else ki
-                        valid=ki%4<3 if row_pad else ki<k
+                        logical=(ki//4)*kw+ki%4 if row_pad else ki
+                        valid=ki%4<kw if row_pad else ki<k
                         packed.append(n['weights'][o*k+logical] if o<oc and valid else 0)
             weight_base=append(pack_i4(packed),4)
         if op in ('Conv','FC','Requant') or q:

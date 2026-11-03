@@ -82,6 +82,9 @@ module npu_program_core #(
     // Only checked channel counts (<=256) reach the execution path.
     wire [8:0] channels=mac_op ? oc[8:0] : ic[8:0];
     wire need_params=mac_op || q_enable;
+    // IC=1 kernels up to four taps wide: each kernel row is padded to one
+    // four-tap K group, so every group is a single contiguous activation read.
+    wire rowpad=mac_op && !dwconv && ic==1 && kw<=4 && kh>1;
     wire [15:0] chb={7'd0,channels}<<(dst32 ? 3 : 0);
     wire [15:0] icb=ic<<(src32 ? 3 : 0);
     wire last_param=checking ? param_channel==channels-1 :
@@ -130,7 +133,8 @@ module npu_program_core #(
         if(mac_op && sh!=0 && sw!=0) begin
             xoh=(($signed({1'b0,ih})+$signed({1'b0,pt})+$signed({1'b0,pb})-$signed({1'b0,kh})) >>> (sh==2))+1;
             xow=(($signed({1'b0,iw})+$signed({1'b0,pl})+$signed({1'b0,pr})-$signed({1'b0,kw})) >>> (sw==2))+1;
-            xk=kh[2:0]*kw[2:0]*(dwconv ? COLS : ic);
+            // Row-padded single-channel kernels use one K group per kernel row.
+            xk=rowpad ? kh[2:0]*4 : kh[2:0]*kw[2:0]*(dwconv ? COLS : ic);
         end
         // A standalone pool takes its output size from word 10; validate it
         // as the floor size instead of dividing by the stride.
@@ -186,8 +190,8 @@ module npu_program_core #(
     wire array_weight_we=state==EXECUTE && mac_op && (lstate==L_HAVE || load_return) && inflight[load_bank]==0;
     wire [COLS*4-1:0] response_row=narrow ? (m_data & 32'h0000ffff) : m_data;
     wire [COLS*4-1:0] loaded_row=load_return ? response_row : load_data;
-    // Depthwise: one stored row per K group carries every lane's tap weight;
-    // row r keeps only lane (group%(COLS/4))*4+r, giving a block diagonal.
+    // Depthwise: one stored row per tap carries every lane's weight; group g
+    // of the tap keeps lane (g%(COLS/4))*4+r in row r, a block diagonal.
     wire [$clog2(COLS)-1:0] dw_lane=COLS==8 ? {load_g[0],load_row} : load_row;
     wire [COLS*4-1:0] array_weights=dwconv ? (loaded_row & ({{(COLS*4-4){1'b0}},4'hf}<<(dw_lane*4))) : loaded_row;
     reg [15:0] weight_tile_base,load_address;
@@ -320,12 +324,12 @@ module npu_program_core #(
                     prep_kx=0;prep_ky=prep_ky+3'd1;prep_offset=prep_offset+kernel_row_jump;
                 end else begin prep_kx=prep_kx+3'd1;prep_offset=prep_offset+kernel_col_jump;end
             end else begin prep_kc=prep_kc+11'd1;prep_offset=prep_offset+16'd1;end
-            if(ic==1 && kh==3 && kw==3 && !dwconv)begin
+            if(rowpad)begin
                 prep_offsets[kr]=kernel_offset+kr;prep_ys[kr]=issue_g;prep_xs[kr]=kr;
-                prep_valid[kr]=kr<3;
+                prep_valid[kr]=kr<kw;
             end
         end
-        if(ic==1 && kh==3 && kw==3 && !dwconv)prep_offset=kernel_offset+row_stride;
+        if(rowpad)prep_offset=kernel_offset+row_stride;
     end
     reg signed [9:0] cy,cx,y,x;
     reg [4:0] calc_p;
@@ -406,6 +410,26 @@ module npu_program_core #(
         if(op==ADD) selected_element=(add_second ? element_acc : 32'sd0)+add_term;
     end
     wire element_done=op==ADD ? add_second : tap_last;
+    // Nibble tensors (i4/u4): one 8-nibble read covers all COLS channels of the
+    // tile at a pixel, so every lane updates per read. Lane arithmetic needs 21
+    // bits (largest window sum 255*255*15; Add |128*15|*2). INT32 sources keep
+    // the scalar lane-by-lane path.
+    wire evec=!src32;
+    reg signed [20:0] lane_next[0:COLS-1];
+    reg signed [20:0] lane_acc,lane_v;
+    integer vl;
+    always @* begin
+        for(vl=0;vl<COLS;vl=vl+1)begin
+            lane_acc=$signed(results[element_slot][vl*32+:21]);
+            lane_v=$signed({{16{a_data[vl*4+3] && !(op==ADD && add_second ? su2 : su)}},a_data[vl*4+:4]});
+            case(op)
+                POOL:lane_next[vl]=!tap_first && lane_acc>lane_v ? lane_acc : lane_v;
+                AVGPOOL:lane_next[vl]=tap_first ? lane_v : lane_acc+lane_v;
+                ADD:lane_next[vl]=(add_second ? lane_acc : 21'sd0)+$signed(add_second ? add_wb : add_wa)*lane_v;
+                default:lane_next[vl]=lane_v;
+            endcase
+        end
+    end
     reg [15:0] eaddr;
     always @* begin
         eaddr=(op==ADD && add_second ? element_base2 : element_base)+(element_lane<<(src32 ? 3 : 0));
@@ -683,7 +707,7 @@ module npu_program_core #(
                         5:pool_chk_h<=mul_p;
                         6:pool_chk_w<=mul_p;
                         default:begin
-                            weight_span<=dwconv ? mul_p*(COLS/2) :
+                            weight_span<=dwconv ? mul_p*2 :
                                 mul_p*4*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*8 : 0);
                             param_span<=channels*4;
                             positions<=dst_pixels<<(!pool_enable ? 0 : pool1d ? 1 : 2);
@@ -740,8 +764,9 @@ module npu_program_core #(
                         6:origin_y<=mul_p;
                         7:origin_x<=mul_p;
                         8:begin
-                            weight_tile_base<=weights+mul_p*(dwconv ? COLS/2 : 4*(COLS/2));
-                            load_address<=weights+mul_p*(dwconv ? COLS/2 : 4*(COLS/2));
+                            // Depthwise tiles hold one COLS-lane row per tap: groups*2 bytes.
+                            weight_tile_base<=weights+mul_p*(dwconv ? 2 : 4*(COLS/2));
+                            load_address<=weights+mul_p*(dwconv ? 2 : 4*(COLS/2));
                         end
                         default:begin
                             // Normal kernels step over IC contiguous channels per tap;
@@ -805,8 +830,9 @@ module npu_program_core #(
                             if(!array_weight_we) begin load_data<=response_row; lstate<=L_HAVE; end
                         end
                         if(array_weight_we) begin
+                            // Depthwise: every group of a tap reuses that tap's one stored row.
                             load_address<=load_row==3 && load_g==groups-1 ? weight_tile_base :
-                                dwconv && load_row!=3 ? load_address : load_address+row_bytes;
+                                dwconv && (load_row!=3 || (COLS==8 && !load_g[0])) ? load_address : load_address+row_bytes;
                             if(load_row==3) begin
                                 load_row<=0; lstate<=L_IDLE; bank_ready[load_bank]<=1; load_seq<=load_seq+1'b1;
                                 if(load_g!=groups-1) load_g<=load_g+1'b1;
@@ -894,7 +920,18 @@ module npu_program_core #(
                                 estate<=1;
                             end
                             1: if(a_ready) estate<=2;
-                            2: if(a_rsp_valid) begin
+                            2: if(a_rsp_valid && evec) begin
+                                for(v=0;v<COLS;v=v+1)results[element_slot][v*32+:32]<={{11{lane_next[v][20]}},lane_next[v]};
+                                if(!element_done) begin
+                                    if(op==ADD) add_second<=1;
+                                    else if(tap_x==pkw-8'd1) begin
+                                        tap_x<=0; tap_y<=tap_y+1'b1; tap_offset<=tap_offset+tap_row_jump;
+                                    end else begin tap_x<=tap_x+1'b1; tap_offset<=tap_offset+tap_col_step; end
+                                    estate<=1;
+                                end else begin
+                                    tap_y<=0; tap_x<=0; tap_offset<=0; add_second<=0; estate<=3;
+                                end
+                            end else if(a_rsp_valid) begin
                                 element_acc<=selected_element;
                                 if(!element_done) begin
                                     if(op==ADD) add_second<=1;

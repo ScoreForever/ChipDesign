@@ -7,7 +7,7 @@ module tb_npu_program;
  reg [4:0] expected_error;
  integer fd,rc,commands=0,waits=0,bursts=0;
  string trace_path;
- reg [63:0] events[0:65535];integer event_count=0,event_index=0;
+ reg [63:0] events[0:524287];integer event_count=0,event_index=0;
  string event_path;
 `ifdef JTAG_TEST
  reg tck=1,tms=1,tdi=0;wire tdo;

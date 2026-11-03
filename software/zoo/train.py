@@ -26,6 +26,7 @@ import npu_fastref  # noqa: E402
 from zoo import data as datasets  # noqa: E402
 from zoo.models import SPECS  # noqa: E402
 from zoo.qat import Net, annotate_shapes, export  # noqa: E402
+from zoo.hwopt import pad_input_channels, frames_for  # noqa: E402
 
 
 def augment(name, x):
@@ -90,7 +91,7 @@ def quantize_input(x, scale):
 
 
 def int_accuracy(model, x, y, device, per_class=None):
-    frames = quantize_input(x, model['metadata']['input_scale'])
+    frames = frames_for(model, quantize_input(x, model['metadata']['input_scale']))
     preds = []
     for i in range(0, len(y), 1024):
         out = npu_fastref.run(model, frames[i:i + 1024].to(device), device)
@@ -235,13 +236,14 @@ def main():
         return
     model = export(net, args.name, dict(classes=[str(c) for c in raw['classes']], preprocess=raw['preprocess'],
                                         dataset=args.name))
+    model, _ = pad_input_channels(model)
     test_acc, pred, recall = int_accuracy(model, *data['test'], device, per_class=cfg['classes'])
-    frames = quantize_input(data['test'][0][:16].cpu(), model['metadata']['input_scale'])
+    frames = frames_for(model, quantize_input(data['test'][0][:16].cpu(), model['metadata']['input_scale']))
     hw = check_hardware(model, frames)
     model['metadata'].update(accuracy_validated=True, int4_test_accuracy=test_acc, int4_val_accuracy=qat_val)
     (out / 'model.json').write_text(json.dumps(model) + '\n')
     torch.save(net.state_dict(), out / 'qat_state.pt')
-    torch.save(dict(frames=quantize_input(data['test'][0].cpu(), model['metadata']['input_scale']).to(torch.int8),
+    torch.save(dict(frames=frames_for(model, quantize_input(data['test'][0].cpu(), model['metadata']['input_scale'])).to(torch.int8),
                     labels=data['test'][1].cpu().to(torch.int16)), out / 'test_frames.pt')
     result = dict(name=args.name, weights=net.weight_count(), float_val=fp_val, float_test=fp_test,
                   int4_val=qat_val, int4_test=test_acc, int4_test_recall=recall,

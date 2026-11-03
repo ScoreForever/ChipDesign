@@ -71,7 +71,10 @@ def main():
     def one(job):
         name, model, frame, label, index, cols, fusion = job
         case = f'{name}_f{index}_{fusion}'
-        row = R.simulate(out, images[cols], case, model, frame, cols, FUSIONS[fusion], False)
+        try:
+            row = R.simulate(out, images[cols], case, model, frame, cols, FUSIONS[fusion], False)
+        except ValueError as error:  # e.g. more than 16 descriptors without fusion
+            return dict(model=name, frame=index, cols=cols, fusion=fusion, label=label, unsupported=str(error))
         logits = reference(model, frame)[model['nodes'][-1]['output']]
         return dict(model=name, frame=index, cols=cols, fusion=fusion, label=label,
                     predicted=max(range(len(logits)), key=logits.__getitem__), **row)
@@ -80,9 +83,11 @@ def main():
     with ThreadPoolExecutor(args.jobs) as pool:
         for row in pool.map(one, jobs):
             results.append(row)
-            print('PASS', row['model'], row['frame'], row['cols'], row['fusion'], row['cycles'][0], flush=True)
+            print('PASS' if 'cycles' in row else 'UNSUPPORTED', row['model'], row['frame'], row['cols'], row['fusion'],
+                  row['cycles'][0] if 'cycles' in row else row['unsupported'], flush=True)
     (out / 'summary.json').write_text(json.dumps(results, indent=1) + '\n')
-    print(f'ALL {len(results)} ZOO RTL RUNS BIT-EXACT')
+    ran = [r for r in results if 'cycles' in r]
+    print(f'ALL {len(ran)} ZOO RTL RUNS BIT-EXACT ({len(results)-len(ran)} configurations exceed hardware limits)')
 
 
 if __name__ == '__main__':
