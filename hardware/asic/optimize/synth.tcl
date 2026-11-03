@@ -27,7 +27,7 @@ syn_map
 source [file join [file dirname [info script]] npu_jtag_cdc.tcl]
 npu_cdc::apply
 syn_opt
-npu_cdc::audit cdc_paths.tsv
+npu_cdc::audit_synth cdc_paths.tsv
 report_area -depth 4 > area.rpt
 report_timing > timing.rpt
 write_hdl > mapped.v

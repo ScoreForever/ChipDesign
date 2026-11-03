@@ -43,3 +43,18 @@ def validate(path):
         return found == expected_paths() and len(rows) == 113
     except (OSError, ValueError, KeyError, TypeError):
         return False
+
+
+def validate_synth(path):
+    """Mapped-netlist audit: every payload and both first-stage synchronizer
+    setup paths present once, with finite nonnegative slack (ns)."""
+    try:
+        with Path(path).open() as stream:
+            rows = list(csv.DictReader(stream, delimiter='\t'))
+        normalize = lambda name: name.replace('i_host/', 'i_host_', 1)
+        found = {(r['kind'], normalize(r['from']), normalize(r['to']), r['mode']) for r in rows}
+        expected = {p for p in expected_paths() if p[3] == 'late'}
+        slacks = [float(r['slack_ns']) for r in rows]
+        return found == expected and len(rows) == len(expected) and all(math.isfinite(v) and v >= 0 for v in slacks)
+    except (OSError, ValueError, KeyError, TypeError):
+        return False

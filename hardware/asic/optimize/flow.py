@@ -12,7 +12,7 @@ import shutil
 import subprocess
 import sys
 import time
-from cdc_check import validate as validate_cdc
+from cdc_check import validate as validate_cdc, validate_synth as validate_cdc_synth
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
@@ -356,7 +356,7 @@ def synth(output,libs):
     state=launch(['genus','-no_gui','-batch','-files',str(HERE/'synth.tcl')],directory,'PNR_OPT_SYNTHESIS_COMPLETE')
     if state['status']!='complete':raise RuntimeError('synthesis failed: '+str(directory))
     verify_clocks(directory/'mapped.sdc')
-    if not validate_cdc(directory/'cdc_paths.tsv'):raise RuntimeError('mapped CDC audit failed')
+    if not validate_cdc_synth(directory/'cdc_paths.tsv'):raise RuntimeError('mapped CDC audit failed')
     save(directory/'handoff.json',{p:digest(directory/p) for p in ('mapped.v','mapped.sdc','area.json')})
 
 

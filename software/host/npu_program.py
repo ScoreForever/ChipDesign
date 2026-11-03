@@ -1,7 +1,9 @@
-"""Packed INT4 model compiler and independent integer reference, ABI 3.0.
+"""Packed INT4 model compiler and independent integer reference, ABI 4.0.
 
-Pure Python, no framework/runtime dependency. Public input uses five logical
-operators. Fusion only removes single-consumer, non-output intermediates.
+Pure Python, no framework/runtime dependency. Public input uses seven logical
+operators (Conv incl. depthwise, FC, MaxPool, ReLU, Requant, AvgPool, Add).
+Fusion only removes single-consumer, non-output intermediates, and each kind
+of fusion can be switched off on its own.
 """
 from __future__ import annotations
 from dataclasses import dataclass
@@ -12,28 +14,32 @@ from pathlib import Path
 import struct
 import operator
 
-# ABI 3.0: packed signed INT4 tensors/weights, INT32 raw tensors and bias,
+# ABI 4.0: packed signed INT4 tensors/weights, INT32 raw tensors and bias,
 # Q15 multiplier + signed shift in one word, byte-addressed descriptors.
-ABI=0x30000
+# 4.0 adds depthwise/rectangular convolution, general and average pooling,
+# residual Add, a 1x2 fused pool and fused Requant/ReLU after pooling or Add.
+ABI=0x40000
 FORMAT_MAGIC=0x49340f40  # I4, Q15, four rows; low nibble is array column count.
 NUMERIC_FORMAT=0x0f200404
-OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5}
-Q,R,P,S32,D32=1<<8,1<<9,1<<10,1<<11,1<<12
+OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5,'AvgPool':6,'Add':7}
+Q,R,P,S32,D32,DW,P1D=1<<8,1<<9,1<<10,1<<11,1<<12,1<<13,1<<14
+MAX_KERNEL=7
+# Fusion kinds a head operator may absorb. A switch is either a bare kind
+# ('requant', 'relu', 'maxpool') or one qualified by the head ('add.relu').
+FUSE_KINDS=('requant','relu','maxpool')
+FUSE_HEADS=('conv','dwconv','fc','maxpool','avgpool','add')
 
 def wrap32(x):
     return (int(x)+2**31)%2**32-2**31
 
 def requant(x,mult,shift,lo=-8,hi=7):
-    """Double-rounding Q15: saturating left shift, SRDHM, rounding POT."""
+    """Q15 with one rounding: saturating left shift for shift>0, then
+    round-half-up of x*mult/2^(15+max(-shift,0)), then INT4 clamp."""
     if not 0<=mult<2**15 or not -31<=shift<=31 or not -8<=lo<=hi<=7:
         raise ValueError('invalid INT4 Q15 parameters')
     x=max(-2**31,min(2**31-1,wrap32(x)*2**max(shift,0)))
-    y=max(-2**31,min(2**31-1,(x*mult+2**14)//2**15))
-    if shift<0:
-        e=-shift
-        base=y//2**e
-        remainder=y-base*2**e
-        y=base+int(remainder>((2**e-1)//2+int(y<0)))
+    s=15+max(-shift,0)
+    y=(x*mult+2**(s-1))>>s
     return max(lo,min(hi,y))
 
 def pack_i4(values):
@@ -133,6 +139,12 @@ class Package:
             raise ValueError('invalid package ABI/length')
         return pkg
 
+def pair(value,name):
+    """An integer or [A,B] pair of positive integers."""
+    v=(value,value) if isinstance(value,int) else tuple(value)
+    if len(v)!=2:raise ValueError(f'{name} must be integer or [A,B]')
+    return tuple(map(operator.index,v))
+
 def analyze(model):
     unknown=set(model)-{'input','nodes','output','metadata'}
     if unknown:raise ValueError(f'unknown model fields: {sorted(unknown)}')
@@ -154,44 +166,63 @@ def analyze(model):
             raise ValueError('unknown operator/input or duplicate output')
         fields={'Conv':{'channels','weights','bias','kernel','stride','pads','groups','dilation','weight_zero_point'},
                 'FC':{'channels','weights','bias','kernel','stride','pads'},
-                'MaxPool':{'kernel','stride','pads'},'ReLU':set(),
-                'Requant':{'multiplier','shift','clamp','input_zero_point','output_zero_point'}}
-        unknown=set(n)-({'op','input','output','metadata','name','layout','zero_point'}|fields[op])
+                'MaxPool':{'kernel','stride','pads'},'AvgPool':{'kernel','stride','pads'},'ReLU':set(),
+                'Requant':{'multiplier','shift','clamp','input_zero_point','output_zero_point'},
+                'Add':{'input2','weights'}}
+        unknown=set(n)-({'op','input','output','metadata','name','layout','zero_point','fuse'}|fields[op])
         if unknown:raise ValueError(f'unknown {op} fields: {sorted(unknown)}')
         if n.get('layout','NHWC')!='NHWC' or any(n.get(key,0)!=0 for key in
             ('zero_point','weight_zero_point','input_zero_point','output_zero_point')):
             raise ValueError('only NHWC and zero-point-zero quantization are supported')
-        if n.get('groups',1)!=1 or n.get('dilation',1) not in (1,[1,1],(1,1)):
-            raise ValueError('grouped/dilated convolution is unsupported')
+        if n.get('dilation',1) not in (1,[1,1],(1,1)):raise ValueError('dilated convolution is unsupported')
         t=tensors[src];h,w,c=t.shape
+        n['inputs']=[src]
         if op in ('Conv','FC'):
             if t.dtype!='i4':raise ValueError('Conv/FC input must be i4; insert Requant')
-            oc=operator.index(n['channels']);kernel=operator.index(n.get('kernel',3 if op=='Conv' else 1))
-            stride=n.get('stride',1);pads=[operator.index(v) for v in n.get('pads',[0]*4)]
-            steps=(stride,stride) if isinstance(stride,int) else tuple(stride)
-            if len(steps)!=2:raise ValueError('stride must be integer or [SH,SW]')
-            sh,sw=map(operator.index,steps)
-            if kernel not in (1,3) or sh not in (1,2) or sw not in (1,2) or len(pads)!=4 or any(p<0 or p>=kernel for p in pads):
+            oc=operator.index(n['channels'])
+            kh,kw=pair(n.get('kernel',3 if op=='Conv' else 1),'kernel')
+            sh,sw=pair(n.get('stride',1),'stride')
+            pads=[operator.index(v) for v in n.get('pads',[0]*4)]
+            groups=operator.index(n.get('groups',1))
+            depthwise=groups!=1
+            if depthwise and (op!='Conv' or groups!=c or oc!=c):
+                raise ValueError('only depthwise grouping (groups=channels=input channels) is supported')
+            if not (1<=kh<=MAX_KERNEL and 1<=kw<=MAX_KERNEL) or sh not in (1,2) or sw not in (1,2) or len(pads)!=4 or \
+               any(p<0 for p in pads) or pads[0]>=kh or pads[2]>=kh or pads[1]>=kw or pads[3]>=kw:
                 raise ValueError('unsupported kernel/stride/padding')
             if op=='FC':
-                if kernel!=1 or sh!=1 or sw!=1 or any(pads):raise ValueError('FC has no convolution geometry')
+                if (kh,kw)!=(1,1) or sh!=1 or sw!=1 or any(pads):raise ValueError('FC has no convolution geometry')
                 h=w=1;c=math.prod(t.shape)
-            oh=(h+pads[0]+pads[2]-kernel)//sh+1
-            ow=(w+pads[1]+pads[3]-kernel)//sw+1
-            k=kernel*kernel*c
+            oh=(h+pads[0]+pads[2]-kh)//sh+1
+            ow=(w+pads[1]+pads[3]-kw)//sw+1
+            k=kh*kw*(1 if depthwise else c)
             if not 1<=oc<=256 or k>1024 or not 1<=oh<=255 or not 1<=ow<=255:
                 raise ValueError('Conv/FC shape exceeds capability')
             weights=flatten(n['weights']);bias=flatten(n.get('bias',[0]*oc))
             if len(weights)!=oc*k or len(bias)!=oc or any(v< -8 or v>7 for v in weights):
-                raise ValueError('weights must be [OC,KH,KW,IC], FC [OC,K], signed i4')
+                raise ValueError('weights must be [OC,KH,KW,IC] (depthwise [C,KH,KW]), FC [OC,K], signed i4')
             if any(v< -2**31 or v>=2**31 for v in bias):raise ValueError('bias outside i32')
-            n.update(kernel=kernel,stride_h=sh,stride_w=sw,pads=pads,channels=oc,weights=weights,bias=bias,k=k,input_shape=(h,w,c))
+            n.update(kernel_h=kh,kernel_w=kw,stride_h=sh,stride_w=sw,pads=pads,channels=oc,weights=weights,bias=bias,k=k,
+                     input_shape=(h,w,c),depthwise=depthwise)
             result=Tensor((oh,ow,oc),'i32')
-        elif op=='MaxPool':
-            if n.get('kernel',2)!=2 or n.get('stride',2)!=2 or n.get('pads',[0]*4)!=[0]*4:
-                raise ValueError('MaxPool supports 2x2/stride2/no padding')
-            if h<2 or w<2:raise ValueError('empty MaxPool output')
-            result=Tensor((h//2,w//2,c),t.dtype)
+        elif op in ('MaxPool','AvgPool'):
+            kh,kw=pair(n.get('kernel',2),'kernel');sh,sw=pair(n.get('stride',[kh,kw]),'stride')
+            if any(n.get('pads',[0]*4)):raise ValueError('pooling has no padding')
+            if not (1<=kh<=255 and 1<=kw<=255 and 1<=sh<=255 and 1<=sw<=255):raise ValueError('pool window/stride')
+            if h<kh or w<kw:raise ValueError('empty pool output')
+            if op=='AvgPool' and t.dtype!='i4':raise ValueError('AvgPool sums i4 inputs; insert Requant')
+            n.update(kernel_h=kh,kernel_w=kw,stride_h=sh,stride_w=sw)
+            # AvgPool yields the INT32 window sum; the 1/N scale belongs to a Requant.
+            result=Tensor(((h-kh)//sh+1,(w-kw)//sw+1,c),'i32' if op=='AvgPool' else t.dtype)
+        elif op=='Add':
+            other=n.get('input2')
+            if other not in tensors:raise ValueError('Add needs a known input2')
+            if t.dtype!='i4' or tensors[other].dtype!='i4' or tensors[other].shape!=t.shape:
+                raise ValueError('Add inputs must be i4 tensors of one shape')
+            wa,wb=map(operator.index,n.get('weights',[1,1]))
+            if not (-128<=wa<=127 and -128<=wb<=127):raise ValueError('Add weights must be signed 8-bit')
+            n.update(weights=[wa,wb]);n['inputs']=[src,other]
+            result=Tensor(t.shape,'i32')
         elif op=='ReLU':result=Tensor(t.shape,t.dtype)
         else:
             mult=flatten(n['multiplier']);shift=flatten(n['shift'])
@@ -218,57 +249,89 @@ def reference(model,values):
     for n in nodes:
         op=n['op'];a=data[n['input']];t=tensors[n['input']];h,w,c=t.shape;out=[]
         if op in ('Conv','FC'):
-            h,w,c=n['input_shape'];oh,ow,oc=tensors[n['output']].shape
+            h,w,c=n['input_shape'];oh,ow,oc=tensors[n['output']].shape;kh,kw=n['kernel_h'],n['kernel_w']
             for y in range(oh):
                 for x in range(ow):
                     for o in range(oc):
                         acc=n['bias'][o]
-                        for ky in range(n['kernel']):
-                            for kx in range(n['kernel']):
+                        for ky in range(kh):
+                            for kx in range(kw):
                                 iy=y*n['stride_h']+ky-n['pads'][0];ix=x*n['stride_w']+kx-n['pads'][1]
                                 if 0<=iy<h and 0<=ix<w:
-                                    for i in range(c):
-                                        wi=o*n['k']+(ky*n['kernel']+kx)*c+i
-                                        acc+=a[(iy*w+ix)*c+i]*n['weights'][wi]
+                                    if n['depthwise']:
+                                        acc+=a[(iy*w+ix)*c+o]*n['weights'][o*n['k']+ky*kw+kx]
+                                    else:
+                                        for i in range(c):
+                                            acc+=a[(iy*w+ix)*c+i]*n['weights'][o*n['k']+(ky*kw+kx)*c+i]
                         out.append(wrap32(acc))
-        elif op=='MaxPool':
-            for y in range(h//2):
-                for x in range(w//2):
-                    for i in range(c):out.append(max(a[((2*y+dy)*w+2*x+dx)*c+i] for dy in range(2) for dx in range(2)))
+        elif op in ('MaxPool','AvgPool'):
+            oh,ow,_=tensors[n['output']].shape;kh,kw=n['kernel_h'],n['kernel_w']
+            for y in range(oh):
+                for x in range(ow):
+                    for i in range(c):
+                        window=[a[((y*n['stride_h']+dy)*w+x*n['stride_w']+dx)*c+i] for dy in range(kh) for dx in range(kw)]
+                        out.append(max(window) if op=='MaxPool' else wrap32(sum(window)))
+        elif op=='Add':
+            b=data[n['input2']];wa,wb=n['weights']
+            out=[wrap32(wa*u+wb*v) for u,v in zip(a,b)]
         elif op=='ReLU':out=[max(0,v) for v in a]
         else:
             out=[requant(v,n['multiplier'][i%c],n['shift'][i%c],*n['clamp']) for i,v in enumerate(a)]
         data[n['output']]=out
     return data
 
+def head_kind(node):
+    if node['op']=='Conv':return 'dwconv' if node['depthwise'] else 'conv'
+    return node['op'].lower()
+
+def fuse_policy(fuse):
+    """Normalize the fusion switch to a predicate on (head kind, fused kind)."""
+    if fuse is True:return lambda head,kind:True
+    if fuse is False or fuse is None:return lambda head,kind:False
+    allowed=set(fuse)
+    for item in allowed:
+        head,_,kind=item.rpartition('.')
+        if kind not in FUSE_KINDS or (head and head not in FUSE_HEADS):raise ValueError(f'unknown fusion switch {item!r}')
+    return lambda head,kind:kind in allowed or f'{head}.{kind}' in allowed
+
 def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_ops=16):
+    """fuse: True, False, or an iterable of switches such as {'requant','relu','conv.maxpool'}.
+    A node with "fuse": false is never absorbed into a preceding operator."""
     tensors,nodes=analyze(model)
     if cols not in (4,8):raise ValueError('array columns must be 4 or 8')
+    allow=fuse_policy(fuse)
     uses={name:0 for name in tensors}
-    for n in nodes:uses[n['input']]+=1
+    for n in nodes:
+        for name in n['inputs']:uses[name]+=1
     groups=[];i=0
     while i<len(nodes):
-        g=[nodes[i]];i+=1
-        if fuse and g[0]['op'] in ('Conv','FC'):
+        g=[nodes[i]];i+=1;head=head_kind(g[0])
+        if g[0]['op'] in ('Conv','FC','MaxPool','AvgPool','Add'):
             seen=[]
-            while i<len(nodes) and nodes[i]['input']==g[-1]['output'] and uses[g[-1]['output']]==1:
+            while i<len(nodes) and nodes[i]['input']==g[-1]['output'] and uses[g[-1]['output']]==1 and nodes[i].get('fuse',True):
                 candidate=nodes[i]['op']
                 # Whitelist of monotone same-channel post chains. Never combine
                 # two Requants, never move ReLU before a wrapping MAC bias.
-                if candidate=='Requant' and not seen:pass
-                elif candidate=='ReLU' and 'ReLU' not in seen and ('Requant' not in seen or nodes[i-1].get('clamp',[-8,7])[1]>=0):pass
-                elif candidate=='MaxPool' and 'MaxPool' not in seen and g[0]['op']=='Conv':pass
+                pool=candidate=='MaxPool' and (nodes[i]['kernel_h'],nodes[i]['kernel_w'],nodes[i]['stride_h'],nodes[i]['stride_w']) in ((2,2,2,2),(1,2,1,2))
+                if candidate=='Requant' and not seen and allow(head,'requant'):pass
+                elif candidate=='ReLU' and 'ReLU' not in seen and allow(head,'relu') and \
+                     ('Requant' not in seen or nodes[i-1].get('clamp',[-8,7])[1]>=0):pass
+                elif pool and 'MaxPool' not in seen and g[0]['op']=='Conv' and allow(head,'maxpool'):pass
                 else:break
                 if candidate=='Requant' and 'MaxPool' in seen:break
                 g.append(nodes[i]);seen.append(candidate);i+=1
         groups.append(g)
     if len(groups)>max_ops:raise ValueError('too many physical operators')
+    for g in groups:
+        if g[0]['op']=='Conv' and g[0]['depthwise'] and g[0]['channels']%cols:
+            raise ValueError(f'depthwise channels must be a multiple of {cols} array columns')
     # First-fit, whole-tensor lifetime allocation. A destination is allocated
-    # before releasing its source, so general in-place hazards cannot occur.
+    # before releasing its sources, so general in-place hazards cannot occur.
     live={model['input']['name']:(0,tensors[model['input']['name']].size)}
     allocation=dict(live);peak=align(tensors[model['input']['name']].size)
     last_use={name:-1 for name in tensors}
-    for idx,g in enumerate(groups):last_use[g[0]['input']]=idx
+    for idx,g in enumerate(groups):
+        for name in g[0]['inputs']:last_use[name]=idx
     for idx,g in enumerate(groups):
         name=g[-1]['output'];size=tensors[name].size;at=0
         for base,length in sorted(live.values()):
@@ -289,37 +352,53 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         h,w,c=n.get('input_shape',tin.shape);oc=n.get('channels',c)
         flags=(S32 if tin.dtype=='i32' else 0)|(D32 if tout.dtype=='i32' else 0)
         q=next((v for v in g if v['op']=='Requant'),None)
-        if op in ('Conv','FC'):
+        if op!='Requant':
             if q:flags|=Q
             if any(v['op']=='ReLU' for v in g[1:]):flags|=R
-            if any(v['op']=='MaxPool' for v in g[1:]):flags|=P
+            pool=next((v for v in g[1:] if v['op']=='MaxPool'),None)
+            if pool:flags|=P|(P1D if pool['kernel_h']==1 else 0)
+        if op=='Conv' and n['depthwise']:flags|=DW
         weight_base=param_base=0
-        if op in ('Conv','FC'):
+        if op in ('Conv','FC') and n['depthwise']:
+            # One row of COLS lane weights per four-row K group; the array
+            # expands it to a block diagonal. COLS/4 groups share one tap.
+            packed=[];taps=n['kernel_h']*n['kernel_w']
+            for o_base in range(0,oc,cols):
+                for tap in range(taps):
+                    for _ in range(cols//4):packed.extend(n['weights'][(o_base+lane)*taps+tap] for lane in range(cols))
+            weight_base=append(pack_i4(packed),4)
+        elif op in ('Conv','FC'):
             packed=[];k=n['k']
+            row_pad=n['kernel_h']==3 and n['kernel_w']==3 and n['input_shape'][2]==1
             for o_base in range(0,oc,cols):
                 width=4 if cols==8 and oc-o_base<=4 else cols
                 for ki in range(align(k,4)):
                     for lane in range(width):
                         o=o_base+lane
-                        row_pad=n['kernel']==3 and n['input_shape'][2]==1
                         logical=(ki//4)*3+ki%4 if row_pad else ki
                         valid=ki%4<3 if row_pad else ki<k
                         packed.append(n['weights'][o*k+logical] if o<oc and valid else 0)
             weight_base=append(pack_i4(packed),4)
-        if op in ('Conv','FC','Requant'):
+        if op in ('Conv','FC','Requant') or q:
             if op=='Requant':q=n
             params=[]
             for ch in range(oc):
-                params.extend([n.get('bias',[0]*oc)[ch],(q['multiplier'][ch]|((q['shift'][ch]&63)<<16)) if q else 0])
+                params.extend([n.get('bias',[0]*oc)[ch] if op in ('Conv','FC') else 0,
+                               (q['multiplier'][ch]|((q['shift'][ch]&63)<<16)) if q else 0])
             param_base=append(struct.pack('<'+'I'*len(params),*(x&0xffffffff for x in params)))
-        kernel=n.get('kernel',0) if op in ('Conv','FC') else 0
-        sh=n.get('stride_h',0);sw=n.get('stride_w',0)
+        if op in ('Conv','FC','MaxPool','AvgPool'):
+            geometry=n['kernel_h']|(n['kernel_w']<<8)|(n['stride_h']<<16)|(n['stride_w']<<24)
+        else:geometry=0
+        if op=='MaxPool' and (n['kernel_h'],n['kernel_w'],n['stride_h'],n['stride_w'])==(2,2,2,2):
+            geometry=0 # canonical 2x2/stride-2 standalone pool keeps the ABI 3 encoding
         pads=n.get('pads',[0]*4) if op in ('Conv','FC') else [0]*4
         clamp=q['clamp'] if q else [0,0]
         words=[OPS[op]|flags,allocation[n['input']][0],allocation[g[-1]['output']][0],
-               h|(w<<16),c|(oc<<16),kernel|(kernel<<8)|(sh<<16)|(sw<<24),
+               h|(w<<16),c|(oc<<16),geometry,
                sum(v<<(8*i) for i,v in enumerate(pads)),weight_base,param_base,
-               (clamp[0]&15)|((clamp[1]&15)<<4),tout.shape[0]|(tout.shape[1]<<16),0,0,0,0,0]
+               (clamp[0]&15)|((clamp[1]&15)<<4),tout.shape[0]|(tout.shape[1]<<16),
+               allocation[n['input2']][0] if op=='Add' else 0,
+               ((n['weights'][0]&255)|((n['weights'][1]&255)<<8)) if op=='Add' else 0,0,0,0]
         words[15]=FORMAT_MAGIC|cols
         records.append(words)
     while len(image)%4:image.append(0)
@@ -368,8 +447,10 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('model',type=Path);ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--no-fuse',action='store_true');ap.add_argument('--cols',type=int,default=8)
+    ap.add_argument('--fuse',help='comma-separated fusion switches, e.g. requant,relu,conv.maxpool (default: all)')
     ap.add_argument('--act-bytes',type=int,default=8192)
     args=ap.parse_args();model=from_tinycnn_npz(args.model) if args.model.suffix=='.npz' else json.loads(args.model.read_text(encoding='utf-8'))
-    pkg=compile_model(model,fuse=not args.no_fuse,cols=args.cols,act_bytes=args.act_bytes);pkg.save(args.output)
+    fuse=False if args.no_fuse else (args.fuse.split(',') if args.fuse else True)
+    pkg=compile_model(model,fuse=fuse,cols=args.cols,act_bytes=args.act_bytes);pkg.save(args.output)
     print(json.dumps(pkg.manifest,ensure_ascii=False,indent=2))
 if __name__=='__main__':main()

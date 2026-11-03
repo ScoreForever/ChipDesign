@@ -106,3 +106,25 @@ proc npu_cdc::audit {filename} {
     }
     close $f
 }
+
+# Genus 19 has setup-only report_timing (no -late/-early) and reports slack
+# in picoseconds; arrival/required properties are not reliable there. The
+# mapped netlist is therefore audited for presence and nonnegative setup slack
+# of every constrained path; the routed Innovus audit above checks budgets.
+proc npu_cdc::audit_synth {filename} {
+    index_cells
+    set f [open $filename w]
+    puts $f "kind\tfrom\tto\tmode\tslack_ns"
+    set specs [payloads]
+    foreach bank {req_sync ack_sync} {lappend specs [list $bank [pin $bank 0 Q] [pin $bank 1 D]]}
+    foreach spec $specs {
+        lassign $spec kind from to
+        set paths [report_timing -collection -from $from -to $to -max_paths 1]
+        if {[sizeof_collection $paths] != 1} {error "CDC path missing/cut: [get_object_name $from] -> [get_object_name $to]"}
+        set slack [get_property $paths slack]
+        if {![string is double -strict $slack] || $slack < 0} {error "Invalid/negative CDC slack: $slack"}
+        puts $f "$kind\t[lindex [get_object_name $from] 0]\t[lindex [get_object_name $to] 0]\tlate\t[expr {$slack/1000.0}]"
+    }
+    close $f
+}
+

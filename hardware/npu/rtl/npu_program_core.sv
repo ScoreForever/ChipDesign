@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// ABI 3 INT4 descriptor sequencer and shared five-operator backend.
+// ABI 4 INT4 descriptor sequencer and shared seven-operator backend.
 // No model geometry, layer index or output class count is hardwired.
 // Model RAM is immutable while validating/running. Descriptors/model use byte addresses; activation ports use nibble addresses.
 module npu_program_core #(
@@ -29,7 +29,7 @@ module npu_program_core #(
 );
     localparam IDLE=0,FREQ=1,FWAIT=2,BASIC=3,CHECK=4,PREQ=5,PWAIT=6,
         SETUP=7,EXECUTE=8,NEXT=9,FAILED=10,INIT_A=11,INIT_B=12,DERIVE=14;
-    localparam CONV=1,FC=2,POOL=3,RELU=4,REQUANT=5;
+    localparam CONV=1,FC=2,POOL=3,RELU=4,REQUANT=5,AVGPOOL=6,ADD=7;
     localparam L_IDLE=0,L_REQ=1,L_WAIT=2,L_HAVE=3;
     reg [3:0] state;
     reg checking;
@@ -39,12 +39,18 @@ module npu_program_core #(
     // Full opcode is checked before execution. Cache the hot one-bit modes
     // rather than repeating wide opcode comparisons on memory address paths.
     wire [2:0] op=d[0][2:0];
-    reg q_enable,relu_enable,pool_enable,mac_op;
+    reg q_enable,relu_enable,pool_enable,mac_op,dwconv,pool1d,elem_pool;
     wire src32=d[0][11],dst32=d[0][12];
     wire [15:0] src={d[1][14:0],1'b0},dst={d[2][14:0],1'b0};
     wire [15:0] ih=d[3][15:0],iw=d[3][31:16];
     wire [15:0] ic=d[4][15:0],oc=d[4][31:16];
     wire [7:0] kh=d[5][7:0],kw=d[5][15:8],sh=d[5][23:16],sw=d[5][31:24];
+    // Standalone pooling window/stride; an all-zero word is the ABI 3 2x2/s2 pool.
+    wire pool_default=d[5]==0;
+    wire [7:0] pkh=pool_default ? 8'd2 : kh,pkw=pool_default ? 8'd2 : kw,
+               psh=pool_default ? 8'd2 : sh,psw=pool_default ? 8'd2 : sw;
+    wire [15:0] src2={d[11][14:0],1'b0};
+    wire signed [7:0] add_wa=d[12][7:0],add_wb=d[12][15:8];
     wire [7:0] pt=d[6][7:0],pl=d[6][15:8],pb=d[6][23:16],pr=d[6][31:24];
     wire [15:0] weights=d[7][15:0],params=d[8][15:0];
     wire signed [3:0] clamp_min=d[9][3:0],clamp_max=d[9][7:4];
@@ -62,11 +68,11 @@ module npu_program_core #(
     reg [15:0] oct;
     // Only checked channel counts (<=256) reach the execution path.
     wire [8:0] channels=mac_op ? oc[8:0] : ic[8:0];
-    wire need_params=mac_op || op==REQUANT;
+    wire need_params=mac_op || q_enable;
     wire last_param=(param_word==1 &&
         (checking ? param_channel==channels-1 :
          (param_channel==channels-1 || (param_channel%COLS)==COLS-1)));
-    wire param_bad=param_word==1 ? (m_data[31:22]!=0 || m_data[15] || m_data[21:16]==6'b100000 || (!q_enable && m_data!=0)) : (op==REQUANT && m_data!=0);
+    wire param_bad=param_word==1 ? (m_data[31:22]!=0 || m_data[15] || m_data[21:16]==6'b100000 || (!q_enable && m_data!=0)) : (!mac_op && m_data!=0);
     wire [15:0] next_param_channel=param_word==1 ? param_channel+1'b1 : param_channel;
     wire next_param_word=!param_word;
     assign ready=state==IDLE && !rst;
@@ -77,22 +83,35 @@ module npu_program_core #(
     // Validation uses bounded dimensions. Derived quantities are latched once
     // per descriptor; execution never recomputes tensor-size multiplications.
     integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam,j;
-    reg basic_bad,shape_bad,range_bad,source_known;
+    reg basic_bad,shape_bad,range_bad,source_known,source2_known;
     always @* begin
-        basic_bad=d[0][31:13]!=0 || d[0][7:0]<CONV || d[0][7:0]>REQUANT ||
+        basic_bad=d[0][31:15]!=0 || d[0][7:0]<CONV || d[0][7:0]>ADD ||
             d[1][31:15]!=0 || d[2][31:15]!=0 || d[7][31:16]!=0 || d[8][31:16]!=0 ||
             ih==0 || ih>255 || iw==0 || iw>255 || ic==0 || ic>MAX_K ||
             oc==0 || oc>256 || d[1][1:0]!=0 || d[2][1:0]!=0 ||
-            d[9][31:8]!=0 || d[11]!=0 || d[12]!=0 || d[13]!=0 || d[14]!=0 || d[15]!=(32'h49340f40|COLS);
+            d[9][31:8]!=0 || d[13]!=0 || d[14]!=0 || d[15]!=(32'h49340f40|COLS) ||
+            (op==ADD ? (d[11][31:15]!=0 || d[11][1:0]!=0 || d[12][31:16]!=0) : (d[11]!=0 || d[12]!=0));
         if(mac_op) begin
+            // Rectangular kernels up to 7x7. Depthwise convolution keeps one
+            // input channel per output channel and whole COLS-wide tiles.
             basic_bad=basic_bad || src32 || (q_enable==dst32) ||
-                (kh!=1 && kh!=3) || kh!=kw || (sh!=1 && sh!=2) || (sw!=1 && sw!=2) ||
-                pt>=kh || pb>=kh || pl>=kw || pr>=kw || weights[1:0]!=0 || params[1:0]!=0;
-            if(op==FC) basic_bad=basic_bad || ih!=1 || iw!=1 || kh!=1 || sh!=1 || sw!=1 || pool_enable;
+                kh==0 || kh>7 || kw==0 || kw>7 || (sh!=1 && sh!=2) || (sw!=1 && sw!=2) ||
+                pt>=kh || pb>=kh || pl>=kw || pr>=kw || weights[1:0]!=0 || params[1:0]!=0 ||
+                (pool1d && !pool_enable) || (dwconv && (op!=CONV || oc!=ic || oc%COLS!=0));
+            if(op==FC) basic_bad=basic_bad || ih!=1 || iw!=1 || kh!=1 || kw!=1 || sh!=1 || sw!=1 || pool_enable;
         end else begin
-            basic_bad=basic_bad || oc!=ic || d[0][10:8]!=0 || d[5]!=0 || d[6]!=0 || weights!=0 ||
-                (op!=REQUANT && params!=0) ||
-                (op==REQUANT ? (dst32 || params[1:0]!=0) : src32!=dst32);
+            // Elementwise heads may fuse Requant/ReLU, never MAC-only modes.
+            basic_bad=basic_bad || oc!=ic || d[0][14:13]!=0 || d[0][10] || d[6]!=0 || weights!=0 ||
+                (need_params ? params[1:0]!=0 : params!=0) ||
+                (!elem_pool && d[5]!=0) ||
+                (elem_pool && !pool_default && (kh==0 || kw==0 || sh==0 || sw==0)) ||
+                ((op==RELU || op==REQUANT) && d[0][9:8]!=0);
+            case(op)
+                REQUANT:basic_bad=basic_bad || dst32;
+                RELU:basic_bad=basic_bad || src32!=dst32;
+                POOL:basic_bad=basic_bad || (q_enable ? dst32 : src32!=dst32);
+                default:basic_bad=basic_bad || src32 || dst32==q_enable; // AvgPool/Add: i4 in, raw INT32
+            endcase
         end
         if(q_enable) basic_bad=basic_bad || clamp_min>clamp_max || (relu_enable && clamp_max<0);
         else basic_bad=basic_bad || d[9]!=0;
@@ -100,9 +119,12 @@ module npu_program_core #(
         if(mac_op && sh!=0 && sw!=0) begin
             xoh=(($signed({1'b0,ih})+$signed({1'b0,pt})+$signed({1'b0,pb})-$signed({1'b0,kh})) >>> (sh==2))+1;
             xow=(($signed({1'b0,iw})+$signed({1'b0,pl})+$signed({1'b0,pr})-$signed({1'b0,kw})) >>> (sw==2))+1;
-            xk=kh==3 ? ic*9 : ic;
+            xk=kh[2:0]*kw[2:0]*(dwconv ? COLS : ic);
         end
-        xdh=pool_enable ? xoh/2 : xoh;
+        // A standalone pool takes its output size from word 10; validate it
+        // as the floor size instead of dividing by the stride.
+        if(elem_pool) begin xoh=d[10][15:0]; xow=d[10][31:16]; end
+        xdh=pool_enable && !pool1d ? xoh/2 : xoh;
         xdw=pool_enable ? xow/2 : xow;
         xsrc=src_span;
         xdst=dst_span;
@@ -111,17 +133,24 @@ module npu_program_core #(
         shape_bad=xoh<1 || xoh>255 || xow<1 || xow>255 || xdh<1 || xdw<1 ||
             (mac_op && ($signed({1'b0,ih})+$signed({1'b0,pt})+$signed({1'b0,pb})<$signed({1'b0,kh}) ||
                          $signed({1'b0,iw})+$signed({1'b0,pl})+$signed({1'b0,pr})<$signed({1'b0,kw}) || xk>MAX_K)) ||
+            (elem_pool && (ih<pkh || iw<pkw || (xoh-1)*psh+pkh>ih || xoh*psh+pkh<=ih ||
+                           (xow-1)*psw+pkw>iw || xow*psw+pkw<=iw)) ||
             d[10]!={xdw[15:0],xdh[15:0]};
         range_bad=xsrc<1 || xsrc>ACT_BYTES*2 || xdst<1 || xdst>ACT_BYTES*2 ||
             $signed({1'b0,src})+xsrc>ACT_BYTES*2 || $signed({1'b0,dst})+xdst>ACT_BYTES*2 ||
             (mac_op && ($signed({1'b0,weights})+xweight>model_bytes || weights<op_count*64)) ||
             (need_params && ($signed({1'b0,params})+xparam>model_bytes || params<op_count*64)) ||
             (($signed({1'b0,src})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src})+xsrc) &&
-             !(op==RELU && src==dst && xsrc==xdst));
-        source_known=0;
-        for(j=0;j<=MAX_OPS;j=j+1)
+             !(op==RELU && src==dst && xsrc==xdst)) ||
+            (op==ADD && ($signed({1'b0,src2})+xsrc>ACT_BYTES*2 ||
+             ($signed({1'b0,src2})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src2})+xsrc)));
+        source_known=0;source2_known=op!=ADD;
+        for(j=0;j<=MAX_OPS;j=j+1) begin
             if(known_valid[j] && known_i32[j]==src32 && src>=known_base[j] &&
                $signed({1'b0,src})+xsrc<=$signed({1'b0,known_base[j]})+$signed({1'b0,known_size[j]})) source_known=1;
+            if(known_valid[j] && !known_i32[j] && src2>=known_base[j] &&
+               $signed({1'b0,src2})+xsrc<=$signed({1'b0,known_base[j]})+$signed({1'b0,known_size[j]})) source2_known=1;
+        end
     end
 
     // Current output-channel tile caches are the only live parameter vectors.
@@ -142,7 +171,11 @@ module npu_program_core #(
     wire load_return=lstate==L_WAIT && m_rsp_valid;
     wire array_weight_we=state==EXECUTE && mac_op && (lstate==L_HAVE || load_return) && inflight[load_bank]==0;
     wire [COLS*4-1:0] response_row=narrow ? (m_data & 32'h0000ffff) : m_data;
-    wire [COLS*4-1:0] array_weights=load_return ? response_row : load_data;
+    wire [COLS*4-1:0] loaded_row=load_return ? response_row : load_data;
+    // Depthwise: one stored row per K group carries every lane's tap weight;
+    // row r keeps only lane (group%(COLS/4))*4+r, giving a block diagonal.
+    wire [$clog2(COLS)-1:0] dw_lane=COLS==8 ? {load_g[0],load_row} : load_row;
+    wire [COLS*4-1:0] array_weights=dwconv ? (loaded_row & ({{(COLS*4-4){1'b0}},4'hf}<<(dw_lane*4))) : loaded_row;
     reg [15:0] weight_tile_base,load_address;
     wire load_start=load_more && lstate==L_IDLE && !bank_ready[load_bank] &&
         (load_seq==issue_seq || load_seq==issue_seq+1'b1);
@@ -210,8 +243,10 @@ module npu_program_core #(
     wire [31:0] remaining=positions-issue_tile*TILE;
     reg [4:0] tile_positions;
     reg last_group;
-    wire [1:0] issue_slot=pool_enable ? issue_p[3:2] : issue_p[1:0];
-    wire reserve_slot=!pool_enable || issue_p[1:0]==0;
+    // Fused pooling: 2x2 windows take four positions per output, 1x2 two.
+    wire [1:0] issue_slot=!pool_enable ? issue_p[1:0] : pool1d ? issue_p[2:1] : issue_p[3:2];
+    wire reserve_slot=!pool_enable || (pool1d ? !issue_p[0] : issue_p[1:0]==0);
+    wire pool_tap_last=pool1d ? issue_p[0] : issue_p[1:0]==3;
     wire slot_available=!last_group || !reserve_slot || !slot_busy[issue_slot];
     wire issue_can_fire=mac_op && issue_more && gather_full && bank_ready[issue_seq[0]] && slot_available;
     wire issue_fire=state==EXECUTE && issue_can_fire;
@@ -225,7 +260,9 @@ module npu_program_core #(
         .out_valid(out_valid),.out_bank(out_bank),.out_tag(out_tag),.out_psum(out_sum));
     wire [3:0] ret_p=out_tag[3:0];
     wire ret_last=out_tag[4],ret_first=out_tag[5];
-    wire [1:0] ret_slot=pool_enable ? ret_p[3:2] : ret_p[1:0];
+    wire [1:0] ret_slot=!pool_enable ? ret_p[1:0] : pool1d ? ret_p[2:1] : ret_p[3:2];
+    wire ret_tap_first=pool1d ? !ret_p[0] : ret_p[1:0]==0;
+    wire ret_tap_last=pool1d ? ret_p[0] : ret_p[1:0]==3;
     // Declare the delayed tile tag before its use for Genus 19 compatibility.
     localparam LAT=4+COLS-1;
     reg [15:0] tile_pipe[0:LAT-1];
@@ -241,7 +278,7 @@ module npu_program_core #(
     reg cursor_at_last_x;
     reg [7:0] scan_last_x,element_last_x;
     reg [10:0] kernel_c;
-    reg [1:0] kernel_y,kernel_x;
+    reg [2:0] kernel_y,kernel_x;
     reg [15:0] kernel_offset,k_offsets[0:3],cursor_base,tile_base;
     reg [2:0] k_ys[0:3],k_xs[0:3];reg [3:0] k_valid;
     // Pairwise nibble contiguity is invariant across a kernel group. Keep six
@@ -249,7 +286,9 @@ module npu_program_core #(
     // after the spatial boundary mask on every activation request.
     reg [5:0] k_consecutive;
     reg kernel_prepare;
-    reg [15:0] x_step,y_step,origin,scan_jump,pool_scan_jump,kernel_row_jump;
+    reg [15:0] x_step,y_step,origin,scan_jump,pool_scan_jump,kernel_row_jump,kernel_col_jump;
+    // Depthwise kernels walk only the COLS channels of the current tile per tap.
+    wire [10:0] kernel_ic=dwconv ? COLS : ic[10:0];
     reg [31:0] scan_product,pool_scan_product;
     reg [10:0] prep_kc;
     reg [2:0] prep_kx,prep_ky;
@@ -262,18 +301,18 @@ module npu_program_core #(
         for(kr=0;kr<4;kr=kr+1)begin
             prep_offsets[kr]=prep_offset;prep_ys[kr]=prep_ky;prep_xs[kr]=prep_kx;
             prep_valid[kr]=issue_g*4+kr<k_count;
-            if(prep_kc==ic-16'd1)begin
+            if(prep_kc==kernel_ic-11'd1)begin
                 prep_kc=0;
                 if(prep_kx==kw-8'd1)begin
                     prep_kx=0;prep_ky=prep_ky+3'd1;prep_offset=prep_offset+kernel_row_jump;
-                end else begin prep_kx=prep_kx+3'd1;prep_offset=prep_offset+16'd1;end
+                end else begin prep_kx=prep_kx+3'd1;prep_offset=prep_offset+kernel_col_jump;end
             end else begin prep_kc=prep_kc+11'd1;prep_offset=prep_offset+16'd1;end
-            if(ic==1 && kh==3)begin
+            if(ic==1 && kh==3 && kw==3 && !dwconv)begin
                 prep_offsets[kr]=kernel_offset+kr;prep_ys[kr]=issue_g;prep_xs[kr]=kr;
                 prep_valid[kr]=kr<3;
             end
         end
-        if(ic==1 && kh==3)prep_offset=kernel_offset+row_stride;
+        if(ic==1 && kh==3 && kw==3 && !dwconv)prep_offset=kernel_offset+row_stride;
     end
     reg signed [9:0] cy,cx,y,x;
     reg [4:0] calc_p;
@@ -285,11 +324,12 @@ module npu_program_core #(
     wire has_next=issue_p!=tile_positions-5'd1; // group changes perform bounded offset setup
     always @* begin
         next_y=cursor_y;next_x=cursor_x;next_base=cursor_base;
-        if(!pool_enable || issue_p[1:0]==3)begin
+        if(!pool_enable || pool_tap_last)begin
             if(cursor_at_last_x)begin next_x=0;next_y=cursor_y+1;end
             else next_x=cursor_x+1;
         end
         if(!pool_enable) next_base=cursor_base+(cursor_at_last_x ? scan_jump : x_step);
+        else if(pool1d) next_base=cursor_base+(issue_p[0] && cursor_at_last_x ? pool_scan_jump : x_step);
         else case(issue_p[1:0])
             0,2:next_base=cursor_base+x_step;
             1:next_base=cursor_base+y_step-x_step;
@@ -303,12 +343,12 @@ module npu_program_core #(
         // valid -> issue_fire out of the address/mask/contiguity arithmetic,
         // while retaining same-cycle response/issue/next-request throughput.
         if(gather_state!=0 && has_next)begin calc_p=issue_p+1;calc_y=next_y;calc_x=next_x;calc_base=next_base;end
-        if(pool_enable)begin cy=calc_y*2+calc_p[1];cx=calc_x*2+calc_p[0];end
+        if(pool_enable)begin cy=pool1d ? calc_y : calc_y*2+calc_p[1];cx=calc_x*2+calc_p[0];end
         else begin cy=calc_y;cx=calc_x;end
         calc_mask=0;
         for(r=0;r<4;r=r+1)begin
-            y=(sh[1] ? cy<<<1 : cy)+$signed({1'b0,k_ys[r]})-$signed({1'b0,pt[1:0]});
-            x=(sw[1] ? cx<<<1 : cx)+$signed({1'b0,k_xs[r]})-$signed({1'b0,pl[1:0]});
+            y=(sh[1] ? cy<<<1 : cy)+$signed({1'b0,k_ys[r]})-$signed({1'b0,pt[2:0]});
+            x=(sw[1] ? cx<<<1 : cx)+$signed({1'b0,k_xs[r]})-$signed({1'b0,pl[2:0]});
             calc_addr[r]=calc_base+k_offsets[r];
             calc_mask[r]=k_valid[r] && !y[9] && y<$signed({2'b0,ih[7:0]}) &&
                 !x[9] && x<$signed({2'b0,iw[7:0]});
@@ -327,23 +367,36 @@ module npu_program_core #(
     end
 
     // Standalone operators feed the same four result slots and postprocessor.
+    // Pools walk a kh x kw window per lane (max or INT32 sum); Add reads
+    // its two i4 operands in turn and forms wa*a+wb*b.
     reg [2:0] estate;
     reg [15:0] element_pos;
     reg [$clog2(COLS)-1:0] element_lane;
-    reg [1:0] element_tap,element_slot;
+    reg [1:0] element_slot;
+    reg [7:0] tap_y,tap_x;
+    reg [15:0] tap_offset,tap_row_jump,tap_col_step;
+    reg add_second;
     reg [COLS*32-1:0] element_vector;
     reg [7:0] element_y,element_x;
-    reg [15:0] element_base,element_col_step,element_row_step,element_row_jump;
+    reg [15:0] element_base,element_base2,element_col_step,element_row_step,element_row_jump;
     reg [31:0] element_scan_product;
-    reg signed [31:0] element_max;
+    reg signed [31:0] element_acc;
     wire signed [31:0] element_value=src32 ? $signed(a_data) : $signed({{28{a_data[3]}},a_data[3:0]});
-    wire signed [31:0] selected_element=(op==POOL && element_tap!=0 && element_max>element_value) ?
-        element_max : element_value;
+    wire tap_first=tap_y==0 && tap_x==0;
+    wire tap_last=!elem_pool || (tap_y==pkh-8'd1 && tap_x==pkw-8'd1);
+    wire signed [11:0] add_term=$signed(add_second ? add_wb : add_wa)*$signed(a_data[3:0]);
+    reg signed [31:0] selected_element;
+    always @* begin
+        selected_element=element_value;
+        if(op==POOL && !tap_first && element_acc>element_value) selected_element=element_acc;
+        if(op==AVGPOOL && !tap_first) selected_element=element_acc+element_value;
+        if(op==ADD) selected_element=(add_second ? element_acc : 32'sd0)+add_term;
+    end
+    wire element_done=op==ADD ? add_second : tap_last;
     reg [15:0] eaddr;
     always @* begin
-        eaddr=element_base+(element_lane<<(src32 ? 3 : 0));
-        if(op==POOL)eaddr=eaddr+(element_tap[1] ? row_stride : 16'd0)+
-            (element_tap[0] ? (ic<<(src32 ? 3 : 0)) : 16'd0);
+        eaddr=(op==ADD && add_second ? element_base2 : element_base)+(element_lane<<(src32 ? 3 : 0));
+        if(elem_pool)eaddr=eaddr+tap_offset;
     end
 
     always @* begin
@@ -370,7 +423,7 @@ module npu_program_core #(
             m_valid=1; m_addr=load_address;
 
         end else if(state==EXECUTE && mac_op && array_weight_we && load_row!=3) begin
-            m_valid=1; m_addr=load_address+row_bytes;
+            m_valid=1; m_addr=dwconv ? load_address : load_address+row_bytes;
         end
         if(state==EXECUTE) begin
             if(mac_op && !kernel_prepare && issue_more && (gather_state==0 || (issue_fire && has_next))) begin
@@ -389,7 +442,8 @@ module npu_program_core #(
             gather_state<=0; gather_row<=0; slot_busy<=0; slot_ready<=0;
             read_slot<=0; read_lane<=0; rq_pending<=0;
             write_head<=0;write_tail<=0;write_count<=0;
-            estate<=0; element_pos<=0; element_lane<=0; element_tap<=0; element_slot<=0;
+            estate<=0; element_pos<=0; element_lane<=0; element_slot<=0;
+            tap_y<=0; tap_x<=0; tap_offset<=0; add_second<=0;
             cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;cursor_at_last_x<=0;
             tile_positions<=TILE;last_group<=0;
             kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1; element_y<=0; element_x<=0;
@@ -514,7 +568,7 @@ module npu_program_core #(
     always @(posedge clk) begin
         if(rst) begin
             state<=IDLE; checking<=0; pc<=0; fetch_word<=0;
-            q_enable<=0;relu_enable<=0;pool_enable<=0;mac_op<=0;
+            q_enable<=0;relu_enable<=0;pool_enable<=0;mac_op<=0;dwconv<=0;pool1d<=0;elem_pool<=0;
             validation_done<=0; validation_ok<=0; done<=0; error<=0; error_op<=0;
             cycles<=0; issues<=0; model_reads<=0; act_reads<=0; act_writes<=0;
             known_valid<=0; known_i32<=0; oct<=0; param_channel<=0; param_word<=0;
@@ -549,7 +603,11 @@ module npu_program_core #(
                         mac_op<=d[0][7:0]==CONV || d[0][7:0]==FC;
                         q_enable<=d[0][8] || d[0][7:0]==REQUANT;
                         relu_enable<=d[0][9] || d[0][7:0]==RELU;
-                        pool_enable<=d[0][10] || d[0][7:0]==POOL;
+                        // pool_enable is the fused MAC pool; standalone pools use elem_pool.
+                        pool_enable<=d[0][10] && (d[0][7:0]==CONV || d[0][7:0]==FC);
+                        pool1d<=d[0][14];
+                        dwconv<=d[0][13];
+                        elem_pool<=d[0][7:0]==POOL || d[0][7:0]==AVGPOOL;
                         state<=BASIC;
                     end
                     else begin fetch_word<=fetch_word+1'b1; state<=m_ready ? FWAIT : FREQ; end
@@ -562,14 +620,16 @@ module npu_program_core #(
                 DERIVE:begin
                     src_span<=(src_pixels*ic*(src32 ? 8 : 1)+1)&32'hfffffffe;
                     dst_span<=(dst_pixels*channels*(dst32 ? 8 : 1)+1)&32'hfffffffe;
-                    weight_span<=((oc+COLS-1)/COLS)*groups*4*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*8 : 0);param_span<=channels*8;
+                    weight_span<=dwconv ? (oc/COLS)*groups*(COLS/2) :
+                        ((oc+COLS-1)/COLS)*groups*4*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*8 : 0);
+                    param_span<=channels*8;
                     row_stride<=iw*ic*(src32 ? 8 : 1);
-                    positions<=dst_pixels*(pool_enable ? 4 : 1);state<=CHECK;
+                    positions<=dst_pixels*(!pool_enable ? 1 : pool1d ? 2 : 4);state<=CHECK;
                 end
                 CHECK: begin
                     if(shape_bad) fail(3);
                     else if(range_bad) fail(4);
-                    else if(!source_known) fail(5);
+                    else if(!source_known || !source2_known) fail(5);
                     else if(pc==op_count-1 && (dst!=(output_base<<1) || xdst!=(output_bytes<<1))) fail(3);
                     else begin
                         for(v=0;v<=MAX_OPS;v=v+1)
@@ -600,24 +660,29 @@ module npu_program_core #(
                 SETUP: begin
                     begin_tile;state<=INIT_A;
                     x_step<=sw==2 ? ic<<1 : ic;y_step<=sh==2 ? row_stride<<1 : row_stride;
-                    element_col_step<=ic<<((src32 ? 3 : 0)+(op==POOL ? 1 : 0));
-                    element_row_step<=row_stride<<(op==POOL);
-                    weight_tile_base<=weights+oct*groups*4*(COLS/2);
-                    load_address<=weights+oct*groups*4*(COLS/2);
+                    element_col_step<=(ic<<(src32 ? 3 : 0))*(elem_pool ? psw : 8'd1);
+                    element_row_step<=row_stride*(elem_pool ? psh : 8'd1);
+                    tap_col_step<=ic<<(src32 ? 3 : 0);
+                    tap_row_jump<=row_stride-(pkw-8'd1)*(ic<<(src32 ? 3 : 0));
+                    weight_tile_base<=weights+oct*groups*(dwconv ? COLS/2 : 4*(COLS/2));
+                    load_address<=weights+oct*groups*(dwconv ? COLS/2 : 4*(COLS/2));
                 end
                 INIT_A:begin
                     scan_last_x<=(pool_enable ? dw : ow)-1; element_last_x<=dw-1;
                     cursor_at_last_x<=(pool_enable ? dw : ow)==1;
-                    origin<=src-(pt==0 ? 16'd0 : pt==1 ? row_stride : row_stride<<1)-
-                                (pl==0 ? 16'd0 : pl==1 ? ic : ic<<1);
+                    origin<=src+(dwconv ? oct*COLS : 16'd0)-pt[2:0]*row_stride-pl[2:0]*ic;
                     scan_product<=(ow-1)*x_step;pool_scan_product<=(dw*2-1)*x_step;
                     element_scan_product<=(dw-1)*element_col_step;state<=INIT_B;
                 end
                 INIT_B:begin
                     cursor_base<=origin;tile_base<=origin;scan_jump<=y_step-scan_product;
                     pool_scan_jump<=y_step-pool_scan_product;
-                    kernel_row_jump<=row_stride-(kw==3 ? ic*3 : ic)+1;
+                    // Normal kernels step over IC contiguous channels per tap;
+                    // depthwise ones over COLS of them, then to the next pixel.
+                    kernel_row_jump<=dwconv ? row_stride-(kw[2:0]-3'd1)*ic-COLS+1 : row_stride-kw[2:0]*ic+1;
+                    kernel_col_jump<=dwconv ? ic-COLS+1 : 16'd1;
                     element_base<=src+((oct*COLS)<<(src32 ? 3 : 0));
+                    element_base2<=src2+oct*COLS;
                     element_row_jump<=element_row_step-element_scan_product;state<=EXECUTE;
                 end
                 EXECUTE: begin
@@ -660,7 +725,8 @@ module npu_program_core #(
                             if(!array_weight_we) begin load_data<=response_row; lstate<=L_HAVE; end
                         end
                         if(array_weight_we) begin
-                            load_address<=load_row==3 && load_g==groups-1 ? weight_tile_base : load_address+row_bytes;
+                            load_address<=load_row==3 && load_g==groups-1 ? weight_tile_base :
+                                dwconv && load_row!=3 ? load_address : load_address+row_bytes;
                             if(load_row==3) begin
                                 load_row<=0; lstate<=L_IDLE; bank_ready[load_bank]<=1; load_seq<=load_seq+1'b1;
                                 if(load_g!=groups-1) load_g<=load_g+1'b1;
@@ -731,30 +797,37 @@ module npu_program_core #(
                                     $signed(out_sum[lane*10+:10]);
                                 biased=$signed(reduced)+$signed(bias_cache[lane]);
                                 if(!ret_last) psum[ret_p][lane*PSUM_BITS+:PSUM_BITS]<=reduced;
-                                else if(!pool_enable || ret_p[1:0]==0 ||
+                                else if(!pool_enable || ret_tap_first ||
                                     biased>$signed(results[ret_slot][lane*32+:32]))
                                     results[ret_slot][lane*32+:32]<=biased;
                             end
-                            if(ret_last && (!pool_enable || ret_p[1:0]==3)) begin
+                            if(ret_last && (!pool_enable || ret_tap_last)) begin
                                 slot_ready[ret_slot]<=1;
                                 // Final group cannot leave this tile until all
                                 // its issues are sent; capture its tile in tags below.
-                                result_pos[ret_slot]<=pool_enable ? (ret_tile*TILE+ret_p)/4 : ret_tile*TILE+ret_p;
+                                result_pos[ret_slot]<=!pool_enable ? ret_tile*TILE+ret_p :
+                                    pool1d ? (ret_tile*TILE+ret_p)/2 : (ret_tile*TILE+ret_p)/4;
                             end
                         end
                     end else begin
                         case(estate)
                             0: if(element_pos<dh*dw && !slot_busy[element_slot]) begin
-                                slot_busy[element_slot]<=1; element_lane<=0; element_tap<=0;
+                                slot_busy[element_slot]<=1; element_lane<=0;
+                                tap_y<=0; tap_x<=0; tap_offset<=0; add_second<=0;
                                 element_vector<=0; estate<=1;
                             end
                             1: if(a_ready) estate<=2;
                             2: if(a_rsp_valid) begin
-                                element_max<=selected_element;
-                                if(op==POOL && element_tap!=3) begin element_tap<=element_tap+1'b1; estate<=1; end
-                                else begin
+                                element_acc<=selected_element;
+                                if(!element_done) begin
+                                    if(op==ADD) add_second<=1;
+                                    else if(tap_x==pkw-8'd1) begin
+                                        tap_x<=0; tap_y<=tap_y+1'b1; tap_offset<=tap_offset+tap_row_jump;
+                                    end else begin tap_x<=tap_x+1'b1; tap_offset<=tap_offset+tap_col_step; end
+                                    estate<=1;
+                                end else begin
                                     element_vector[element_lane*32+:32]<=selected_element;
-                                    element_tap<=0;
+                                    tap_y<=0; tap_x<=0; tap_offset<=0; add_second<=0;
                                     if(element_lane==COLS-1 || oct*COLS+element_lane==channels-1) estate<=3;
                                     else begin element_lane<=element_lane+1'b1; estate<=1; end
                                 end
@@ -763,6 +836,7 @@ module npu_program_core #(
                                 results[element_slot]<=element_vector; result_pos[element_slot]<=element_pos;
                                 slot_ready[element_slot]<=1; element_pos<=element_pos+1'b1;
                                 element_base<=element_base+(element_x==element_last_x ? element_row_jump : element_col_step);
+                                element_base2<=element_base2+(element_x==element_last_x ? element_row_jump : element_col_step);
                                 if(element_x==element_last_x) begin element_x<=0; element_y<=element_y+1'b1; end
                                 else element_x<=element_x+1'b1;
                                 element_slot<=element_slot+1'b1; estate<=0;
