@@ -17,11 +17,15 @@ def wrap32(x):
 
 
 def requant(x,mult,shift,lo,hi):
-    """x: int64 [..., C]; mult/shift: int64 [C]. Matches npu_program.requant."""
+    """x: int64 [..., C]; Q15 mult/shift: int64 [C]. Matches npu_program.requant."""
+    m=(mult+64)//128
+    renorm=(m==256)&(shift<31)
+    m=torch.where(renorm,torch.full_like(m,128),torch.clamp(m,max=255))
+    shift=torch.where(renorm,shift+1,shift)
     x=wrap32(x)
     x=torch.clamp(x*torch.pow(2,torch.clamp(shift,min=0)),I32_MIN,I32_MAX)
-    s=15+torch.clamp(-shift,min=0)
-    y=torch.div(x*mult+torch.pow(2,s-1),torch.pow(2,s),rounding_mode='floor')
+    s=8+torch.clamp(-shift,min=0)
+    y=torch.div(x*m+torch.pow(2,s-1),torch.pow(2,s),rounding_mode='floor')
     return torch.clamp(y,lo,hi)
 
 

@@ -22,9 +22,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-# Largest INT4 code after ReLU. 7 is the signed INT4 hardware; 15 models an
-# unsigned-activation mode (software experiment, set by train.py --relu-max).
-RELU_MAX = 7
+# Largest code after ReLU: 15 uses the unsigned u4 tensors of ABI 4 (default);
+# 7 keeps post-ReLU tensors in signed INT4 (the ABI 3 behaviour, for comparison).
+RELU_MAX = 15
 
 
 def grad_scale(x, scale):
@@ -98,6 +98,9 @@ class Layer(nn.Module):
             self.cout = cin
         # Output activation quantizer (QAT). ReLU outputs use [0,7].
         relu = spec.get('relu', t == 'conv' or t == 'add')
+        # Averages of post-ReLU tensors are non-negative: quantize them like ReLU outputs.
+        if t == 'gap' or (t == 'pool' and spec.get('kind') == 'avg'):
+            relu = spec.get('relu', True)
         if t == 'fc' and spec.get('last', False):
             self.aq = None
         elif t in ('conv', 'fc', 'gap', 'add') or (t == 'pool' and spec.get('kind') == 'avg'):
@@ -240,6 +243,11 @@ def export(net, name='model', metadata=None):
         if len(mults) == 1:
             mults, shifts = mults * channels, shifts * channels
         q = fresh('q')
+        if relu and RELU_MAX == 15:
+            # u4 output: the clamp at zero is the ReLU.
+            nodes.append(dict(op='Requant', input=src, output=q, dtype='u4', clamp=[0, 15],
+                              multiplier=list(mults), shift=list(shifts)))
+            return q
         nodes.append(dict(op='Requant', input=src, output=q, multiplier=list(mults), shift=list(shifts), clamp=[-8, 7]))
         if relu:
             r = fresh('relu')
@@ -286,14 +294,14 @@ def export(net, name='model', metadata=None):
             else:
                 nodes.append(dict(op='AvgPool', input=cur, output=p, kernel=k, stride=s))
                 out_scale = float(layer.aq.scale.detach().abs())
-                cur = requant_node(p, [cur_scale / (k[0] * k[1])], out_scale, False, layer.cin)
+                cur = requant_node(p, [cur_scale / (k[0] * k[1])], out_scale, layer.relu, layer.cin)
                 cur_scale = out_scale
         elif t == 'gap':
             shape = layer.spatial
             p = fresh('gap')
             nodes.append(dict(op='AvgPool', input=cur, output=p, kernel=list(shape), stride=list(shape)))
             out_scale = float(layer.aq.scale.detach().abs())
-            cur = requant_node(p, [cur_scale / (shape[0] * shape[1])], out_scale, False, layer.cin)
+            cur = requant_node(p, [cur_scale / (shape[0] * shape[1])], out_scale, layer.relu, layer.cin)
             cur_scale = out_scale
         elif t == 'fc':
             fc = layer.fc

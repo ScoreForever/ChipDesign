@@ -78,4 +78,11 @@ SPECS = {
         *ds(48), *ds(48), *ds(48), *ds(48),
         dict(type='gap'),
         dict(type='fc', out=12, last=True)]),
+    'mnist_l': dict(input=(28, 28, 1), classes=10, spec=[
+        dict(type='conv', out=16, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *ds(32, pool='max2'),
+        *res('r1', 32),
+        *ds(64),
+        dict(type='gap'),
+        dict(type='fc', out=10, last=True)]),
 }

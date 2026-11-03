@@ -12,7 +12,7 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'software/host'))
-from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz,ABI,pack_i4,quantize_int8_model,encode_tensor
+from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz,ABI,pack_i4,quantize_int8_model,encode_tensor,q8
 from nocpu_jtag import Npu,Op
 
 def fixtures(seed=7):
@@ -39,7 +39,7 @@ def fixtures(seed=7):
         mac('Conv','b','c',10,3,kernel=1),q('c','y',3)])
     edge=dict(input=dict(name='x',shape=[1,1,9]),nodes=[
         dict(op='FC',input='x',output='a',channels=9,weights=[(-8 if i%2 else 7) for i in range(81)],
-             bias=[-2**31,2**31-1,-1,0,1,-2**31+5,2**31-6,123456789,-123456789]),
+             bias=[-2**17,2**17-1,-1,0,1,-2**17+5,2**17-6,123456,-123456]),
         dict(op='Requant',input='a',output='y',multiplier=[0,1,0x7fff,0x4000,0x6000,0x7fff,123,0x5000,0],
              shift=[31,-31,0,-1,1,-12,12,5,-5])])
     long=dict(input=dict(name='x',shape=[1,1,257]),nodes=[mac('FC','x','y',257,9)])
@@ -74,7 +74,7 @@ def fixtures(seed=7):
         dict(op='Conv',input='x',output='y',channels=2,kernel=3,stride=[2,2],
              pads=[0,2,2,0],weights=[(-8+i%16) for i in range(18)],bias=[-7,9])]),[-8]
     yield 'one_mac',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
-        dict(op='FC',input='x',output='y',channels=1,weights=[-8],bias=[2**31-1])]),[-8]
+        dict(op='FC',input='x',output='y',channels=1,weights=[-8],bias=[2**17-1])]),[-8]
     yield 'negative_pool',dict(input=dict(name='x',shape=[3,3,1]),nodes=[
         dict(op='MaxPool',input='x',output='y')]),[-8,-7,-6,-5,-4,-3,-2,-1,-1]
     yield 'full_activation',dict(input=dict(name='x',shape=[64,128,1]),nodes=[
@@ -199,8 +199,8 @@ def negative_tests(out,image):
     name,model,frame=next(fixtures());base=compile_model(model)
     mutations=[('opcode',0,99,18),('reserved',44,1,18),('old_abi',60,0,18),('wrong_cols',60,0x49340f44,18),('stride',20,0,18),
                ('shape',40,0,19),('destination',8,8188,20),('source',4,2048,21),
-               ('multiplier',struct.unpack_from('<I',base.image,32)[0]+4,0x00008000,22),
-               ('shift',struct.unpack_from('<I',base.image,32)[0]+4,32<<16,22)]
+               # Parameter word: shift field -32 is reserved.
+               ('shift',struct.unpack_from('<I',base.image,32)[0]+4,0x80000000,22)]
     results=[]
     for name,offset,value,error in mutations:
         data=bytearray(base.image);struct.pack_into('<I',data,offset,value)
@@ -254,14 +254,16 @@ def unit_tests(out,defines,macro_model=None):
         x=edges[i%len(edges)] if i%3==0 else r.randrange(-2**31,2**31)
         m=r.choice([0,1,0x7fff,0x4000,r.randrange(0,2**15)])
         shift=r.randrange(-31,32);lo,hi=r.choice([(-8,7),(0,7),(-4,3),(0,15),(2,11)])
-        # Independent single-rounding model: exact rational, ties toward +inf.
-        sx=max(-2**31,min(2**31-1,x*(1<<max(shift,0))))
+        # Independent single-rounding model on the hardware's Q8 multiplier:
+        # exact rational, ties toward +inf.
+        m8,s8=q8(m,shift)
+        sx=max(-2**31,min(2**31-1,x*(1<<max(s8,0))))
         from fractions import Fraction
-        exact=Fraction(sx*m,1<<(15+max(-shift,0)))
+        exact=Fraction(sx*m8,1<<(8+max(-s8,0)))
         scaled=__import__('math').floor(exact+Fraction(1,2))
         expected=max(lo,min(hi,scaled))
         assert requant(x,m,shift,lo,hi)==expected
-        rows.append(f'{x&0xffffffff:08x} {m&0xffffffff:08x} {shift&63:02x} {lo&255:02x} {hi:02x} {expected&15:01x}')
+        rows.append(f'{x&0xffffffff:08x} {m8:08x} {s8&63:02x} {lo&255:02x} {hi:02x} {expected&15:01x}')
     vectors=out/'quant.hex';vectors.write_text('\n'.join(rows)+'\n')
     qimage=out/'quant.vvp'
     run(['iverilog','-g2012','-s','tb_requant_lane','-o',qimage,

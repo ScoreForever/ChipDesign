@@ -62,21 +62,20 @@ module npu_program_core #(
     reg [15:0] src_pixels,dst_pixels;
     reg [15:0] known_base[0:MAX_OPS],known_size[0:MAX_OPS];
     reg [MAX_OPS:0] known_valid,known_i32;
+    // One 32-bit parameter word per channel: bias[17:0], Q8 multiplier[25:18],
+    // shift[31:26]. INT4 accumulations never need wider bias or multiplier.
     reg [15:0] param_channel;
-    reg param_word;
-    reg [31:0] bias_cache[0:COLS-1];
-    reg signed [15:0] mult_cache[0:COLS-1];
+    reg signed [17:0] bias_cache[0:COLS-1];
+    reg [7:0] mult_cache[0:COLS-1];
     reg signed [5:0] shift_cache[0:COLS-1];
     reg [15:0] oct;
     // Only checked channel counts (<=256) reach the execution path.
     wire [8:0] channels=mac_op ? oc[8:0] : ic[8:0];
     wire need_params=mac_op || q_enable;
-    wire last_param=(param_word==1 &&
-        (checking ? param_channel==channels-1 :
-         (param_channel==channels-1 || (param_channel%COLS)==COLS-1)));
-    wire param_bad=param_word==1 ? (m_data[31:22]!=0 || m_data[15] || m_data[21:16]==6'b100000 || (!q_enable && m_data!=0)) : (!mac_op && m_data!=0);
-    wire [15:0] next_param_channel=param_word==1 ? param_channel+1'b1 : param_channel;
-    wire next_param_word=!param_word;
+    wire last_param=checking ? param_channel==channels-1 :
+         (param_channel==channels-1 || (param_channel%COLS)==COLS-1);
+    wire param_bad=m_data[31:26]==6'b100000 || (!q_enable && m_data[31:18]!=0) || (!mac_op && m_data[17:0]!=0);
+    wire [15:0] next_param_channel=param_channel+1'b1;
     assign ready=state==IDLE && !rst;
     assign busy=state!=IDLE;
     assign m_rsp_ready=1'b1;
@@ -420,9 +419,9 @@ module npu_program_core #(
         else if(state==FWAIT && m_rsp_valid && fetch_word!=15) begin
             m_valid=1; m_addr=pc*64+(fetch_word+1'b1)*4;
         end
-        else if(state==PREQ) begin m_valid=1; m_addr=params+param_channel*8+param_word*4; end
+        else if(state==PREQ) begin m_valid=1; m_addr=params+param_channel*4; end
         else if(state==PWAIT && m_rsp_valid && !last_param && !param_bad) begin
-            m_valid=1; m_addr=params+next_param_channel*8+next_param_word*4;
+            m_valid=1; m_addr=params+next_param_channel*4;
         end
         else if(state==EXECUTE && mac_op && lstate==L_REQ) begin
             m_valid=1; m_addr=load_address;
@@ -576,7 +575,7 @@ module npu_program_core #(
             q_enable<=0;relu_enable<=0;pool_enable<=0;mac_op<=0;dwconv<=0;pool1d<=0;elem_pool<=0;
             validation_done<=0; validation_ok<=0; done<=0; error<=0; error_op<=0;
             cycles<=0; issues<=0; model_reads<=0; act_reads<=0; act_writes<=0;
-            known_valid<=0; known_i32<=0; oct<=0; param_channel<=0; param_word<=0;
+            known_valid<=0; known_i32<=0; oct<=0; param_channel<=0;
             oh<=1; ow<=1; dh<=1; dw<=1; k_count<=1; groups<=1; octs<=1; positions<=1; row_stride<=1;
             src_span<=0; dst_span<=0; weight_span<=0; param_span<=0;src_pixels<=0;dst_pixels<=0;
             begin_tile;
@@ -627,7 +626,7 @@ module npu_program_core #(
                     dst_span<=(dst_pixels*channels*(dst32 ? 8 : 1)+1)&32'hfffffffe;
                     weight_span<=dwconv ? (oc/COLS)*groups*(COLS/2) :
                         ((oc+COLS-1)/COLS)*groups*4*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*8 : 0);
-                    param_span<=channels*8;
+                    param_span<=channels*4;
                     row_stride<=iw*ic*(src32 ? 8 : 1);
                     positions<=dst_pixels*(!pool_enable ? 1 : pool1d ? 2 : 4);state<=CHECK;
                 end
@@ -642,7 +641,7 @@ module npu_program_core #(
                                $signed({1'b0,known_base[v]})<$signed({1'b0,dst})+xdst) known_valid[v]<=0;
                         known_base[pc+1]<=dst; known_size[pc+1]<=xdst;
                         known_valid[pc+1]<=1; known_i32[pc+1]<=dst32;
-                        oct<=0; param_channel<=0; param_word<=0;
+                        oct<=0; param_channel<=0;
                         if(need_params) state<=PREQ;
                         else state<=checking ? NEXT : SETUP;
                     end
@@ -651,13 +650,14 @@ module npu_program_core #(
                 PWAIT: if(m_rsp_valid) begin
                     if(param_bad) fail(6);
                     else begin
-                        if(!checking) case(param_word)
-                            0:bias_cache[param_channel%COLS]<=m_data;
-                            1:begin mult_cache[param_channel%COLS]<=m_data[15:0]; shift_cache[param_channel%COLS]<=m_data[21:16]; end
-                        endcase
+                        if(!checking) begin
+                            bias_cache[param_channel%COLS]<=m_data[17:0];
+                            mult_cache[param_channel%COLS]<=m_data[25:18];
+                            shift_cache[param_channel%COLS]<=m_data[31:26];
+                        end
                         if(last_param) state<=checking ? NEXT : SETUP;
                         else begin
-                            param_word<=next_param_word; param_channel<=next_param_channel;
+                            param_channel<=next_param_channel;
                             state<=m_ready ? PWAIT : PREQ;
                         end
                     end
@@ -851,7 +851,7 @@ module npu_program_core #(
                     if(drained) begin
                         if(oct==octs-1) state<=NEXT;
                         else begin
-                            oct<=oct+1'b1; param_channel<=(oct+1)*COLS; param_word<=0;
+                            oct<=oct+1'b1; param_channel<=(oct+1)*COLS;
                             state<=need_params ? PREQ : SETUP;
                         end
                     end

@@ -158,8 +158,8 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--balanced', action='store_true', help='inverse-frequency class weights')
     ap.add_argument('--distill', action='store_true', help='distill the float model during QAT')
-    ap.add_argument('--relu-max', type=int, default=7, choices=(7, 15),
-                    help='15 models unsigned post-ReLU activations (fake-quant only until the hardware supports it)')
+    ap.add_argument('--relu-max', type=int, default=15, choices=(7, 15),
+                    help='15: unsigned u4 post-ReLU tensors (ABI 4); 7: signed INT4 (ABI 3 behaviour)')
     args = ap.parse_args()
     import zoo.qat
     zoo.qat.RELU_MAX = args.relu_max
@@ -193,7 +193,7 @@ def main():
     with torch.no_grad():  # calibrate activation scales on one batch
         net(data['train'][0][:2048])
     global FAKE_ONLY
-    FAKE_ONLY = args.relu_max != 7
+    FAKE_ONLY = False
     qat_val = fit(net, data, args.name, args.qat_epochs, args.qat_lr, args.batch, device, True, log, teacher)
     if FAKE_ONLY:
         result = dict(name=args.name, relu_max=args.relu_max, float_val=fp_val, float_test=fp_test,

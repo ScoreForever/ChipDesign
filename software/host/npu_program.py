@@ -35,15 +35,32 @@ FUSE_HEADS=('conv','dwconv','fc','maxpool','avgpool','add')
 def wrap32(x):
     return (int(x)+2**31)%2**32-2**31
 
+BIAS_BITS=18  # per-channel bias stored in the 32-bit parameter word
+
+def q8(mult,shift):
+    """The 8 significant multiplier bits the hardware keeps from a Q15 value:
+    round to nearest; a carry to 256 renormalizes (or saturates at shift 31)."""
+    m=(mult+64)>>7
+    if m==256:
+        if shift<31:m,shift=128,shift+1
+        else:m=255
+    return m,shift
+
 def requant(x,mult,shift,lo=-8,hi=7):
-    """Q15 with one rounding: saturating left shift for shift>0, then
-    round-half-up of x*mult/2^(15+max(-shift,0)), then INT4 clamp."""
+    """Q15 multiplier rounded to Q8 (q8), saturating left shift for shift>0,
+    one round-half-up of x*m/2^(8+max(-shift,0)), then clamp."""
     if not 0<=mult<2**15 or not -31<=shift<=31 or not -8<=lo<=hi<=15 or (lo<0 and hi>7):
         raise ValueError('invalid INT4/u4 Q15 parameters')
+    m,shift=q8(mult,shift)
     x=max(-2**31,min(2**31-1,wrap32(x)*2**max(shift,0)))
-    s=15+max(-shift,0)
-    y=(x*mult+2**(s-1))>>s
+    s=8+max(-shift,0)
+    y=(x*m+2**(s-1))>>s
     return max(lo,min(hi,y))
+
+def param_word(bias,mult,shift):
+    """bias[17:0] | q8 multiplier[25:18] | shift[31:26]."""
+    m,shift=q8(mult,shift) if mult else (0,0)
+    return (bias&(2**BIAS_BITS-1))|(m<<18)|((shift&63)<<26)
 
 def pack_i4(values):
     """Low nibble first; odd high padding nibble is canonical zero."""
@@ -208,7 +225,8 @@ def analyze(model):
             weights=flatten(n['weights']);bias=flatten(n.get('bias',[0]*oc))
             if len(weights)!=oc*k or len(bias)!=oc or any(v< -8 or v>7 for v in weights):
                 raise ValueError('weights must be [OC,KH,KW,IC] (depthwise [C,KH,KW]), FC [OC,K], signed i4')
-            if any(v< -2**31 or v>=2**31 for v in bias):raise ValueError('bias outside i32')
+            if any(v< -2**(BIAS_BITS-1) or v>=2**(BIAS_BITS-1) for v in bias):
+                raise ValueError(f'bias outside the {BIAS_BITS}-bit parameter field')
             n.update(kernel_h=kh,kernel_w=kw,stride_h=sh,stride_w=sw,pads=pads,channels=oc,weights=weights,bias=bias,k=k,
                      input_shape=(h,w,c),depthwise=depthwise)
             result=Tensor((oh,ow,oc),'i32')
@@ -393,11 +411,9 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
             weight_base=append(pack_i4(packed),4)
         if op in ('Conv','FC','Requant') or q:
             if op=='Requant':q=n
-            params=[]
-            for ch in range(oc):
-                params.extend([n.get('bias',[0]*oc)[ch] if op in ('Conv','FC') else 0,
-                               (q['multiplier'][ch]|((q['shift'][ch]&63)<<16)) if q else 0])
-            param_base=append(struct.pack('<'+'I'*len(params),*(x&0xffffffff for x in params)))
+            params=[param_word(n.get('bias',[0]*oc)[ch] if op in ('Conv','FC') else 0,
+                               q['multiplier'][ch] if q else 0,q['shift'][ch] if q else 0) for ch in range(oc)]
+            param_base=append(struct.pack('<'+'I'*len(params),*params))
         if op in ('Conv','FC','MaxPool','AvgPool'):
             geometry=n['kernel_h']|(n['kernel_w']<<8)|(n['stride_h']<<16)|(n['stride_w']<<24)
         else:geometry=0

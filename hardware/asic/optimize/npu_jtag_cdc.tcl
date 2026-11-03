@@ -85,8 +85,9 @@ proc npu_cdc::audit {filename} {
     foreach spec [payloads] {
         lassign $spec direction from to
         set path [timed $from $to -late]
-        set arrival [get_property $path arrival_time]
-        set required [get_property $path required_time]
+        # Innovus 21 names these "arrival"/"required"; arrival_time is empty.
+        set arrival [get_property $path arrival]
+        set required [get_property $path required]
         set slack [get_property $path slack]
         # An effective clock-independent max budget must be visible, not just
         # present in the SDC. Unsupported property semantics fail qualification.
