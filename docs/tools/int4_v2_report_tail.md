@@ -14,6 +14,8 @@
 | 深度可分离权重每 tap 一行 | **采纳** | GTSRB-L 8228 → 7688 B，否则 4×8 构建放不下 |
 | 双 Requant lane | **采纳** | 等结果槽占 KWS-L 24%；冻结版累计 −19% 到 −43% 周期 |
 | 原地 Add | **采纳** | Fashion 残差块在 14×14×24 处否则需同时存活 3 个张量 |
+| SRAM 旋转 R90、引脚朝东（`west_stack_r90`） | **采纳** | 同为 u70 时 die 1920 → 1860 µm；引脚背对逻辑的 `west_stack` 只能靠更大 die 绕线（第 6 节） |
+| Innovus hold 目标 0.02 → 0.15 ns | **采纳** | PrimeTime 在 SPEF 上读出的 hold 比 Innovus 差约 0.1 ns（复位同步器 −0.083 ns）；提高目标后 PT hold +0.042 ns，setup 仍 +0.709 ns |
 | JTAG 突发 IR | **采纳** | 实板每次 RPC 4.0 ms；逐字协议每个字 ≥3 次 RPC（第 4 节） |
 | TILE 16 → 8（psum 减半） | 保留为编译选项，默认 16 | −0.06 mm²，周期几何平均 +4.1%（KWS-M +15.5%）；两颗 SRAM 的 die 不受面积限制 |
 | 第三颗 SRAM（模型 16 KiB） | **否决** | 只有 8 KiB 宏可用（其余为 128/256 KiB）；u70 下标准单元须 ≤~1.0 mm² 才能放进 1950 µm，余量 <5 µm；所有模型已 >90% |
@@ -39,6 +41,8 @@
 ## 9. 不覆盖的范围与风险
 
 - 只有 TT 1.8 V 25 °C 单角；无多角 STA、IR/EM、密封环与芯片级 ESD 评审；功耗为无激励估算。
+- Innovus 与 PrimeTime 的 hold 结果相差约 0.1 ns；选定版图靠提高 Innovus hold 目标收敛，PT hold 余量只有 +0.042 ns，多角下需复查。
+- SRAM 接口时序只由 Innovus 检查（PrimeTime 中宏为黑盒）。
 - FPGA 余量来自 yosys 估算（与 Vivado 在上一版相差 2%），不是 Vivado 实现结果，也没有上板。
 - 主机 RPC 时间用上一版实板的中位数外推；突发协议在真实 FT232H/OpenOCD 上的批量开销未实测。
 - ECG 采用常见的病人内划分（同一病人的心拍可同时出现在训练和测试集），比病人间划分容易；balanced 精度另列。

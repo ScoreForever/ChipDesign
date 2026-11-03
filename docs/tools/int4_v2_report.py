@@ -276,17 +276,33 @@ def main():
         lay = load(name)
         if not lay:
             continue
+        if isinstance(lay, dict):
+            lay = lay['candidates']
         rows = []
         for c in lay:
             chk = c.get('checks', {})
             rows.append([c['name'], c.get('layout', ''), c.get('utilization', ''), c.get('die_side_um', '—'),
                          c.get('setup_wns_ns', '—'), c.get('hold_wns_ns', '—'),
+                         c.get('pt_setup_wns_ns', '—'), c.get('pt_hold_wns_ns', '—'),
                          f"{c['wire_length_um'] / 1e6:.2f}" if c.get('wire_length_um') else '—',
                          sum(1 for v in chk.values() if v is True), len(chk), '✓' if c.get('eligible') else '✗'])
         w(f'**{title}**\n')
-        w(table(['试验', '布局', '利用率', 'Die µm', 'setup WNS', 'hold WNS', '线长 m', '通过检查', '检查数', '合格'], rows))
+        w(table(['试验', '布局', '利用率', 'Die µm', 'Innovus setup', 'Innovus hold', 'PT setup', 'PT hold', '线长 m', '通过检查', '检查数', '合格'], rows))
         w('')
         summary['layout'][name] = lay
+    fin = load('layout_final.json')
+    if isinstance(fin, dict) and fin.get('selected'):
+        c = next(x for x in fin['candidates'] if x['name'] == fin['selected'])
+        w(f"选定 **{c['name']}**（`{c['layout']}`，利用率 {c['utilization']:.0%}，Innovus hold 目标 {c['hold_target']} ns）："
+          f"die {c['die_side_um']} µm，PrimeTime setup {c['pt_setup_wns_ns']:+.3f} ns / hold {c['pt_hold_wns_ns']:+.3f} ns。"
+          '同为 u70，引脚朝向逻辑的两种布局都比 `west_stack` 小一档 die；默认 hold 目标下二者在 PrimeTime 上 hold 为负，'
+          '因此用提高 hold 目标的重跑版本签核。\n')
+    so = load('signoff.json')
+    if so:
+        w(f"**签核（{so['candidate']}）**\n")
+        w(table(['检查', '结果', '说明'], [[k, '✓' if v['pass'] else '✗', v.get('detail', '')] for k, v in so['checks'].items()]))
+        w('')
+        summary['signoff'] = so
 
     (ROOT / 'docs/validation/int4_v2_summary.json').write_text(json.dumps(summary, indent=1, ensure_ascii=False) + '\n')
     head = (ROOT / 'docs/tools/int4_v2_report_head.md').read_text()

@@ -1,0 +1,212 @@
+[
+ {
+  "model": "MNIST-L",
+  "category": "MAC issue",
+  "cycles": 26688
+ },
+ {
+  "model": "MNIST-L",
+  "category": "Wait activation",
+  "cycles": 9892
+ },
+ {
+  "model": "MNIST-L",
+  "category": "Wait weight",
+  "cycles": 1974
+ },
+ {
+  "model": "MNIST-L",
+  "category": "Wait result slot",
+  "cycles": 4964
+ },
+ {
+  "model": "MNIST-L",
+  "category": "Kernel prepare",
+  "cycles": 1962
+ },
+ {
+  "model": "MNIST-L",
+  "category": "Element / other",
+  "cycles": 3936
+ },
+ {
+  "model": "Fashion-CNN",
+  "category": "MAC issue",
+  "cycles": 47056
+ },
+ {
+  "model": "Fashion-CNN",
+  "category": "Wait activation",
+  "cycles": 18106
+ },
+ {
+  "model": "Fashion-CNN",
+  "category": "Wait weight",
+  "cycles": 2508
+ },
+ {
+  "model": "Fashion-CNN",
+  "category": "Wait result slot",
+  "cycles": 636
+ },
+ {
+  "model": "Fashion-CNN",
+  "category": "Kernel prepare",
+  "cycles": 3334
+ },
+ {
+  "model": "Fashion-CNN",
+  "category": "Element / other",
+  "cycles": 1172
+ },
+ {
+  "model": "KWS-L",
+  "category": "MAC issue",
+  "cycles": 72774
+ },
+ {
+  "model": "KWS-L",
+  "category": "Wait activation",
+  "cycles": 27006
+ },
+ {
+  "model": "KWS-L",
+  "category": "Wait weight",
+  "cycles": 348
+ },
+ {
+  "model": "KWS-L",
+  "category": "Wait result slot",
+  "cycles": 17712
+ },
+ {
+  "model": "KWS-L",
+  "category": "Kernel prepare",
+  "cycles": 4680
+ },
+ {
+  "model": "KWS-L",
+  "category": "Element / other",
+  "cycles": 3894
+ },
+ {
+  "model": "KWS-M",
+  "category": "MAC issue",
+  "cycles": 74395
+ },
+ {
+  "model": "KWS-M",
+  "category": "Wait activation",
+  "cycles": 8805
+ },
+ {
+  "model": "KWS-M",
+  "category": "Wait weight",
+  "cycles": 339
+ },
+ {
+  "model": "KWS-M",
+  "category": "Wait result slot",
+  "cycles": 17975
+ },
+ {
+  "model": "KWS-M",
+  "category": "Kernel prepare",
+  "cycles": 4780
+ },
+ {
+  "model": "KWS-M",
+  "category": "Element / other",
+  "cycles": 3821
+ },
+ {
+  "model": "HAR-1D",
+  "category": "MAC issue",
+  "cycles": 14096
+ },
+ {
+  "model": "HAR-1D",
+  "category": "Wait activation",
+  "cycles": 5552
+ },
+ {
+  "model": "HAR-1D",
+  "category": "Wait weight",
+  "cycles": 213
+ },
+ {
+  "model": "HAR-1D",
+  "category": "Wait result slot",
+  "cycles": 2436
+ },
+ {
+  "model": "HAR-1D",
+  "category": "Kernel prepare",
+  "cycles": 896
+ },
+ {
+  "model": "HAR-1D",
+  "category": "Element / other",
+  "cycles": 1855
+ },
+ {
+  "model": "ECG-1D",
+  "category": "MAC issue",
+  "cycles": 9224
+ },
+ {
+  "model": "ECG-1D",
+  "category": "Wait activation",
+  "cycles": 3988
+ },
+ {
+  "model": "ECG-1D",
+  "category": "Wait weight",
+  "cycles": 185
+ },
+ {
+  "model": "ECG-1D",
+  "category": "Wait result slot",
+  "cycles": 3630
+ },
+ {
+  "model": "ECG-1D",
+  "category": "Kernel prepare",
+  "cycles": 584
+ },
+ {
+  "model": "ECG-1D",
+  "category": "Element / other",
+  "cycles": 3675
+ },
+ {
+  "model": "GTSRB-L",
+  "category": "MAC issue",
+  "cycles": 74580
+ },
+ {
+  "model": "GTSRB-L",
+  "category": "Wait activation",
+  "cycles": 30746
+ },
+ {
+  "model": "GTSRB-L",
+  "category": "Wait weight",
+  "cycles": 671
+ },
+ {
+  "model": "GTSRB-L",
+  "category": "Wait result slot",
+  "cycles": 6954
+ },
+ {
+  "model": "GTSRB-L",
+  "category": "Kernel prepare",
+  "cycles": 4740
+ },
+ {
+  "model": "GTSRB-L",
+  "category": "Element / other",
+  "cycles": 5113
+ }
+]
