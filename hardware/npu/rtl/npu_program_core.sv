@@ -144,9 +144,12 @@ module npu_program_core #(
             (mac_op && ($signed({1'b0,weights})+xweight>model_bytes || weights<op_count*64)) ||
             (need_params && ($signed({1'b0,params})+xparam>model_bytes || params<op_count*64)) ||
             (($signed({1'b0,src})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src})+xsrc) &&
-             !(op==RELU && src==dst && xsrc==xdst)) ||
+             !((op==RELU || op==ADD) && src==dst && xsrc==xdst)) ||
+            // Elementwise ops read every element before writing it, so ReLU
+            // and Add may run exactly in place (Add onto either operand).
             (op==ADD && ($signed({1'b0,src2})+xsrc>ACT_BYTES*2 ||
-             ($signed({1'b0,src2})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src2})+xsrc)));
+             (($signed({1'b0,src2})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src2})+xsrc) &&
+              !(src2==dst && xsrc==xdst))));
         source_known=0;source2_known=op!=ADD;
         for(j=0;j<=MAX_OPS;j=j+1) begin
             if(known_valid[j] && known_i32[j]==src32 && src>=known_base[j] &&

@@ -66,16 +66,16 @@ SPECS = {
         dict(type='gap'),
         dict(type='fc', out=43, last=True)]),
     'fashion_l': dict(input=(28, 28, 1), classes=10, spec=[
-        dict(type='conv', out=32, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
-        *res('r1', 32),
-        *ds(64, pool='max2'),
-        *res('r2', 64),
-        *ds(96),
+        dict(type='conv', out=24, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *res('r1', 24),
+        *ds(48, pool='max2'),
+        *res('r2', 48),
+        *ds(56),
         dict(type='gap'),
         dict(type='fc', out=10, last=True)]),
     'kws_l': dict(input=(49, 10, 1), classes=12, spec=[
         dict(type='conv', out=48, k=[7, 3], s=[2, 2], p=[3, 1, 3, 1]),
-        *ds(48), *ds(48), *ds(48), *ds(48),
+        *ds(48), *ds(48), *ds(48),
         dict(type='gap'),
         dict(type='fc', out=12, last=True)]),
     'mnist_l': dict(input=(28, 28, 1), classes=10, spec=[
@@ -85,4 +85,16 @@ SPECS = {
         *ds(64),
         dict(type='gap'),
         dict(type='fc', out=10, last=True)]),
+    'kws_m': dict(input=(49, 10, 1), classes=12, spec=[
+        dict(type='conv', out=40, k=[7, 3], s=[2, 2], p=[3, 1, 3, 1]),
+        *ds(40), *ds(40), *ds(40), *ds(40),
+        dict(type='gap'),
+        dict(type='fc', out=12, last=True)]),
+    'gtsrb_l': dict(input=(32, 32, 3), classes=43, spec=[
+        dict(type='conv', out=24, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *ds(48, pool='max2'),
+        *res('r1', 48),
+        *ds(56, pool='max2'),
+        dict(type='gap'),
+        dict(type='fc', out=43, last=True)]),
 }

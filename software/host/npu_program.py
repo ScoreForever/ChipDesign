@@ -365,8 +365,14 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         for base,length in sorted(live.values()):
             if at+size<=base:break
             at=align(max(at,base+length))
+        # Exact in-place elementwise operations: ReLU, and Add onto an operand
+        # of the same byte size whose last use is this Add.
         if g[0]['op']=='ReLU' and last_use[g[0]['input']]==idx:
-            at=allocation[g[0]['input']][0] # explicitly supported exact in-place point operation
+            at=allocation[g[0]['input']][0]
+        elif g[0]['op']=='Add':
+            for operand in g[0]['inputs']:
+                if last_use[operand]==idx and tensors[operand].size==size and operand!=model['input']['name']:
+                    at=allocation[operand][0];break
         if at+size>act_bytes:raise ValueError(f'activation capacity exceeded: {name} needs [{at},{at+size}), capacity {act_bytes}; consider fusion/larger build')
         allocation[name]=(at,size);live[name]=(at,size);peak=max(peak,at+size)
         for old in list(live):

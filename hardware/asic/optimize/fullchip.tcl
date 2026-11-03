@@ -115,8 +115,9 @@ foreach m $macros {
     lassign $m name mx my mw mh orient
     set sx 0.0; set sy 0.0; set n 0
     foreach term [dbGet [dbGet -p top.insts.name $name].instTerms] {
-        if {![string match {[DQ]\[*} [dbGet $term.cellTerm.name]]} {continue}
-        lassign [dbGet $term.pt] px py
+        # dbGet returns lists; a bus bit such as D[0] comes back brace-quoted.
+        if {![string match {[DQ]\[*} [lindex [dbGet $term.cellTerm.name] 0]]} {continue}
+        lassign [lindex [dbGet $term.pt] 0] px py
         set sx [expr {$sx+$px}]; set sy [expr {$sy+$py}]; incr n
     }
     if {$n == 0} {error "No D/Q pins found on $name"}

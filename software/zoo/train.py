@@ -158,6 +158,7 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--balanced', action='store_true', help='inverse-frequency class weights')
     ap.add_argument('--distill', action='store_true', help='distill the float model during QAT')
+    ap.add_argument('--capacity-only', action='store_true', help='check SRAM/descriptor fit and stop')
     ap.add_argument('--relu-max', type=int, default=15, choices=(7, 15),
                     help='15: unsigned u4 post-ReLU tensors (ABI 4); 7: signed INT4 (ABI 3 behaviour)')
     args = ap.parse_args()
@@ -183,6 +184,17 @@ def main():
         data['class_weights'] = (counts.sum() / (counts * len(counts))).sqrt().to(device)
     net = Net(cfg['spec'], cfg['input']).to(device)
     annotate_shapes(net)
+    # Fail fast: an untrained export must already fit both builds.
+    probe = copy.deepcopy(net).to_qat()
+    with torch.no_grad():
+        probe(data['train'][0][:256])
+    for cols in (8, 4):
+        pkg = compile_model(export(probe, args.name), cols=cols)
+        log(f'capacity c{cols}: model {pkg.manifest["model_bytes"]} B, activation peak {pkg.manifest["activation_peak"]} B, '
+            f'{pkg.manifest["op_count"]} descriptors')
+    if args.capacity_only:
+        return
+    del probe
     log(f'{args.name}: {net.weight_count()} weights, train {len(data["train"][1])} val {len(data["val"][1])} test {len(data["test"][1])}')
     fp_val = fit(net, data, args.name, args.fp_epochs, args.lr, args.batch, device, False, log)
     fp_test = float_accuracy(net, *data['test'])

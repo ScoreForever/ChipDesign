@@ -148,6 +148,13 @@ def fixtures_v4(r,mac,q):
         dict(op='AvgPool',input='h',output='i',kernel=[2,2],stride=[1,1]),q('i','j',8,-5),
         dict(op='MaxPool',input='h',output='k',kernel=[2,2],stride=[1,1]),
         dict(op='Add',input='j',input2='k',output='y',weights=[-3,2])]),[r.randrange(0,16) for _ in range(288)]
+    # Add written exactly over its second operand while the first lives on.
+    shape=[5,6,8]
+    yield 'add_inplace_src2',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',8,8,kernel=1),uq('a','b',8),
+        mac('Conv','b','c',8,8,kernel=1),q('c','d',8),
+        dict(op='Add',input='b',input2='d',output='e',weights=[7,-9]),q('e','f',8,-4),
+        dict(op='Add',input='f',input2='b',output='y',weights=[1,1])]),frame(shape)
     shape=[2,9,3]
     yield 'pool_i32_window',dict(input=dict(name='x',shape=shape,dtype='i32'),nodes=[
         dict(op='MaxPool',input='x',output='a',kernel=[2,4],stride=[1,3]),relu('a','y')]),\

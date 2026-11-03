@@ -194,14 +194,17 @@ def gtsrb(root):
             imgs = [np.asarray(Image.open(io.BytesIO(b['bytes'])).convert('RGB').resize((32, 32), Image.BILINEAR))
                     for b in df['image']]
             x = torch.tensor(np.stack(imgs), dtype=torch.float32).permute(0, 3, 1, 2) / 255
-            return (x - 0.5) / 0.5, torch.tensor(df['label'].values, dtype=torch.long)
+            # Per-image contrast normalization (lighting varies widely in GTSRB),
+            # scaled so roughly +-2 sigma spans the INT4 input range.
+            x = (x - x.mean((1, 2, 3), keepdim=True)) / (x.std((1, 2, 3), keepdim=True) + 1e-3) / 2
+            return x, torch.tensor(df['label'].values, dtype=torch.long)
         xtr, ytr = load('**/train-*.parquet')
         xte, yte = load('**/test-*.parquet')
         (xt, yt), (xv, yv) = split_validation(xtr, ytr)
         return dict(train=(xt, yt), val=(xv, yv), test=(xte, yte), classes=list(range(43)),
-                    preprocess='RGB 32x32 bilinear, (pixel/255-0.5)/0.5')
+                    preprocess='RGB 32x32 bilinear, per-image z-score / 2')
     return cached(root, 'gtsrb', build)
 
 
 LOADERS = dict(mnist=mnist, fashion=fashion, har=uci_har, ecg=mitbih, kws=speech_commands, gtsrb=gtsrb,
-               fashion_l=fashion, kws_l=speech_commands, mnist_l=mnist)
+               fashion_l=fashion, kws_l=speech_commands, mnist_l=mnist, kws_m=speech_commands, gtsrb_l=gtsrb)
