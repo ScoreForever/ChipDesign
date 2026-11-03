@@ -22,6 +22,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
+# Largest INT4 code after ReLU. 7 is the signed INT4 hardware; 15 models an
+# unsigned-activation mode (software experiment, set by train.py --relu-max).
+RELU_MAX = 7
+
+
 def grad_scale(x, scale):
     return (x - x * scale).detach() + x * scale
 
@@ -42,8 +47,16 @@ class ActQuant(nn.Module):
     def forward(self, x):
         if not self.initialized:
             with torch.no_grad():
-                top = torch.quantile(x.detach().abs().flatten()[:200000].float(), 0.999)
-                self.scale.copy_(torch.clamp(top / self.hi, min=1e-4))
+                # MSE-optimal clipping over a grid of candidate ranges.
+                v = x.detach().flatten()[:400000].float()
+                top = v.abs().max().clamp(min=1e-6)
+                best, best_err = None, None
+                for frac in torch.linspace(0.05, 1.0, 96):
+                    s = top * frac / self.hi
+                    err = ((torch.clamp(torch.round(v / s), self.lo, self.hi) * s - v) ** 2).mean()
+                    if best_err is None or err < best_err:
+                        best, best_err = s, err
+                self.scale.copy_(best)
                 self.initialized.fill_(True)
         g = 1.0 / math.sqrt(x.numel() / x.shape[0] * self.hi)
         s = grad_scale(self.scale.abs() + 1e-8, g)
@@ -88,7 +101,7 @@ class Layer(nn.Module):
         if t == 'fc' and spec.get('last', False):
             self.aq = None
         elif t in ('conv', 'fc', 'gap', 'add') or (t == 'pool' and spec.get('kind') == 'avg'):
-            self.aq = ActQuant(0 if relu else -8, 7)
+            self.aq = ActQuant(0 if relu else -8, RELU_MAX if relu else 7)
         else:
             self.aq = None
         self.relu = relu

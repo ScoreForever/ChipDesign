@@ -86,6 +86,9 @@ def int_accuracy(model, x, y, device, per_class=None):
     return acc, pred, recall
 
 
+FAKE_ONLY = False
+
+
 def fit(net, data, name, epochs, lr, batch, device, qat, log):
     params = [p for p in net.parameters() if p.requires_grad]
     opt = torch.optim.AdamW(params, lr=lr, weight_decay=0 if qat else 5e-4)
@@ -104,7 +107,9 @@ def fit(net, data, name, epochs, lr, batch, device, qat, log):
             opt.step()
             sched.step()
         fake = float_accuracy(net, *data['val'])
-        if qat:
+        if qat and FAKE_ONLY:
+            acc = fake
+        elif qat:
             model = export(net, name)
             acc, _ = int_accuracy(model, *data['val'], device)
         else:
@@ -145,7 +150,11 @@ def main():
     ap.add_argument('--batch', type=int, default=256)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--balanced', action='store_true', help='inverse-frequency class weights')
+    ap.add_argument('--relu-max', type=int, default=7, choices=(7, 15),
+                    help='15 models unsigned post-ReLU activations (fake-quant only until the hardware supports it)')
     args = ap.parse_args()
+    import zoo.qat
+    zoo.qat.RELU_MAX = args.relu_max
     torch.manual_seed(args.seed)
     random.seed(args.seed)
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -174,7 +183,15 @@ def main():
     net.train()
     with torch.no_grad():  # calibrate activation scales on one batch
         net(data['train'][0][:2048])
+    global FAKE_ONLY
+    FAKE_ONLY = args.relu_max != 7
     qat_val = fit(net, data, args.name, args.qat_epochs, args.qat_lr, args.batch, device, True, log)
+    if FAKE_ONLY:
+        result = dict(name=args.name, relu_max=args.relu_max, float_val=fp_val, float_test=fp_test,
+                      fake_quant_val=qat_val, fake_quant_test=float_accuracy(net, *data['test']))
+        (out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+        log(json.dumps(result))
+        return
     model = export(net, args.name, dict(classes=[str(c) for c in raw['classes']], preprocess=raw['preprocess'],
                                         dataset=args.name))
     test_acc, pred, recall = int_accuracy(model, *data['test'], device, per_class=cfg['classes'])
