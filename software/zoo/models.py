@@ -115,4 +115,18 @@ SPECS = {
         dict(type='conv', out=256, k=[3, 3], p=[1, 1, 1, 1]),
         dict(type='gap'),
         dict(type='fc', out=10, last=True)]),
+    # Plain convolutions (no depthwise) for the hardest task.
+    'fashion_cnn': dict(input=(28, 28, 1), classes=10, spec=[
+        dict(type='conv', out=16, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        dict(type='conv', out=32, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        dict(type='conv', out=32, k=[3, 3], p=[1, 1, 1, 1]),
+        dict(type='gap'),
+        dict(type='fc', out=10, last=True)]),
+    'fashion_cnn2': dict(input=(28, 28, 1), classes=10, spec=[
+        dict(type='conv', out=16, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        dict(type='conv', out=32, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *res('r1', 32),
+        *ds(64),
+        dict(type='gap'),
+        dict(type='fc', out=10, last=True)]),
 }

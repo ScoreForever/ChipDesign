@@ -19,12 +19,12 @@ RPC_MS = 4.0  # median OpenOCD drscan RPC on the 2026-11-02 board run
 PERF = ('active', 'm_req', 'm_stall', 'm_maxst', 'm_rsp', 'm_wait', 'a_req', 'a_stall', 'a_maxst', 'a_rsp', 'a_wait',
         'writes', 'mac_issues', 'w_act', 'w_wt', 'w_slot', 'kprep', 'slots_pk', 'banks_pk', 'infl_pk', 'post',
         'g_contig', 'g_scalar', 'g_zero')
-NAMES = {'mnist_l': 'MNIST-L', 'fashion_xl': 'Fashion-XL', 'kws_l': 'KWS-L', 'kws_m': 'KWS-M', 'har': 'HAR-1D',
+NAMES = {'mnist_l': 'MNIST-L', 'fashion_cnn': 'Fashion-CNN', 'kws_l': 'KWS-L', 'kws_m': 'KWS-M', 'har': 'HAR-1D',
          'ecg': 'ECG-1D', 'gtsrb_l': 'GTSRB-L'}
-DATASETS = {'mnist_l': 'MNIST (10 类)', 'fashion_xl': 'Fashion-MNIST (10 类)',
+DATASETS = {'mnist_l': 'MNIST (10 类)', 'fashion_cnn': 'Fashion-MNIST (10 类)',
             'kws_l': 'Speech Commands v2 (12 类)', 'kws_m': 'Speech Commands v2 (12 类)',
             'har': 'UCI-HAR 原始 9 轴 (6 类)', 'ecg': 'MIT-BIH AAMI (5 类, 病人内划分)', 'gtsrb_l': 'GTSRB (43 类)'}
-ORDER = ['mnist_l', 'fashion_xl', 'kws_l', 'kws_m', 'har', 'ecg', 'gtsrb_l']
+ORDER = ['mnist_l', 'fashion_cnn', 'kws_l', 'kws_m', 'har', 'ecg', 'gtsrb_l']
 
 
 def load(name, default=None):
