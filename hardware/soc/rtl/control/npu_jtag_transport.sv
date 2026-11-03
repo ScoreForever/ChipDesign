@@ -33,7 +33,10 @@ module npu_jtag_transport #(
     reg [4:0] reply_error;
     reg ack_toggle;
     reg [31:0] rsp_mailbox_data;
-    reg [31:0] burst_addr;
+    // Word address only: a full copy of the request's low address bits would
+    // equal req_payload[33:32] and synthesis would merge away mailbox flops
+    // that the CDC constraints name.
+    reg [29:0] burst_word;
     reg burst_request;
     reg [4:0] rsp_mailbox_error;
     (* ASYNC_REG = "TRUE" *) reg [1:0] req_sync, ack_sync;
@@ -79,7 +82,7 @@ module npu_jtag_transport #(
             tap <= TLR; ir <= 1; ir_shift <= 1; dr <= 0;
             req_payload <= 0; req_toggle <= 0; ack_sync <= 0;
             pending <= 0; have_reply <= 0; overrun <= 0; reply_data <= 0; reply_error <= 0;
-            burst_addr <= 0; burst_request <= 0;
+            burst_word <= 0; burst_request <= 0;
         end else begin
             tap <= tap_next;
             ack_sync <= {ack_sync[0],ack_toggle};
@@ -112,15 +115,15 @@ module npu_jtag_transport #(
                     else begin
                         req_payload <= dr; req_toggle <= !req_toggle;
                         pending <= 1; have_reply <= 0; overrun <= 0;
-                        burst_addr <= dr[63:32] + 32'd4; burst_request <= 0;
+                        burst_word <= dr[63:34] + 30'd1; burst_request <= 0;
                     end
                 end else if (ir == 'h13 || ir == 'h14) begin
                     if (pending) overrun <= 1;
                     else begin
                         // Opcode 2 writes, 1 reads, as the host protocol.
-                        req_payload <= {ir == 'h13 ? 8'd2 : 8'd1, burst_addr, ir == 'h13 ? dr[31:0] : 32'd0};
+                        req_payload <= {ir == 'h13 ? 8'd2 : 8'd1, burst_word, 2'b00, ir == 'h13 ? dr[31:0] : 32'd0};
                         req_toggle <= !req_toggle; pending <= 1; have_reply <= 0;
-                        burst_addr <= burst_addr + 32'd4; burst_request <= 1;
+                        burst_word <= burst_word + 30'd1; burst_request <= 1;
                     end
                 end
                 default: ;
