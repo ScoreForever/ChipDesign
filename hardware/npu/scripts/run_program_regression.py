@@ -230,10 +230,25 @@ def negative_tests(out,image):
                ('shape',40,0,19),('destination',8,8188,20),('source',4,2048,21),
                # Parameter word: shift field -32 is reserved.
                ('shift',struct.unpack_from('<I',base.image,32)[0]+4,0x80000000,22)]
+    # ABI 4 fields, on fixtures that use them: (name, fixture, op, word, f(old), error).
+    by_name={n:m for n,m,_ in fixtures()}
+    v4=[('dw_channels','dwconv',0,4,lambda w:(12<<16)|12,18),                 # depthwise C not a COLS multiple
+        ('pool_window','pool_general',0,5,lambda w:(w&0xffff0000)|200|(3<<8),19),  # window taller than input
+        ('add_src2_overlap','residual_add',1,11,None,20),                     # src2 overlaps dst
+        ('add_fused_pool','residual_add',1,0,lambda w:w|(1<<10),18),          # MaxPool fusion on Add
+        ('u4_int32','host_i32_pool',0,0,lambda w:w|(1<<15),18),               # u4 source declared INT32
+        ('dw_on_fc','mlp',0,0,lambda w:w|(1<<13),18),                         # depthwise flag on FC
+        ('pool1d_unfused','cnn',0,0,lambda w:(w&~(1<<10))|(1<<14),18)]                 # 1x2 flag without fused pool
     results=[]
-    for name,offset,value,error in mutations:
-        data=bytearray(base.image);struct.pack_into('<I',data,offset,value)
-        pkg=Package(bytes(data),base.manifest);rec=Recorder(pkg,b'');host=Npu(rec);host.load_model(pkg)
+    targets=[(n,base,o,v,e) for n,o,v,e in mutations]
+    for n,fixture,op,word,f,error in v4:
+        pkg=compile_model(by_name[fixture]);w=struct.unpack_from('<I',pkg.image,op*64+word*4)[0]
+        if f is None:w=(struct.unpack_from('<I',pkg.image,op*64+8)[0]+4)  # dst byte offset + 4
+        else:w=f(w)
+        targets.append((n,pkg,op*64+word*4,w&0xffffffff,error))
+    for name,base_pkg,offset,value,error in targets:
+        data=bytearray(base_pkg.image);struct.pack_into('<I',data,offset,value)
+        pkg=Package(bytes(data),base_pkg.manifest);rec=Recorder(pkg,b'');host=Npu(rec);host.load_model(pkg)
         parts=rec.rows[-1].split();parts[3]=f'{error:x}';rec.rows[-1]=' '.join(parts)
         rec.rows.extend(['01 40 0 0 ffffffff 0','07 0 0 5 0 0','09 0 0 0 0 0'])
         trace=out/f'negative_{name}.txt';trace.write_text('\n'.join(rec.rows)+'\n')
