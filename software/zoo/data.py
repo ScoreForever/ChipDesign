@@ -207,4 +207,4 @@ def gtsrb(root):
 
 
 LOADERS = dict(mnist=mnist, fashion=fashion, har=uci_har, ecg=mitbih, kws=speech_commands, gtsrb=gtsrb,
-               fashion_l=fashion, kws_l=speech_commands, mnist_l=mnist, kws_m=speech_commands, gtsrb_l=gtsrb)
+               fashion_l=fashion, kws_l=speech_commands, mnist_l=mnist, kws_m=speech_commands, gtsrb_l=gtsrb, fashion_xl=fashion)

@@ -223,21 +223,39 @@ module npu_program_core #(
     wire post_credit=({1'b0,write_count}+rq_pending<WRITE_DEPTH) || write_fire;
     wire post_fire=state==EXECUTE && slot_ready[read_slot] && post_credit;
     wire [15:0] post_channel=oct*COLS+read_lane;
-    wire post_last=read_lane==COLS-1 || post_channel==channels-1;
+    // Nibble outputs drain two lanes per fire through two Requant lanes; the
+    // adjacent nibbles leave as one masked write. INT32 outputs take one lane.
+    wire pair=!dst32;
+    wire [$clog2(COLS)-1:0] read_lane1=read_lane+1'b1;
+    wire lane1_valid=pair && read_lane!=COLS-1 && post_channel+16'd1<channels;
+    wire post_last=pair ? (read_lane>=COLS-2 || post_channel+16'd2>=channels) :
+        (read_lane==COLS-1 || post_channel==channels-1);
     wire [31:0] post_raw=results[read_slot][read_lane*32+:32];
+    wire [31:0] post_raw1=results[read_slot][read_lane1*32+:32];
     wire signed [31:0] post_value=relu_enable && !q_enable && $signed(post_raw)<0 ? 32'd0 : post_raw;
+    wire [3:0] post_nibble1=relu_enable && !q_enable && post_raw1[31] ? 4'd0 : post_raw1[3:0];
     wire [15:0] post_addr=result_addr[read_slot]+(post_channel<<(dst32 ? 3 : 0));
     // Execution only follows range validation: the padded end fits the
     // 16-bit nibble address space, so no 32-bit adder is needed here.
     wire [15:0] packed_tail_addr=dst+dst_span[15:0]-16'd2;
-    wire rq_valid; wire [3:0] rq_data; wire [15:0] rq_addr;
+    wire rq_valid,rq_pair,rq1_valid; wire [3:0] rq_data,rq1_data; wire [15:0] rq_addr;
     wire signed [4:0] effective_min=relu_enable && clamp_min<0 ? 5'sd0 : clamp_min;
-    requant_lane #(.TAG_WIDTH(16)) i_requant (
+    requant_lane #(.TAG_WIDTH(17)) i_requant (
         .clk(clk),.rst(rst),.in_valid(post_fire && q_enable),.in_value(post_raw),
         .in_multiplier(mult_cache[read_lane]),.in_shift(shift_cache[read_lane]),
-        .activation_min(effective_min),.activation_max(clamp_max),.in_tag(post_addr),
-        .out_valid(rq_valid),.out_data(rq_data),.out_tag(rq_addr));
+        .activation_min(effective_min),.activation_max(clamp_max),.in_tag({lane1_valid,post_addr}),
+        .out_valid(rq_valid),.out_data(rq_data),.out_tag({rq_pair,rq_addr}));
+    requant_lane #(.TAG_WIDTH(1)) i_requant1 (
+        .clk(clk),.rst(rst),.in_valid(post_fire && q_enable && lane1_valid),.in_value(post_raw1),
+        .in_multiplier(mult_cache[read_lane1]),.in_shift(shift_cache[read_lane1]),
+        .activation_min(effective_min),.activation_max(clamp_max),.in_tag(1'b0),
+        .out_valid(rq1_valid),.out_data(rq1_data),.out_tag());
     wire write_push=state==EXECUTE && (rq_valid || (post_fire && !q_enable));
+    // Write nibbles: one or two adjacent results; an odd tensor's final nibble
+    // also clears the byte's padding nibble.
+    wire write_two=q_enable ? rq_pair : lane1_valid;
+    wire [15:0] write_at=q_enable ? rq_addr : post_addr;
+    wire write_tail_pad=dst_pixels[0] && channels[0] && write_at+write_two==packed_tail_addr;
     assign w_valid=state==EXECUTE && write_count!=0;
     assign w_addr=write_addr[write_head];
     assign w_data=write_data[write_head];
@@ -794,10 +812,11 @@ module npu_program_core #(
                     write_count<=write_count+write_push-write_fire;
                     if(write_fire)write_head<=write_head+1'b1;
                     if(write_push)begin
-                        write_addr[write_tail]<=q_enable ? rq_addr : post_addr;
-                        write_data[write_tail]<=q_enable ? {28'd0,rq_data} : (dst32 ? post_value : {28'd0,post_value[3:0]});
+                        write_addr[write_tail]<=write_at;
+                        write_data[write_tail]<=q_enable ? {24'd0,rq_pair ? rq1_data : 4'd0,rq_data} :
+                            (dst32 ? post_value : {24'd0,lane1_valid ? post_nibble1 : 4'd0,post_value[3:0]});
                         write_mask[write_tail]<=dst32 ? 8'hff :
-                            (dst_pixels[0] && channels[0] && (q_enable ? rq_addr : post_addr)==packed_tail_addr ? 8'h03 : 8'h01);
+                            write_two ? (write_tail_pad ? 8'h07 : 8'h03) : (write_tail_pad ? 8'h03 : 8'h01);
                         write_tail<=write_tail+1'b1;
                     end
                     inflight[0]<=inflight[0]+(issue_fire && !issue_seq[0])-(out_valid && !out_bank);
@@ -807,7 +826,7 @@ module npu_program_core #(
                         if(post_last) begin
                             read_lane<=0; slot_ready[read_slot]<=0; slot_busy[read_slot]<=0;
                             read_slot<=read_slot+1'b1;
-                        end else read_lane<=read_lane+1'b1;
+                        end else read_lane<=read_lane+(pair ? 2'd2 : 2'd1);
                     end
                     if(mac_op) begin
                         if(kernel_prepare)begin

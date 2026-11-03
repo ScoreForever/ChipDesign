@@ -357,14 +357,21 @@ def simulate(out,image,name,model,frame,cols,fuse,jtag,wave_disabled=False):
     # are subsequently overwritten through lifetime reuse.
     events=[]
     for tensor,info in list(pkg.manifest['tensors'].items())[1:]:
-        values=logical[tensor];channels=info['shape'][2]
+        values=logical[tensor];channels=info['shape'][2];wide=info['dtype']=='i32'
         for oc in range(0,channels,cols):
             for pos in range(len(values)//channels):
-                for lane in range(min(cols,channels-oc)):
-                    index=pos*channels+oc+lane;wide=info['dtype']=='i32'
+                width=min(cols,channels-oc)
+                # Nibble outputs leave two adjacent lanes per write; an odd
+                # tensor's final write also clears the padding nibble.
+                for lane in range(0,width,1 if wide else 2):
+                    index=pos*channels+oc+lane
                     address=info['base']*2+index*(8 if wide else 1)
-                    mask=255 if wide else (3 if len(values)%2 and index==len(values)-1 else 1)
-                    value=values[index] & (0xffffffff if wide else 15)
+                    if wide:
+                        events.append((address<<48)|(255<<32)|(values[index]&0xffffffff));continue
+                    count=2 if lane+1<width else 1
+                    value=sum((values[index+i]&15)<<(4*i) for i in range(count))
+                    mask=(1<<count)-1
+                    if len(values)%2 and index+count-1==len(values)-1:mask=(mask<<1)|1
                     events.append((address<<48)|(mask<<32)|value)
     events*=2;event_file=case/'writes.hex';event_file.write_text(''.join(f'{v:016x}\n' for v in events))
     log=run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}',

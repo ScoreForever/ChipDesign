@@ -97,4 +97,12 @@ SPECS = {
         *ds(56, pool='max2'),
         dict(type='gap'),
         dict(type='fc', out=43, last=True)]),
+    'fashion_xl': dict(input=(28, 28, 1), classes=10, spec=[
+        dict(type='conv', out=24, k=[3, 3], p=[1, 1, 1, 1], pool='max2'),
+        *res('r1', 24),
+        *ds(48, pool='max2'),
+        *res('r2', 48),
+        *ds(72),
+        dict(type='gap'),
+        dict(type='fc', out=10, last=True)]),
 }

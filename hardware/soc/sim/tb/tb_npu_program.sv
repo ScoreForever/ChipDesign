@@ -122,6 +122,12 @@ module tb_npu_program;
    if(rc!=6)$fatal(1,"malformed trace");
    if(op=='hf0)begin waits=0;while(!irq)begin @(negedge clk);waits=waits+1;if(waits>2000000)$fatal(1,"job timeout");end end
    else if(op=='hf1)repeat(data)@(negedge clk);
+   // Phase marker for the end-to-end timing breakdown.
+`ifdef JTAG_TEST
+   else if(op=='hf2)$display("PHASE %0d time_ns=%0d ticks=%0d",data,$time,ticks);
+`else
+   else if(op=='hf2)$display("PHASE %0d time_ns=%0d ticks=0",data,$time);
+`endif
 `ifdef JTAG_TEST
    else if(op=='h80)begin ir_select(5'h13);scan32(data,burst_reply);bursts=bursts+1;end
    else if(op=='h81)begin
