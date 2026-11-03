@@ -3,7 +3,12 @@
 // No model geometry, layer index or output class count is hardwired.
 // Model RAM is immutable while validating/running. Descriptors/model use byte addresses; activation ports use nibble addresses.
 module npu_program_core #(
-    parameter ACT_BYTES=8192, MODEL_BYTES=8192, COLS=8, TILE=16,
+    parameter ACT_BYTES=8192, MODEL_BYTES=8192, COLS=8,
+`ifdef NPU_TILE
+    parameter TILE=`NPU_TILE,
+`else
+    parameter TILE=16,
+`endif
     parameter MAX_OPS=16, MAX_K=1024, PSUM_BITS=18
 ) (
     input wire clk,rst, input wire validate,run,
@@ -283,14 +288,17 @@ module npu_program_core #(
     reg [4:0] tile_positions;
     reg last_group;
     // Fused pooling: 2x2 windows take four positions per output, 1x2 two.
-    wire [1:0] issue_slot=!pool_enable ? issue_p[1:0] : pool1d ? issue_p[2:1] : issue_p[3:2];
+    // Position tag: with TILE=8 the spare top bit carries the tile parity, so a
+    // 2x2 pool's slot index (bits 3:2) is still the output number modulo four.
+    wire [3:0] tag_pos=TILE==16 ? issue_p[3:0] : {issue_tile[0],issue_p[2:0]};
+    wire [1:0] issue_slot=!pool_enable ? tag_pos[1:0] : pool1d ? tag_pos[2:1] : tag_pos[3:2];
     wire reserve_slot=!pool_enable || (pool1d ? !issue_p[0] : issue_p[1:0]==0);
     wire pool_tap_last=pool1d ? issue_p[0] : issue_p[1:0]==3;
     wire slot_available=!last_group || !reserve_slot || !slot_busy[issue_slot];
     wire issue_can_fire=mac_op && issue_more && gather_full && bank_ready[issue_seq[0]] && slot_available;
     wire issue_fire=state==EXECUTE && issue_can_fire;
     // First and last flags plus position (six bits total).
-    wire [5:0] in_tag={issue_g==0,last_group,issue_p[3:0]};
+    wire [5:0] in_tag={issue_g==0,last_group,tag_pos};
     wire out_valid,out_bank; wire [5:0] out_tag; wire [COLS*10-1:0] out_sum;
     npu_mac_array #(.ARRAY_ROWS(4),.ARRAY_COLS(COLS),.ACC_WIDTH(10),.TAG_WIDTH(6)) i_array (
         .clk(clk),.rst(rst),.weight_we(array_weight_we),.weight_bank(load_bank),
@@ -298,6 +306,7 @@ module npu_program_core #(
         .in_bank(issue_seq[0]),.in_act(gather_return ? returned_vector : gathered),.in_unsigned(su),.in_tag(in_tag),
         .out_valid(out_valid),.out_bank(out_bank),.out_tag(out_tag),.out_psum(out_sum));
     wire [3:0] ret_p=out_tag[3:0];
+    wire [$clog2(TILE)-1:0] psum_index=ret_p[$clog2(TILE)-1:0];
     wire ret_last=out_tag[4],ret_first=out_tag[5];
     wire [1:0] ret_slot=!pool_enable ? ret_p[1:0] : pool1d ? ret_p[2:1] : ret_p[3:2];
     wire ret_tap_first=pool1d ? !ret_p[0] : ret_p[1:0]==0;
@@ -918,10 +927,10 @@ module npu_program_core #(
                         end
                         if(out_valid) begin
                             for(lane=0;lane<COLS;lane=lane+1) begin
-                                reduced=$signed(ret_first ? {PSUM_BITS{1'b0}} : psum[ret_p][lane*PSUM_BITS+:PSUM_BITS])+
+                                reduced=$signed(ret_first ? {PSUM_BITS{1'b0}} : psum[psum_index][lane*PSUM_BITS+:PSUM_BITS])+
                                     $signed(out_sum[lane*10+:10]);
                                 biased=$signed(reduced)+$signed(bias_cache[lane]);
-                                if(!ret_last) psum[ret_p][lane*PSUM_BITS+:PSUM_BITS]<=reduced;
+                                if(!ret_last) psum[psum_index][lane*PSUM_BITS+:PSUM_BITS]<=reduced;
                                 else if(!pool_enable || ret_tap_first ||
                                     biased>$signed(results[ret_slot][lane*32+:32]))
                                     results[ret_slot][lane*32+:32]<=biased;
@@ -998,7 +1007,8 @@ module npu_program_core #(
             endcase
         end
     end
-    initial if((COLS!=4 && COLS!=8) || TILE!=16 || MAX_K<1 || MAX_K>1024 ||
+    // TILE output positions share one weight load: 16 (psum 16xCOLSx18 FF) or 8.
+    initial if((COLS!=4 && COLS!=8) || (TILE!=16 && TILE!=8) || MAX_K<1 || MAX_K>1024 ||
         MAX_OPS<1 || MAX_OPS>16 || PSUM_BITS<18 || ACT_BYTES<64 || ACT_BYTES>16384)
         $fatal(1,"unsupported program-core geometry");
 endmodule
