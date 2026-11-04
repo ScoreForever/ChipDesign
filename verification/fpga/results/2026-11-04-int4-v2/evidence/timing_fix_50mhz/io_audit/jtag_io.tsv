@@ -1,0 +1,7 @@
+port	type	paths	io_delay_ns	launch_edge_ns	capture_edge_ns	min_slack_ns	direct_paths	equivalent_paths
+td_i	max	4	532.500	0.000	1000.000	465.623	0	4
+td_i	min	4	475.000	0.000	0.000	474.195	0	4
+tms_i	max	4	532.500	0.000	1000.000	466.459	0	4
+tms_i	min	4	475.000	0.000	0.000	474.218	0	4
+td_o	max	1	541.000	500.000	1500.000	445.266	0	1
+td_o	min	1	480.000	500.000	500.000	484.489	0	1

@@ -1,0 +1,50 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 4,
+  "model_bytes": 1660,
+  "op_count": 1,
+  "input_elements": 257,
+  "input_base": 0,
+  "input_bytes": 129,
+  "input_dtype": "i4",
+  "output_base": 132,
+  "output_bytes": 36,
+  "output_elements": 9,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    9
+  ],
+  "activation_peak": 168,
+  "groups": [
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 129,
+      "shape": [
+        1,
+        1,
+        257
+      ],
+      "dtype": "i4"
+    },
+    "y": {
+      "base": 132,
+      "bytes": 36,
+      "shape": [
+        1,
+        1,
+        9
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {}
+}

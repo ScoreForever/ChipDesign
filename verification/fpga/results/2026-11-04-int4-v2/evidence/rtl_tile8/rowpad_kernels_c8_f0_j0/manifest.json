@@ -1,0 +1,102 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 8,
+  "model_bytes": 616,
+  "op_count": 5,
+  "input_elements": 117,
+  "input_base": 0,
+  "input_bytes": 59,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 480,
+  "output_elements": 120,
+  "output_dtype": "i32",
+  "output_shape": [
+    5,
+    4,
+    6
+  ],
+  "activation_peak": 1320,
+  "groups": [
+    [
+      "Conv"
+    ],
+    [
+      "Requant"
+    ],
+    [
+      "AvgPool"
+    ],
+    [
+      "Requant"
+    ],
+    [
+      "Conv"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 59,
+      "shape": [
+        13,
+        9,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "a": {
+      "base": 60,
+      "bytes": 1120,
+      "shape": [
+        7,
+        5,
+        8
+      ],
+      "dtype": "i32"
+    },
+    "b": {
+      "base": 1180,
+      "bytes": 140,
+      "shape": [
+        7,
+        5,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "c": {
+      "base": 0,
+      "bytes": 768,
+      "shape": [
+        6,
+        4,
+        8
+      ],
+      "dtype": "i32"
+    },
+    "d": {
+      "base": 768,
+      "bytes": 96,
+      "shape": [
+        6,
+        4,
+        8
+      ],
+      "dtype": "i4"
+    },
+    "y": {
+      "base": 0,
+      "bytes": 480,
+      "shape": [
+        5,
+        4,
+        6
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {}
+}

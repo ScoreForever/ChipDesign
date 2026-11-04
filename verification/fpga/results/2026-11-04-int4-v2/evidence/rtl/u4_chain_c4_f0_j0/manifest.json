@@ -1,0 +1,193 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 4,
+  "model_bytes": 1284,
+  "op_count": 12,
+  "input_elements": 288,
+  "input_base": 0,
+  "input_bytes": 144,
+  "input_dtype": "u4",
+  "output_base": 180,
+  "output_bytes": 128,
+  "output_elements": 32,
+  "output_dtype": "i32",
+  "output_shape": [
+    2,
+    2,
+    8
+  ],
+  "activation_peak": 1296,
+  "groups": [
+    [
+      "Conv"
+    ],
+    [
+      "Requant"
+    ],
+    [
+      "ReLU"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "Conv"
+    ],
+    [
+      "Requant"
+    ],
+    [
+      "Add"
+    ],
+    [
+      "Requant"
+    ],
+    [
+      "AvgPool"
+    ],
+    [
+      "Requant"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "Add"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 144,
+      "shape": [
+        6,
+        6,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "a": {
+      "base": 144,
+      "bytes": 1152,
+      "shape": [
+        6,
+        6,
+        8
+      ],
+      "dtype": "i32"
+    },
+    "b": {
+      "base": 0,
+      "bytes": 144,
+      "shape": [
+        6,
+        6,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "c": {
+      "base": 0,
+      "bytes": 144,
+      "shape": [
+        6,
+        6,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "d": {
+      "base": 144,
+      "bytes": 36,
+      "shape": [
+        3,
+        3,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "e": {
+      "base": 180,
+      "bytes": 288,
+      "shape": [
+        3,
+        3,
+        8
+      ],
+      "dtype": "i32"
+    },
+    "f": {
+      "base": 0,
+      "bytes": 36,
+      "shape": [
+        3,
+        3,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "g": {
+      "base": 180,
+      "bytes": 288,
+      "shape": [
+        3,
+        3,
+        8
+      ],
+      "dtype": "i32"
+    },
+    "h": {
+      "base": 0,
+      "bytes": 36,
+      "shape": [
+        3,
+        3,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "i": {
+      "base": 36,
+      "bytes": 128,
+      "shape": [
+        2,
+        2,
+        8
+      ],
+      "dtype": "i32"
+    },
+    "j": {
+      "base": 164,
+      "bytes": 16,
+      "shape": [
+        2,
+        2,
+        8
+      ],
+      "dtype": "i4"
+    },
+    "k": {
+      "base": 36,
+      "bytes": 16,
+      "shape": [
+        2,
+        2,
+        8
+      ],
+      "dtype": "u4"
+    },
+    "y": {
+      "base": 180,
+      "bytes": 128,
+      "shape": [
+        2,
+        2,
+        8
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {}
+}

@@ -1,0 +1,102 @@
+{
+  "automated_passed": true,
+  "source_base": "a600927d128e48d79f51a2b97bd3ac7e4c114d23",
+  "bitstream_sha256": "8bdb83a721a06f6ce53aa84ce455f6c0da3353af582f7c56c4a18a248fdf2c2c",
+  "rtl_variants": {
+    "normal": 132,
+    "fpga_mem": 132,
+    "tile8": 132,
+    "production_trace_off": 132
+  },
+  "baseline_equivalence": {
+    "cases": 132,
+    "compared_fields": [
+      "cycles",
+      "writes",
+      "performance",
+      "operator_trace"
+    ],
+    "differences": []
+  },
+  "board_model_configurations": 63,
+  "board_inference_frames": 126,
+  "expected_host_rejections": [
+    "tinycnn_plain"
+  ],
+  "board_negative_cases": 27,
+  "trained_frames": 2,
+  "automatic_busy_checks": [
+    {
+      "name": "pause_TCK_while_busy",
+      "before": 3,
+      "after": 10,
+      "pause_seconds": 1.0,
+      "output_matches": true
+    },
+    {
+      "name": "repeat_START_while_busy",
+      "before": 3,
+      "expected_error": 4
+    },
+    {
+      "name": "protocol_RESET_while_busy",
+      "before": 3,
+      "after": {
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "error_op": 0,
+        "cycles": 0,
+        "issues": 0,
+        "writes": 0
+      }
+    },
+    {
+      "name": "watchdog_timeout_recovery",
+      "fault": {
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": true,
+        "error": 10,
+        "error_op": 0,
+        "cycles": 0,
+        "issues": 0,
+        "writes": 0
+      },
+      "after": {
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "error_op": 0,
+        "cycles": 0,
+        "issues": 0,
+        "writes": 0
+      }
+    },
+    {
+      "name": "fresh_inference_after_recovery",
+      "output_matches": true
+    }
+  ],
+  "not_run": [
+    "7 unavailable zoo exports",
+    "physical reset button on this v2 image",
+    "power cycle/reprogram on this v2 image",
+    "electrical waveform measurements",
+    "configuration flash boot",
+    "dataset accuracy evaluation"
+  ],
+  "notes": [
+    "Baseline board_suite manual_pending is a generic checklist; use board_cdc/report.json for the four completed automatic checks.",
+    "Bitstream identity from programmer path/hash/DONE/CRC plus ABI checks; no full configuration readback.",
+    "No 25 MHz implementation; 50 MHz setup slack rounds to 0.000 ns, no extra margin claimed."
+  ]
+}

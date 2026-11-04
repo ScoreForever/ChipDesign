@@ -5,6 +5,19 @@
 # the payload paths. Only asynchronous control entry pins and reset assertion
 # pins of synchronizer banks are excluded from synchronous setup/hold analysis.
 
+proc reject_critical_npu_jtag_cdc {report_file} {
+    set stream [open $report_file r]
+    set report [read $stream]
+    close $stream
+    if {![string match {*CDC Report*} $report] ||
+        ![regexp -line {^[ \t]*CDC-[0-9]+[ \t]+(Info|Warning|Critical)[ \t]+[0-9]+} $report]} {
+        error "Unrecognized/empty NPU CDC report: $report_file"
+    }
+    if {[regexp -line {^[ \t]*CDC-[0-9]+[ \t]+Critical[ \t]+[1-9][0-9]*} $report]} {
+        error "Critical CDC circuitry blocks FPGA acceptance: $report_file"
+    }
+}
+
 proc npu_jtag_cdc_cells {stems minimum label} {
     set selectors {}
     foreach stem $stems {

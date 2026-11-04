@@ -1,0 +1,50 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 4,
+  "model_bytes": 64,
+  "op_count": 1,
+  "input_elements": 17,
+  "input_base": 0,
+  "input_bytes": 9,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 9,
+  "output_elements": 17,
+  "output_dtype": "i4",
+  "output_shape": [
+    1,
+    1,
+    17
+  ],
+  "activation_peak": 12,
+  "groups": [
+    [
+      "ReLU"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 9,
+      "shape": [
+        1,
+        1,
+        17
+      ],
+      "dtype": "i4"
+    },
+    "y": {
+      "base": 0,
+      "bytes": 9,
+      "shape": [
+        1,
+        1,
+        17
+      ],
+      "dtype": "i4"
+    }
+  },
+  "metadata": {}
+}

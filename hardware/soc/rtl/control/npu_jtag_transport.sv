@@ -37,7 +37,7 @@ module npu_jtag_transport #(
     // equal req_payload[33:32] and synthesis would merge away mailbox flops
     // that the CDC constraints name.
     reg [29:0] burst_word;
-    reg burst_request;
+    reg burst_request, burst_error_pending;
     reg [4:0] rsp_mailbox_error;
     (* ASYNC_REG = "TRUE" *) reg [1:0] req_sync, ack_sync;
     reg req_seen, waiting_reply;
@@ -82,25 +82,32 @@ module npu_jtag_transport #(
             tap <= TLR; ir <= 1; ir_shift <= 1; dr <= 0;
             req_payload <= 0; req_toggle <= 0; ack_sync <= 0;
             pending <= 0; have_reply <= 0; overrun <= 0; reply_data <= 0; reply_error <= 0;
-            burst_word <= 0; burst_request <= 0;
+            burst_word <= 0; burst_request <= 0; burst_error_pending <= 0;
         end else begin
             tap <= tap_next;
             ack_sync <= {ack_sync[0],ack_toggle};
+            // Classify the error from the receiving-domain payload register,
+            // rather than combinationally feeding asynchronous mailbox bits
+            // into the sticky flag. CDR below exposes the pending flag too,
+            // preserving the status visible at the first completed capture.
+            burst_error_pending <= 0;
+            if (burst_error_pending && reply_error != 0) overrun <= 1;
             if (pending && ack_sync[1] == req_toggle) begin
                 pending <= 0; have_reply <= 1;
                 reply_data <= rsp_mailbox_data; reply_error <= rsp_mailbox_error;
-                if (burst_request && rsp_mailbox_error != 0) overrun <= 1;
+                burst_error_pending <= burst_request;
             end
             // TMS reset only resets scan selection. It must not cancel a CDC
             // transaction or generate a duplicate request when TCK restarts.
             case (tap)
-                TLR: begin ir <= 1; overrun <= 0; end
+                TLR: begin ir <= 1; overrun <= 0; burst_error_pending <= 0; end
                 CIR: ir_shift <= 5'b00101;
                 SHIR: ir_shift <= {td_i,ir_shift[4:1]};
                 UIR: ir <= ir_shift;
                 CDR: begin
                     if (ir == 1) dr <= {40'd0,IDCODE};
-                    else if (ir == 'h12) dr <= {have_reply,pending,overrun,reply_error,
+                    else if (ir == 'h12) dr <= {have_reply,pending,
+                        (overrun || (burst_error_pending && reply_error != 0)),reply_error,
                         req_payload[63:32],reply_data};
                     else if (ir == 'h14) dr <= {40'd0,reply_data};
                     else dr <= 0;

@@ -1,0 +1,2 @@
+PASS program commands=93
+hardware/soc/sim/tb/tb_npu_program.sv:168: $finish called at 37590000 (1ps)

@@ -1,0 +1,2 @@
+PASS INT4/u4 MAC exhaustive pairs and bank tags cols=8 outputs=1024
+hardware/npu/tb/tb_npu_mac_int4.sv:46: $finish called at 122910000 (1ps)

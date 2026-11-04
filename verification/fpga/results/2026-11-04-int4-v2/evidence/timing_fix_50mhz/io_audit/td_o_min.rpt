@@ -1,0 +1,69 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Wed Nov  4 10:14:06 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_timing -of_objects [get_timing_paths -to [get_ports td_o] -delay_type min -max_paths 10000 -nworst 1] -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_c7014mug/run/io_audit/td_o_min.rpt
+| Design       : fpga_top
+| Device       : 7a35t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             484.489ns  (arrival time - required time)
+  Source:                 u_soc/i_host/td_o_reg/C
+                            (falling edge-triggered cell FDCE clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            td_o
+                            (output port clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck_i
+  Path Type:              Min at Fast Process Corner
+  Requirement:            0.000ns  (tck_i fall@500.000ns - tck_i fall@500.000ns)
+  Data Path Delay:        2.982ns  (logic 1.430ns (47.951%)  route 1.552ns (52.049%))
+  Logic Levels:           1  (OBUF=1)
+  Output Delay:           480.000ns
+  Clock Path Skew:        -1.542ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    0.000ns = ( 500.000 - 500.000 ) 
+    Source Clock Delay      (SCD):    1.542ns = ( 501.542 - 500.000 ) 
+    Clock Pessimism Removal (CPR):    -0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck_i fall edge)    500.000   500.000 f  
+    H16                                               0.000   500.000 f  tck_i (IN)
+                         net (fo=0)                   0.000   500.000    tck_i
+    H16                                                               f  tck_i_IBUF_inst/I
+    H16                  IBUF (Prop_ibuf_I_O)         0.247   500.247 f  tck_i_IBUF_inst/O
+                         net (fo=1, routed)           0.634   500.881    tck_i_IBUF
+    BUFGCTRL_X0Y16                                                    f  tck_i_IBUF_BUFG_inst/I
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.026   500.907 f  tck_i_IBUF_BUFG_inst/O
+                         net (fo=254, routed)         0.635   501.542    u_soc/i_host/tck_i_IBUF_BUFG
+    SLICE_X54Y120        FDCE                                         r  u_soc/i_host/td_o_reg/C  (IS_INVERTED)
+  -------------------------------------------------------------------    -------------------
+    SLICE_X54Y120        FDCE (Prop_fdce_C_Q)         0.167   501.709 r  u_soc/i_host/td_o_reg/Q
+                         net (fo=1, routed)           1.552   503.261    td_o_OBUF
+    D15                                                               r  td_o_OBUF_inst/I
+    D15                  OBUF (Prop_obuf_I_O)         1.263   504.524 r  td_o_OBUF_inst/O
+                         net (fo=0)                   0.000   504.524    td_o
+    D15                                                               r  td_o (OUT)
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck_i fall edge)    500.000   500.000 f  
+                         clock pessimism              0.000   500.000    
+                         clock uncertainty            0.035   500.035    
+                         output delay              -480.000    20.035    
+  -------------------------------------------------------------------
+                         required time                        -20.035    
+                         arrival time                         504.524    
+  -------------------------------------------------------------------
+                         slack                                484.489    
+
+
+
+

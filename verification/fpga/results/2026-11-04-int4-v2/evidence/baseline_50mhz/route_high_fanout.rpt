@@ -1,0 +1,72 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Wed Nov  4 09:56:31 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_high_fanout_nets -max_nets 50 -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_jukldk7b/run/route_high_fanout.rpt
+| Design       : fpga_top
+| Device       : xc7a35t
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+High Fan-out Nets Information
+
+1. Summary
+----------
+
++--------------------------------------------------+--------+-------------+
+| Net Name                                         | Fanout | Driver Type |
++--------------------------------------------------+--------+-------------+
+| u_soc/i_control/rst                              |   2202 | FDRE        |
+| u_soc/i_control/i_npu/i_array/ADDRD[0]           |   1080 | LUT3        |
+| u_soc/i_control/i_npu/i_array/ADDRD[1]           |   1080 | LUT3        |
+| u_soc/i_control/i_npu/i_array/I229               |   1032 | LUT5        |
+| u_soc/i_control/i_activation/q_data[0]           |    746 | LUT6        |
+| u_soc/i_control/i_npu/SR[0]                      |    723 | LUT2        |
+| u_soc/i_control/i_npu/state_1[3]                 |    480 | FDRE        |
+| u_soc/i_host/rst_sync_q_reg[1]                   |    405 | LUT1        |
+| u_soc/i_control/i_activation/state_reg[0]_16     |    361 | LUT2        |
+| u_soc/i_control/i_npu/tap_first                  |    318 | LUT6        |
+| u_soc/i_control/i_npu/read_slot[1]               |    287 | FDRE        |
+| u_soc/i_control/i_npu/read_slot[0]               |    287 | FDRE        |
+| u_soc/i_control/i_npu/i_array/ADDRA[0]           |    285 | LUT5        |
+| u_soc/i_control/i_npu/i_array/ADDRA[1]           |    283 | LUT5        |
+| u_soc/i_control/i_npu/element_slot[0]            |    274 | FDRE        |
+| u_soc/i_control/i_npu/element_slot[1]            |    273 | FDRE        |
+| u_soc/i_control/i_activation/estate1             |    271 | LUT6        |
+| u_soc/i_control/i_controller/job_active_reg_63   |    265 | LUT3        |
+| u_soc/i_control/i_npu/trace_descriptor[2]        |    245 | FDRE        |
+| u_soc/i_control/i_controller/job_active_reg_5[1] |    242 | CARRY4      |
+| u_soc/i_control/i_npu/last_param2[0]             |    242 | FDRE        |
+| u_soc/i_control/i_controller/job_active_reg_5[0] |    242 | CARRY4      |
+| u_soc/i_control/i_npu/last_param2[1]             |    240 | FDRE        |
+| u_soc/i_control/i_npu/last_param2[2]             |    240 | FDRE        |
+| u_soc/i_host/i___4_n_0                           |    233 | LUT1        |
+| u_soc/i_control/i_activation/memory_high_reg_n_0 |    224 | FDRE        |
+| u_soc/i_control/i_npu/i_array/ret_first          |    192 | FDRE        |
+| u_soc/i_control/i_npu/p_0_in8_in__0              |    192 | LUT6        |
+| u_soc/i_control/i_controller/addr_reg[12]_0[4]   |    190 | FDRE        |
+| u_soc/i_control/i_activation/tail_reg[1]_rep_n_0 |    190 | FDRE        |
+| u_soc/i_control/i_npu/job_active_reg_rep         |    181 | LUT5        |
+| u_soc/i_control/i_npu/job_active_reg_60          |    180 | LUT6        |
+| u_soc/i_control/i_npu/job_active_reg_rep_23      |    179 | LUT5        |
+| u_soc/i_control/i_npu/rowpad                     |    175 | LUT4        |
+| u_soc/i_control/i_activation/state_reg[0]_17     |    174 | LUT6        |
+| u_soc/i_control/i_npu/dwconv                     |    172 | FDRE        |
+| u_soc/i_control/i_npu/job_active_reg_15[2]       |    172 | LUT6        |
+| u_soc/i_control/i_npu/pool_enable                |    169 | FDRE        |
+| u_soc/i_control/i_activation/tail[0]_i_2_n_0     |    168 | LUT3        |
+| u_soc/i_control/i_activation/saved_word0[0]      |    165 | LUT6        |
+| u_soc/i_control/i_npu/d_reg[0][15]_0[0]          |    163 | FDRE        |
+| u_soc/i_control/i_npu/read_lane[0]               |    160 | FDRE        |
+| u_soc/i_control/i_npu/read_lane[1]               |    156 | FDRE        |
+| u_soc/i_control/i_npu/i_array/out_tag[1]         |    155 | FDRE        |
+| u_soc/i_control/i_npu/i_array/out_tag[0]         |    154 | FDRE        |
+| u_soc/i_control/i_npu/oh[15]_i_2_n_0             |    153 | LUT2        |
+| u_soc/i_control/i_activation/tail[2]             |    153 | FDRE        |
+| u_soc/i_control/i_npu/i_array/out_tag[2]         |    146 | FDRE        |
+| u_soc/i_control/i_activation/count[3]            |    145 | FDRE        |
+| u_soc/i_control/i_npu/i_array/out_tag[3]         |    145 | FDRE        |
++--------------------------------------------------+--------+-------------+
+
+

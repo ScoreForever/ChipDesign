@@ -1,0 +1,2 @@
+PASS trace payload, per-operator boundaries, offset, trigger, overflow, failure, disable, reset and unread RAM protection
+hardware/npu/tb/tb_npu_trace.sv:54: $finish called at 13060000 (1ps)

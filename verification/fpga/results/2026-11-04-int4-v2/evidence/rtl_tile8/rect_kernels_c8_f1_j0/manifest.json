@@ -1,0 +1,65 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 8,
+  "model_bytes": 652,
+  "op_count": 2,
+  "input_elements": 126,
+  "input_base": 0,
+  "input_bytes": 63,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 60,
+  "output_elements": 120,
+  "output_dtype": "i4",
+  "output_shape": [
+    4,
+    6,
+    5
+  ],
+  "activation_peak": 190,
+  "groups": [
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 63,
+      "shape": [
+        7,
+        6,
+        3
+      ],
+      "dtype": "i4"
+    },
+    "b": {
+      "base": 64,
+      "bytes": 126,
+      "shape": [
+        7,
+        6,
+        6
+      ],
+      "dtype": "i4"
+    },
+    "y": {
+      "base": 0,
+      "bytes": 60,
+      "shape": [
+        4,
+        6,
+        5
+      ],
+      "dtype": "i4"
+    }
+  },
+  "metadata": {}
+}

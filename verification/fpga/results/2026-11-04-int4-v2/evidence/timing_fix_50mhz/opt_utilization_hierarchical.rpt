@@ -1,0 +1,40 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Wed Nov  4 10:07:39 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_utilization -hierarchical -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_c7014mug/run/opt_utilization_hierarchical.rpt
+| Design       : fpga_top
+| Device       : xc7a35tcsg324-1
+| Speed File   : -1
+| Design State : Optimized
+----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Utilization Design Information
+
+Table of Contents
+-----------------
+1. Utilization by Hierarchy
+
+1. Utilization by Hierarchy
+---------------------------
+
++---------------------+------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+|       Instance      |            Module            | Total LUTs | Logic LUTs | LUTRAMs | SRLs |  FFs | RAMB36 | RAMB18 | DSP Blocks |
++---------------------+------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+| fpga_top            |                        (top) |      17496 |      16577 |     844 |   75 | 6202 |      4 |      0 |         20 |
+|   (fpga_top)        |                        (top) |         15 |         15 |       0 |    0 |   47 |      0 |      0 |          0 |
+|   u_soc             |                   my_soc_top |      17481 |      16562 |     844 |   75 | 6155 |      4 |      0 |         20 |
+|     i_control       |        npu_control_subsystem |      17280 |      16361 |     844 |   75 | 5803 |      4 |      0 |         20 |
+|       i_npu         |             npu_program_core |      11511 |      10592 |     844 |   75 | 4009 |      0 |      0 |         20 |
+|         (i_npu)     |             npu_program_core |       8063 |       7219 |     844 |    0 | 2959 |      0 |      0 |         16 |
+|         i_array     |                npu_mac_array |       2415 |       2358 |       0 |   57 |  854 |      0 |      0 |          0 |
+|         i_requant   |                 requant_lane |        581 |        563 |       0 |   18 |  116 |      0 |      0 |          2 |
+|         i_requant1  | requant_lane__parameterized0 |        452 |        452 |       0 |    0 |   80 |      0 |      0 |          2 |
+|       i_activation  |         npu_activation_store |       3619 |       3619 |       0 |    0 | 1270 |      2 |      0 |          0 |
+|       i_controller  |       npu_command_controller |       2103 |       2103 |       0 |    0 |  484 |      0 |      0 |          0 |
+|       i_model_store |              npu_model_store |         59 |         59 |       0 |    0 |    2 |      2 |      0 |          0 |
+|     i_host          |           npu_jtag_transport |        201 |        201 |       0 |    0 |  352 |      0 |      0 |          0 |
++---------------------+------------------------------+------------+------------+---------+------+------+--------+--------+------------+
+
+
