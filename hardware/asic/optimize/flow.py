@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import sys
 import time
+from cdc_check import validate as validate_cdc, validate_synth as validate_cdc_synth
 
 ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
@@ -20,7 +21,13 @@ SIGNALS = {'N': [('clk_i', 'input'), ('rst_ni', 'input'), ('irq_o', 'output')],
 # Two RA1SHD_2048x32M8 instances: the model store and the activation store.
 MACROS = 2
 MACRO_ROLES = ('model', 'activation')
-LAYOUTS = ('west_stack', 'south_row', 'diagonal')
+LAYOUTS = ('west_stack', 'south_row', 'diagonal', 'west_stack_r90', 'south_row_mx')
+# Every RA1SHD_2048x32M8 signal pin (A/D/Q/CEN/WEN/OEN/CLK) sits on the R0
+# bottom edge and the two PG pins on the top edge; the orientation decides
+# which side the 109-pin bus faces after placement.
+PIN_SIDE = {'R0': 'S', 'MX': 'N', 'R90': 'E', 'R270': 'W'}
+# Layouts whose macros are rotated by 90 degrees (footprint is mh x mw).
+ROTATED = ('west_stack_r90',)
 # INT4 revision budget: die (including the PAD ring) at most 1950um square.
 MAX_DIE_UM = 1950
 # floorPlan snaps the core to the site grid (one 5.6um row at most), so a
@@ -89,10 +96,16 @@ def snap(v):
 
 
 def macro_layout(layout, xlo, ylo, xhi, yhi, mw, mh, gap):
-    """Lower-left corners of the model and activation SRAMs inside [xlo,xhi]x[ylo,yhi]."""
-    if layout=='west_stack':return [(xlo,ylo),(xlo,ylo+mh+gap)]
-    if layout=='south_row':return [(xlo,ylo),(xlo+mw+gap,ylo)]
-    if layout=='diagonal':return [(xlo,ylo),(xhi-mw,yhi-mh)]
+    """Lower-left corners and orientations of the model and activation SRAMs
+    inside [xlo,xhi]x[ylo,yhi]; mw x mh is the placed (oriented) footprint."""
+    if layout=='west_stack':return [(xlo,ylo,'R0'),(xlo,ylo+mh+gap,'R0')]
+    if layout=='south_row':return [(xlo,ylo,'R0'),(xlo+mw+gap,ylo,'R0')]
+    if layout=='diagonal':return [(xlo,ylo,'R0'),(xhi-mw,yhi-mh,'R0')]
+    # Pin edges face the standard-cell area instead of the core boundary or
+    # the channel between the macros: east for the west stack, north for the
+    # south row. PG pins then face the core ring.
+    if layout=='west_stack_r90':return [(xlo,ylo,'R90'),(xlo,ylo+mh+gap,'R90')]
+    if layout=='south_row_mx':return [(xlo,ylo,'MX'),(xlo+mw+gap,ylo,'MX')]
     raise ValueError('unknown macro layout: '+str(layout))
 
 
@@ -100,12 +113,14 @@ def geometry(std_area, sizes, utilization=.6, layout='west_stack', halo=26):
     if not 0 < utilization < 1 or std_area <= 0 or halo < 0 or layout not in LAYOUTS:
         raise ValueError('invalid geometry inputs')
     mw, mh = sizes['RA1SHD_2048x32M8']
+    if layout in ROTATED:mw, mh = mh, mw
     margin = 150
     # Ring width/offset, macro halo and routing channels remain clear, both
     # to the core edge and between the two macros.
     clear = max(halo, 26) + 20
     gap = 2*max(halo, 26) + 20
-    span = {'west_stack':(mw,2*mh+gap),'south_row':(2*mw+gap,mh),'diagonal':(2*mw+gap,2*mh+gap)}[layout]
+    span = {'west_stack':(mw,2*mh+gap),'south_row':(2*mw+gap,mh),'diagonal':(2*mw+gap,2*mh+gap),
+            'west_stack_r90':(mw,2*mh+gap),'south_row_mx':(2*mw+gap,mh)}[layout]
     core = math.ceil(math.sqrt(std_area/utilization + MACROS*mw*mh)/20)*20
     core = max(core, math.ceil((max(span)+2*clear)/20)*20)
     corner = sizes['PCORNER'][0]
@@ -117,10 +132,10 @@ def geometry(std_area, sizes, utilization=.6, layout='west_stack', halo=26):
     xlo,ylo=margin+clear,margin+clear
     xhi,yhi=margin+core-clear,margin+core-clear
     macros=[]
-    for role,(x,y) in zip(MACRO_ROLES,macro_layout(layout,xlo,ylo,xhi,yhi,mw,mh,gap)):
+    for role,(x,y,orient) in zip(MACRO_ROLES,macro_layout(layout,xlo,ylo,xhi,yhi,mw,mh,gap)):
         if x<xlo-1e-6 or y<ylo-1e-6 or x+mw>xhi+1e-6 or y+mh>yhi+1e-6:
             raise ValueError('macros and halos do not fit')
-        macros.append([role,snap(x),snap(y),mw,mh])
+        macros.append([role,snap(x),snap(y),mw,mh,orient])
     pads=[]
     for side,signals in SIGNALS.items():
         entries=[(p,'PDDW0204CDG',direction) for p,direction in signals]+[(p,c,'supply') for p,c in SUPPLIES]
@@ -141,7 +156,7 @@ def geometry(std_area, sizes, utilization=.6, layout='west_stack', halo=26):
 
 def rtl_fingerprint():
     listing=ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f'
-    paths=[listing,ROOT/'hardware/soc/synth/scripts/soc_constraints.tcl']
+    paths=[listing,ROOT/'hardware/soc/synth/scripts/soc_constraints.tcl',HERE/'npu_jtag_cdc.tcl',HERE/'synth.tcl']
     paths += [ROOT/line.strip() for line in listing.read_text().splitlines() if line.strip() and not line.startswith('+')]
     return {str(p.relative_to(ROOT)):digest(p) for p in paths}
 
@@ -283,7 +298,10 @@ def validate_reports(directory):
         for b in boxes[i+1:]:
             if min(a[3],b[3])-max(a[1],b[1])>.001 and min(a[4],b[4])-max(a[2],b[2])>.001:
                 pad_ok=False
-    return dict(placement=place_ok,drc=drc(read('drc.rpt')),pg_drc=drc(read('pg_drc.rpt')),connectivity=regular_ok,pg_connectivity=pg,antenna=antenna,drv=drv,ports=ports_ok,pad_geometry=pad_ok)
+    # Each SRAM's D/Q bus must face the side its orientation promises.
+    pins=[line.split('\t') for line in read('macro_pins.tsv').splitlines() if line.strip()]
+    pins_ok=len(pins)==MACROS and all(len(r)==6 and PIN_SIDE.get(r[1])==r[2] and int(r[3])==64 for r in pins)
+    return dict(placement=place_ok,drc=drc(read('drc.rpt')),pg_drc=drc(read('pg_drc.rpt')),connectivity=regular_ok,pg_connectivity=pg,antenna=antenna,drv=drv,ports=ports_ok,pad_geometry=pad_ok,cdc=validate_cdc(directory/'cdc_paths.tsv'),macro_pins=pins_ok)
 
 
 def def_wire_length(path):
@@ -307,6 +325,7 @@ def def_wire_length(path):
 def metrics(directory):
     directory=Path(directory)
     required=['metrics.json','checks.json','timing_setup.rpt','timing_hold.rpt','drc.rpt','pg_drc.rpt','connectivity.rpt','pg_connectivity.rpt','antenna.rpt','placement.rpt','io_geometry.tsv','io_connectivity.tsv','ports.txt','constraints.rpt','outputs/physical.v','outputs/simulation.v','outputs/routed.sdf.gz','outputs/routed.spef.gz','outputs/routed.def','outputs/chip.gds.gz','outputs/chip.lef','outputs/mapped.sdc']
+    required+=['cdc_paths.tsv','macro_pins.tsv']
     missing=[p for p in required if not (directory/p).is_file() or (directory/p).stat().st_size==0]
     state=json.loads((directory/'status.json').read_text()) if (directory/'status.json').exists() else {}
     result=dict(directory=str(directory),eligible=False,missing=missing,runtime_seconds=max(0,state.get('finished',0)-state.get('started',0)))
@@ -316,7 +335,7 @@ def metrics(directory):
     finite=all(isinstance(result.get(k),(int,float)) and math.isfinite(result[k]) for k in ('setup_wns_ns','hold_wns_ns','setup_tns_ns','hold_tns_ns','die_area_mm2','wire_length_um'))
     result['eligible']=finite and all(result['checks'].get(k) is True for k in ('placement','drc','pg_drc','connectivity','pg_connectivity','antenna','drv','ports','pad_geometry')) and result['setup_wns_ns']>=0 and result['hold_wns_ns']>=0 and result['setup_tns_ns']==0 and result['hold_tns_ns']==0 and result.get('macro_count')==MACROS
     result['within_area_budget']=finite and result['die_area_mm2']<=(MAX_DIE_UM/1000)**2+1e-9
-    result['eligible']=result['eligible'] and result['within_area_budget']
+    result['eligible']=result['eligible'] and result['within_area_budget'] and result['checks'].get('cdc') is True and result['checks'].get('macro_pins') is True and validate_cdc(directory/'cdc_paths.tsv')
     return result
 
 
@@ -337,11 +356,14 @@ def synth(output,libs):
     state=launch(['genus','-no_gui','-batch','-files',str(HERE/'synth.tcl')],directory,'PNR_OPT_SYNTHESIS_COMPLETE')
     if state['status']!='complete':raise RuntimeError('synthesis failed: '+str(directory))
     verify_clocks(directory/'mapped.sdc')
+    if not validate_cdc_synth(directory/'cdc_paths.tsv'):raise RuntimeError('mapped CDC audit failed')
     save(directory/'handoff.json',{p:digest(directory/p) for p in ('mapped.v','mapped.sdc','area.json')})
 
 
 def verify_clocks(path):
     text=Path(path).read_text().replace('\\\n',' ')
+    if re.search(r'(?m)^\s*set_clock_groups\b',text):
+        raise RuntimeError('clock-group exceptions cannot cover mailbox payload; regenerate scoped CDC synthesis')
     unit=re.search(r'set_units[^\n]*-time\s+(\S+)',text)
     # Genus writes "1000ps"; accept any spelling that is exactly 1 ns so clock
     # numbers are used as written, and reject every other scale.
@@ -397,14 +419,14 @@ def snapshot_driver(directory):
     return driver
 
 
-def candidate(output,libs,name,util,layout,congestion=False,halo=26):
+def candidate(output,libs,name,util,layout,congestion=False,halo=26,hold_target=0.02):
     if not re.fullmatch(r'[A-Za-z0-9_-]+',name) or halo<26:raise ValueError('invalid candidate name or halo below 26um')
     directory=output/'candidates'/name
     if (output/'sources.json').exists() and json.loads((output/'sources.json').read_text())!=fingerprint():
         raise RuntimeError('inputs changed between candidates')
     if (directory/'status.json').exists():
         saved=json.loads((directory/'experiment.json').read_text())
-        if (saved['utilization'],saved.get('layout'),saved['congestion'],saved['geometry']['halo_um'])!=(util,layout,bool(congestion),halo):
+        if (saved['utilization'],saved.get('layout'),saved['congestion'],saved['geometry']['halo_um'],saved.get('hold_target',0.02))!=(util,layout,bool(congestion),halo,hold_target):
             raise RuntimeError('candidate parameters differ from preserved run')
         state=json.loads((directory/'status.json').read_text())
         if state.get('status')=='running':state=recover_tool(directory,'PNR_OPT_PHYSICAL_COMPLETE')
@@ -417,13 +439,13 @@ def candidate(output,libs,name,util,layout,congestion=False,halo=26):
     sizes=lef_sizes([libs[k] for k in ('macro_lef','io_lef','bond_lef')])
     geo=geometry(area['standard_cell_area_um2'],sizes,util,layout,halo)
     directory.mkdir(parents=True,exist_ok=True)
-    save(directory/'experiment.json',dict(array_cols=int(os.environ.get('EDA_NPU_COLS','8')),utilization=util,layout=layout,congestion=congestion,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
+    save(directory/'experiment.json',dict(array_cols=int(os.environ.get('EDA_NPU_COLS','8')),utilization=util,layout=layout,congestion=congestion,hold_target=hold_target,geometry=geo,handoff=handoff,sources_sha256=fingerprint()))
     if geo['die_side_um']+SNAP_UM>MAX_DIE_UM:
         # Over the area budget before any tool runs: record it, spend no Innovus time.
         result=dict(directory=str(directory),eligible=False,within_area_budget=False,die_side_um=geo['die_side_um'],
                     reason=f"die {geo['die_side_um']}um exceeds {MAX_DIE_UM}um budget")
         save(directory/'result.json',result);return result
-    cfg=common_config(libs)+f'set threads 4\nset congestion {int(congestion)}\nset source_root '+tcl(ROOT)+'\nset netlist '+tcl(output/'synthesis/mapped.v')+'\nset sdc '+tcl(output/'synthesis/mapped.sdc')+'\n'
+    cfg=common_config(libs)+f'set threads 4\nset congestion {int(congestion)}\nset hold_target {hold_target}\nset source_root '+tcl(ROOT)+'\nset netlist '+tcl(output/'synthesis/mapped.v')+'\nset sdc '+tcl(output/'synthesis/mapped.sdc')+'\n'
     for key in ('core_side_um','die_side_um','margin_um','corner_um','halo_um','bond_depth_um'):
         cfg+='set '+key+' '+str(geo[key])+'\n'
     cfg+='set macro_boxes {\n'+''.join(' {'+' '.join(map(str,m))+'}\n' for m in geo['macros'])+'}\nset pads {\n'
@@ -517,6 +539,8 @@ def main():
     ap.add_argument('--halo',type=float,default=26)
     ap.add_argument('--cols',type=int,choices=(4,8),default=8)
     ap.add_argument('--congestion',action='store_true')
+    # Innovus hold target; PrimeTime on the SPEF reads hold ~0.1 ns worse than Innovus.
+    ap.add_argument('--hold-target',type=float,default=0.02)
     args=ap.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=True)
     if args.action=='trial' and (not args.name or not re.fullmatch(r'[A-Za-z0-9_-]+',args.name) or not 0<args.utilization<1 or args.halo<26):
         ap.error('trial requires a simple name, utilization in (0,1) and halo >=26um')
@@ -546,7 +570,7 @@ def main():
         frozen=output/'sources.json'
         if not frozen.exists():save(frozen,fingerprint())
         if not (output/'synthesis/handoff.json').exists():synth(output,libs)
-        result=candidate(output,libs,args.name,args.utilization,args.layout,args.congestion,args.halo)
+        result=candidate(output,libs,args.name,args.utilization,args.layout,args.congestion,args.halo,args.hold_target)
         summarize(output)
         if not result.get('eligible'):raise RuntimeError('trial physical acceptance failed')
     elif args.action=='baseline':

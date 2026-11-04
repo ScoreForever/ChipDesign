@@ -17,9 +17,27 @@ module tb_fullchip;
  begin response=0;tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);
  for(n=0;n<72;n=n+1)begin tick(n==71,request[n],q);response[n]=q;end
  tick(1,0,dummy);tick(0,0,dummy);end endtask
+ // Burst IRs 13h/14h move one 32-bit word per scan; a read returns the
+ // previous read, so expected values are compared one scan later.
+ reg [4:0] cur_ir=5'h12;reg have_prev=0;reg [31:0] prev_expected,prev_mask,burst_reply;integer bursts=0;
+ task ir_select(input [4:0] code);
+ integer k;
+ begin if(cur_ir!==code)begin
+ tick(1,0,dummy);tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);
+ for(k=0;k<5;k=k+1)tick(k==4,code[k],dummy);
+ tick(1,0,dummy);tick(0,0,dummy);cur_ir=code;end end endtask
+ task scan32(input [31:0] request,output reg [31:0] response);
+ integer n;reg q;
+ begin response=0;tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);
+ for(n=0;n<32;n=n+1)begin tick(n==31,request[n],q);response[n]=q;end
+ tick(1,0,dummy);tick(0,0,dummy);end endtask
  task exchange;
  reg [71:0] reply;integer n;
- begin scan({op,addr,data},reply);n=0;reply=0;
+ begin ir_select(5'h12);scan({op,addr,data},reply);
+ if(reply[69]!==0)$fatal(1,"JTAG burst fault before cmd=%0d",commands);
+ if(have_prev && (reply[31:0]&prev_mask)!==(prev_expected&prev_mask))
+ $fatal(1,"Burst read tail got=%h expected=%h",reply[31:0],prev_expected);
+ have_prev=0;n=0;reply=0;
  while(reply[71]!==1'b1 || reply[70]!==1'b0)begin
  scan(0,reply);n=n+1;if(n>100)$fatal(1,"JTAG timeout cmd=%0d reply=%h",commands,reply);end
  if(reply[69]!==0 || reply[68:64]!==expected_error || reply[63:32]!==addr)
@@ -42,18 +60,25 @@ module tb_fullchip;
  if(op=='hf0)begin waits=0;while(irq!==1'b1)begin
  @(negedge clk);waits=waits+1;if(waits>2000000)$fatal(1,"IRQ timeout");end end
  else if(op=='hf1)repeat(data)@(negedge clk);
+ else if(op=='hf2);
+ else if(op=='h80)begin ir_select(5'h13);scan32(data,burst_reply);bursts=bursts+1;end
+ else if(op=='h81)begin ir_select(5'h14);scan32(0,burst_reply);repeat(4)tick(0,0,dummy);bursts=bursts+1;
+ if(have_prev && (burst_reply&prev_mask)!==(prev_expected&prev_mask))
+ $fatal(1,"Burst read got=%h expected=%h",burst_reply,prev_expected);
+ have_prev=1;prev_expected=expected;prev_mask=mask;end
  else begin exchange;if((value&mask)!==(expected&mask))$fatal(1,"Mismatch cmd=%0d addr=%h got=%h expected=%h mask=%h",commands,addr,value,expected,mask);commands=commands+1;end
  end
  $fclose(fd);
- // Physical reset must return the host/controller to a usable ABI-3 INT4 state.
+ if(have_prev)begin op=1;addr=4;data=0;expected_error=0;exchange;end
+ // Physical reset must return the host/controller to a usable ABI-4 INT4 state.
  @(negedge clk);rst_n=0;repeat(6)tick(1,0,dummy);
- @(negedge clk);rst_n=1;repeat(6)tick(1,0,dummy);tick(0,0,dummy);
+ @(negedge clk);rst_n=1;repeat(6)tick(1,0,dummy);tick(0,0,dummy);cur_ir=5'h12;
  tick(1,0,dummy);tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);
  for(rc=0;rc<5;rc=rc+1)tick(rc==4,(5'h12>>rc)&1,dummy);
  tick(1,0,dummy);tick(0,0,dummy);
  op=1;addr=0;data=0;expected_error=0;exchange;
- if(value!==32'h20001 || irq!==0)$fatal(1,"Reset recovery failed");
- $display("PNR_OPT_JTAG_PASS commands=%0d",commands);$finish;
+ if(value!==32'h40000 || irq!==0)$fatal(1,"Reset recovery failed");
+ $display("PNR_OPT_JTAG_PASS commands=%0d bursts=%0d",commands,bursts);$finish;
  end
  initial begin #2000000000;$fatal(1,"SDF global timeout");end
 endmodule

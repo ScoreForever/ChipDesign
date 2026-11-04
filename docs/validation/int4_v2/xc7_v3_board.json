@@ -1,0 +1,35 @@
+{
+  "defines": [
+    "SYNTHESIS",
+    "CHIPDESIGN_FPGA_MEM",
+    "NPU_ARRAY_COLS=8"
+  ],
+  "source": "codex/fpga-int4-board-validation-20261101 (board-validated, Vivado 17255 LUT)",
+  "lut": 17587,
+  "ff": 10850,
+  "bram36": 8,
+  "dsp": 25,
+  "cells": {
+    "BUFG": 2,
+    "CARRY4": 1326,
+    "DSP48E1": 25,
+    "FDCE": 329,
+    "FDCE_1": 1,
+    "FDPE": 3,
+    "FDRE": 10490,
+    "FDSE": 27,
+    "IBUF": 5,
+    "INV": 307,
+    "LUT2": 2754,
+    "LUT3": 3085,
+    "LUT4": 2469,
+    "LUT5": 5402,
+    "LUT6": 3877,
+    "MUXF7": 8,
+    "MUXF8": 3,
+    "OBUF": 2,
+    "RAM32M": 138,
+    "RAMB36E1": 8,
+    "SRL16E": 14
+  }
+}

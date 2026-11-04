@@ -1,0 +1,214 @@
+{
+  "results": [
+    {
+      "network": "ecg",
+      "cols": 8,
+      "supported": false,
+      "reason": "MaxPool supports 2x2/stride2/no padding"
+    },
+    {
+      "network": "mnist",
+      "cols": 8,
+      "supported": true,
+      "cycles": [
+        5696,
+        5696
+      ],
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "FC"
+        ]
+      ],
+      "model_bytes": 1608,
+      "activation_peak": 784,
+      "operator_cycles": [
+        2706,
+        2121,
+        869
+      ],
+      "predicted_class": 9,
+      "checked_write_events": 1980
+    },
+    {
+      "network": "kws",
+      "cols": 8,
+      "supported": true,
+      "cycles": [
+        3234,
+        3234
+      ],
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "FC"
+        ]
+      ],
+      "model_bytes": 1008,
+      "activation_peak": 480,
+      "operator_cycles": [
+        1163,
+        1703,
+        368
+      ],
+      "predicted_class": 2,
+      "checked_write_events": 1608
+    },
+    {
+      "network": "har",
+      "cols": 8,
+      "supported": true,
+      "cycles": [
+        823,
+        823
+      ],
+      "groups": [
+        [
+          "FC",
+          "Requant",
+          "ReLU"
+        ],
+        [
+          "FC"
+        ]
+      ],
+      "model_bytes": 1584,
+      "activation_peak": 48,
+      "operator_cycles": [
+        705,
+        118
+      ],
+      "predicted_class": 1,
+      "checked_write_events": 76
+    },
+    {
+      "network": "ecg",
+      "cols": 4,
+      "supported": false,
+      "reason": "MaxPool supports 2x2/stride2/no padding"
+    },
+    {
+      "network": "mnist",
+      "cols": 4,
+      "supported": true,
+      "cycles": [
+        5781,
+        5781
+      ],
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "FC"
+        ]
+      ],
+      "model_bytes": 1608,
+      "activation_peak": 784,
+      "operator_cycles": [
+        2702,
+        2101,
+        978
+      ],
+      "predicted_class": 9,
+      "checked_write_events": 1980
+    },
+    {
+      "network": "kws",
+      "cols": 4,
+      "supported": true,
+      "cycles": [
+        5866,
+        5866
+      ],
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "FC"
+        ]
+      ],
+      "model_bytes": 1008,
+      "activation_peak": 480,
+      "operator_cycles": [
+        2249,
+        3329,
+        288
+      ],
+      "predicted_class": 2,
+      "checked_write_events": 1608
+    },
+    {
+      "network": "har",
+      "cols": 4,
+      "supported": true,
+      "cycles": [
+        1202,
+        1202
+      ],
+      "groups": [
+        [
+          "FC",
+          "Requant",
+          "ReLU"
+        ],
+        [
+          "FC"
+        ]
+      ],
+      "model_bytes": 1584,
+      "activation_peak": 48,
+      "operator_cycles": [
+        1037,
+        165
+      ],
+      "predicted_class": 1,
+      "checked_write_events": 76
+    }
+  ],
+  "geomean_cycles_c8": 2474.970027021981,
+  "supported_c8": "3/4",
+  "geomean_cycles_c4": 3441.5163083891443,
+  "supported_c4": "3/4"
+}

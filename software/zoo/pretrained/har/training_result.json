@@ -1,0 +1,109 @@
+{
+  "name": "har",
+  "weights": 5216,
+  "float_val": 0.9278629395852119,
+  "float_test": 0.9406175771971497,
+  "int4_val": 0.919747531414032,
+  "int4_test": 0.92840176820755,
+  "int4_test_recall": [
+    0.9959677419354839,
+    0.9490445859872612,
+    0.9928571428571429,
+    0.7861507128309573,
+    0.8552631578947368,
+    1.0
+  ],
+  "int4_test_balanced": 0.9298805569175971,
+  "hardware": {
+    "c8": {
+      "model_bytes": 5424,
+      "activation_peak": 2624,
+      "op_count": 7,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    },
+    "c4": {
+      "model_bytes": 5264,
+      "activation_peak": 2624,
+      "op_count": 7,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    }
+  },
+  "test_samples": 2947,
+  "seconds": 138.9779019355774,
+  "args": {
+    "name": "har",
+    "data": "../datasets",
+    "out": "../zoo_runs/final",
+    "fp_epochs": "80",
+    "qat_epochs": "60",
+    "lr": "0.003",
+    "qat_lr": "0.0005",
+    "batch": "256",
+    "seed": "0",
+    "balanced": "False",
+    "distill": "True",
+    "relu_max": "15"
+  }
+}

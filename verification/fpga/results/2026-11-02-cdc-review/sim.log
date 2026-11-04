@@ -1,0 +1,2 @@
+PASS NPU_JTAG_CDC: 100 phase/rate sweeps, backpressure, overrun, stopped TCK, TMS reset, asynchronous reset, restart
+D:\IWS\Advanced_SoC\ChipDesign\build\no_cpu_INT4_update\verification\fpga\tb_npu_jtag_cdc.sv:135: $finish called at 3415409000 (1ps)

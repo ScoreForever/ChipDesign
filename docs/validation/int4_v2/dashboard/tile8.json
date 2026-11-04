@@ -1,0 +1,32 @@
+[
+ {
+  "model": "MNIST-L",
+  "tile16": 49416,
+  "tile8": 51768
+ },
+ {
+  "model": "KWS-L",
+  "tile16": 126414,
+  "tile8": 123882
+ },
+ {
+  "model": "KWS-M",
+  "tile16": 110115,
+  "tile8": 127130
+ },
+ {
+  "model": "HAR-1D",
+  "tile16": 25048,
+  "tile8": 26236
+ },
+ {
+  "model": "ECG-1D",
+  "tile16": 21286,
+  "tile8": 20556
+ },
+ {
+  "model": "GTSRB-L",
+  "tile16": 122804,
+  "tile8": 130305
+ }
+]

@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// ABI 3 INT4 transactional program endpoint. Opcodes 1..10:
+// ABI 4 INT4 transactional program endpoint. Opcodes 1..10:
 // READ WRITE MODEL_BEGIN MODEL_COMMIT INPUT_BEGIN INPUT_COMMIT START ACK RESET CLEAR.
 module npu_command_controller #(
  parameter ACT_BYTES=8192,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
@@ -94,9 +94,9 @@ module npu_command_controller #(
       end else if(trace_selected)begin
        if(owned)reply(4,0);else state<=TWAIT;
       end else case(addr)
-       'h00:reply(0,32'h00030000);
+       'h00:reply(0,32'h00040000);
        'h04:reply(0,{25'd0,faulted,input_loading,model_loading,done,input_valid,model_valid,owned});
-       'h08:reply(0,error_code); 'h0c:reply(0,'h1f);
+       'h08:reply(0,error_code); 'h0c:reply(0,'h7f); // opcodes 1..7
        'h10:reply(0,model_bytes_o); 'h14:reply(0,op_count_o); 'h18:reply(0,input_base_o);
        'h1c:reply(0,input_bytes_o); 'h20:reply(0,output_base_o); 'h24:reply(0,output_bytes_o);
        'h28:reply(0,timeout_limit); 'h2c:reply(0,job_id); 'h30:reply(0,completed_id); 'h34:reply(0,error_op);

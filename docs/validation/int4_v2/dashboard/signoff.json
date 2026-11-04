@@ -1,0 +1,27 @@
+[
+ {
+  "check": "Calibre DRC",
+  "passed": true,
+  "detail": "no blocking rule; 2427 accepted reports, all IO-cell ESD/latch-up guidelines or deck reminders"
+ },
+ {
+  "check": "Calibre LVS",
+  "passed": true,
+  "detail": "45 IO resistor property deviations, max 3.47% (accepted)"
+ },
+ {
+  "check": "PrimeTime STA",
+  "passed": true,
+  "detail": "setup WNS +0.709 ns, hold WNS +0.042 ns; SRAM interface timed by Innovus"
+ },
+ {
+  "check": "Formality LEC",
+  "passed": true,
+  "detail": "Formality equivalence verified"
+ },
+ {
+  "check": "Xcelium SDF gate-level",
+  "passed": true,
+  "detail": "41 JTAG commands on the u4_chain fixture with burst IRs, no fatal timing diagnostics"
+ }
+]

@@ -1,0 +1,19 @@
+Vivado Simulator v2025.2
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+Running: D:/AMDDesignTools/2025.2/Vivado/bin/unwrapped/win64.o/xelab.exe --mt off --timescale 1ns/1ps work.tb_cdc_reset -s tb_cdc_reset_sim 
+Turned off multi-threading.
+Starting static elaboration
+Pass Through NonSizing Optimizer
+Completed static elaboration
+Starting simulation data flow analysis
+Completed simulation data flow analysis
+Time Resolution for simulation is 1ps
+Compiling module work.rstgen_bypass
+Compiling module work.rstgen
+Compiling module work.cdc_2phase_src(T=logic[31:0])
+Compiling module work.cdc_2phase_dst(T=logic[31:0])
+Compiling module work.cdc_2phase(T=logic[31:0])
+Compiling module work.tb_cdc_reset
+ERROR: [XSIM 43-3409] Failed to compile generated C file xsim.dir/tb_cdc_reset_sim/obj/xsim_1.c.
+ERROR: [XSIM 43-3915] Encountered a fatal error. Cannot continue. Exiting... 

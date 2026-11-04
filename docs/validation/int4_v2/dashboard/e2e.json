@@ -1,0 +1,758 @@
+[
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Model upload",
+  "ms": 44.529
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Model commit",
+  "ms": 0.242
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Input upload",
+  "ms": 4.062
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Start",
+  "ms": 0.473
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Compute",
+  "ms": 0.988
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Output readout",
+  "ms": 0.611
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "phase": "Ack",
+  "ms": 0.473
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model upload",
+  "ms": 267.036
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model commit",
+  "ms": 0.231
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Input upload",
+  "ms": 22.869
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Start",
+  "ms": 0.462
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Compute",
+  "ms": 0.988
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Output readout",
+  "ms": 2.31
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Ack",
+  "ms": 0.462
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Model upload",
+  "ms": 41.051
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Model commit",
+  "ms": 0.242
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Input upload",
+  "ms": 5.764
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Start",
+  "ms": 0.473
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Compute",
+  "ms": 0.501
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Output readout",
+  "ms": 0.447
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "phase": "Ack",
+  "ms": 0.473
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model upload",
+  "ms": 245.322
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model commit",
+  "ms": 0.231
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Input upload",
+  "ms": 33.495
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Start",
+  "ms": 0.462
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Compute",
+  "ms": 0.501
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Output readout",
+  "ms": 1.386
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Ack",
+  "ms": 0.462
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Model upload",
+  "ms": 38.202
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Model commit",
+  "ms": 0.242
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Input upload",
+  "ms": 1.028
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Start",
+  "ms": 0.473
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Compute",
+  "ms": 0.426
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Output readout",
+  "ms": 0.406
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "phase": "Ack",
+  "ms": 0.473
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model upload",
+  "ms": 227.535
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model commit",
+  "ms": 0.231
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Input upload",
+  "ms": 3.927
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Start",
+  "ms": 0.462
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Compute",
+  "ms": 0.426
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Output readout",
+  "ms": 1.155
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Ack",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Model upload",
+  "ms": 68.875
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Model commit",
+  "ms": 0.242
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Input upload",
+  "ms": 2.73
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Start",
+  "ms": 0.473
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Compute",
+  "ms": 2.528
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Output readout",
+  "ms": 0.693
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "phase": "Ack",
+  "ms": 0.473
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model upload",
+  "ms": 419.034
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model commit",
+  "ms": 0.231
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Input upload",
+  "ms": 14.553
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Start",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Compute",
+  "ms": 2.528
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Output readout",
+  "ms": 2.772
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Ack",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Model upload",
+  "ms": 67.469
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Model commit",
+  "ms": 0.242
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Input upload",
+  "ms": 2.73
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Start",
+  "ms": 0.473
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Compute",
+  "ms": 2.202
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Output readout",
+  "ms": 0.693
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "phase": "Ack",
+  "ms": 0.473
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model upload",
+  "ms": 410.256
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model commit",
+  "ms": 0.231
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Input upload",
+  "ms": 14.553
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Start",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Compute",
+  "ms": 2.202
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Output readout",
+  "ms": 2.772
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Ack",
+  "ms": 0.462
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Model upload",
+  "ms": 73.167
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Model commit",
+  "ms": 0.242
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Input upload",
+  "ms": 19.38
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Start",
+  "ms": 0.473
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Compute",
+  "ms": 2.456
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Output readout",
+  "ms": 1.964
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "phase": "Ack",
+  "ms": 0.473
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model upload",
+  "ms": 445.83
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model commit",
+  "ms": 0.231
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Input upload",
+  "ms": 118.503
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Start",
+  "ms": 0.462
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Compute",
+  "ms": 2.456
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Output readout",
+  "ms": 9.933
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Ack",
+  "ms": 0.462
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Model upload",
+  "ms": 76.127
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Model commit",
+  "ms": 0.242
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Input upload",
+  "ms": 4.062
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Start",
+  "ms": 0.473
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Compute",
+  "ms": 1.456
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Output readout",
+  "ms": 0.611
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "phase": "Ack",
+  "ms": 0.473
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Capability query",
+  "ms": 1.386
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model upload",
+  "ms": 464.31
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Model commit",
+  "ms": 0.231
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Input upload",
+  "ms": 22.869
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Start",
+  "ms": 0.462
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Compute",
+  "ms": 1.456
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Status poll",
+  "ms": 0.462
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Output readout",
+  "ms": 2.31
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "phase": "Ack",
+  "ms": 0.462
+ }
+]

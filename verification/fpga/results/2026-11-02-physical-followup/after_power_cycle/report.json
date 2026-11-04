@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "initial_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  },
+  "job": 0,
+  "actual_hex": "fbffffff0c000000dcffffff",
+  "expected_hex": "fbffffff0c000000dcffffff",
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  }
+}

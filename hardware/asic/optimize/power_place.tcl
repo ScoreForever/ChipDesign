@@ -39,9 +39,12 @@ sroute -nets {VDD VSS} -connect {blockPin} -inst $macro_names \
     -blockPinLayerRange {METAL3 METAL4} -blockPinTarget {blockring} \
     -layerChangeRange {METAL3 METAL5} -allowLayerChange 1 -allowJogging 1 \
     -targetViaLayerRange {METAL3 METAL5} -crossoverViaLayerRange {METAL3 METAL5}
-# Distributed M6/M5 access over each SRAM.
+# Distributed M6/M5 access over each SRAM. The offsets follow the R0 macro's
+# internal PG pattern, so other orientations rely on the block ring and the
+# blockPin connections above; metal fill covers their M5/M6 density.
 foreach m $macros {
-lassign $m macro_name mx my mw mh
+lassign $m macro_name mx my mw mh orient
+if {$orient ne "" && $orient ne "R0"} {continue}
 setAddStripeMode -reset
 setAddStripeMode -break_at none -allow_jog none \
     -stacked_via_bottom_layer METAL4 -stacked_via_top_layer METAL6 \

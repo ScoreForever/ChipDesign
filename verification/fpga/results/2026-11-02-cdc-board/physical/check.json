@@ -1,0 +1,22 @@
+{
+  "passed": true,
+  "time": 1793587563.47531,
+  "timeout_limit": 10000000,
+  "status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  },
+  "job": 0,
+  "interpretation": "Physical reset inferred from cleared sentinel and state; operator confirmation required.",
+  "fresh_inference_matches": true,
+  "actual_hex": "000061070010760007",
+  "expected_hex": "000061070010760007"
+}

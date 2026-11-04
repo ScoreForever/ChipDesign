@@ -55,10 +55,11 @@ class Int4Tests(unittest.TestCase):
             self.assertEqual(words[15], FORMAT_MAGIC|cols)
             # Four K rows of four lanes, two bytes/row, including zero K padding.
             self.assertEqual(package.image[words[7]:words[7]+8], bytes([8, 0, 7, 0, 15, 0, 0, 0]))
-            self.assertEqual(struct.unpack_from('<2I', package.image, words[8]), (123, 0x003e4000))
+            # One word per channel: bias 123 | Q8 multiplier 128 << 18 | shift -2 (62) << 26.
+            self.assertEqual(struct.unpack_from('<I', package.image, words[8])[0], 123 | (128 << 18) | (62 << 26))
             self.assertEqual(package.manifest['input_bytes'], 2)
             self.assertEqual(package.manifest['output_bytes'], 1)
-            self.assertEqual(words[9], 0x78)
+            self.assertEqual(words[9], 0xf8)  # ABI 4: 5-bit clamp fields, -8 | 7<<5
             self.assertEqual(package.manifest['numeric_format'], NUMERIC_FORMAT)
 
     def test_native_input_and_weights_reject_int8_range(self):

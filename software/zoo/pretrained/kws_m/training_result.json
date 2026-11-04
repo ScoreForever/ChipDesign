@@ -1,0 +1,142 @@
+{
+  "name": "kws_m",
+  "weights": 9160,
+  "float_val": 0.9394553229799685,
+  "float_test": 0.9302373158756138,
+  "int4_val": 0.919198751449585,
+  "int4_test": 0.9042553305625916,
+  "int4_test_recall": [
+    0.9570405727923628,
+    0.8987654320987655,
+    0.9035294117647059,
+    0.8571428571428571,
+    0.9490291262135923,
+    0.9267676767676768,
+    0.8964646464646465,
+    0.8980099502487562,
+    0.9440389294403893,
+    0.8233830845771144,
+    0.7936117936117936,
+    1.0
+  ],
+  "int4_test_balanced": 0.9039819567602216,
+  "hardware": {
+    "c8": {
+      "model_bytes": 7712,
+      "activation_peak": 5248,
+      "op_count": 11,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    },
+    "c4": {
+      "model_bytes": 6992,
+      "activation_peak": 5248,
+      "op_count": 11,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    }
+  },
+  "test_samples": 4888,
+  "seconds": 377.35094833374023,
+  "args": {
+    "name": "kws_m",
+    "data": "../datasets",
+    "out": "../zoo_runs/final",
+    "fp_epochs": "80",
+    "qat_epochs": "60",
+    "lr": "0.003",
+    "qat_lr": "0.0005",
+    "batch": "256",
+    "seed": "0",
+    "balanced": "False",
+    "distill": "True",
+    "capacity_only": "False",
+    "relu_max": "15"
+  }
+}

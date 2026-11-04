@@ -1,0 +1,34 @@
+[
+ {
+  "build": "Previous (on board)",
+  "lut": 17587,
+  "lut_share": 0.8455,
+  "ff": 10850,
+  "bram36": 8,
+  "dsp": 25
+ },
+ {
+  "build": "v2 with trace",
+  "lut": 18937,
+  "lut_share": 0.9104,
+  "ff": 10412,
+  "bram36": 8.0,
+  "dsp": 48
+ },
+ {
+  "build": "v2 per-op summary",
+  "lut": 18665,
+  "lut_share": 0.8974,
+  "ff": 10129,
+  "bram36": 4.0,
+  "dsp": 48
+ },
+ {
+  "build": "v2 FPGA default",
+  "lut": 15691,
+  "lut_share": 0.7544,
+  "ff": 6391,
+  "bram36": 4.0,
+  "dsp": 48
+ }
+]

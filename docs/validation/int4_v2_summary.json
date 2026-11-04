@@ -1,0 +1,631 @@
+{
+ "models": {
+  "mnist_l": {
+   "int4_test": 0.9887999892234802,
+   "int4_test_balanced": 0.9886119804167857,
+   "float_test": 0.9925,
+   "weights": 5088,
+   "model_bytes": 4592,
+   "activation_peak": 3528,
+   "descriptors": 10,
+   "test_samples": 10000,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/mnist_l",
+   "cycles_c8": 49416,
+   "cycles_c4": 70118,
+   "macs": 420864,
+   "mac_utilization": 0.2661486158329286,
+   "breakdown": {
+    "mac_issue": 26688,
+    "wait_activation": 9892,
+    "wait_weight": 1974,
+    "wait_slot": 4964,
+    "kernel_prepare": 1962,
+    "element_and_other": 3936
+   }
+  },
+  "fashion_cnn": {
+   "int4_test": 0.9010999798774719,
+   "int4_test_balanced": 0.9010999999999999,
+   "float_test": 0.9102,
+   "weights": 14288,
+   "model_bytes": 8008,
+   "activation_peak": 2744,
+   "descriptors": 5,
+   "test_samples": 10000,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/cnn/s1/fashion_cnn",
+   "cycles_c8": 72812,
+   "cycles_c4": 142868,
+   "macs": 1467968,
+   "mac_utilization": 0.6300335109597319,
+   "breakdown": {
+    "mac_issue": 47056,
+    "wait_activation": 18106,
+    "wait_weight": 2508,
+    "wait_slot": 636,
+    "kernel_prepare": 3334,
+    "element_and_other": 1172
+   }
+  },
+  "kws_l": {
+   "int4_test": 0.9150981903076172,
+   "int4_test_balanced": 0.9149093341203715,
+   "float_test": 0.9365793780687398,
+   "weights": 9792,
+   "model_bytes": 7224,
+   "activation_peak": 6248,
+   "descriptors": 9,
+   "test_samples": 4888,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/aff/s2/kws_l",
+   "cycles_c8": 126414,
+   "cycles_c4": 177912,
+   "macs": 1152576,
+   "mac_utilization": 0.2849209739427595,
+   "breakdown": {
+    "mac_issue": 72774,
+    "wait_activation": 27006,
+    "wait_weight": 348,
+    "wait_slot": 17712,
+    "kernel_prepare": 4680,
+    "element_and_other": 3894
+   }
+  },
+  "kws_m": {
+   "int4_test": 0.9042553305625916,
+   "int4_test_balanced": 0.9039819567602216,
+   "float_test": 0.9302373158756138,
+   "weights": 9160,
+   "model_bytes": 7072,
+   "activation_peak": 5248,
+   "descriptors": 11,
+   "test_samples": 4888,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/kws_m",
+   "cycles_c8": 110115,
+   "cycles_c4": 156199,
+   "macs": 1085480,
+   "mac_utilization": 0.3080529446487763,
+   "breakdown": {
+    "mac_issue": 74395,
+    "wait_activation": 8805,
+    "wait_weight": 339,
+    "wait_slot": 17975,
+    "kernel_prepare": 4780,
+    "element_and_other": 3821
+   }
+  },
+  "har": {
+   "int4_test": 0.9273837804794312,
+   "int4_test_balanced": 0.92875758655891,
+   "float_test": 0.9406175771971497,
+   "weights": 5216,
+   "model_bytes": 4216,
+   "activation_peak": 2624,
+   "descriptors": 7,
+   "test_samples": 2947,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/har",
+   "cycles_c8": 25048,
+   "cycles_c4": 40240,
+   "macs": 331136,
+   "mac_utilization": 0.4131267965506228,
+   "breakdown": {
+    "mac_issue": 14096,
+    "wait_activation": 5552,
+    "wait_weight": 213,
+    "wait_slot": 2436,
+    "kernel_prepare": 896,
+    "element_and_other": 1855
+   }
+  },
+  "ecg": {
+   "int4_test": 0.9700803756713867,
+   "int4_test_balanced": 0.8184657435662009,
+   "float_test": 0.9858395761008588,
+   "weights": 3568,
+   "model_bytes": 3908,
+   "activation_peak": 1600,
+   "descriptors": 13,
+   "test_samples": 21892,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/ecg",
+   "cycles_c8": 21286,
+   "cycles_c4": 30062,
+   "macs": 149664,
+   "mac_utilization": 0.21972188292774594,
+   "breakdown": {
+    "mac_issue": 9224,
+    "wait_activation": 3988,
+    "wait_weight": 185,
+    "wait_slot": 3630,
+    "kernel_prepare": 584,
+    "element_and_other": 3675
+   }
+  },
+  "gtsrb_l": {
+   "int4_test": 0.9201900362968445,
+   "int4_test_balanced": 0.8878562832329263,
+   "float_test": 0.9515439429928741,
+   "weights": 10496,
+   "model_bytes": 7688,
+   "activation_peak": 8192,
+   "descriptors": 10,
+   "test_samples": 12630,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/aff/s1/gtsrb_l",
+   "cycles_c8": 122804,
+   "cycles_c4": 203750,
+   "macs": 1612136,
+   "mac_utilization": 0.4102411159245627,
+   "breakdown": {
+    "mac_issue": 74580,
+    "wait_activation": 30746,
+    "wait_weight": 671,
+    "wait_slot": 6954,
+    "kernel_prepare": 4740,
+    "element_and_other": 5113
+   }
+  }
+ },
+ "e2e": {
+  "mnist_l": {
+   "burst": {
+    "total_ms": 53.22632,
+    "tck": 52469,
+    "commands": 27,
+    "burst_scans": 1253
+   },
+   "legacy": {
+    "total_ms": 296.20632,
+    "tck": 295449,
+    "commands": 1280,
+    "burst_scans": 0
+   }
+  },
+  "fashion_cnn": {
+   "burst": {
+    "total_ms": 85.29223999999999,
+    "tck": 84067,
+    "commands": 27,
+    "burst_scans": 2107
+   },
+   "legacy": {
+    "total_ms": 493.94824,
+    "tck": 492723,
+    "commands": 2134,
+    "burst_scans": 0
+   }
+  },
+  "kws_l": {
+   "burst": {
+    "total_ms": 77.86228,
+    "tck": 75565,
+    "commands": 27,
+    "burst_scans": 1877
+   },
+   "legacy": {
+    "total_ms": 441.89027999999996,
+    "tck": 439593,
+    "commands": 1904,
+    "burst_scans": 0
+   }
+  },
+  "kws_m": {
+   "burst": {
+    "total_ms": 76.13029999999999,
+    "tck": 74159,
+    "commands": 27,
+    "burst_scans": 1839
+   },
+   "legacy": {
+    "total_ms": 432.7862999999999,
+    "tck": 430815,
+    "commands": 1866,
+    "burst_scans": 0
+   }
+  },
+  "har": {
+   "burst": {
+    "total_ms": 50.79896000000001,
+    "tck": 50529,
+    "commands": 27,
+    "burst_scans": 1201
+   },
+   "legacy": {
+    "total_ms": 283.70696,
+    "tck": 283437,
+    "commands": 1228,
+    "burst_scans": 0
+   }
+  },
+  "ecg": {
+   "burst": {
+    "total_ms": 43.097719999999995,
+    "tck": 42903,
+    "commands": 27,
+    "burst_scans": 995
+   },
+   "legacy": {
+    "total_ms": 236.04571999999996,
+    "tck": 235851,
+    "commands": 1022,
+    "burst_scans": 0
+   }
+  },
+  "gtsrb_l": {
+   "burst": {
+    "total_ms": 100.00308,
+    "tck": 97778,
+    "commands": 27,
+    "burst_scans": 2474
+   },
+   "legacy": {
+    "total_ms": 579.72508,
+    "tck": 577500,
+    "commands": 2501,
+    "burst_scans": 0
+   }
+  }
+ },
+ "area": {
+  "synthesis": [
+   {
+    "name": "INT4 v1（ABI 3，后仿报告）",
+    "commit": "02185d8+fixes",
+    "standard_cell_area_um2": 1112578,
+    "total_area_um2": 1915465,
+    "source": "eda-results-int8-int4-20261102 POSTLAYOUT_METRICS"
+   },
+   {
+    "name": "ABI 4 首版（新算子）",
+    "commit": "2a855c0 tree",
+    "standard_cell_area_um2": 1219288.7,
+    "total_area_um2": 2022175.9,
+    "source": "int4v2-layout/exp"
+   },
+   {
+    "name": "+ u4 + 紧凑参数",
+    "commit": "f5218d8",
+    "standard_cell_area_um2": 1199351.9,
+    "total_area_um2": 2002239.1,
+    "source": "int4v2-layout/exp2"
+   },
+   {
+    "name": "+ 共享建立乘法器等面积优化",
+    "commit": "425f5a1",
+    "standard_cell_area_um2": 1047255.3,
+    "total_area_um2": 1850142.5,
+    "source": "int4v2-area/exp"
+   },
+   {
+    "name": "冻结版（+ 向量 element / 双 Requant / JTAG 突发）",
+    "commit": "660faed",
+    "standard_cell_area_um2": 1131423.6,
+    "total_area_um2": 1934310.8,
+    "source": "int4v2-final/exp"
+   }
+  ],
+  "area_abi4_pre_u4.json": {
+   "flops": 543520.5440000058,
+   "comb": 675768.1727999543
+  },
+  "area_opt1.json": {
+   "flops": 509918.617600006,
+   "comb": 537336.6656000082
+  },
+  "area_final.json": {
+   "flops": 517579.8656000058,
+   "comb": 613843.7759999735
+  }
+ },
+ "layout": {
+  "layout_intermediate.json": [
+   {
+    "name": "mx_u70",
+    "source": "int4v2-layout/exp2",
+    "die_area_mm2": 3.610304006,
+    "die_side_um": 1900.1,
+    "core_area_mm2": 2.559744006,
+    "std_area_um2": 1218849.676799827,
+    "instances": 55360,
+    "setup_wns_ns": 0.528,
+    "hold_wns_ns": 0.02,
+    "setup_tns_ns": 0.0,
+    "wire_length_um": 3610215.62,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "runtime_s": 2382.2086865901947,
+    "layout": "south_row_mx",
+    "utilization": 0.7
+   },
+   {
+    "name": "r90_u70",
+    "source": "int4v2-layout/exp2",
+    "die_area_mm2": 3.610304006,
+    "die_side_um": 1900.1,
+    "core_area_mm2": 2.559744006,
+    "std_area_um2": 1219319.449599823,
+    "instances": 55381,
+    "setup_wns_ns": 0.494,
+    "hold_wns_ns": 0.021,
+    "setup_tns_ns": 0.0,
+    "wire_length_um": 3651559.595,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "runtime_s": 2419.7780735492706,
+    "layout": "west_stack_r90",
+    "utilization": 0.7
+   },
+   {
+    "name": "ws_u70",
+    "source": "int4v2-layout/exp2",
+    "die_area_mm2": 3.687321658,
+    "die_side_um": 1920.2,
+    "core_area_mm2": 2.624659206,
+    "std_area_um2": 1218292.095999821,
+    "instances": 55322,
+    "setup_wns_ns": 0.367,
+    "hold_wns_ns": 0.02,
+    "setup_tns_ns": 0.0,
+    "wire_length_um": 3521005.785,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "runtime_s": 2408.665207862854,
+    "layout": "west_stack",
+    "utilization": 0.7
+   }
+  ],
+  "layout_final.json": [
+   {
+    "name": "ws_u70",
+    "hold_target": 0.02,
+    "die_area_mm2": 3.687321658,
+    "die_side_um": 1920.2,
+    "core_area_mm2": 2.624659206,
+    "std_area_um2": 1149826.003200072,
+    "instances": 53002,
+    "setup_wns_ns": 0.297,
+    "hold_wns_ns": 0.038,
+    "setup_tns_ns": 0.0,
+    "wire_length_um": 3517503.09,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "runtime_s": 2404.5946469306946,
+    "pt_setup_wns_ns": 0.93,
+    "pt_hold_wns_ns": 0.029,
+    "pt_passed": true,
+    "signoff_passed": true,
+    "sdf_passed": true,
+    "sdf_jtag_commands": 41,
+    "sdf_fatal": 0,
+    "layout": "west_stack",
+    "utilization": 0.7
+   },
+   {
+    "name": "mx_u70",
+    "hold_target": 0.02,
+    "die_area_mm2": 3.460790502,
+    "die_side_um": 1860.3,
+    "core_area_mm2": 2.434099226,
+    "std_area_um2": 1150236.505600081,
+    "instances": 52999,
+    "setup_wns_ns": 0.188,
+    "hold_wns_ns": 0.043,
+    "setup_tns_ns": 0.0,
+    "wire_length_um": 3675018.615,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "runtime_s": 2322.9950308799744,
+    "pt_setup_wns_ns": 0.602,
+    "pt_hold_wns_ns": -0.037,
+    "pt_passed": false,
+    "signoff_passed": false,
+    "layout": "south_row_mx",
+    "utilization": 0.7
+   },
+   {
+    "name": "r90_u70",
+    "hold_target": 0.02,
+    "die_area_mm2": 3.460790502,
+    "die_side_um": 1860.3,
+    "core_area_mm2": 2.434099226,
+    "std_area_um2": 1150387.974400079,
+    "instances": 53036,
+    "setup_wns_ns": 0.358,
+    "hold_wns_ns": 0.024,
+    "setup_tns_ns": 0.0,
+    "wire_length_um": 3732278.05,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "runtime_s": 2399.4336202144623,
+    "pt_setup_wns_ns": 0.818,
+    "pt_hold_wns_ns": -0.083,
+    "pt_passed": false,
+    "signoff_passed": false,
+    "sdf_passed": true,
+    "sdf_jtag_commands": 41,
+    "sdf_fatal": 0,
+    "layout": "west_stack_r90",
+    "utilization": 0.7
+   },
+   {
+    "name": "r90_u75",
+    "hold_target": 0.02,
+    "die_area_mm2": 3.386188826,
+    "die_side_um": 1840.2,
+    "core_area_mm2": 2.3716,
+    "std_area_um2": 1150655.788800083,
+    "instances": 53044,
+    "setup_wns_ns": -0.061,
+    "hold_wns_ns": 0.019,
+    "setup_tns_ns": -0.086,
+    "wire_length_um": 3872283.23,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": false,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": false,
+    "runtime_s": 2492.1178662776947,
+    "layout": "west_stack_r90",
+    "utilization": 0.75
+   },
+   {
+    "name": "r90_u70_h15",
+    "hold_target": 0.15,
+    "die_area_mm2": 3.460790502,
+    "die_side_um": 1860.3,
+    "core_area_mm2": 2.434099226,
+    "std_area_um2": 1155847.436800065,
+    "instances": 53627,
+    "setup_wns_ns": 0.252,
+    "hold_wns_ns": 0.144,
+    "setup_tns_ns": 0.0,
+    "wire_length_um": 3751307.39,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "runtime_s": 2544.6453268527985,
+    "pt_setup_wns_ns": 0.709,
+    "pt_hold_wns_ns": 0.042,
+    "pt_passed": true,
+    "signoff_passed": true,
+    "sdf_passed": true,
+    "sdf_jtag_commands": 41,
+    "sdf_fatal": 0,
+    "layout": "west_stack_r90",
+    "utilization": 0.7
+   }
+  ]
+ },
+ "fpga": {
+  "xc7_v3_board.json": {
+   "lut": 17587,
+   "ff": 10850
+  },
+  "xc7_latest.json": {
+   "lut": 18937,
+   "ff": 10412
+  },
+  "xc7_latest_opsonly.json": {
+   "lut": 18665,
+   "ff": 10129
+  },
+  "xc7_latest_notrace.json": {
+   "lut": 15691,
+   "ff": 6391
+  }
+ },
+ "signoff": {
+  "candidate": "r90_u70_h15",
+  "note": "TT corner only; M5/M6 fill only; no IR/EM, seal ring or chip-level ESD review",
+  "checks": {
+   "Calibre DRC": {
+    "pass": true,
+    "detail": "no blocking rule; 2427 accepted reports, all IO-cell ESD/latch-up guidelines or deck reminders"
+   },
+   "Calibre LVS": {
+    "pass": true,
+    "detail": "45 IO resistor property deviations, max 3.47% (accepted)"
+   },
+   "PrimeTime STA": {
+    "pass": true,
+    "detail": "setup WNS +0.709 ns, hold WNS +0.042 ns; SRAM interface timed by Innovus"
+   },
+   "Formality LEC": {
+    "pass": true,
+    "detail": "Formality equivalence verified"
+   },
+   "Xcelium SDF gate-level": {
+    "pass": true,
+    "detail": "41 JTAG commands on the u4_chain fixture with burst IRs, no fatal timing diagnostics"
+   }
+  }
+ }
+}

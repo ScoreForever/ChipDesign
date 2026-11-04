@@ -1,0 +1,114 @@
+[
+ {
+  "model": "MNIST-L",
+  "protocol": "Burst",
+  "commands": 27,
+  "burst_scans": 1253,
+  "rpcs": 105,
+  "host_seconds": 0.42
+ },
+ {
+  "model": "MNIST-L",
+  "protocol": "Per-word (ABI 3)",
+  "commands": 1280,
+  "burst_scans": 0,
+  "rpcs": 3840,
+  "host_seconds": 15.36
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Burst",
+  "commands": 27,
+  "burst_scans": 1201,
+  "rpcs": 104,
+  "host_seconds": 0.42
+ },
+ {
+  "model": "HAR-1D",
+  "protocol": "Per-word (ABI 3)",
+  "commands": 1228,
+  "burst_scans": 0,
+  "rpcs": 3684,
+  "host_seconds": 14.74
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Burst",
+  "commands": 27,
+  "burst_scans": 995,
+  "rpcs": 101,
+  "host_seconds": 0.4
+ },
+ {
+  "model": "ECG-1D",
+  "protocol": "Per-word (ABI 3)",
+  "commands": 1022,
+  "burst_scans": 0,
+  "rpcs": 3066,
+  "host_seconds": 12.26
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Burst",
+  "commands": 27,
+  "burst_scans": 1877,
+  "rpcs": 115,
+  "host_seconds": 0.46
+ },
+ {
+  "model": "KWS-L",
+  "protocol": "Per-word (ABI 3)",
+  "commands": 1904,
+  "burst_scans": 0,
+  "rpcs": 5712,
+  "host_seconds": 22.85
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Burst",
+  "commands": 27,
+  "burst_scans": 1839,
+  "rpcs": 114,
+  "host_seconds": 0.46
+ },
+ {
+  "model": "KWS-M",
+  "protocol": "Per-word (ABI 3)",
+  "commands": 1866,
+  "burst_scans": 0,
+  "rpcs": 5598,
+  "host_seconds": 22.39
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Burst",
+  "commands": 27,
+  "burst_scans": 2474,
+  "rpcs": 124,
+  "host_seconds": 0.5
+ },
+ {
+  "model": "GTSRB-L",
+  "protocol": "Per-word (ABI 3)",
+  "commands": 2501,
+  "burst_scans": 0,
+  "rpcs": 7503,
+  "host_seconds": 30.01
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Burst",
+  "commands": 27,
+  "burst_scans": 2107,
+  "rpcs": 118,
+  "host_seconds": 0.47
+ },
+ {
+  "model": "Fashion-CNN",
+  "protocol": "Per-word (ABI 3)",
+  "commands": 2134,
+  "burst_scans": 0,
+  "rpcs": 6402,
+  "host_seconds": 25.61
+ }
+]

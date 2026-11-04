@@ -1,0 +1,77 @@
+{
+  "passed": true,
+  "checks": [
+    {
+      "name": "pause_TCK_while_busy",
+      "before": 3,
+      "after": 10,
+      "pause_seconds": 1.0,
+      "output_matches": true
+    },
+    {
+      "name": "repeat_START_while_busy",
+      "before": 3,
+      "expected_error": 4
+    },
+    {
+      "name": "protocol_RESET_while_busy",
+      "before": 3,
+      "after": {
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "error_op": 0,
+        "cycles": 0,
+        "issues": 0,
+        "writes": 0
+      }
+    },
+    {
+      "name": "watchdog_timeout_recovery",
+      "fault": {
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": true,
+        "error": 10,
+        "error_op": 0,
+        "cycles": 0,
+        "issues": 0,
+        "writes": 0
+      },
+      "after": {
+        "busy": false,
+        "model_ready": false,
+        "input_ready": false,
+        "done": false,
+        "faulted": false,
+        "error": 0,
+        "error_op": 0,
+        "cycles": 0,
+        "issues": 0,
+        "writes": 0
+      }
+    },
+    {
+      "name": "fresh_inference_after_recovery",
+      "output_matches": true
+    }
+  ],
+  "physical_reset": "pending",
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  }
+}

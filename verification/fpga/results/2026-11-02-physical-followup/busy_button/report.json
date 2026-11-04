@@ -1,0 +1,8 @@
+{
+  "passed": false,
+  "last_valid_status": 10,
+  "scope": "sampled busy immediately preceding physical reset; no waveform",
+  "interruption": "disturbance during input upload",
+  "observed_at": 1793588020.8142388,
+  "recovery_error": "JTAG response timed out; operation may have executed; inspect status before retrying"
+}

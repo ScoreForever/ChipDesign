@@ -19,11 +19,15 @@ set_units -time ns -capacitance pF
 set ::env(EDA_CLOCK_NS) 20
 set ::env(EDA_IO_DELAY_NS) 2
 set ::env(EDA_CLOCK_UNCERTAINTY_NS) 0.2
+set ::env(EDA_NPU_CDC_SCOPED) 1
 source $source_root/hardware/soc/synth/scripts/soc_constraints.tcl
 report_clocks > clocks.rpt
 syn_generic
 syn_map
+source [file join [file dirname [info script]] npu_jtag_cdc.tcl]
+npu_cdc::apply
 syn_opt
+npu_cdc::audit_synth cdc_paths.tsv
 report_area -depth 4 > area.rpt
 report_timing > timing.rpt
 write_hdl > mapped.v
