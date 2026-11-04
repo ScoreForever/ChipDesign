@@ -2,7 +2,7 @@
 
 分支 `feature/int4-v2`。本文由 `docs/tools/int4_v2_report.py` 从
 `docs/validation/int4_v2/` 下的结果文件生成；表中每个数字都能对应到其中一个 JSON 文件。
-机器可读汇总：`docs/validation/int4_v2_summary.json`。
+机器可读汇总：`docs/validation/int4_v2_summary.json`。设计过程中的中间数据（优化阶段、面积演进、布局试验）见 `docs/INT4_V2_PROCESS.md`。
 
 ## 0. 结论
 

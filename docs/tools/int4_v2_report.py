@@ -8,6 +8,7 @@ their source commit or run directory. Missing inputs are reported as pending.
 from __future__ import annotations
 import json
 import math
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -407,8 +408,11 @@ def main():
     (ROOT / 'docs/validation/int4_v2_summary.json').write_text(json.dumps(summary, indent=1, ensure_ascii=False) + '\n')
     head = (ROOT / 'docs/tools/int4_v2_report_head.md').read_text()
     tail = (ROOT / 'docs/tools/int4_v2_report_tail.md').read_text()
-    appendix = '\n## 附录 A：设计过程记录\n\n正文只给最终设计；以下是做取舍时的中间数据。\n\n' + '\n'.join(ap) + '\n'
-    (ROOT / 'docs/INT4_V2_REPORT.md').write_text(head + '\n' + '\n'.join(md) + '\n' + tail + appendix)
+    (ROOT / 'docs/INT4_V2_REPORT.md').write_text(head + '\n' + '\n'.join(md) + '\n' + tail)
+    process = ('# INT4 v2 设计过程记录\n\n`docs/INT4_V2_REPORT.md` 只写最终设计；这里是做取舍时的中间数据，'
+               '同样由 `docs/tools/int4_v2_report.py` 从 `docs/validation/int4_v2/` 生成。\n\n'
+               + re.sub(r'(?m)^### A\.(\d+) ', r'## \1. ', '\n'.join(ap)) + '\n')
+    (ROOT / 'docs/INT4_V2_PROCESS.md').write_text(process)
     print('wrote docs/INT4_V2_REPORT.md')
 
 

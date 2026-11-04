@@ -462,7 +462,7 @@
       \item \textbf{窄核行填充}：单通道、KW$\le$4 时每个核行补成一个 K 组，一次连续读
       \item \textbf{双 Requant lane}：相邻两个输出合并成一次写回
     \end{enumerate}
-    \snote{三项合计让各模型计算周期减少 \NCycleCutMin\%$\sim$\NCycleCutMax\%（过程见附录）。}
+    \snote{三项合计让各模型计算周期减少 \NCycleCutMin\%$\sim$\NCycleCutMax\%。}
   \end{columns}
 \end{frame}
 
@@ -684,7 +684,7 @@
     \column{0.48\textwidth}
     \textbf{架构与模型}
     \begin{itemize}\small
-      \item MAC 阵列 4$\times$8 $\to$ 8$\times$8：估计各模型周期 $-$\NArrayGainMin\%$\sim-$\NArrayGainMax\%，面积代价小（附录）
+      \item MAC 阵列 4$\times$8 $\to$ 8$\times$8：估计各模型周期 $-$\NArrayGainMin\%$\sim-$\NArrayGainMax\%，面积代价小
       \item 模型受 8 KiB 模型 SRAM 限制，探索更大容量或权重压缩
       \item 在真实 FT232H / OpenOCD 上实测突发协议的主机开销
     \end{itemize}
@@ -698,88 +698,5 @@
   {\large 欢迎提问}\\[1cm]
   \includegraphics[width=0.22\linewidth]{Figures/PKU-emblem-names.png}
 \end{frame}}
-
-% =====================================================================
-\appendix
-\def\secHL{}
-\section{附录：设计过程}
-
-\begin{frame}{针对性优化：计算周期 $-$\NCycleCutMin\%$\sim-$\NCycleCutMax\%}
-  \begin{columns}[c]
-    \column{0.58\textwidth}
-    \begin{tikzpicture}
-      \begin{axis}[pkubar, xbar=0pt, width=\linewidth, height=6.4cm, bar width=4pt,
-          xmin=0, xlabel={每帧计算周期（千）},
-          symbolic y coords={GTSRB-L,ECG-1D,HAR-1D,KWS-M,KWS-L,Fashion-CNN,MNIST-L},
-          ytick={GTSRB-L,ECG-1D,HAR-1D,KWS-M,KWS-L,Fashion-CNN,MNIST-L},
-          legend style={at={(0.5,1.03)}, anchor=south, legend columns=1},
-          unbounded coords=discard]
-        \addplot[fill=peking_gray!35, draw=none] table[x=s1, y=model] {data/stages.dat};
-        \addplot[fill=peking_gold, draw=none] table[x=s2, y=model] {data/stages.dat};
-        \addplot[fill=peking, draw=none] table[x=s3, y=model] {data/stages.dat};
-        \legend{ABI 4 首版, + 向量 element 引擎 / 行填充, + 双 Requant lane（最终版）}
-      \end{axis}
-    \end{tikzpicture}
-    \column{0.4\textwidth}
-    \begin{enumerate}\small
-      \item \textbf{向量 element 引擎}：一次读 8 个 nibble，同时更新全部通道
-      \item \textbf{窄核行填充}：单通道、KW$\le$4 时每个核行补成一个 K 组，一次连续读
-      \item \textbf{双 Requant lane}：相邻两个输出合并成一次写回
-    \end{enumerate}
-    \snote{Fashion-CNN 在第二步之后才训练完成；GTSRB-L 第二步数据未单独测量。}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{SRAM 摆放实验（利用率 70\%）}
-  \centering
-  \normalfont{\scriptsize
-  \begin{tabular}{@{}l r r r r r l c@{}}
-    \toprule
-    布局 & die µm & PT setup & PT hold & 线长 m & 拥塞溢出 H / V & 引脚边 & 验收 \\ \midrule
-    \tabinput{data/placement_table.tex}
-    \bottomrule
-  \end{tabular}}
-  \vspace{6pt}
-
-  \begin{itemize}\small
-    \item 前两行 hold 目标 0.02 ns，其余 0.15 ns：PrimeTime 在 SPEF 上读出的 hold 比 Innovus 差约 0.1 ns，提高目标后收敛
-    \item 实验用上板修复前的 RTL；最终版图在修复后的 RTL 上重新跑完整流程与签核
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{关键设计取舍}
-  \normalfont{\footnotesize
-  \begin{tabular}{@{}p{1.3cm} p{5.1cm} p{7.4cm}@{}}
-    \toprule
-    结论 & 选项 & 依据 \\ \midrule
-    \textcolor{peking_darkgreen}{采纳} & 单次舍入 Requant、u4 激活 & 让 QAT 与整数推理一致；u4 各模型 +1--2.5 个百分点 \\
-    \textcolor{peking_darkgreen}{采纳} & 每通道一个参数字（18 bit bias + Q8） & 精度不变，参数区减半 \\
-    \textcolor{peking_darkgreen}{采纳} & 共享建立乘法器、增量地址、取指检查 & 约 20 个乘法器合并为 1 个，标准单元面积 $-$12.7\% \\
-    \textcolor{peking_darkgreen}{采纳} & SRAM 对角摆放、提高 hold 目标 & 引脚各自面向逻辑区，拥塞最低；PrimeTime hold \NPtHold{} ns \\
-    \textcolor{peking_gold}{保留选项} & TILE 8（psum 减半） & 省面积但周期增加；die 不受面积限制，默认 TILE 16 \\
-    \textcolor{peking}{否决} & 第三颗 SRAM（模型 16 KiB） & 只有 8 KiB 宏可用，放进 1950 µm 余量不足 5 µm \\
-    \textcolor{peking}{否决} & 模型与激活共用一颗 SRAM & 多数模型“模型 + 激活峰值”超过 8 KiB \\
-    \textcolor{peking}{否决} & 硬件全局融合开关 & 融合改变描述符与张量分配，只能由编译器决定 \\
-    \bottomrule
-  \end{tabular}}
-\end{frame}
-
-\begin{frame}{阵列尺寸：后续方向（模型估算）}
-  \centering
-  \normalfont{\small
-  \begin{tabular}{@{}l r r r r@{}}
-    \toprule
-    模型 & DW 周期占比 & 4$\times$4 & 4$\times$16 & 8$\times$8 \\ \midrule
-    \tabinput{data/array.tex}
-    \bottomrule
-  \end{tabular}}
-  \vspace{6pt}
-
-  \begin{itemize}\small
-    \item 相对当前 4$\times$8 的周期变化，由 4$\times$4 / 4$\times$8 逐层实测外推；区间两端分别假设激活读取跟得上 / 跟不上
-    \item DW 层在 4$\times$4 与 4$\times$8 上周期相同：DW 每拍只算“行数”个通道，加列没有用
-    \item \hl{8$\times$8} 同时加速普通卷积和 DW，psum 与结果槽不变；4$\times$16 只加速普通卷积且 psum 翻倍，die 超预算
-  \end{itemize}
-\end{frame}
 
 \end{document}
