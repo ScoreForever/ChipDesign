@@ -1,0 +1,12 @@
+# Versions used on PKUh100 for the INT4 v2 model zoo (Python 3.12).
+# Install the CUDA build of torch/torchvision that matches your driver.
+torch==2.15.0
+torchvision==0.29.2
+numpy==2.5.4
+scipy==1.18.1
+pandas==3.1.0
+pyarrow==26.0.1
+pillow==13.0.0
+soundfile==0.14.0
+wfdb==4.3.1
+huggingface_hub

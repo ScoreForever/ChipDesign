@@ -109,7 +109,7 @@ def run_case(out, image, name, model, frame, burst, tck_ns):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument('--runs', type=Path, required=True, help='zoo run directories (model.json, test_frames.pt)')
+    ap.add_argument('--runs', type=Path, required=True, help='zoo run directories (model.json, test_frames.pt or golden.json)')
     ap.add_argument('--models', required=True)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--tck-ns', type=float, default=1000)
@@ -127,7 +127,10 @@ def main():
     for spec in args.models.split(','):
         run_dir = args.runs / spec if (args.runs / spec / 'model.json').exists() else Path(spec)
         model = json.loads((run_dir / 'model.json').read_text())
-        frame = torch.load(run_dir / 'test_frames.pt')['frames'][0].flatten().tolist()
+        if (run_dir / 'test_frames.pt').exists():
+            frame = torch.load(run_dir / 'test_frames.pt')['frames'][0].flatten().tolist()
+        else:
+            frame = json.loads((run_dir / 'golden.json').read_text())['frames'][0]['input']
         for burst in (True, False):
             jobs.append((run_dir.name, model, frame, burst))
     with ThreadPoolExecutor(args.jobs) as pool:

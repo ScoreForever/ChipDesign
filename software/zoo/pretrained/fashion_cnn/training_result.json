@@ -1,0 +1,98 @@
+{
+  "name": "fashion_cnn",
+  "weights": 14288,
+  "float_val": 0.9178333333333333,
+  "float_test": 0.9102,
+  "int4_val": 0.9103333353996277,
+  "int4_test": 0.9010999798774719,
+  "int4_test_recall": [
+    0.845,
+    0.981,
+    0.848,
+    0.914,
+    0.862,
+    0.97,
+    0.703,
+    0.966,
+    0.977,
+    0.945
+  ],
+  "int4_test_balanced": 0.9010999999999999,
+  "hardware": {
+    "c8": {
+      "model_bytes": 8008,
+      "activation_peak": 2744,
+      "op_count": 5,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    },
+    "c4": {
+      "model_bytes": 8008,
+      "activation_peak": 2744,
+      "op_count": 5,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    }
+  },
+  "test_samples": 10000,
+  "seconds": 903.9303169250488,
+  "args": {
+    "name": "fashion_cnn",
+    "data": "../datasets",
+    "out": "../zoo_runs/cnn/s1",
+    "fp_epochs": "200",
+    "qat_epochs": "200",
+    "lr": "0.003",
+    "qat_lr": "0.0005",
+    "batch": "256",
+    "seed": "1",
+    "balanced": "False",
+    "distill": "True",
+    "teacher": "None",
+    "capacity_only": "False",
+    "affine": "True",
+    "relu_max": "15"
+  }
+}
