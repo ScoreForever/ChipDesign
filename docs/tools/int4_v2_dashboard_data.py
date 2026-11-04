@@ -80,7 +80,8 @@ def main():
                       total_mm2=round(s['total_area_um2'] / 1e6, 3)) for s in load('synth_area.json', [])]
 
     t['layout'] = []
-    for name, rtl in (('layout_intermediate.json', 'Intermediate RTL'), ('layout_final.json', 'Freeze RTL')):
+    for name, rtl in (('layout_intermediate.json', 'Intermediate RTL'), ('layout_final.json', 'Freeze RTL'),
+                      ('layout_placement.json', 'Freeze RTL, spread SRAMs')):
         for c in load(name, {}).get('candidates', []):
             chk = c.get('checks') or {}
             t['layout'].append(dict(run=f"{rtl}: {c['name']}", rtl=rtl, layout=c['layout'], utilization=c['utilization'],

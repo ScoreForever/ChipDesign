@@ -18,7 +18,7 @@
 \IfFontExistsTF{Maple Mono NF}{\setmonofont{Maple Mono NF}[Scale=MatchLowercase]}{}
 \usepackage{amsmath,amssymb,xcolor,booktabs,graphicx,ragged2e,parskip,tabularx,array,multirow}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,fit,calc,backgrounds,shapes.misc}
+\usetikzlibrary{positioning,arrows.meta,fit,calc,backgrounds,shapes.misc,shapes.symbols,decorations.pathreplacing}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \apptocmd{\frame}{}{\justifying}{}
@@ -29,25 +29,37 @@
 
 \title[INT4 无 CPU NPU]{INT4 无 CPU NPU 本周进展}
 \subtitle{架构、模型与芯片实现}
-\author[课题组]{[汇报人]}
-\institute{[课题组]，北京大学}
+\author[赵智远 等]{赵智远 \quad 章国懿 \quad 何睿隽 \quad 程沐阳}
+\institute{北京大学}
 \date{2026 年 11 月}
 
 % ---------- 通用样式 ----------
 \newcommand{\hl}[1]{\textcolor{peking}{\textbf{#1}}}
 \newcommand{\snote}[1]{{\footnotesize\color{peking_gray}#1}}
+% 连线配色（Okabe-Ito 色盲友好）：激活数据 = 深灰实线，模型 SRAM 读出 = 蓝，主机 JTAG = 橙虚线
+\definecolor{flowdata}{HTML}{3A3A3A}
+\definecolor{flowmodel}{HTML}{0072B2}
+\definecolor{flowhost}{HTML}{D55E00}
 \tikzset{
-  blk/.style={draw=peking_gray!70, rounded corners=2pt, fill=white, align=flush center,
-              font=\scriptsize, inner sep=3pt, minimum height=0.85cm},
-  mem/.style={blk, fill=peking_blue!10, draw=peking_blue!70},
-  arr/.style={-{Stealth[length=4pt]}, thick, draw=peking_gray},
+  blk/.style={draw=peking_gray!80, rounded corners=2pt, fill=white, align=flush center,
+              font=\scriptsize, inner sep=2pt, minimum height=0.95cm, text width=1.45cm},
+  mem/.style={blk, fill=flowmodel!8, draw=flowmodel!70},
+  hostblk/.style={blk, fill=flowhost!8, draw=flowhost!70},
+  arr/.style={-{Stealth[length=4.5pt,width=3.5pt]}, line width=0.9pt, draw=flowdata, rounded corners=2pt},
+  data/.style={arr},
+  model/.style={arr, draw=flowmodel},
+  host/.style={arr, draw=flowhost, dash pattern=on 3pt off 1.5pt},
+  both/.style={{Stealth[length=4.5pt,width=3.5pt]}-{Stealth[length=4.5pt,width=3.5pt]}},
+  lab/.style={font=\tiny, inner sep=1.5pt, fill=white, text=peking_gray!90!black},
   card/.style={draw=peking!60, rounded corners=3pt, fill=peking!4, align=flush left,
                text width=#1, inner sep=5pt, font=\footnotesize, minimum height=2.3cm},
   card/.default=2.95cm,
+  seg/.style={draw=#1!80!black, fill=#1!18, minimum height=0.46cm, inner sep=0pt, anchor=west},
   todo/.style={draw=peking_gray, dashed, rounded corners=3pt, align=flush center,
                text=peking_gray, font=\small},
 }
 % 系列配色
+\colorlet{pollc}{peking_gray!55}
 \colorlet{c1}{peking}
 \colorlet{c2}{peking_blue}
 \colorlet{c3}{peking_gold}
@@ -63,59 +75,65 @@
   },
 }
 
-% ---------- NPU 微架构图（参数：需要高亮的模块，逗号分隔） ----------
+% ---------- NPU 微架构图（按最终尺寸绘制；参数：需要高亮的模块，逗号分隔） ----------
+% 主数据流从左到右；三种连线各表示一种含义，图例在右上角。
 \makeatletter
 \tikzset{hlif/.code={\edef\pku@x{\noexpand\in@{,#1,}{,\npuhl,}}\pku@x
-  \ifin@\tikzset{fill=peking!12, draw=peking, line width=0.9pt}\fi}}
+  \ifin@\tikzset{fill=peking!12, draw=peking, line width=1.1pt}\fi}}
 \makeatother
 \newcommand{\npuarch}[1]{%
 \def\npuhl{#1}%
-\begin{tikzpicture}[node distance=0.4cm]
-  \def\W{2.05cm}
-  \node[mem, text width=\W, hlif=modelsram] (model) at (0,1.75) {模型 SRAM\\8 KiB};
-  \node[blk, text width=\W, hlif=fetch]     (fetch) at (2.55,1.75) {描述符取指\\与字段检查};
-  \node[blk, text width=\W, hlif=param]     (param) at (5.1,1.75) {参数缓存\\bias $|$ Q8 $|$ shift};
-  \node[blk, text width=\W, hlif=perf]      (perf)  at (10.2,1.75) {性能计数器\\逐算子拆解};
-  \node[mem, text width=\W, hlif=actsram]   (act)   at (0,0) {激活 SRAM\\8 KiB};
-  \node[blk, text width=\W, hlif=gather]    (gather) at (2.55,0) {激活 gather\\窄核行填充};
-  \node[blk, text width=\W, hlif=array]     (array) at (5.1,0) {4$\times$8 MAC 阵列\\INT4 $\times$ u4};
-  \node[blk, text width=\W, hlif=psum]      (psum)  at (7.65,0) {psum\\18 bit $\times$ 16};
-  \node[blk, text width=\W, hlif=post]      (post)  at (10.2,0) {+bias\\融合池化};
-  \node[blk, text width=\W, hlif=requant]   (rq)    at (12.75,0) {双 Requant lane\\Q8 单次舍入};
-  \node[blk, text width=\W, hlif=element]   (elem)  at (7.65,-1.6) {向量 element 引擎\\Add / Pool / GAP};
-  \node[blk, text width=\W, hlif=wq]        (wq)    at (12.75,-1.6) {写回队列\\半字节合并};
-  \node[blk, text width=\W, fill=peking_gold!12, hlif=host] (host) at (-2.55,0.875) {JTAG 突发接口\\命令控制器};
-  \draw[arr] (model) -- (fetch);
-  \draw[arr] (fetch) -- (param);
-  \draw[arr] (model.north) -- ++(0,0.35) -| node[pos=0.25,above,font=\tiny,text=peking_gray]{权重} (array.north west);
-  \draw[arr] (param.south) -- ++(0,-0.3) -| (post.north);
-  \draw[arr] (act) -- (gather);
-  \draw[arr] (gather) -- (array);
-  \draw[arr] (array) -- (psum);
-  \draw[arr] (psum) -- (post);
-  \draw[arr] (post) -- (rq);
-  \draw[arr] (rq) -- (wq);
-  \draw[arr] (act.south) |- (elem.west);
-  \draw[arr] (elem.east) -- ++(0.9,0) |- (rq.west);
-  \draw[arr] (wq.south) -- ++(0,-0.35) -| (act.south east);
-  \draw[arr, draw=peking_gold] (host.east) -- ++(0.2,0) |- (model.west);
-  \draw[arr, draw=peking_gold, <->] (host.east) -- ++(0.2,0) |- (act.west);
-  \draw[arr, dashed, draw=peking_gray!60] (array.north) |- (perf.west);
+\begin{tikzpicture}[x=2.08cm, y=1cm]
+  % 上排：主机接口、模型 SRAM、取指、参数
+  \node[hostblk, hlif=host]  (host)   at (0,2.25) {JTAG 接口\\控制器};
+  \node[mem, hlif=modelsram] (model)  at (1.2,2.25) {模型 SRAM\\8 KiB};
+  \node[blk, hlif=fetch]     (fetch)  at (2.45,2.25) {描述符\\取指与检查};
+  \node[blk, hlif=param]     (param)  at (4,2.25) {参数缓存\\每通道一字};
+  % 中排：主数据通路
+  \node[mem, hlif=actsram]   (act)    at (0,0) {激活 SRAM\\8 KiB};
+  \node[blk, hlif=gather]    (gather) at (1,0) {激活 gather\\窄核行填充};
+  \node[blk, hlif=array]     (array)  at (2,0) {4$\times$8 阵列\\INT4 $\times$ u4};
+  \node[blk, hlif=psum]      (psum)   at (3,0) {psum\\18 bit $\times$ 16};
+  \node[blk, hlif=post]      (post)   at (4,0) {+bias\\融合池化};
+  \node[blk, hlif=requant]   (rq)     at (5,0) {双 Requant\\单次舍入};
+  \node[blk, hlif=wq]        (wq)     at (6,0) {写回队列\\nibble 合并};
+  % 下排：element 引擎
+  \node[blk, hlif=element, text width=2.6cm] (elem) at (3.5,-1.65) {向量 element 引擎\\Add · Pool · GAP};
+  % 主机 JTAG
+  \draw[host] (host) -- node[lab, above=1pt, fill=none]{模型} (model);
+  \draw[host, both] (host) -- node[lab, right]{输入 / 结果} (act);
+  % 模型 SRAM 读出
+  \draw[model] (model) -- (fetch);
+  \draw[model] (model.north) -- ++(0,0.42) -| node[lab, pos=0.25, above]{参数} (param.north);
+  \draw[model] (model.south) -- ++(0,-0.62) -| node[lab, pos=0.25, below]{权重} (array.north);
+  \draw[model] (param) -- (post);
+  \draw[model] (param.east) -| node[lab, pos=0.25, above]{Q8 · shift} (rq.north);
+  % 激活数据
+  \draw[data] (act) -- (gather);
+  \draw[data] (gather) -- (array);
+  \draw[data] (array) -- (psum);
+  \draw[data] (psum) -- (post);
+  \draw[data] (post) -- (rq);
+  \draw[data] (rq) -- (wq);
+  \draw[data] ($(act.south)+(0.35,0)$) |- node[lab, pos=0.75, above]{源张量} (elem.west);
+  \draw[data] (elem.east) -| node[lab, pos=0.25, above]{INT32 和} (rq.south);
+  \draw[data] (wq.south) -- ++(0,-2.35) -| node[lab, pos=0.25, below]{写回} ($(act.south)+(-0.35,0)$);
+  % 图例
+  \begin{scope}[shift={(5.45,2.8)}, font=\tiny]
+    \draw[data] (0,0) -- (0.32,0) node[right, text=black]{激活数据};
+    \draw[model] (0,-0.33) -- (0.32,-0.33) node[right, text=black]{模型 SRAM 读出};
+    \draw[host] (0,-0.66) -- (0.32,-0.66) node[right, text=black]{主机 JTAG};
+  \end{scope}
 \end{tikzpicture}}
 
-% 章节页：左侧目录，右侧本章涉及的模块
+% 章节页：章节名 + 本章涉及的模块（按原尺寸显示，不缩放）；无高亮的章节显示目录
 \def\secHL{}
 \newcommand{\secpagebody}{%
   \ifx\secHL\empty
     \tableofcontents[sectionstyle=show/shaded,subsectionstyle=hide]%
   \else
-    \begin{columns}[c]
-      \column{0.3\textwidth}
-      \tableofcontents[sectionstyle=show/shaded,subsectionstyle=hide]
-      \column{0.68\textwidth}
-      \centering\resizebox{\linewidth}{!}{\expandafter\npuarch\expandafter{\secHL}}\\[2pt]
-      \snote{红框：本章涉及的模块}
-    \end{columns}
+    {\Large\color{peking}\textbf{\insertsectionnumber\quad\insertsection}}\hfill\snote{红框：本章涉及的模块}\par\vspace{0.15cm}
+    \centering\expandafter\npuarch\expandafter{\secHL}
   \fi}
 \AtBeginSection[]{\begin{frame}\secpagebody\end{frame}}
 
@@ -137,17 +155,18 @@
     \node[card] (m) {{\small\textbf{模型}}\\[4pt]\NNumModels{} 个真实数据集模型\\INT4 精度均 $>$90\%\\[2pt]{\color{peking_gray}最低 \NMinAcc}};
     \node[card, right=0.25cm of m] (p) {{\small\textbf{性能}}\\[4pt]计算周期\\$-$\NCycleCutMin\%\,$\sim$\,$-$\NCycleCutMax\%\\[2pt]JTAG 传输快 \NSpeedMin$\sim$\NSpeedMax 倍};
     \node[card, right=0.25cm of p] (a) {{\small\textbf{ASIC}}\\[4pt]die \NDieSide{} µm\\（预算 1950 µm）\\[2pt]签核全部通过};
-    \node[card, right=0.25cm of a, draw=peking_gray, dashed, fill=white] (f) {{\small\textbf{FPGA}}\\[4pt]\textcolor{peking_gray}{[待补充]}};
+    \node[card, right=0.25cm of a, draw=peking_gray, dashed, fill=white] (f) {{\small\textbf{FPGA}}\\[4pt]上板验证\\\textcolor{peking_gray}{[待补充]}};
   \end{tikzpicture}
   \vspace{0.45cm}
 
-  \begin{tikzpicture}[font=\small]
-    \draw[very thick, peking!60, -{Stealth[length=6pt]}] (0,0) -- (13.6,0);
-    \foreach \x/\t/\s in {0.9/INT8 无 CPU SoC/起点, 4.3/原生 INT4 推理/数据通路与 ABI, 7.9/算子·模型·性能/v2 完善, 11.6/ASIC · FPGA/实现与验证}{
-      \fill[peking] (\x,0) circle (2.5pt);
-      \node[above=3pt, font=\small\bfseries] at (\x,0) {\t};
-      \node[below=3pt, font=\footnotesize, text=peking_gray] at (\x,0) {\s};
-    }
+  {\small\textbf{最终设计}}\quad
+  \begin{tikzpicture}[baseline=-0.6ex, spec/.style={draw=peking!50, rounded corners=2pt, fill=white, font=\footnotesize, inner sep=3pt}]
+    \node[spec] (a) {die \NDieSide{} µm};
+    \node[spec, right=0.15cm of a] (b) {50 MHz};
+    \node[spec, right=0.15cm of b] (c) {4$\times$8 INT4 阵列};
+    \node[spec, right=0.15cm of c] (d) {2 $\times$ 8 KiB SRAM};
+    \node[spec, right=0.15cm of d] (e) {7 种算子 · ABI 4.0};
+    \node[spec, right=0.15cm of e] (f) {JTAG 突发};
   \end{tikzpicture}
 \end{frame}
 
@@ -156,57 +175,60 @@
 
 \begin{frame}{无 CPU SoC 全貌}
   \centering
-  \begin{tikzpicture}[node distance=0.5cm]
-    \node[blk, text width=2.1cm, fill=peking_gold!10, minimum height=1.6cm] (pc) {主机\\[2pt]编译器\\OpenOCD};
-    \node[blk, text width=2.0cm, right=1.3cm of pc, minimum height=1.6cm] (tap) {JTAG TAP\\逐字 / 突发 IR\\(0x12--0x14)};
-    \node[blk, text width=1.6cm, right=0.45cm of tap, minimum height=1.6cm] (cdc) {CDC\\mailbox};
-    \node[blk, text width=2.0cm, right=0.45cm of cdc, minimum height=1.6cm] (ctl) {命令控制器\\寄存器 · 生命周期\\错误码};
-    \node[blk, text width=2.3cm, right=0.45cm of ctl, minimum height=1.6cm, fill=peking!8, draw=peking] (npu) {\textbf{NPU 程序核}\\描述符驱动\\4$\times$8 INT4 阵列};
-    \node[mem, text width=2.0cm, above=0.45cm of npu] (ms) {模型 SRAM 8 KiB};
-    \node[mem, text width=2.0cm, below=0.45cm of npu] (as) {激活 SRAM 8 KiB};
-    \draw[arr, <->] (pc) -- node[above, font=\scriptsize]{4 线 JTAG} node[below,font=\tiny,text=peking_gray]{TCK 1 MHz} (tap);
-    \draw[arr, <->] (tap) -- (cdc);
-    \draw[arr, <->] (cdc) -- (ctl);
-    \draw[arr, <->] (ctl) -- (npu);
-    \draw[arr] (ctl.north) |- (ms.west);
-    \draw[arr, <->] (ctl.south) |- (as.west);
-    \draw[arr, <->] (npu) -- (ms);
-    \draw[arr, <->] (npu) -- (as);
+  \begin{tikzpicture}[x=1cm, y=1cm, sblk/.style={blk, minimum height=1.1cm, text width=1.95cm}]
+    \node[hostblk, sblk] (pc)  at (0,0)    {主机\\编译器\\OpenOCD};
+    \node[sblk]          (tap) at (3.35,0)  {JTAG TAP\\逐字 / 突发 IR};
+    \node[sblk, text width=1.45cm] (cdc) at (5.85,0) {CDC\\mailbox};
+    \node[sblk]          (ctl) at (8.35,0)  {命令控制器\\寄存器 · 生命周期};
+    \node[sblk, fill=peking!8, draw=peking, line width=0.9pt] (npu) at (11.55,0) {\textbf{NPU 程序核}\\描述符驱动};
+    \node[mem, text width=1.95cm, minimum height=0.8cm] (ms) at (11.55,1.6)  {模型 SRAM 8 KiB};
+    \node[mem, text width=1.95cm, minimum height=0.8cm] (as) at (11.55,-1.6) {激活 SRAM 8 KiB};
+    % 时钟域
     \begin{scope}[on background layer]
-      \node[draw=peking_gray, dashed, rounded corners, fit=(tap)(ms)(as)(npu), inner sep=8pt, label={[font=\scriptsize, text=peking_gray]north west:芯片（无 CPU）}] {};
-      \fill[peking_gold!8] ($(tap.south west)+(-0.12,-0.12)$) rectangle ($(cdc.north)+(0,0.12)$);
-      \fill[peking!5] ($(cdc.south)+(0,-0.12)$) rectangle ($(npu.north east)+(0.12,0.12)$);
+      \node[fill=flowhost!6, rounded corners=3pt, fit=(tap), inner sep=7pt,
+            label={[font=\tiny, text=peking_gray]below:TCK 时钟域}] {};
+      \node[fill=peking!4, rounded corners=3pt, fit=(ctl)(npu)(ms)(as), inner sep=7pt,
+            label={[font=\tiny, text=peking_gray, anchor=north east]south east:核心 50 MHz 时钟域}] (core) {};
+      \node[draw=peking_gray!70, dashed, rounded corners=4pt, fit=(tap)(cdc)(core), inner sep=11pt,
+            label={[font=\scriptsize, text=peking_gray, anchor=north west]south west:芯片（无 CPU）}] {};
     \end{scope}
-    \node[font=\tiny, text=peking_gray, below=0.05cm of tap] {TCK 时钟域};
-    \node[font=\tiny, text=peking_gray, below=0.05cm of ctl] {核心 50 MHz};
+    % 连线：橙 = 主机 JTAG，灰 = 片内请求 / 数据，蓝 = 模型读出
+    \draw[host, both] (pc) -- node[lab, above]{4 线 JTAG} node[lab, below]{TCK 1 MHz} (tap);
+    \draw[data, both] (tap) -- node[lab, above]{72 bit} (cdc);
+    \draw[data, both] (cdc) -- node[lab, above]{请求 / 响应} (ctl);
+    \draw[data] ($(ctl.east)+(0,0.22)$) -- node[lab, above]{启动} ($(npu.west)+(0,0.22)$);
+    \draw[data] ($(npu.west)+(0,-0.22)$) -- node[lab, below]{完成 IRQ} ($(ctl.east)+(0,-0.22)$);
+    \draw[host] (ctl.north) |- node[lab, pos=0.75, above]{写模型} (ms.west);
+    \draw[host, both] (ctl.south) |- node[lab, pos=0.75, below]{输入 / 结果} (as.west);
+    \draw[model] (ms) -- node[lab, left]{权重 / 参数} (npu);
+    \draw[data, both] (npu) -- node[lab, left]{激活读写} (as);
   \end{tikzpicture}
-  \vspace{0.3cm}
+  \vspace{-0.1cm}
 
-  \begin{tikzpicture}[font=\scriptsize, flowstep/.style={blk, minimum height=0.6cm, text width=1.25cm}]
-    \foreach \t/\c [count=\i] in {主机编译/white, 上传模型/white, 模型校验/white, 上传输入/white, 启动/white, NPU 计算/peking!10, IRQ · 轮询/white, 读出结果/white}{
-      \node[flowstep, fill=\c] (s\i) at (1.6*\i,0) {\t};
+  \begin{tikzpicture}[font=\scriptsize, chev/.style={signal, signal to=east, signal from=west, draw=peking_gray!80,
+      fill=white, minimum height=0.6cm, minimum width=1.72cm, inner xsep=7pt}]
+    \foreach \t/\c [count=\i] in {主机编译/white, 上传模型/white, 模型校验/white, 上传输入/white, 启动/white, NPU 计算/peking!12, IRQ · 轮询/white, 读出结果/white}{
+      \node[chev, fill=\c] at (1.68*\i,0) {\t};
     }
-    \foreach \i [evaluate=\i as \j using int(\i+1)] in {1,...,7}{\draw[arr] (s\i) -- (s\j);}
   \end{tikzpicture}
 
-  \snote{主机不需要 CPU 配合：模型、输入、启动和读出全部经 JTAG 完成；模型只需上传一次，可连续推理多帧。}
 \end{frame}
 
 \begin{frame}{NPU 微架构}
   \centering
-  \resizebox{0.97\linewidth}{!}{\npuarch{}}
-  \vspace{0.05cm}
+  \npuarch{}
+  \vspace{0.15cm}
 
   \begin{columns}[t]
     \column{0.48\textwidth}
     \begin{itemize}\footnotesize
-      \item 描述符驱动：最多 16 条、每条 64 B
-      \item 阵列每拍收一个激活向量；psum 18 bit
+      \item 描述符驱动：最多 16 条、每条 64 B，取指时检查保留字段
+      \item 阵列每拍收一个激活向量；psum 18 bit、TILE 16
     \end{itemize}
     \column{0.48\textwidth}
     \begin{itemize}\footnotesize
-      \item 后处理两路并行，两个 nibble 合并写回
-      \item 性能计数器逐算子统计，用于瓶颈分析
+      \item 后处理两路并行，相邻两个 nibble 合并写回
+      \item Add / Pool / GAP 走 element 引擎，结果同样经 Requant 写回
     \end{itemize}
   \end{columns}
 \end{frame}
@@ -351,14 +373,22 @@
 
 \begin{frame}{逐位一致的验证链}
   \centering
-  \begin{tikzpicture}[node distance=0.55cm, font=\small]
-    \node[blk, text width=2.3cm, minimum height=1.3cm] (t) {PyTorch QAT\\伪量化模型};
-    \node[blk, text width=2.3cm, minimum height=1.3cm, right=of t] (r) {整数参考\\\texttt{reference()}\\纯 Python};
-    \node[blk, text width=2.3cm, minimum height=1.3cm, right=of r] (g) {GPU 批量参考\\\texttt{npu\_fastref}\\全测试集评分};
-    \node[blk, text width=2.3cm, minimum height=1.3cm, right=of g, fill=peking!8, draw=peking] (v) {RTL 仿真\\逐条核对\\张量写回};
-    \draw[arr] (t) -- node[above,font=\scriptsize]{导出} (r);
-    \draw[arr, <->] (r) -- node[above,font=\scriptsize]{抽样逐位} (g);
-    \draw[arr, <->] (r) -- ++(0,-1.25) -| node[pos=0.25,below,font=\scriptsize]{每个模型若干帧，融合开 / 关两种模式逐位一致} (v);
+  \begin{tikzpicture}[x=1cm, y=1cm, vb/.style={blk, text width=2.05cm, minimum height=1.05cm},
+      outb/.style={blk, text width=1.9cm, minimum height=0.8cm, fill=peking_gray!8, draw=peking_gray!60}]
+    \node[vb] (t) at (0,0) {PyTorch QAT\\伪量化模型};
+    \node[vb, line width=1pt] (r) at (3.6,0) {整数参考\\\texttt{reference()}};
+    \node[vb] (g) at (7.75,0.95) {GPU 批量参考\\\texttt{npu\_fastref}};
+    \node[vb, fill=peking!8, draw=peking] (v) at (7.75,-0.95) {RTL 仿真\\Icarus};
+    \node[outb] (go) at (11.0,0.95) {全测试集\\INT4 精度};
+    \node[outb] (vo) at (11.0,-0.95) {周期与\\瓶颈拆解};
+    \draw[data] (t) -- node[lab, above]{导出 INT4} (r);
+    \coordinate (j) at (5.05,0);
+    \draw[line width=0.9pt, draw=flowdata] (r.east) -- (j);
+    \fill[flowdata] (j) circle (1.6pt);
+    \draw[data] (j) |- node[lab, pos=0.62, above]{抽样帧逐位核对} (g.west);
+    \draw[data] (j) |- node[lab, pos=0.62, below]{逐张量核对（融合开 / 关）} (v.west);
+    \draw[data] (g) -- (go);
+    \draw[data] (v) -- (vo);
   \end{tikzpicture}
   \vspace{0.4cm}
 
@@ -401,7 +431,7 @@
     \end{tikzpicture}
     \column{0.36\textwidth}
     \begin{itemize}\small
-      \item 各类互斥，来自 RTL 性能计数器（冻结版、4$\times$8）
+      \item 各类互斥，来自最终 RTL 的性能计数器（4$\times$8 阵列）
       \item \hl{等激活}：窄卷积核每拍只能取到少量激活
       \item \hl{等结果槽}：后处理每拍只写一个元素，结果槽排队
       \item \hl{element}：Add、池化、GAP 曾逐元素读写
@@ -410,49 +440,51 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{针对性优化：计算周期 $-$\NCycleCutMin\%$\sim-$\NCycleCutMax\%}
+
+
+\begin{frame}{最终性能：每帧计算时间}
   \begin{columns}[c]
     \column{0.58\textwidth}
     \begin{tikzpicture}
-      \begin{axis}[pkubar, xbar=0pt, width=\linewidth, height=6.4cm, bar width=4pt,
-          xmin=0, xlabel={每帧计算周期（千）},
-          symbolic y coords={GTSRB-L,ECG-1D,HAR-1D,KWS-M,KWS-L,Fashion-CNN,MNIST-L},
-          ytick={GTSRB-L,ECG-1D,HAR-1D,KWS-M,KWS-L,Fashion-CNN,MNIST-L},
-          legend style={at={(0.5,1.03)}, anchor=south, legend columns=1},
-          unbounded coords=discard]
-        \addplot[fill=peking_gray!35, draw=none] table[x=s1, y=model] {data/stages.dat};
-        \addplot[fill=peking_gold, draw=none] table[x=s2, y=model] {data/stages.dat};
-        \addplot[fill=peking, draw=none] table[x=s3, y=model] {data/stages.dat};
-        \legend{ABI 4 首版, + 向量 element 引擎 / 行填充, + 双 Requant lane（冻结版）}
+      \begin{axis}[pkubar, xbar, width=\linewidth, height=6.2cm, bar width=9pt,
+          xmin=0, xmax=3.1, xlabel={每帧计算时间 (ms)，4$\times$8 阵列 @ 50 MHz},
+          symbolic y coords={GTSRB-L,ECG-1D,HAR-1D,KWS-M,KWS-L,Fashion-CNN,MNIST-L}, ytick=data,
+          nodes near coords={\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}\,ms},
+          nodes near coords style={font=\tiny}, point meta=x]
+        \addplot[fill=peking, draw=none] table[x=latency_ms, y=model] {data/perf.dat};
       \end{axis}
     \end{tikzpicture}
     \column{0.4\textwidth}
+    \textbf{三项针对瓶颈的设计}
     \begin{enumerate}\small
       \item \textbf{向量 element 引擎}：一次读 8 个 nibble，同时更新全部通道
       \item \textbf{窄核行填充}：单通道、KW$\le$4 时每个核行补成一个 K 组，一次连续读
       \item \textbf{双 Requant lane}：相邻两个输出合并成一次写回
     \end{enumerate}
-    \snote{Fashion-CNN 在第二步之后才训练完成；GTSRB-L 第二步数据未单独测量。}
+    \snote{三项合计让各模型计算周期减少 \NCycleCutMin\%$\sim$\NCycleCutMax\%（过程见附录）。}
   \end{columns}
 \end{frame}
 
 \begin{frame}{JTAG 突发传输}
   \begin{columns}[c]
-    \column{0.52\textwidth}
-    \begin{tikzpicture}[font=\scriptsize]
-      \node[font=\small\bfseries, anchor=west] at (0,2.5) {逐字协议：每个字一次完整命令};
-      \foreach \i in {0,1,2}{
-        \node[blk, minimum height=0.5cm, minimum width=1.25cm, anchor=west] at (2.25*\i,1.85) {72 bit 命令};
-        \node[blk, minimum height=0.5cm, minimum width=0.7cm, anchor=west, fill=peking_gray!15] at (2.25*\i+1.4,1.85) {轮询};
+    \column{0.56\textwidth}
+    % 按 TCK 比例：72 bit = 1.30 cm，32 bit = 0.58 cm
+    \begin{tikzpicture}[font=\tiny]
+      \node[font=\small\bfseries, anchor=west] at (0,2.55) {逐字协议：每个字一条命令 + 轮询};
+      \foreach \w in {0,1,2}{
+        \node[seg=peking_gray, minimum width=1.30cm] at ({2.66*\w},1.95) {72 bit 命令};
+        \node[seg=pollc, minimum width=1.30cm] at ({2.66*\w+1.32},1.95) {72 bit 轮询};
       }
-      \node[font=\small\bfseries, anchor=west] at (0,0.95) {突发协议：一次设置 IR，之后每次 32 bit};
-      \node[blk, minimum height=0.5cm, text width=0.75cm, anchor=west, fill=peking_gold!15] at (0,0.3) {IR 0x13};
-      \foreach \i in {0,...,5}{
-        \node[blk, minimum height=0.5cm, text width=0.55cm, anchor=west, fill=peking!8, draw=peking] at (1.05+0.85*\i,0.3) {32 b};
+      \draw[decorate, decoration={brace, amplitude=3pt, mirror}] (0,1.66) -- node[below=3pt]{1 个字} (2.62,1.66);
+      \node[font=\small\bfseries, anchor=west] at (0,0.95) {突发协议：IR 只设一次，之后每个字 32 bit};
+      \node[seg=peking_gold, minimum width=0.42cm] at (0,0.35) {IR};
+      \foreach \w in {0,...,11}{
+        \node[seg=peking, minimum width=0.58cm] at ({0.46+0.61*\w},0.35) {32 b};
       }
-      \node[anchor=west, text=peking_gray] at (0,-0.35) {地址自动 +4；读方向 0x14 每次 Capture 返回上一个字};
+      \draw[decorate, decoration={brace, amplitude=3pt, mirror}] (0.46,0.06) -- node[below=3pt]{1 个字} (1.04,0.06);
+      \draw[-{Stealth[length=4pt]}, peking_gray] (0,-0.75) -- node[below, text=peking_gray]{时间（TCK，同一比例）} (7.8,-0.75);
     \end{tikzpicture}
-    \column{0.45\textwidth}
+    \column{0.42\textwidth}
     \begin{itemize}\small
       \item 模型、输入和输出都走突发 IR，每个字只移 32 bit
       \item 主机把 64 次扫描合并成一次 OpenOCD RPC
@@ -492,7 +524,7 @@
 \def\secHL{modelsram,actsram}
 \section{ASIC 实现}
 
-\begin{frame}{面积构成（冻结版，Genus 综合）}
+\begin{frame}{面积构成（最终设计，Genus 综合）}
   \begin{columns}[c]
     \column{0.64\textwidth}
     \begin{tikzpicture}[font=\scriptsize, x=6.2cm]
@@ -546,6 +578,138 @@
   \end{columns}
 \end{frame}
 
+
+
+\begin{frame}{最终版图}
+  \begin{columns}[c]
+    \column{0.42\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figs/5_all.png}
+    \column{0.55\textwidth}
+    {\small
+    \begin{tabular}{@{}l l@{}}
+      \toprule
+      项目 & 结果 \\ \midrule
+      布局 & \NLayoutName{}，利用率 \NUtil\% \\
+      die（含 PAD 环） & \NDieSide{} µm $\times$ \NDieSide{} µm（预算 1950） \\
+      标准单元 & \NInstances{} 个 \\
+      时钟 & 50 MHz，TT 1.8 V 25 °C \\
+      PrimeTime setup / hold & \NPtSetup{} ns / \NPtHold{} ns \\
+      总线长 & \NWireM{} m \\
+      物理检查 & 11 项全部通过 \\ \bottomrule
+    \end{tabular}}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{签核结果}
+  \normalfont{\small
+  \begin{tabularx}{\linewidth}{@{}l l X@{}}
+    \toprule
+    检查 & 结果 & 说明 \\ \midrule
+    \tabinput{data/signoff.tex}
+    \bottomrule
+  \end{tabularx}}
+  \vspace{8pt}
+
+  \snote{TT 单角；SRAM 接口时序由 Innovus 检查（PrimeTime 中宏为黑盒）；未做 IR/EM 与芯片级 ESD 评审。}
+\end{frame}
+
+% =====================================================================
+\def\secHL{}
+\section{FPGA 实现}
+
+
+
+\begin{frame}{FPGA 上板验证}
+  \centering
+  \begin{tikzpicture}
+    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (0,0) {上板照片\\[4pt][待补充]};
+    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (7.0,0) {板级测试结果\\[4pt][待补充]};
+  \end{tikzpicture}
+\end{frame}
+
+% =====================================================================
+\section{总结}
+
+
+
+\begin{frame}{最终设计一览}
+  \normalfont{\small
+  \begin{tabularx}{\linewidth}{@{}l X@{}}
+    \toprule
+    层次 & 最终设计 \\ \midrule
+    系统 & 无 CPU SoC：JTAG（逐字 + 突发 IR）$\to$ CDC mailbox $\to$ 命令控制器 $\to$ NPU；模型、激活各一颗 8 KiB SRAM \\
+    NPU & 描述符驱动（16 条 $\times$ 64 B）；4$\times$8 INT4$\times$u4 阵列；双 Requant lane；向量 element 引擎 \\
+    数值 & INT4 权重、u4/INT4 激活；每通道一个参数字（18 bit bias + Q8 + shift）；Requant 单次舍入 \\
+    算子 & Conv（含深度可分离、1--7 矩形核、1D）、FC、Max/AvgPool、GAP、Add、ReLU、Requant；每类融合可开关 \\
+    模型 & \NNumModels{} 个真实数据集模型，INT4 测试精度全部 $>$90\%（最低 \NMinAcc） \\
+    芯片 & \NLayoutName{}，die \NDieSide{} µm，50 MHz；DRC / LVS / STA / LEC / SDF 门级仿真全部通过 \\
+    FPGA & 上板验证 \textcolor{peking_gray}{[待补充]} \\ \bottomrule
+  \end{tabularx}}
+\end{frame}
+
+\begin{frame}{下一步}
+  \begin{columns}[T]
+    \column{0.48\textwidth}
+    \textbf{芯片}
+    \begin{itemize}\small
+      \item 多角 STA，以及 IR / EM 分析（当前只有 TT 单角）
+      \item PrimeTime hold 余量只有 \NPtHold{} ns，多角下复查
+      \item SRAM 接口时序补充独立检查（PrimeTime 中宏为黑盒）
+    \end{itemize}
+    \textbf{FPGA}
+    \begin{itemize}\small
+      \item 上板验证：\textcolor{peking_gray}{[待补充]}
+    \end{itemize}
+    \column{0.48\textwidth}
+    \textbf{架构与模型}
+    \begin{itemize}\small
+      \item MAC 阵列 4$\times$8 $\to$ 8$\times$8：估计各模型周期 $-$\NArrayGainMin\%$\sim-$\NArrayGainMax\%，面积代价小（附录）
+      \item 模型受 8 KiB 模型 SRAM 限制，探索更大容量或权重压缩
+      \item 在真实 FT232H / OpenOCD 上实测突发协议的主机开销
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+{\setbeamertemplate{logo}{}
+\begin{frame}
+  \centering\vspace{1.2cm}
+  {\Huge\textcolor{peking}{谢谢！}}\\[0.8cm]
+  {\large 欢迎提问}\\[1cm]
+  \includegraphics[width=0.22\linewidth]{Figures/PKU-emblem-names.png}
+\end{frame}}
+
+% =====================================================================
+\appendix
+\def\secHL{}
+\section{附录：设计过程}
+
+\begin{frame}{针对性优化：计算周期 $-$\NCycleCutMin\%$\sim-$\NCycleCutMax\%}
+  \begin{columns}[c]
+    \column{0.58\textwidth}
+    \begin{tikzpicture}
+      \begin{axis}[pkubar, xbar=0pt, width=\linewidth, height=6.4cm, bar width=4pt,
+          xmin=0, xlabel={每帧计算周期（千）},
+          symbolic y coords={GTSRB-L,ECG-1D,HAR-1D,KWS-M,KWS-L,Fashion-CNN,MNIST-L},
+          ytick={GTSRB-L,ECG-1D,HAR-1D,KWS-M,KWS-L,Fashion-CNN,MNIST-L},
+          legend style={at={(0.5,1.03)}, anchor=south, legend columns=1},
+          unbounded coords=discard]
+        \addplot[fill=peking_gray!35, draw=none] table[x=s1, y=model] {data/stages.dat};
+        \addplot[fill=peking_gold, draw=none] table[x=s2, y=model] {data/stages.dat};
+        \addplot[fill=peking, draw=none] table[x=s3, y=model] {data/stages.dat};
+        \legend{ABI 4 首版, + 向量 element 引擎 / 行填充, + 双 Requant lane（最终版）}
+      \end{axis}
+    \end{tikzpicture}
+    \column{0.4\textwidth}
+    \begin{enumerate}\small
+      \item \textbf{向量 element 引擎}：一次读 8 个 nibble，同时更新全部通道
+      \item \textbf{窄核行填充}：单通道、KW$\le$4 时每个核行补成一个 K 组，一次连续读
+      \item \textbf{双 Requant lane}：相邻两个输出合并成一次写回
+    \end{enumerate}
+    \snote{Fashion-CNN 在第二步之后才训练完成；GTSRB-L 第二步数据未单独测量。}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{布局候选与时序收敛}
   \centering
   {\scriptsize
@@ -567,51 +731,8 @@
   \snote{TT 1.8 V 25 °C，50 MHz；每个候选都过 11 项物理检查（DRC、连接、天线、PAD、CDC、SRAM 引脚朝向等）。}
 \end{frame}
 
-\begin{frame}{签核结果}
-  \begin{columns}[c]
-    \column{0.58\textwidth}
-    {\footnotesize
-    \begin{tabularx}{\linewidth}{@{}l l X@{}}
-      \toprule
-      检查 & 结果 & 说明 \\ \midrule
-      \tabinput{data/signoff.tex}
-      \bottomrule
-    \end{tabularx}}
-    \vspace{6pt}
-
-    \snote{选定版图：\texttt{west\_stack\_r90}，利用率 70\%，die \NDieSide{} µm，\NInstances{} 个标准单元，线长 \NWireM{} m。}
-    \column{0.37\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/5_all.png}\\
-    \snote{最终版图（含金属填充）}
-  \end{columns}
-\end{frame}
-
-% =====================================================================
-\def\secHL{}
-\section{FPGA 实现}
-
-\begin{frame}{FPGA 资源与时序}
-  \centering
-  \begin{tikzpicture}
-    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (0,0) {资源占用表\\[4pt][待补充]};
-    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (7.0,0) {时序 / 关键路径\\[4pt][待补充]};
-  \end{tikzpicture}
-\end{frame}
-
-\begin{frame}{FPGA 上板验证}
-  \centering
-  \begin{tikzpicture}
-    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (0,0) {上板照片\\[4pt][待补充]};
-    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (7.0,0) {板级测试结果\\[4pt][待补充]};
-  \end{tikzpicture}
-\end{frame}
-
-% =====================================================================
-\section{总结}
-
 \begin{frame}{关键设计取舍}
-  {\footnotesize
+  \normalfont{\footnotesize
   \begin{tabular}{@{}p{1.3cm} p{5.1cm} p{7.4cm}@{}}
     \toprule
     结论 & 选项 & 依据 \\ \midrule
@@ -627,35 +748,22 @@
   \end{tabular}}
 \end{frame}
 
-\begin{frame}{下一步}
-  \begin{columns}[T]
-    \column{0.48\textwidth}
-    \textbf{芯片}
-    \begin{itemize}\small
-      \item 多角 STA，以及 IR / EM 分析（当前只有 TT 单角）
-      \item PrimeTime hold 余量只有 \NPtHold{} ns，多角下复查
-      \item SRAM 接口时序补充独立检查（PrimeTime 中宏为黑盒）
-    \end{itemize}
-    \textbf{FPGA}
-    \begin{itemize}\small
-      \item \textcolor{peking_gray}{[待补充]}
-    \end{itemize}
-    \column{0.48\textwidth}
-    \textbf{架构与模型}
-    \begin{itemize}\small
-      \item 深度可分离卷积目前每拍只用阵列 4/32 个 MAC，考虑专用数据通路
-      \item 模型受 8 KiB 模型 SRAM 限制，探索更大容量或权重压缩
-      \item 在真实 FT232H / OpenOCD 上实测突发协议的主机开销
-    \end{itemize}
-  \end{columns}
-\end{frame}
+\begin{frame}{阵列尺寸：后续方向（模型估算）}
+  \centering
+  \normalfont{\small
+  \begin{tabular}{@{}l r r r r@{}}
+    \toprule
+    模型 & DW 周期占比 & 4$\times$4 & 4$\times$16 & 8$\times$8 \\ \midrule
+    \tabinput{data/array.tex}
+    \bottomrule
+  \end{tabular}}
+  \vspace{6pt}
 
-{\setbeamertemplate{logo}{}
-\begin{frame}
-  \centering\vspace{1.2cm}
-  {\Huge\textcolor{peking}{谢谢！}}\\[0.8cm]
-  {\large 欢迎提问}\\[1cm]
-  \includegraphics[width=0.22\linewidth]{Figures/PKU-emblem-names.png}
-\end{frame}}
+  \begin{itemize}\small
+    \item 相对当前 4$\times$8 的周期变化，由 4$\times$4 / 4$\times$8 逐层实测外推；区间两端分别假设激活读取跟得上 / 跟不上
+    \item DW 层在 4$\times$4 与 4$\times$8 上周期相同：DW 每拍只算“行数”个通道，加列没有用
+    \item \hl{8$\times$8} 同时加速普通卷积和 DW，psum 与结果槽不变；4$\times$16 只加速普通卷积且 psum 翻倍，die 超预算
+  \end{itemize}
+\end{frame}
 
 \end{document}

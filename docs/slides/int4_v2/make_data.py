@@ -31,6 +31,8 @@ def main():
     macros = {}
     models = {m['model']: m for m in load('models')}
 
+    write('perf.dat', ['model', 'kcycles', 'latency_ms'],
+          [[m, f"{models[m]['cycles_c8'] / 1000:.1f}", f"{models[m]['latency_us'] / 1000:.2f}"] for m in ORDER])
     write('acc.dat', ['model', 'float', 'int4'],
           [[m, f"{100 * models[m]['float_test']:.2f}", f"{100 * models[m]['int4_test']:.2f}"] for m in ORDER])
     low = min(models.values(), key=lambda m: m['int4_test'])
@@ -165,6 +167,8 @@ def main():
     # Layout and signoff.
     lay = json.loads((VAL / 'layout_final.json').read_text())
     sel = next(c for c in lay['candidates'] if c['name'] == lay['selected'])
+    macros['LayoutName'] = '\\texttt{' + sel['layout'].replace('_', '\\_') + '}'
+    macros['Util'] = f"{100 * sel['utilization']:.0f}"
     macros['DieSide'] = f"{sel['die_side_um']:.0f}"
     macros['DieArea'] = f"{sel['die_area_mm2']:.2f}"
     macros['PtSetup'] = f"{sel['pt_setup_wns_ns']:+.3f}"
@@ -195,6 +199,22 @@ def main():
         ok = '\\textcolor{peking_darkgreen}{通过}' if v['pass'] else '\\textcolor{peking}{未过}'
         lines.append(f"{k} & {ok} & {zh[k]} \\\\")
     (OUT / 'signoff.tex').write_text('\n'.join(lines) + '\n')
+
+    # Array-size estimate (docs/tools/array_size_model.py).
+    am = json.loads((VAL / 'array_model.json').read_text())['models']
+    keys = {'mnist_l': 'MNIST-L', 'fashion_cnn': 'Fashion-CNN', 'kws_l': 'KWS-L', 'kws_m': 'KWS-M',
+            'har': 'HAR-1D', 'ecg': 'ECG-1D', 'gtsrb_l': 'GTSRB-L'}
+    cell = lambda c: (f"{100 * c['change_optimistic']:+.0f}\\%" if abs(c['change_optimistic'] - c['change_pessimistic']) < 0.005
+                      else f"{100 * c['change_optimistic']:+.0f}\\% $\\sim$ {100 * c['change_pessimistic']:+.0f}\\%")
+    lines, lo, hi = [], [], []
+    for k, name in keys.items():
+        e = am[k]['configs']
+        lo.append(e['8x8']['change_optimistic']); hi.append(e['8x8']['change_pessimistic'])
+        lines.append(f"{name} & {100 * am[k]['depthwise_share_4x8']:.0f}\\% & {cell(e['4x4'])} & {cell(e['4x16'])} & "
+                     f"\\textbf{{{cell(e['8x8'])}}} \\\\")
+    (OUT / 'array.tex').write_text('\n'.join(lines) + '\n')
+    macros['ArrayGainMin'] = f'{-100 * max(hi):.0f}'
+    macros['ArrayGainMax'] = f'{-100 * min(lo):.0f}'
 
     host = load('host')
     hb = [h for h in host if h['protocol'] == 'Burst']

@@ -21,13 +21,14 @@ SIGNALS = {'N': [('clk_i', 'input'), ('rst_ni', 'input'), ('irq_o', 'output')],
 # Two RA1SHD_2048x32M8 instances: the model store and the activation store.
 MACROS = 2
 MACRO_ROLES = ('model', 'activation')
-LAYOUTS = ('west_stack', 'south_row', 'diagonal', 'west_stack_r90', 'south_row_mx')
+LAYOUTS = ('west_stack', 'south_row', 'diagonal', 'west_stack_r90', 'south_row_mx',
+           'west_split_r90', 'west_east', 'south_north', 'diagonal_facing')
 # Every RA1SHD_2048x32M8 signal pin (A/D/Q/CEN/WEN/OEN/CLK) sits on the R0
 # bottom edge and the two PG pins on the top edge; the orientation decides
 # which side the 109-pin bus faces after placement.
 PIN_SIDE = {'R0': 'S', 'MX': 'N', 'R90': 'E', 'R270': 'W'}
 # Layouts whose macros are rotated by 90 degrees (footprint is mh x mw).
-ROTATED = ('west_stack_r90',)
+ROTATED = ('west_stack_r90', 'west_split_r90', 'west_east', 'diagonal_facing')
 # INT4 revision budget: die (including the PAD ring) at most 1950um square.
 MAX_DIE_UM = 1950
 # floorPlan snaps the core to the site grid (one 5.6um row at most), so a
@@ -106,6 +107,13 @@ def macro_layout(layout, xlo, ylo, xhi, yhi, mw, mh, gap):
     # south row. PG pins then face the core ring.
     if layout=='west_stack_r90':return [(xlo,ylo,'R90'),(xlo,ylo+mh+gap,'R90')]
     if layout=='south_row_mx':return [(xlo,ylo,'MX'),(xlo+mw+gap,ylo,'MX')]
+    # Spread layouts: the two macros no longer share one corner, and each
+    # pin edge still faces the logic between them.
+    xc,yc=(xlo+xhi-mw)/2,(ylo+yhi-mh)/2
+    if layout=='west_split_r90':return [(xlo,ylo,'R90'),(xlo,yhi-mh,'R90')]
+    if layout=='west_east':return [(xlo,yc,'R90'),(xhi-mw,yc,'R270')]
+    if layout=='south_north':return [(xc,ylo,'MX'),(xc,yhi-mh,'R0')]
+    if layout=='diagonal_facing':return [(xlo,ylo,'R90'),(xhi-mw,yhi-mh,'R270')]
     raise ValueError('unknown macro layout: '+str(layout))
 
 
@@ -120,7 +128,8 @@ def geometry(std_area, sizes, utilization=.6, layout='west_stack', halo=26):
     clear = max(halo, 26) + 20
     gap = 2*max(halo, 26) + 20
     span = {'west_stack':(mw,2*mh+gap),'south_row':(2*mw+gap,mh),'diagonal':(2*mw+gap,2*mh+gap),
-            'west_stack_r90':(mw,2*mh+gap),'south_row_mx':(2*mw+gap,mh)}[layout]
+            'west_stack_r90':(mw,2*mh+gap),'south_row_mx':(2*mw+gap,mh),'west_split_r90':(mw,2*mh+gap),
+            'west_east':(2*mw+gap,mh),'south_north':(mw,2*mh+gap),'diagonal_facing':(2*mw+gap,2*mh+gap)}[layout]
     core = math.ceil(math.sqrt(std_area/utilization + MACROS*mw*mh)/20)*20
     core = max(core, math.ceil((max(span)+2*clear)/20)*20)
     corner = sizes['PCORNER'][0]

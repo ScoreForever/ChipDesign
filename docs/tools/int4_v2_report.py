@@ -190,6 +190,32 @@ def main():
     w('\n表中为“周期 / 写回次数”。u4 模型的 ReLU 由 Requant 的 [0,15] 钳位完成，图里没有独立 ReLU 节点，'
       '所以“关 ReLU”与全部融合相同。大多数模型在关闭融合后已放不进 16 个描述符或 8 KiB SRAM——融合是装得下的前提。\n')
 
+    # ---------------- array size (future direction)
+    am = load('array_model.json')
+    if am:
+        w('### 3.6 阵列尺寸：后续方向（模型估算，未实现）\n')
+        w('由 4×8 与 4×4 的逐算子实测外推，区间左端假设激活读取随 MAC 发射同比例减少，右端假设激活等待不减'
+          '（`docs/tools/array_size_model.py`；用同一模型反推 4×4 比实测少 5–9 个百分点）。'
+          'DW 份额是深度可分离层的 MAC 发射与等激活周期占全部周期的比例。\n')
+        names = [('4x4', '4×4'), ('4x16', '4×16'), ('8x8', '8×8'), ('4x8+dw_path', '4×8 + DW 专用通路')]
+        rows = []
+        for m in ORDER:
+            e = am['models'].get(m)
+            if not e:
+                continue
+            cells = []
+            for key, _ in names:
+                c = e['configs'][key]
+                lo, hi = c['change_optimistic'], c['change_pessimistic']
+                cells.append(pct(lo, 0) if abs(lo - hi) < 0.005 else f'{pct(lo, 0)} ~ {pct(hi, 0)}')
+            rows.append([NAMES[m], pct(e['depthwise_share_4x8'], 0)] + cells)
+        w(table(['模型', 'DW 份额'] + [n for _, n in names], rows))
+        w('\nDW 层在 4×4 和 4×8 上周期相同：共享阵列上 DW 每拍只算 ROWS（=4）个通道，加列不加速。'
+          '8×8 同时把普通卷积的 K 方向和 DW 的通道数翻倍，psum 与结果槽随列数不变，面积代价主要是 32 个 MAC 单元；'
+          '4×16 只加速普通卷积，psum 翻倍（约 +0.2 mm² 标准单元），70% 利用率下 die 会超过 1950 µm。'
+          '8×8 需要改程序核中写死的 4 行（K 分组、装载行号、行填充、DW 映射）和权重打包，并重做全部验证与 ASIC 流程，列为后续方向。\n')
+        summary['array_model'] = am['models']
+
     # ---------------- e2e
     w('## 4. 端到端时间：从 JTAG 写入到结果读出\n')
     w(f'物理 JTAG 管脚上的 RTL 仿真，TCK = {TCK_MHZ} MHz，核心 {CORE_MHZ} MHz。每个阶段的 TCK 数来自测试台计数；'
@@ -272,7 +298,8 @@ def main():
 
     # ---------------- layout
     w('## 6. 布局：SRAM 摆放与端口朝向\n')
-    for name, title in (('layout_intermediate.json', '中间版 RTL（u4 + 紧凑参数）'), ('layout_final.json', '冻结版 RTL')):
+    for name, title in (('layout_intermediate.json', '中间版 RTL（u4 + 紧凑参数）'), ('layout_final.json', '冻结版 RTL'),
+                        ('layout_placement.json', 'SRAM 分散摆放（冻结版 RTL，hold 目标 0.15 ns）')):
         lay = load(name)
         if not lay:
             continue
