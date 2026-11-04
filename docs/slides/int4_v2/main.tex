@@ -155,7 +155,7 @@
     \node[card] (m) {{\small\textbf{模型}}\\[4pt]\NNumModels{} 个真实数据集模型\\INT4 精度均 $>$90\%\\[2pt]{\color{peking_gray}最低 \NMinAcc}};
     \node[card, right=0.25cm of m] (p) {{\small\textbf{性能}}\\[4pt]计算周期\\$-$\NCycleCutMin\%\,$\sim$\,$-$\NCycleCutMax\%\\[2pt]JTAG 传输快 \NSpeedMin$\sim$\NSpeedMax 倍};
     \node[card, right=0.25cm of p] (a) {{\small\textbf{ASIC}}\\[4pt]die \NDieSide{} µm\\（预算 1950 µm）\\[2pt]签核全部通过};
-    \node[card, right=0.25cm of a, draw=peking_gray, dashed, fill=white] (f) {{\small\textbf{FPGA}}\\[4pt]上板验证\\\textcolor{peking_gray}{[待补充]}};
+    \node[card, right=0.25cm of a] (f) {{\small\textbf{FPGA}}\\[4pt]EGo1 @ 50 MHz\\\NFpgaModels{} 个模型上板通过\\[2pt]{\color{peking_gray}\NFpgaRuns{} 次推理逐字节一致}};
   \end{tikzpicture}
   \vspace{0.45cm}
 
@@ -546,36 +546,18 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{SRAM 摆放：让引脚朝向逻辑}
-  \begin{columns}[c]
-    \column{0.34\textwidth}
-    \begin{tikzpicture}[font=\scriptsize]
-      \node[font=\small\bfseries] at (1.4,4.15) {引脚全在宏的一条边上};
-      % 默认朝向：引脚在底边，背对逻辑
-      \draw[peking_blue, fill=peking_blue!10] (0,2.2) rectangle (1.3,3.6);
-      \draw[very thick, peking] (0,2.2) -- (1.3,2.2);
-      \fill[peking_gray!20] (1.55,2.2) rectangle (2.9,3.6) node[midway, text=black]{逻辑};
-      \draw[arr, peking] (0.65,2.1) -- ++(0,-0.3) -| (2.2,2.15);
-      \node[text=peking_gray] at (1.45,1.55) {R0：引脚朝下，绕行};
-      % R90：引脚朝东
-      \draw[peking_blue, fill=peking_blue!10] (0,-0.2) rectangle (1.3,1.2);
-      \draw[very thick, peking] (1.3,-0.2) -- (1.3,1.2);
-      \fill[peking_gray!20] (1.55,-0.2) rectangle (2.9,1.2) node[midway, text=black]{逻辑};
-      \draw[arr, peking] (1.32,0.5) -- (1.53,0.5);
-      \node[text=peking_gray] at (1.45,-0.55) {R90：引脚朝东，直连};
-    \end{tikzpicture}
-    \vspace{2pt}
+\begin{frame}{SRAM 摆放：引脚面向逻辑，两颗宏不挤在一角}
+  \centering
+  \begin{tikzpicture}
+    \input{data/placements.tex}
+  \end{tikzpicture}
+  \vspace{2pt}
 
-    {\small 每颗宏 109 个信号引脚都在一条边上；旋转后同为 70\% 利用率，die 从 \hl{1920 $\to$ \NDieSide{} µm}。}
-    \column{0.31\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/1_placement.png}\\
-    \snote{布局：两颗 SRAM 靠西，引脚边（黄色）朝向逻辑区}
-    \column{0.31\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/6_sram_pins.png}\\
-    \snote{布线放大：信号从 SRAM 东边直接进入逻辑区}
-  \end{columns}
+  \begin{itemize}\small
+    \item 每颗 SRAM 宏的 109 个信号引脚都在一条边上（红线）；摆放时让这条边面向逻辑区
+    \item 叠在西南角：hold 余量最小、拥塞最高；一南一北 / 一西一东：时序好，但引脚边互相对着，中间只有 80 µm 通道
+    \item \hl{选定对角摆放}：两颗宏的引脚边各自面向开阔的逻辑区，线长最短、拥塞最低；die \NDieSide{} µm（预算 1950）
+  \end{itemize}
 \end{frame}
 
 
@@ -620,12 +602,48 @@
 
 
 
+\begin{frame}{FPGA 实现：EGo1（XC7A35T）@ 50 MHz}
+  \begin{columns}[T]
+    \column{0.47\textwidth}
+    \normalfont{\small
+    \begin{tabularx}{\linewidth}{@{}l >{\raggedleft\arraybackslash}X@{}}
+      \toprule
+      项目 & 结果 \\ \midrule
+      LUT & \NFpgaLut{}（\NFpgaLutPct\%） \\
+      触发器 & \NFpgaFf{}（\NFpgaFfPct\%） \\
+      BRAM / DSP & \NFpgaBram{} / \NFpgaDsp \\
+      时钟 & 50 MHz \\
+      setup / hold & \NFpgaWns{} / +\NFpgaWhs{} ns \\
+      CDC Critical & 0 \\ \bottomrule
+    \end{tabularx}}
+    \vspace{4pt}
+
+    \snote{Vivado 2025.2；生产配置关闭 trace；JTAG 经 FT232H，TCK 1 MHz。}
+    \column{0.5\textwidth}
+    \textbf{上板时发现并修复的两处 RTL 问题}
+    \begin{enumerate}\small
+      \item \textbf{时序}：gather 关键路径上的“是否还有下一个位置”比较改为寄存器预判，50 MHz 由 $-$0.206 ns 收敛，周期数不变
+      \item \textbf{CDC}：突发协议的错误标志先在 TCK 域寄存再置位，不再直接由异步 mailbox 位驱动
+    \end{enumerate}
+    \snote{两处修复已并入最终 RTL，ASIC 最终版图基于修复后的代码。}
+  \end{columns}
+\end{frame}
+
 \begin{frame}{FPGA 上板验证}
-  \centering
-  \begin{tikzpicture}
-    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (0,0) {上板照片\\[4pt][待补充]};
-    \node[todo, minimum width=6.6cm, minimum height=5.2cm] at (7.0,0) {板级测试结果\\[4pt][待补充]};
-  \end{tikzpicture}
+  \begin{columns}[c]
+    \column{0.47\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{figs/fpga_board.jpg}\\
+    \snote{EGo1 开发板实拍：50 MHz，外接 JTAG 驱动 NPU}
+    \column{0.5\textwidth}
+    \begin{itemize}\small
+      \item \hl{\NFpgaModels{} 个发布模型、\NFpgaGolden{} 帧样本}，每帧冷 / 热各一次，共 \NFpgaRuns{} 次推理逐字节与参考一致
+      \item 实板 24 项性能计数器与 RTL 仿真逐项相同
+      \item 另有 \NFpgaConfigs{} 种模型 / 融合配置、\NFpgaFrames{} 帧推理通过；\NFpgaNegative{} 项错误注入测试通过
+      \item 8 KiB 突发往返、越界恢复，忙时停 TCK、重复启动、协议复位与 watchdog 恢复均通过
+      \item RTL 回归 \NFpgaRtlReg{} 项 $\times$ 4 种配置全部通过
+    \end{itemize}
+  \end{columns}
 \end{frame}
 
 % =====================================================================
@@ -644,7 +662,7 @@
     算子 & Conv（含深度可分离、1--7 矩形核、1D）、FC、Max/AvgPool、GAP、Add、ReLU、Requant；每类融合可开关 \\
     模型 & \NNumModels{} 个真实数据集模型，INT4 测试精度全部 $>$90\%（最低 \NMinAcc） \\
     芯片 & \NLayoutName{}，die \NDieSide{} µm，50 MHz；DRC / LVS / STA / LEC / SDF 门级仿真全部通过 \\
-    FPGA & 上板验证 \textcolor{peking_gray}{[待补充]} \\ \bottomrule
+    FPGA & EGo1 @ 50 MHz；\NFpgaModels{} 个模型 \NFpgaRuns{} 次实板推理逐字节一致；两处 RTL 修复已并入最终设计 \\ \bottomrule
   \end{tabularx}}
 \end{frame}
 
@@ -654,12 +672,13 @@
     \textbf{芯片}
     \begin{itemize}\small
       \item 多角 STA，以及 IR / EM 分析（当前只有 TT 单角）
-      \item PrimeTime hold 余量只有 \NPtHold{} ns，多角下复查
+      \item hold 靠提高 Innovus 目标收敛（PrimeTime \NPtHold{} ns），多角下复查
       \item SRAM 接口时序补充独立检查（PrimeTime 中宏为黑盒）
     \end{itemize}
     \textbf{FPGA}
     \begin{itemize}\small
-      \item 上板验证：\textcolor{peking_gray}{[待补充]}
+      \item setup 余量为 0：布线占关键路径 76\%，可提前寄存坐标 / mask 计算
+      \item 补做实体按键复位、断电恢复和板上全测试集精度
     \end{itemize}
     \column{0.48\textwidth}
     \textbf{架构与模型}
@@ -710,25 +729,21 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{布局候选与时序收敛}
+\begin{frame}{SRAM 摆放实验（利用率 70\%）}
   \centering
-  {\scriptsize
-  \begin{tabular}{@{}l r r r r r r r c@{}}
+  \normalfont{\scriptsize
+  \begin{tabular}{@{}l r r r r r l c@{}}
     \toprule
-    布局 & 利用率 & hold 目标 ns & die µm & \multicolumn{2}{c}{Innovus WNS (ns)} & \multicolumn{2}{c}{PrimeTime WNS (ns)} & 结果 \\
-    \cmidrule(lr){5-6}\cmidrule(lr){7-8}
-    & & & & setup & hold & setup & hold & \\ \midrule
-    \tabinput{data/layout.tex}
+    布局 & die µm & PT setup & PT hold & 线长 m & 拥塞溢出 H / V & 引脚边 & 验收 \\ \midrule
+    \tabinput{data/placement_table.tex}
     \bottomrule
   \end{tabular}}
   \vspace{6pt}
 
   \begin{itemize}\small
-    \item 引脚朝向逻辑的两种布局都比 \texttt{west\_stack} 小一档 die；75\% 利用率 setup 不收敛
-    \item PrimeTime 在 SPEF 上读出的 hold 比 Innovus \hl{差约 0.1 ns}（最差路径在复位同步器）
-    \item 把 Innovus hold 优化目标提到 \NHoldTarget{} ns 重跑：PrimeTime setup \NPtSetup{} ns、hold \NPtHold{} ns
+    \item 前两行 hold 目标 0.02 ns，其余 0.15 ns：PrimeTime 在 SPEF 上读出的 hold 比 Innovus 差约 0.1 ns，提高目标后收敛
+    \item 实验用上板修复前的 RTL；最终版图在修复后的 RTL 上重新跑完整流程与签核
   \end{itemize}
-  \snote{TT 1.8 V 25 °C，50 MHz；每个候选都过 11 项物理检查（DRC、连接、天线、PAD、CDC、SRAM 引脚朝向等）。}
 \end{frame}
 
 \begin{frame}{关键设计取舍}
@@ -739,7 +754,7 @@
     \textcolor{peking_darkgreen}{采纳} & 单次舍入 Requant、u4 激活 & 让 QAT 与整数推理一致；u4 各模型 +1--2.5 个百分点 \\
     \textcolor{peking_darkgreen}{采纳} & 每通道一个参数字（18 bit bias + Q8） & 精度不变，参数区减半 \\
     \textcolor{peking_darkgreen}{采纳} & 共享建立乘法器、增量地址、取指检查 & 约 20 个乘法器合并为 1 个，标准单元面积 $-$12.7\% \\
-    \textcolor{peking_darkgreen}{采纳} & SRAM 旋转 R90、提高 hold 目标 & die 1920 $\to$ \NDieSide{} µm；PrimeTime hold 收敛 \\
+    \textcolor{peking_darkgreen}{采纳} & SRAM 对角摆放、提高 hold 目标 & 引脚各自面向逻辑区，拥塞最低；PrimeTime hold \NPtHold{} ns \\
     \textcolor{peking_gold}{保留选项} & TILE 8（psum 减半） & 省面积但周期增加；die 不受面积限制，默认 TILE 16 \\
     \textcolor{peking}{否决} & 第三颗 SRAM（模型 16 KiB） & 只有 8 KiB 宏可用，放进 1950 µm 余量不足 5 µm \\
     \textcolor{peking}{否决} & 模型与激活共用一颗 SRAM & 多数模型“模型 + 激活峰值”超过 8 KiB \\

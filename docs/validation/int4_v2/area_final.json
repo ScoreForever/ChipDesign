@@ -1,11 +1,11 @@
 {
  "macro_area_um2": 802887.182,
- "flop_area_um2": 517579.8656000058,
- "comb_area_um2": 613843.7759999735,
+ "flop_area_um2": 517979.3920000058,
+ "comb_area_um2": 614012.8063999709,
  "comb_by_module": {
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024": 406386.39999998617,
-  "npu_activation_store_BYTES8192": 126544.49919998663,
-  "my_soc_top": 39283.104000000014,
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024": 406555.4303999834,
+  "npu_activation_store_BYTES8192": 126537.91359998664,
+  "my_soc_top": 39289.6896,
   "requant_lane_TAG_WIDTH17": 20843.424000000363,
   "requant_lane_TAG_WIDTH1": 20786.348800000374
  },
@@ -28,7 +28,7 @@
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:d": {
    "count": 265,
-   "area_um2": 14273.2
+   "area_um2": 14271.0
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_data": {
    "count": 256,
@@ -186,6 +186,10 @@
    "count": 32,
    "area_um2": 1422.5
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_base": {
+   "count": 28,
+   "area_um2": 1420.3
+  },
   "requant_lane_TAG_WIDTH1:s3_scaled": {
    "count": 32,
    "area_um2": 1418.1
@@ -256,7 +260,7 @@
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:dst_span": {
    "count": 31,
-   "area_um2": 1325.9
+   "area_um2": 1332.5
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[4].delayed.delay": {
    "count": 30,
@@ -268,15 +272,11 @@
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:src_span": {
    "count": 31,
-   "area_um2": 1295.2
+   "area_um2": 1297.4
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:weight_span": {
    "count": 31,
    "area_um2": 1293.0
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_base": {
-   "count": 28,
-   "area_um2": 1233.7
   },
   "npu_activation_store_BYTES8192:high_word": {
    "count": 28,
@@ -302,21 +302,21 @@
    "count": 16,
    "area_um2": 843.0
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_pos": {
+   "count": 16,
+   "area_um2": 814.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_g": {
+   "count": 16,
+   "area_um2": 812.2
+  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_events": {
    "count": 18,
    "area_um2": 790.3
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_scan_product": {
-   "count": 14,
-   "area_um2": 785.9
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_pos": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_g": {
    "count": 16,
-   "area_um2": 770.5
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_g": {
-   "count": 16,
-   "area_um2": 768.3
+   "area_um2": 757.3
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:positions": {
    "count": 16,
@@ -343,6 +343,10 @@
    "area_um2": 737.6
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_row_step": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_scan_product": {
    "count": 14,
    "area_um2": 737.6
   },
@@ -386,17 +390,13 @@
    "count": 16,
    "area_um2": 733.2
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_g": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_seq": {
    "count": 16,
-   "area_um2": 717.8
+   "area_um2": 728.8
   },
   "my_soc_top:i_control_i_controller_input_count": {
    "count": 14,
    "area_um2": 717.8
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_seq": {
-   "count": 16,
-   "area_um2": 715.6
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:known_valid": {
    "count": 17,
@@ -410,13 +410,13 @@
    "count": 14,
    "area_um2": 704.7
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:param_channel": {
-   "count": 16,
-   "area_um2": 702.5
-  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_row_jump": {
    "count": 16,
    "area_um2": 700.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:param_channel": {
+   "count": 16,
+   "area_um2": 698.1
   },
   "my_soc_top:i_control_i_controller_input_bytes_o": {
    "count": 16,
@@ -438,21 +438,17 @@
    "count": 16,
    "area_um2": 676.1
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gathered": {
-   "count": 16,
-   "area_um2": 676.1
-  },
   "my_soc_top:i_control_i_controller_model_bytes_o": {
    "count": 16,
    "area_um2": 676.1
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_offset": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gathered": {
    "count": 16,
    "area_um2": 673.9
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_col_jump": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_offset": {
    "count": 16,
-   "area_um2": 669.5
+   "area_um2": 673.9
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:row_stride": {
    "count": 16,
@@ -475,6 +471,10 @@
    "area_um2": 667.3
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_count": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_col_jump": {
    "count": 16,
    "area_um2": 667.3
   },
@@ -518,17 +518,17 @@
    "count": 12,
    "area_um2": 632.2
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cursor_base": {
-   "count": 14,
-   "area_um2": 588.3
-  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:y_step": {
    "count": 14,
-   "area_um2": 586.1
+   "area_um2": 601.5
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_offset": {
    "count": 14,
-   "area_um2": 583.9
+   "area_um2": 592.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cursor_base": {
+   "count": 14,
+   "area_um2": 588.3
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tile_base": {
    "count": 14,
@@ -568,7 +568,7 @@
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_c": {
    "count": 11,
-   "area_um2": 465.4
+   "area_um2": 467.6
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[6].delayed.delay": {
    "count": 10,
@@ -674,10 +674,6 @@
    "count": 10,
    "area_um2": 439.0
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:inflight": {
-   "count": 10,
-   "area_um2": 425.9
-  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_last_x": {
    "count": 8,
    "area_um2": 421.5
@@ -685,6 +681,22 @@
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:scan_last_x": {
    "count": 8,
    "area_um2": 421.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:inflight": {
+   "count": 10,
+   "area_um2": 421.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_x": {
+   "count": 8,
+   "area_um2": 410.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_x": {
+   "count": 8,
+   "area_um2": 410.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_y": {
+   "count": 8,
+   "area_um2": 410.5
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[0].psum_q": {
    "count": 9,
@@ -718,18 +730,6 @@
    "count": 9,
    "area_um2": 395.1
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_y": {
-   "count": 8,
-   "area_um2": 390.7
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_x": {
-   "count": 8,
-   "area_um2": 384.2
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_x": {
-   "count": 8,
-   "area_um2": 379.8
-  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:param_span": {
    "count": 9,
    "area_um2": 379.8
@@ -741,10 +741,6 @@
   "requant_lane_TAG_WIDTH1:s1_multiplier": {
    "count": 8,
    "area_um2": 373.2
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:octs": {
-   "count": 7,
-   "area_um2": 335.9
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cursor_x": {
    "count": 8,
@@ -894,6 +890,10 @@
    "count": 6,
    "area_um2": 324.9
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:octs": {
+   "count": 7,
+   "area_um2": 324.9
+  },
   "my_soc_top:i_host_reply_error": {
    "count": 5,
    "area_um2": 307.3
@@ -925,10 +925,6 @@
   "requant_lane_TAG_WIDTH1:s1_rshift": {
    "count": 6,
    "area_um2": 261.2
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_p": {
-   "count": 5,
-   "area_um2": 256.8
   },
   "my_soc_top:i_host_ir": {
    "count": 5,
@@ -1106,13 +1102,17 @@
    "count": 5,
    "area_um2": 217.3
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_p": {
+   "count": 5,
+   "area_um2": 215.1
+  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:rq_pending": {
    "count": 5,
-   "area_um2": 212.9
+   "area_um2": 215.1
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tile_positions": {
    "count": 5,
-   "area_um2": 210.7
+   "area_um2": 212.9
   },
   "my_soc_top:i_control_i_controller_op_count_o": {
    "count": 5,
@@ -1136,11 +1136,7 @@
   },
   "my_soc_top:i_host_tap": {
    "count": 4,
-   "area_um2": 199.8
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:state": {
-   "count": 4,
-   "area_um2": 191.0
+   "area_um2": 195.4
   },
   "npu_activation_store_BYTES8192:count": {
    "count": 4,
@@ -1158,13 +1154,13 @@
    "count": 4,
    "area_um2": 175.6
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:slot_ready": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:state": {
    "count": 4,
-   "area_um2": 175.6
+   "area_um2": 173.4
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_count": {
    "count": 4,
-   "area_um2": 169.0
+   "area_um2": 171.2
   },
   "requant_lane_TAG_WIDTH17:out_data": {
    "count": 4,
@@ -1179,6 +1175,10 @@
    "area_um2": 166.8
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_valid": {
+   "count": 4,
+   "area_um2": 166.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:slot_ready": {
    "count": 4,
    "area_um2": 166.8
   },
@@ -1202,6 +1202,10 @@
    "count": 3,
    "area_um2": 131.7
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_lane": {
+   "count": 3,
+   "area_um2": 131.7
+  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:read_lane": {
    "count": 3,
    "area_um2": 131.7
@@ -1214,7 +1218,7 @@
    "count": 3,
    "area_um2": 129.5
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_lane": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_y": {
    "count": 3,
    "area_um2": 129.5
   },
@@ -1230,17 +1234,13 @@
    "count": 3,
    "area_um2": 125.1
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_y": {
-   "count": 3,
-   "area_um2": 125.1
-  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_row": {
    "count": 2,
    "area_um2": 105.4
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_state": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:estate": {
    "count": 2,
-   "area_um2": 103.2
+   "area_um2": 96.6
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_first": {
    "count": 2,
@@ -1266,6 +1266,10 @@
    "count": 2,
    "area_um2": 94.4
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_row": {
+   "count": 2,
+   "area_um2": 94.4
+  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:read_slot": {
    "count": 2,
    "area_um2": 94.4
@@ -1278,11 +1282,7 @@
    "count": 2,
    "area_um2": 83.4
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:estate": {
-   "count": 2,
-   "area_um2": 83.4
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_row": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_state": {
    "count": 2,
    "area_um2": 83.4
   },
@@ -1293,6 +1293,10 @@
   "my_soc_top:i_host_td_o_reg(.CDN": {
    "count": 1,
    "area_um2": 65.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:add_second_reg(.CP": {
+   "count": 1,
+   "area_um2": 63.7
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:checking_reg(.CP": {
    "count": 1,
@@ -1334,14 +1338,6 @@
    "count": 1,
    "area_um2": 59.3
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:mac_op_reg(.CP": {
-   "count": 1,
-   "area_um2": 54.9
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_more_reg(.CP": {
-   "count": 1,
-   "area_um2": 52.7
-  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:validation_ok_reg(.CP": {
    "count": 1,
    "area_um2": 52.7
@@ -1358,6 +1354,10 @@
    "count": 1,
    "area_um2": 48.3
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:mac_op_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:q_enable_reg(.CP": {
    "count": 1,
    "area_um2": 48.3
@@ -1367,6 +1367,10 @@
    "area_um2": 48.3
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_sample_active_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "my_soc_top:i_host_burst_error_pending_reg(.CDN": {
    "count": 1,
    "area_um2": 48.3
   },
@@ -1402,19 +1406,11 @@
    "count": 1,
    "area_um2": 43.9
   },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:add_second_reg(.CP": {
-   "count": 1,
-   "area_um2": 43.9
-  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:done_reg(.CP": {
    "count": 1,
    "area_um2": 43.9
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:fetch_bad_reg(.CP": {
-   "count": 1,
-   "area_um2": 43.9
-  },
-  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_m_pending_reg(.CP": {
    "count": 1,
    "area_um2": 43.9
   },
@@ -1470,6 +1466,14 @@
    "count": 1,
    "area_um2": 43.9
   },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:has_next_q_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_more_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_prepare_reg(.CP": {
    "count": 1,
    "area_um2": 41.7
@@ -1479,6 +1483,10 @@
    "area_um2": 41.7
   },
   "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_a_pending_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_m_pending_reg(.CP": {
    "count": 1,
    "area_um2": 41.7
   },

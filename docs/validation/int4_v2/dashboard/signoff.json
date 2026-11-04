@@ -12,7 +12,7 @@
  {
   "check": "PrimeTime STA",
   "passed": true,
-  "detail": "setup WNS +0.709 ns, hold WNS +0.042 ns; SRAM interface timed by Innovus"
+  "detail": "setup WNS +1.094 ns, hold WNS +0.154 ns; SRAM interface timed by Innovus"
  },
  {
   "check": "Formality LEC",

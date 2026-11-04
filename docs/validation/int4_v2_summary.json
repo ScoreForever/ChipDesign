@@ -263,161 +263,109 @@
   }
  },
  "area": {
-  "synthesis": [
-   {
-    "name": "INT4 v1（ABI 3，后仿报告）",
-    "commit": "02185d8+fixes",
-    "standard_cell_area_um2": 1112578,
-    "total_area_um2": 1915465,
-    "source": "eda-results-int8-int4-20261102 POSTLAYOUT_METRICS"
-   },
-   {
-    "name": "ABI 4 首版（新算子）",
-    "commit": "2a855c0 tree",
-    "standard_cell_area_um2": 1219288.7,
-    "total_area_um2": 2022175.9,
-    "source": "int4v2-layout/exp"
-   },
-   {
-    "name": "+ u4 + 紧凑参数",
-    "commit": "f5218d8",
-    "standard_cell_area_um2": 1199351.9,
-    "total_area_um2": 2002239.1,
-    "source": "int4v2-layout/exp2"
-   },
-   {
-    "name": "+ 共享建立乘法器等面积优化",
-    "commit": "425f5a1",
-    "standard_cell_area_um2": 1047255.3,
-    "total_area_um2": 1850142.5,
-    "source": "int4v2-area/exp"
-   },
-   {
-    "name": "冻结版（+ 向量 element / 双 Requant / JTAG 突发）",
-    "commit": "660faed",
-    "standard_cell_area_um2": 1131423.6,
-    "total_area_um2": 1934310.8,
-    "source": "int4v2-final/exp"
+  "final": {
+   "standard_mm2": 1.1319921983999768,
+   "macro_mm2": 0.802887182,
+   "groups": {
+    "SRAM 宏 ×2": 802887.182,
+    "NPU 组合逻辑（MAC 阵列、地址、控制）": 406555.4303999834,
+    "激活存储接口": 179519.11359998665,
+    "其它 NPU 寄存器（触发器）": 123261.89999999985,
+    "psum 累加器（触发器）": 121385.8,
+    "JTAG / mailbox / 控制器": 83073.2896,
+    "Requant lane": 58725.972800000745,
+    "结果槽（触发器）": 42709.8,
+    "描述符与区域表（触发器）": 41140.2,
+    "性能计数器（触发器）": 40233.6,
+    "写队列（触发器）": 21899.3,
+    "参数与读缓存（触发器）": 13487.300000000001
    }
-  ],
-  "area_abi4_pre_u4.json": {
-   "flops": 543520.5440000058,
-   "comb": 675768.1727999543
-  },
-  "area_opt1.json": {
-   "flops": 509918.617600006,
-   "comb": 537336.6656000082
-  },
-  "area_final.json": {
-   "flops": 517579.8656000058,
-   "comb": 613843.7759999735
   }
  },
  "layout": {
-  "layout_intermediate.json": [
-   {
-    "name": "mx_u70",
-    "source": "int4v2-layout/exp2",
-    "die_area_mm2": 3.610304006,
-    "die_side_um": 1900.1,
-    "core_area_mm2": 2.559744006,
-    "std_area_um2": 1218849.676799827,
-    "instances": 55360,
-    "setup_wns_ns": 0.528,
-    "hold_wns_ns": 0.02,
-    "setup_tns_ns": 0.0,
-    "wire_length_um": 3610215.62,
-    "checks": {
-     "antenna": true,
-     "cdc": true,
-     "connectivity": true,
-     "drc": true,
-     "drv": true,
-     "macro_pins": true,
-     "pad_geometry": true,
-     "pg_connectivity": true,
-     "pg_drc": true,
-     "placement": true,
-     "ports": true
-    },
-    "eligible": true,
-    "runtime_s": 2382.2086865901947,
-    "layout": "south_row_mx",
-    "utilization": 0.7
+  "final": {
+   "name": "diagonal_facing_h25",
+   "layout": "diagonal_facing",
+   "utilization": 0.7,
+   "hold_target": 0.25,
+   "die_area_mm2": 3.687321658,
+   "die_side_um": 1920,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     723.85,
+     554.595,
+     "R90"
+    ],
+    [
+     "activation",
+     1000.15,
+     1169.405,
+     723.85,
+     554.595,
+     "R270"
+    ]
+   ],
+   "core_area_mm2": 2.624659206,
+   "std_area_um2": 1222311.507200183,
+   "instances": 60713,
+   "setup_wns_ns": 0.551,
+   "hold_wns_ns": 0.241,
+   "setup_tns_ns": 0.0,
+   "hold_tns_ns": 0.0,
+   "pt_setup_wns_ns": 1.094,
+   "pt_hold_wns_ns": 0.154,
+   "wire_length_um": 3904379.82,
+   "overflow_h_pct": 0.32,
+   "overflow_v_pct": 0.16,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
    },
-   {
-    "name": "r90_u70",
-    "source": "int4v2-layout/exp2",
-    "die_area_mm2": 3.610304006,
-    "die_side_um": 1900.1,
-    "core_area_mm2": 2.559744006,
-    "std_area_um2": 1219319.449599823,
-    "instances": 55381,
-    "setup_wns_ns": 0.494,
-    "hold_wns_ns": 0.021,
-    "setup_tns_ns": 0.0,
-    "wire_length_um": 3651559.595,
-    "checks": {
-     "antenna": true,
-     "cdc": true,
-     "connectivity": true,
-     "drc": true,
-     "drv": true,
-     "macro_pins": true,
-     "pad_geometry": true,
-     "pg_connectivity": true,
-     "pg_drc": true,
-     "placement": true,
-     "ports": true
-    },
-    "eligible": true,
-    "runtime_s": 2419.7780735492706,
-    "layout": "west_stack_r90",
-    "utilization": 0.7
-   },
+   "eligible": true,
+   "signoff_passed": true,
+   "sdf_passed": true
+  },
+  "placement": [
    {
     "name": "ws_u70",
-    "source": "int4v2-layout/exp2",
-    "die_area_mm2": 3.687321658,
-    "die_side_um": 1920.2,
-    "core_area_mm2": 2.624659206,
-    "std_area_um2": 1218292.095999821,
-    "instances": 55322,
-    "setup_wns_ns": 0.367,
-    "hold_wns_ns": 0.02,
-    "setup_tns_ns": 0.0,
-    "wire_length_um": 3521005.785,
-    "checks": {
-     "antenna": true,
-     "cdc": true,
-     "connectivity": true,
-     "drc": true,
-     "drv": true,
-     "macro_pins": true,
-     "pad_geometry": true,
-     "pg_connectivity": true,
-     "pg_drc": true,
-     "placement": true,
-     "ports": true
-    },
-    "eligible": true,
-    "runtime_s": 2408.665207862854,
     "layout": "west_stack",
-    "utilization": 0.7
-   }
-  ],
-  "layout_final.json": [
-   {
-    "name": "ws_u70",
+    "utilization": 0.7,
     "hold_target": 0.02,
-    "die_area_mm2": 3.687321658,
-    "die_side_um": 1920.2,
-    "core_area_mm2": 2.624659206,
-    "std_area_um2": 1149826.003200072,
-    "instances": 53002,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      554.595,
+      723.85,
+      "R0"
+     ],
+     [
+      "activation",
+      196.0,
+      991.85,
+      554.595,
+      723.85,
+      "R0"
+     ]
+    ],
     "setup_wns_ns": 0.297,
     "hold_wns_ns": 0.038,
-    "setup_tns_ns": 0.0,
+    "pt_setup_wns_ns": 0.93,
+    "pt_hold_wns_ns": 0.029,
     "wire_length_um": 3517503.09,
     "checks": {
      "antenna": true,
@@ -433,28 +381,40 @@
      "ports": true
     },
     "eligible": true,
-    "runtime_s": 2404.5946469306946,
-    "pt_setup_wns_ns": 0.93,
-    "pt_hold_wns_ns": 0.029,
-    "pt_passed": true,
-    "signoff_passed": true,
-    "sdf_passed": true,
-    "sdf_jtag_commands": 41,
-    "sdf_fatal": 0,
-    "layout": "west_stack",
-    "utilization": 0.7
+    "congestion": "Overflow: 1090 = 636 (0.28% H) + 455 (0.20% V)",
+    "instances": 53002,
+    "overflow_h_pct": 0.28,
+    "overflow_v_pct": 0.2,
+    "pins": "朝下，背对逻辑"
    },
    {
     "name": "mx_u70",
+    "layout": "south_row_mx",
+    "utilization": 0.7,
     "hold_target": 0.02,
-    "die_area_mm2": 3.460790502,
-    "die_side_um": 1860.3,
-    "core_area_mm2": 2.434099226,
-    "std_area_um2": 1150236.505600081,
-    "instances": 52999,
+    "die_side_um": 1860,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      554.595,
+      723.85,
+      "MX"
+     ],
+     [
+      "activation",
+      822.595,
+      196.0,
+      554.595,
+      723.85,
+      "MX"
+     ]
+    ],
     "setup_wns_ns": 0.188,
     "hold_wns_ns": 0.043,
-    "setup_tns_ns": 0.0,
+    "pt_setup_wns_ns": 0.602,
+    "pt_hold_wns_ns": -0.037,
     "wire_length_um": 3675018.615,
     "checks": {
      "antenna": true,
@@ -470,92 +430,40 @@
      "ports": true
     },
     "eligible": true,
-    "runtime_s": 2322.9950308799744,
-    "pt_setup_wns_ns": 0.602,
-    "pt_hold_wns_ns": -0.037,
-    "pt_passed": false,
-    "signoff_passed": false,
-    "layout": "south_row_mx",
-    "utilization": 0.7
-   },
-   {
-    "name": "r90_u70",
-    "hold_target": 0.02,
-    "die_area_mm2": 3.460790502,
-    "die_side_um": 1860.3,
-    "core_area_mm2": 2.434099226,
-    "std_area_um2": 1150387.974400079,
-    "instances": 53036,
-    "setup_wns_ns": 0.358,
-    "hold_wns_ns": 0.024,
-    "setup_tns_ns": 0.0,
-    "wire_length_um": 3732278.05,
-    "checks": {
-     "antenna": true,
-     "cdc": true,
-     "connectivity": true,
-     "drc": true,
-     "drv": true,
-     "macro_pins": true,
-     "pad_geometry": true,
-     "pg_connectivity": true,
-     "pg_drc": true,
-     "placement": true,
-     "ports": true
-    },
-    "eligible": true,
-    "runtime_s": 2399.4336202144623,
-    "pt_setup_wns_ns": 0.818,
-    "pt_hold_wns_ns": -0.083,
-    "pt_passed": false,
-    "signoff_passed": false,
-    "sdf_passed": true,
-    "sdf_jtag_commands": 41,
-    "sdf_fatal": 0,
-    "layout": "west_stack_r90",
-    "utilization": 0.7
-   },
-   {
-    "name": "r90_u75",
-    "hold_target": 0.02,
-    "die_area_mm2": 3.386188826,
-    "die_side_um": 1840.2,
-    "core_area_mm2": 2.3716,
-    "std_area_um2": 1150655.788800083,
-    "instances": 53044,
-    "setup_wns_ns": -0.061,
-    "hold_wns_ns": 0.019,
-    "setup_tns_ns": -0.086,
-    "wire_length_um": 3872283.23,
-    "checks": {
-     "antenna": true,
-     "cdc": true,
-     "connectivity": true,
-     "drc": true,
-     "drv": false,
-     "macro_pins": true,
-     "pad_geometry": true,
-     "pg_connectivity": true,
-     "pg_drc": true,
-     "placement": true,
-     "ports": true
-    },
-    "eligible": false,
-    "runtime_s": 2492.1178662776947,
-    "layout": "west_stack_r90",
-    "utilization": 0.75
+    "congestion": "Overflow: 1380 = 899 (0.42% H) + 480 (0.22% V)",
+    "instances": 52999,
+    "overflow_h_pct": 0.42,
+    "overflow_v_pct": 0.22,
+    "pins": "朝北，面向逻辑"
    },
    {
     "name": "r90_u70_h15",
+    "layout": "west_stack_r90",
+    "utilization": 0.7,
     "hold_target": 0.15,
-    "die_area_mm2": 3.460790502,
-    "die_side_um": 1860.3,
-    "core_area_mm2": 2.434099226,
-    "std_area_um2": 1155847.436800065,
-    "instances": 53627,
+    "die_side_um": 1860,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      196.0,
+      822.595,
+      723.85,
+      554.595,
+      "R90"
+     ]
+    ],
     "setup_wns_ns": 0.252,
     "hold_wns_ns": 0.144,
-    "setup_tns_ns": 0.0,
+    "pt_setup_wns_ns": 0.709,
+    "pt_hold_wns_ns": 0.042,
     "wire_length_um": 3751307.39,
     "checks": {
      "antenna": true,
@@ -571,39 +479,497 @@
      "ports": true
     },
     "eligible": true,
-    "runtime_s": 2544.6453268527985,
-    "pt_setup_wns_ns": 0.709,
-    "pt_hold_wns_ns": 0.042,
-    "pt_passed": true,
-    "signoff_passed": true,
-    "sdf_passed": true,
-    "sdf_jtag_commands": 41,
-    "sdf_fatal": 0,
-    "layout": "west_stack_r90",
-    "utilization": 0.7
+    "congestion": "Overflow: 1521 = 980 (0.45% H) + 540 (0.25% V)",
+    "instances": 53627,
+    "overflow_h_pct": 0.45,
+    "overflow_v_pct": 0.25,
+    "pins": "朝东，面向逻辑（两颗挤在西南角）"
+   },
+   {
+    "name": "west_split_h15",
+    "layout": "west_split_r90",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1860,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      196.0,
+      1109.405,
+      723.85,
+      554.595,
+      "R90"
+     ]
+    ],
+    "setup_wns_ns": -0.127,
+    "hold_wns_ns": 0.147,
+    "pt_setup_wns_ns": 0.378,
+    "pt_hold_wns_ns": 0.14,
+    "wire_length_um": 3786535.68,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": false,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": false,
+    "congestion": "Overflow: 1980 = 958 (0.44% H) + 1023 (0.47% V)",
+    "instances": 53734,
+    "overflow_h_pct": 0.44,
+    "overflow_v_pct": 0.47,
+    "pins": "朝东，面向逻辑"
+   },
+   {
+    "name": "west_east_h15",
+    "layout": "west_east",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      196.0,
+      682.7,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      1000.15,
+      682.7,
+      723.85,
+      554.595,
+      "R270"
+     ]
+    ],
+    "setup_wns_ns": 0.157,
+    "hold_wns_ns": 0.141,
+    "pt_setup_wns_ns": 0.879,
+    "pt_hold_wns_ns": 0.14,
+    "wire_length_um": 4129634.29,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1894 = 1023 (0.44% H) + 871 (0.38% V)",
+    "instances": 53875,
+    "overflow_h_pct": 0.44,
+    "overflow_v_pct": 0.38,
+    "pins": "相互对着，中间只有 80 µm 通道"
+   },
+   {
+    "name": "south_north_h15",
+    "layout": "south_north",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      682.7,
+      196.0,
+      554.595,
+      723.85,
+      "MX"
+     ],
+     [
+      "activation",
+      682.7,
+      1000.15,
+      554.595,
+      723.85,
+      "R0"
+     ]
+    ],
+    "setup_wns_ns": 0.571,
+    "hold_wns_ns": 0.148,
+    "pt_setup_wns_ns": 1.188,
+    "pt_hold_wns_ns": 0.143,
+    "wire_length_um": 3935746.01,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1086 = 684 (0.30% H) + 403 (0.18% V)",
+    "instances": 53778,
+    "overflow_h_pct": 0.3,
+    "overflow_v_pct": 0.18,
+    "pins": "相互对着，中间只有 80 µm 通道"
+   },
+   {
+    "name": "diagonal_facing_h15",
+    "layout": "diagonal_facing",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      1000.15,
+      1169.405,
+      723.85,
+      554.595,
+      "R270"
+     ]
+    ],
+    "setup_wns_ns": 0.406,
+    "hold_wns_ns": 0.15,
+    "pt_setup_wns_ns": 0.976,
+    "pt_hold_wns_ns": 0.056,
+    "wire_length_um": 3600375.575,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1049 = 724 (0.31% H) + 324 (0.14% V)",
+    "instances": 53695,
+    "overflow_h_pct": 0.31,
+    "overflow_v_pct": 0.14,
+    "pins": "各自面向开阔的逻辑区"
    }
   ]
  },
  "fpga": {
-  "xc7_v3_board.json": {
-   "lut": 17587,
-   "ff": 10850
+  "device": "EGo1 XC7A35T",
+  "clock": "50 MHz",
+  "lut": 17322,
+  "lut_pct": "83.28",
+  "ff": 6249,
+  "ff_pct": "15.02",
+  "bram": 4,
+  "dsp": 20,
+  "wns": "0.000",
+  "whs": "0.035",
+  "models": 7,
+  "golden": 112,
+  "runs": 224,
+  "report": "verification/fpga/results/2026-11-04-int4-v2/report.md",
+  "report_link": "../verification/fpga/results/2026-11-04-int4-v2/report.md"
+ },
+ "array_model": {
+  "mnist_l": {
+   "cycles_4x8": 49416,
+   "cycles_4x4_measured": 70118,
+   "configs": {
+    "4x4": {
+     "optimistic": 65942,
+     "pessimistic": 65942,
+     "change_optimistic": 0.3344,
+     "change_pessimistic": 0.3344
+    },
+    "4x8": {
+     "optimistic": 49416,
+     "pessimistic": 49416,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 41145,
+     "pessimistic": 41145,
+     "change_optimistic": -0.1674,
+     "change_pessimistic": -0.1674
+    },
+    "8x8": {
+     "optimistic": 31126,
+     "pessimistic": 36072,
+     "change_optimistic": -0.3701,
+     "change_pessimistic": -0.27
+    },
+    "4x8+dw_path": {
+     "optimistic": 39397,
+     "pessimistic": 42360,
+     "change_optimistic": -0.2027,
+     "change_pessimistic": -0.1428
+    }
+   },
+   "depthwise_share_4x8": 0.4055,
+   "dense_share_4x8": 0.3347
   },
-  "xc7_latest.json": {
-   "lut": 18937,
-   "ff": 10412
+  "fashion_cnn": {
+   "cycles_4x8": 72812,
+   "cycles_4x4_measured": 142868,
+   "configs": {
+    "4x4": {
+     "optimistic": 137966,
+     "pessimistic": 137966,
+     "change_optimistic": 0.8948,
+     "change_pessimistic": 0.8948
+    },
+    "4x8": {
+     "optimistic": 72812,
+     "pessimistic": 72812,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 40231,
+     "pessimistic": 40231,
+     "change_optimistic": -0.4475,
+     "change_pessimistic": -0.4475
+    },
+    "8x8": {
+     "optimistic": 40231,
+     "pessimistic": 49284,
+     "change_optimistic": -0.4475,
+     "change_pessimistic": -0.3231
+    },
+    "4x8+dw_path": {
+     "optimistic": 72812,
+     "pessimistic": 72812,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    }
+   },
+   "depthwise_share_4x8": 0.0,
+   "dense_share_4x8": 0.8949
   },
-  "xc7_latest_opsonly.json": {
-   "lut": 18665,
-   "ff": 10129
+  "kws_l": {
+   "cycles_4x8": 126414,
+   "cycles_4x4_measured": 177912,
+   "configs": {
+    "4x4": {
+     "optimistic": 172308,
+     "pessimistic": 172308,
+     "change_optimistic": 0.363,
+     "change_pessimistic": 0.363
+    },
+    "4x8": {
+     "optimistic": 126414,
+     "pessimistic": 126414,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 103461,
+     "pessimistic": 103461,
+     "change_optimistic": -0.1816,
+     "change_pessimistic": -0.1816
+    },
+    "8x8": {
+     "optimistic": 76524,
+     "pessimistic": 90027,
+     "change_optimistic": -0.3947,
+     "change_pessimistic": -0.2878
+    },
+    "4x8+dw_path": {
+     "optimistic": 99477,
+     "pessimistic": 106164,
+     "change_optimistic": -0.2131,
+     "change_pessimistic": -0.1602
+    }
+   },
+   "depthwise_share_4x8": 0.4262,
+   "dense_share_4x8": 0.3631
   },
-  "xc7_latest_notrace.json": {
-   "lut": 15691,
-   "ff": 6391
+  "kws_m": {
+   "cycles_4x8": 110115,
+   "cycles_4x4_measured": 156199,
+   "configs": {
+    "4x4": {
+     "optimistic": 143065,
+     "pessimistic": 143065,
+     "change_optimistic": 0.2992,
+     "change_pessimistic": 0.2992
+    },
+    "4x8": {
+     "optimistic": 110115,
+     "pessimistic": 110115,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 93635,
+     "pessimistic": 93635,
+     "change_optimistic": -0.1497,
+     "change_pessimistic": -0.1497
+    },
+    "8x8": {
+     "optimistic": 68515,
+     "pessimistic": 72918,
+     "change_optimistic": -0.3778,
+     "change_pessimistic": -0.3378
+    },
+    "4x8+dw_path": {
+     "optimistic": 84995,
+     "pessimistic": 87615,
+     "change_optimistic": -0.2281,
+     "change_pessimistic": -0.2043
+    }
+   },
+   "depthwise_share_4x8": 0.4563,
+   "dense_share_4x8": 0.2993
+  },
+  "har": {
+   "cycles_4x8": 25048,
+   "cycles_4x4_measured": 40240,
+   "configs": {
+    "4x4": {
+     "optimistic": 39088,
+     "pessimistic": 39088,
+     "change_optimistic": 0.5605,
+     "change_pessimistic": 0.5605
+    },
+    "4x8": {
+     "optimistic": 25048,
+     "pessimistic": 25048,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 18028,
+     "pessimistic": 18028,
+     "change_optimistic": -0.2803,
+     "change_pessimistic": -0.2803
+    },
+    "8x8": {
+     "optimistic": 15224,
+     "pessimistic": 18000,
+     "change_optimistic": -0.3922,
+     "change_pessimistic": -0.2814
+    },
+    "4x8+dw_path": {
+     "optimistic": 22244,
+     "pessimistic": 23128,
+     "change_optimistic": -0.1119,
+     "change_pessimistic": -0.0767
+    }
+   },
+   "depthwise_share_4x8": 0.2239,
+   "dense_share_4x8": 0.5605
+  },
+  "ecg": {
+   "cycles_4x8": 21286,
+   "cycles_4x4_measured": 30062,
+   "configs": {
+    "4x4": {
+     "optimistic": 27082,
+     "pessimistic": 27082,
+     "change_optimistic": 0.2723,
+     "change_pessimistic": 0.2723
+    },
+    "4x8": {
+     "optimistic": 21286,
+     "pessimistic": 21286,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 18388,
+     "pessimistic": 18388,
+     "change_optimistic": -0.1361,
+     "change_pessimistic": -0.1361
+    },
+    "8x8": {
+     "optimistic": 14680,
+     "pessimistic": 16674,
+     "change_optimistic": -0.3103,
+     "change_pessimistic": -0.2167
+    },
+    "4x8+dw_path": {
+     "optimistic": 17578,
+     "pessimistic": 18726,
+     "change_optimistic": -0.1742,
+     "change_pessimistic": -0.1203
+    }
+   },
+   "depthwise_share_4x8": 0.3484,
+   "dense_share_4x8": 0.2723
+  },
+  "gtsrb_l": {
+   "cycles_4x8": 122804,
+   "cycles_4x4_measured": 203750,
+   "configs": {
+    "4x4": {
+     "optimistic": 192893,
+     "pessimistic": 192893,
+     "change_optimistic": 0.5707,
+     "change_pessimistic": 0.5707
+    },
+    "4x8": {
+     "optimistic": 122804,
+     "pessimistic": 122804,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 87752,
+     "pessimistic": 87752,
+     "change_optimistic": -0.2854,
+     "change_pessimistic": -0.2854
+    },
+    "8x8": {
+     "optimistic": 70141,
+     "pessimistic": 85514,
+     "change_optimistic": -0.4288,
+     "change_pessimistic": -0.3037
+    },
+    "4x8+dw_path": {
+     "optimistic": 105192,
+     "pessimistic": 108980,
+     "change_optimistic": -0.1434,
+     "change_pessimistic": -0.1126
+    }
+   },
+   "depthwise_share_4x8": 0.2868,
+   "dense_share_4x8": 0.5709
   }
  },
  "signoff": {
-  "candidate": "r90_u70_h15",
+  "candidate": "diagonal_facing_h25",
   "note": "TT corner only; M5/M6 fill only; no IR/EM, seal ring or chip-level ESD review",
   "checks": {
    "Calibre DRC": {
@@ -616,7 +982,7 @@
    },
    "PrimeTime STA": {
     "pass": true,
-    "detail": "setup WNS +0.709 ns, hold WNS +0.042 ns; SRAM interface timed by Innovus"
+    "detail": "setup WNS +1.094 ns, hold WNS +0.154 ns; SRAM interface timed by Innovus"
    },
    "Formality LEC": {
     "pass": true,

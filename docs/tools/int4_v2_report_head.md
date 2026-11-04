@@ -1,6 +1,6 @@
 # INT4 无 CPU NPU v2：算子扩展、真实模型、架构探索与 ASIC 实现
 
-分支 `feature/int4-v2`，冻结标签 `int4-v2-freeze`。本文由 `docs/tools/int4_v2_report.py` 从
+分支 `feature/int4-v2`。本文由 `docs/tools/int4_v2_report.py` 从
 `docs/validation/int4_v2/` 下的结果文件生成；表中每个数字都能对应到其中一个 JSON 文件。
 机器可读汇总：`docs/validation/int4_v2_summary.json`。
 
@@ -15,8 +15,8 @@
   向量化 element 引擎、行填充、单行深度可分离权重、双 Requant lane、原地 Add、JTAG 突发。
 - **端到端**：每次推理的时间由 JTAG 传输主导；突发协议把线上时间和主机 RPC 次数都大幅降低（第 4 节）。
 - **布局与签核**：SRAM 的 109 个信号引脚都在宏底边；新增让引脚朝向逻辑区的朝向和布局，并作为物理检查项。
-  选定 `west_stack_r90`、利用率 70%：die 1860 µm（上限 1950），Calibre DRC/LVS、PrimeTime、Formality 和 Xcelium SDF 门级仿真全过（第 6 节）。
-- **FPGA**：本轮不上板、不跑 Vivado；按上一版上板经验留出余量（第 5 节）。
+  最终两颗 SRAM 分在西南、东北角（`diagonal_facing`），引脚边各自面向逻辑区；利用率 70%，die 1920 µm（上限 1950），PrimeTime setup +1.094 ns / hold +0.154 ns，Calibre DRC/LVS、Formality 和 Xcelium SDF 门级仿真全过（第 6 节）。
+- **FPGA**：EGo1（XC7A35T）50 MHz 实现，7 个发布模型 112 帧在实板冷 / 热共 224 次推理逐字节一致；上板时发现的两处 RTL 问题（gather 关键路径、突发错误标志的 CDC）已修复并并入最终设计（第 5 节）。
 
 ## 1. 相对 ABI 3（INT4 v1）的改动
 
@@ -36,6 +36,6 @@
 | 容量 | 深度可分离权重每个 tap 只存一行（v2 首版存两份） | GTSRB 模型 8228 → 7688 B |
 | 主机 | JTAG 突发写/读 IR（每字一次 32-bit 扫描），主机批量 RPC | 实板每次 RPC 4 ms，逐字协议每字 ≥3 次 RPC |
 | 面积 | ~20 个建立阶段乘法器改为共享一个；写回地址增量计算；保留字取指时检查 | Genus 寄存器级面积分解 |
-| 布局 | SRAM 可分别设置朝向；`west_stack_r90`、`south_row_mx`；引脚朝向物理检查 | 宏引脚全在底边，v1 摆法两颗宏都背对逻辑 |
+| 布局 | SRAM 可分别设置朝向与位置；最终对角摆放（`diagonal_facing`）；引脚朝向物理检查 | 宏引脚全在一条边上，v1 摆法两颗宏都背对逻辑 |
 
 ABI 号 0x00040000；描述符格式、参数字和 trace 版本见 `docs/CPU_LESS_CONTROL.md` 与第 8 节。

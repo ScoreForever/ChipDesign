@@ -56,37 +56,37 @@
  },
  {
   "model": "MNIST-L",
-  "stage": "+ dual requant (freeze)",
+  "stage": "+ dual requant (final)",
   "cycles": 49416
  },
  {
   "model": "Fashion-CNN",
-  "stage": "+ dual requant (freeze)",
+  "stage": "+ dual requant (final)",
   "cycles": 72812
  },
  {
   "model": "KWS-L",
-  "stage": "+ dual requant (freeze)",
+  "stage": "+ dual requant (final)",
   "cycles": 126414
  },
  {
   "model": "KWS-M",
-  "stage": "+ dual requant (freeze)",
+  "stage": "+ dual requant (final)",
   "cycles": 110115
  },
  {
   "model": "HAR-1D",
-  "stage": "+ dual requant (freeze)",
+  "stage": "+ dual requant (final)",
   "cycles": 25048
  },
  {
   "model": "ECG-1D",
-  "stage": "+ dual requant (freeze)",
+  "stage": "+ dual requant (final)",
   "cycles": 21286
  },
  {
   "model": "GTSRB-L",
-  "stage": "+ dual requant (freeze)",
+  "stage": "+ dual requant (final)",
   "cycles": 122804
  }
 ]

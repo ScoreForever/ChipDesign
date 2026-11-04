@@ -182,7 +182,7 @@ def main():
     for c in lay['candidates']:
         f = lambda v: '--' if v is None else (f'\\textcolor{{peking}}{{{v:+.3f}}}' if v < 0 else f'{v:+.3f}')
         mark = '\\textbf{选定}' if c['name'] == lay['selected'] else ('$\\checkmark$' if c['eligible'] else '$\\times$')
-        lines.append(f"{names[c['name']]} & {100 * c['utilization']:.0f}\\% & {c['hold_target']:.2f} & {c['die_side_um']:.0f} & "
+        lines.append(f"{c['layout'].replace('_', '\\_')} & {100 * c['utilization']:.0f}\\% & {c['hold_target']:.2f} & {c['die_side_um']:.0f} & "
                      f"{f(c['setup_wns_ns'])} & {f(c['hold_wns_ns'])} & {f(c.get('pt_setup_wns_ns'))} & {f(c.get('pt_hold_wns_ns'))} & {mark} \\\\")
     (OUT / 'layout.tex').write_text('\n'.join(lines) + '\n')
     so = json.loads((VAL / 'signoff.json').read_text())
@@ -215,6 +215,55 @@ def main():
     (OUT / 'array.tex').write_text('\n'.join(lines) + '\n')
     macros['ArrayGainMin'] = f'{-100 * max(hi):.0f}'
     macros['ArrayGainMax'] = f'{-100 * min(lo):.0f}'
+
+    # FPGA board validation (verification/fpga/results/2026-11-04-int4-v2).
+    import re
+    fdir = ROOT / 'verification/fpga/results/2026-11-04-int4-v2'
+    vm = json.loads((fdir / 'validation_matrix.json').read_text())
+    zs = vm['zoo_supplement']
+    summ = (fdir / 'evidence/accepted_50mhz/summary.md').read_text()
+    util = {m[1]: (int(m[2]), int(m[3]), m[4]) for m in re.finditer(r'\| (Slice LUTs|Slice Registers|Block RAM Tile|DSPs) \| (\d+) \| (\d+) \| ([\d.]+) \|', summ)}
+    t = re.search(r'WNS: ([-\d.]+) ns; TNS: ([-\d.]+) ns; WHS: ([-\d.]+) ns', summ)
+    macros.update(FpgaLut=f"{util['Slice LUTs'][0]:,}", FpgaLutPct=util['Slice LUTs'][2], FpgaFf=f"{util['Slice Registers'][0]:,}",
+                  FpgaFfPct=util['Slice Registers'][2], FpgaBram=str(util['Block RAM Tile'][0]), FpgaDsp=str(util['DSPs'][0]),
+                  FpgaWns=t[1], FpgaWhs=t[3], FpgaModels=str(zs['model_count']), FpgaGolden=str(zs['golden_frames']),
+                  FpgaRuns=str(zs['board_runs']), FpgaRtlCases=str(zs['rtl_cases']), FpgaConfigs=str(vm['board_model_configurations']),
+                  FpgaFrames=str(vm['board_inference_frames']), FpgaNegative=str(vm['board_negative_cases']),
+                  FpgaRtlReg=str(vm['rtl_variants']['normal']))
+
+    # SRAM placement thumbnails (layout_placement.json; macro boxes in core coordinates).
+    pl = json.loads((VAL / 'layout_placement.json').read_text())
+    show = [('west_stack_r90', '叠放西南角'), ('south_north', '一南一北'), ('west_east', '一西一东'), ('diagonal_facing', '对角（选定）')]
+    side = {'R0': 'S', 'MX': 'N', 'R90': 'E', 'R270': 'W'}
+    tk = []
+    for k, (lay, title) in enumerate(show):
+        c = next(x for x in pl['candidates'] if x['layout'] == lay)
+        if lay == sel['layout']:
+            c = sel  # the chosen placement shows the final run (fixed RTL, signed off)
+        die, sc, ox = c['die_side_um'], 2.45 / 1950, k * 3.2
+        chosen = lay == 'diagonal_facing'
+        tk.append(f"\\begin{{scope}}[shift={{({ox},0)}}]")
+        tk.append(f"\\draw[{'peking, line width=1.2pt' if chosen else 'peking_gray'}, fill=peking_gray!6] (0,0) rectangle ({die * sc:.3f},{die * sc:.3f});")
+        for role, x, y, w, h, o in c['macros']:
+            x0, y0, x1, y1 = (x * sc, y * sc, (x + w) * sc, (y + h) * sc)
+            tk.append(f"\\draw[flowmodel!80, fill=flowmodel!15] ({x0:.3f},{y0:.3f}) rectangle ({x1:.3f},{y1:.3f});")
+            edge = {'S': f'({x0:.3f},{y0:.3f}) -- ({x1:.3f},{y0:.3f})', 'N': f'({x0:.3f},{y1:.3f}) -- ({x1:.3f},{y1:.3f})',
+                    'E': f'({x1:.3f},{y0:.3f}) -- ({x1:.3f},{y1:.3f})', 'W': f'({x0:.3f},{y0:.3f}) -- ({x0:.3f},{y1:.3f})'}[side[o]]
+            tk.append(f"\\draw[peking, line width=1.6pt] {edge};")
+        mid = die * sc / 2
+        tk.append(f"\\node[font=\\footnotesize\\bfseries, {'text=peking' if chosen else ''}] at ({mid:.3f},-0.28) {{{title}}};")
+        tk.append(f"\\node[font=\\tiny, align=center, text=peking_gray!90!black] at ({mid:.3f},-0.78) "
+                  f"{{die {die:.0f} µm\\\\setup {c['pt_setup_wns_ns']:+.2f} / hold {c['pt_hold_wns_ns']:+.3f} ns\\\\拥塞 {c['overflow_h_pct']:.2f}\\% / {c['overflow_v_pct']:.2f}\\%}};")
+        tk.append("\\end{scope}")
+    (OUT / 'placements.tex').write_text('\n'.join(tk) + '\n')
+    # Full placement table for the appendix.
+    lines = []
+    for c in pl['candidates']:
+        f = lambda v: '--' if v is None else (f'\\textcolor{{peking}}{{{v:+.3f}}}' if v < 0 else f'{v:+.3f}')
+        lines.append(f"\\texttt{{{c['layout'].replace('_', '\\_')}}} & {c['die_side_um']:.0f} & {f(c['pt_setup_wns_ns'])} & {f(c['pt_hold_wns_ns'])} & "
+                     f"{c['wire_length_um'] / 1e6:.2f} & {c['overflow_h_pct']:.2f}\\% / {c['overflow_v_pct']:.2f}\\% & {c['pins']} & "
+                     f"{'$\\checkmark$' if c['eligible'] else '$\\times$'} \\\\")
+    (OUT / 'placement_table.tex').write_text('\n'.join(lines) + '\n')
 
     host = load('host')
     hb = [h for h in host if h['protocol'] == 'Burst']

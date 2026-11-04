@@ -12,16 +12,16 @@
 | 向量化 element 引擎 | **采纳** | ECG −30%、KWS-L −19%、MNIST-L −19% 周期 |
 | 窄核行填充、RGB 补到 4 通道 | **采纳** | KWS/GTSRB 第一层分别有 67% / 60% 周期在等激活；补通道结果逐位相同 |
 | 深度可分离权重每 tap 一行 | **采纳** | GTSRB-L 8228 → 7688 B，否则 4×8 构建放不下 |
-| 双 Requant lane | **采纳** | 等结果槽占 KWS-L 24%；冻结版累计 −19% 到 −43% 周期 |
+| 双 Requant lane | **采纳** | 等结果槽占 KWS-L 24%；最终版累计 −19% 到 −43% 周期 |
 | 原地 Add | **采纳** | Fashion 残差块在 14×14×24 处否则需同时存活 3 个张量 |
-| SRAM 旋转 R90、引脚朝东（`west_stack_r90`） | **采纳** | 同为 u70 时 die 1920 → 1860 µm；引脚背对逻辑的 `west_stack` 只能靠更大 die 绕线（第 6 节） |
-| Innovus hold 目标 0.02 → 0.15 ns | **采纳** | PrimeTime 在 SPEF 上读出的 hold 比 Innovus 差约 0.1 ns（复位同步器 −0.083 ns）；提高目标后 PT hold +0.042 ns，setup 仍 +0.709 ns |
+| SRAM 对角摆放、引脚边面向逻辑（`diagonal_facing`） | **采纳** | 叠在西南角拥塞高、PT hold 只有 +0.042 ns；一南一北 / 一西一东引脚互相对着；对角线长最短、拥塞最低（第 6 节） |
+| Innovus hold 目标 0.02 → 0.25 ns | **采纳** | PrimeTime 在 SPEF 上读出的 hold 比 Innovus 差约 0.1 ns；最终版图 0.15 ns 时 PT hold −0.018 ns，提到 0.25 ns 后 +0.154 ns，setup 仍 +1.094 ns |
 | JTAG 突发 IR | **采纳** | 实板每次 RPC 4.0 ms；逐字协议每个字 ≥3 次 RPC（第 4 节） |
 | TILE 16 → 8（psum 减半） | 保留为编译选项，默认 16 | −0.06 mm²，周期几何平均 +4.1%（KWS-M +15.5%）；两颗 SRAM 的 die 不受面积限制 |
 | 第三颗 SRAM（模型 16 KiB） | **否决** | 只有 8 KiB 宏可用（其余为 128/256 KiB）；u70 下标准单元须 ≤~1.0 mm² 才能放进 1950 µm，余量 <5 µm；所有模型已 >90% |
 | 模型与激活共用一颗 SRAM | **否决** | 7 个模型中多数“模型字节 + 激活峰值”超过 8 KiB（第 2 节） |
 | 硬件全局关融合寄存器 | **否决** | 融合改变描述符个数和张量分配，硬件无法事后拆开；由编译器按种类开关 |
-| 每个算子单独 `ifdef` 裁剪 | 暂不需要 | 关掉 trace 后 FPGA 估算已有 ~26% LUT 余量 |
+| 每个算子单独 `ifdef` 裁剪 | 暂不需要 | 关掉 trace 后实板 LUT 83%，50 MHz 时序已收敛 |
 | 阵列 4×8 → 8×8 | **后续方向** | 模型估算各模型周期 −22%～−45%（DW 与普通卷积都加速），面积代价约 32 个 MAC；需改写死的 4 行逻辑并重做验证与 ASIC（第 3.6 节） |
 | 阵列 4×8 → 4×16 | 否决 | 只加速普通卷积（−14%～−45%），DW 不变；psum 翻倍约 +0.2 mm²，die 超出 1950 µm |
 | 深度可分离专用数据通路 | 未做 | 4×8 上加逐列 DW 通路估计 −8%～−23%；8×8 已覆盖同等收益 |
@@ -38,14 +38,14 @@
 - **ASIC**：Genus 综合（限定范围的 mailbox CDC 约束与审计）、Innovus 全芯片 PnR（9 项物理检查 + CDC + SRAM 引脚朝向）、
   独立签核和 Xcelium SDF 门级仿真（结果见第 6 节）。门级测试走突发 IR，覆盖融合 Conv/Pool、DW、原地 Add、AvgPool、
   通用 MaxPool 和 u4 张量。
-- **FPGA**：未上板、未运行 Vivado；`nocpu_board_suite.py` 与证据检查已覆盖 ABI 4 的 fixture，单元测试通过。
+- **FPGA**：Vivado 2025.2 实现 + EGo1 实板，详见 `verification/fpga/results/2026-11-04-int4-v2/report.md`：四种 RTL 配置各 132 项回归、7 个模型 137 项 RTL 重放、63 种配置 126 帧与 112 帧发布样本实板逐字节一致、27 项错误注入、忙时停 TCK / 重复启动 / watchdog 恢复。
 
 ## 9. 不覆盖的范围与风险
 
 - 只有 TT 1.8 V 25 °C 单角；无多角 STA、IR/EM、密封环与芯片级 ESD 评审；功耗为无激励估算。
-- Innovus 与 PrimeTime 的 hold 结果相差约 0.1 ns；选定版图靠提高 Innovus hold 目标收敛，PT hold 余量只有 +0.042 ns，多角下需复查。
+- Innovus 与 PrimeTime 的 hold 结果相差约 0.1 ns；最终版图靠提高 Innovus hold 目标收敛（PT hold +0.154 ns），多角下需复查。
 - SRAM 接口时序只由 Innovus 检查（PrimeTime 中宏为黑盒）。
-- FPGA 余量来自 yosys 估算（与 Vivado 在上一版相差 2%），不是 Vivado 实现结果，也没有上板。
+- FPGA 50 MHz 的 setup WNS 为 0.000 ns（关键路径 76% 是布线）；实体按键复位、断电恢复和板上全测试集精度尚未做。
 - 主机 RPC 时间用上一版实板的中位数外推；突发协议在真实 FT232H/OpenOCD 上的批量开销未实测。
 - ECG 采用常见的病人内划分（同一病人的心拍可同时出现在训练和测试集），比病人间划分容易；balanced 精度另列。
 - GTSRB 训练集用的是 HF 镜像的 26,640 张子集；测试集是官方 12,630 张。

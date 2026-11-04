@@ -45,7 +45,7 @@ def main():
                       for m in ORDER for k, v in summary['models'][m]['breakdown'].items()]
 
     stages = [('ABI4 first cut', 'zoo_rtl_stage1.json'), ('+ vector element, row pad', 'zoo_rtl_stage2.json'),
-              ('+ dual requant (freeze)', 'zoo_rtl_final.json')]
+              ('+ dual requant (final)', 'zoo_rtl_final.json')]
     t['stages'] = [dict(model=NAMES[m], stage=label, cycles=runs_by(load(f, []))[m]['cycles'][0])
                    for label, f in stages for m in ORDER if m in runs_by(load(f, []))]
     tile8 = runs_by(load('zoo_rtl_tile8.json', []))
@@ -76,28 +76,30 @@ def main():
         t['host'].append(dict(model=NAMES[m], protocol=proto, commands=r['commands'], burst_scans=r['burst_scans'],
                               rpcs=rpc, host_seconds=round(rpc * RPC_MS / 1000, 2)))
 
-    t['area'] = [dict(version=s['name'], commit=s['commit'], standard_mm2=round(s['standard_cell_area_um2'] / 1e6, 3),
+    short = {'INT4 v1（ABI 3，后仿报告）': 'INT4 v1', 'ABI 4 首版（新算子）': 'ABI 4 首版', '+ u4 + 紧凑参数': '+ u4 / 紧凑参数',
+             '+ 共享建立乘法器等面积优化': '+ 面积优化', '上板修复前（+ 向量 element / 双 Requant / JTAG 突发）': '+ 吞吐优化',
+             '最终版（含上板修复）': '最终版'}
+    t['area'] = [dict(version=short.get(s['name'], s['name']), commit=s['commit'], standard_mm2=round(s['standard_cell_area_um2'] / 1e6, 3),
                       total_mm2=round(s['total_area_um2'] / 1e6, 3)) for s in load('synth_area.json', [])]
 
     t['layout'] = []
-    for name, rtl in (('layout_intermediate.json', 'Intermediate RTL'), ('layout_final.json', 'Freeze RTL'),
-                      ('layout_placement.json', 'Freeze RTL, spread SRAMs')):
-        for c in load(name, {}).get('candidates', []):
-            chk = c.get('checks') or {}
-            t['layout'].append(dict(run=f"{rtl}: {c['name']}", rtl=rtl, layout=c['layout'], utilization=c['utilization'],
-                                    hold_target_ns=c.get('hold_target', 0.02),
-                                    die_side_um=c['die_side_um'], setup_wns_ns=c['setup_wns_ns'], hold_wns_ns=c['hold_wns_ns'],
-                                    pt_setup_wns_ns=c.get('pt_setup_wns_ns'), pt_hold_wns_ns=c.get('pt_hold_wns_ns'),
-                                    wire_m=round(c['wire_length_um'] / 1e6, 2), checks_passed=sum(v is True for v in chk.values()),
-                                    checks=len(chk), eligible=c['eligible']))
+    final = load('layout_final.json', {})
+    sel = next((c for c in final.get('candidates', []) if c['name'] == final.get('selected')), None)
+    placements = load('layout_placement.json', {}).get('candidates', [])
+    for c, rtl in [(c, 'Placement study') for c in placements] + ([(sel, 'Final RTL')] if sel else []):
+        chk = c.get('checks') or {}
+        t['layout'].append(dict(run=f"{rtl}: {c['name']}", rtl=rtl, layout=c['layout'], utilization=c['utilization'],
+                                hold_target_ns=c.get('hold_target', 0.02), die_side_um=c['die_side_um'],
+                                setup_wns_ns=c['setup_wns_ns'], hold_wns_ns=c['hold_wns_ns'],
+                                pt_setup_wns_ns=c.get('pt_setup_wns_ns'), pt_hold_wns_ns=c.get('pt_hold_wns_ns'),
+                                wire_m=round(c['wire_length_um'] / 1e6, 2), checks_passed=sum(v is True for v in chk.values()),
+                                checks=len(chk), eligible=c['eligible']))
 
-    t['fpga'] = []
-    for name, label in (('xc7_v3_board.json', 'Previous (on board)'), ('xc7_latest.json', 'v2 with trace'),
-                        ('xc7_latest_opsonly.json', 'v2 per-op summary'), ('xc7_latest_notrace.json', 'v2 FPGA default')):
-        x = load(name)
-        if x:
-            t['fpga'].append(dict(build=label, lut=x['lut'], lut_share=round(x['lut'] / 20800, 4), ff=x['ff'],
-                                  bram36=x['bram36'], dsp=x['dsp']))
+    from int4_v2_report import fpga_results
+    fp = fpga_results()
+    t['fpga'] = [dict(build='EGo1 (Vivado)', lut=fp['lut'], lut_share=round(fp['lut'] / 20800, 4), ff=fp['ff'],
+                      bram36=fp['bram'], dsp=fp['dsp'], wns_ns=float(fp['wns']), whs_ns=float(fp['whs']),
+                      board_models=fp['models'], board_frames=fp['golden'], board_runs=fp['runs'])] if fp else []
 
     so = load('signoff.json')
     if so:

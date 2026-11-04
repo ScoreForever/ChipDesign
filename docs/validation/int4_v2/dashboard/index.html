@@ -37,7 +37,7 @@
   .tbl td.ok { color: var(--color-ok); }
   .tbl td.bad { color: var(--color-bad); }
   .fuse { display: grid; gap: 2px; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; min-height: 220px; align-content: start; }
-  .fuse div { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-radius: 2px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fuse div { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-radius: 2px; min-width: 0; overflow-wrap: anywhere; }
   .fuse .h { color: var(--color-fg-muted); }
   .fuse .fit { background: var(--color-bg); }
   .fuse .nofit { color: var(--color-fg-muted); background: repeating-linear-gradient(135deg, transparent 0 4px, var(--color-border-line) 4px 5px); }
@@ -61,7 +61,7 @@
   <div class="npu-kpis">
     <div class="kpi"><span class="kpi-label">Lowest INT4 test accuracy</span><span class="kpi-value" data-draw="kpi-minacc" data-source="headline" data-field="min_acc" data-row="0">—</span><span class="kpi-note">Bit-exact integer inference, full test set</span></div>
     <div class="kpi"><span class="kpi-label">Die side, pad ring included</span><span class="kpi-value"><span data-draw="kpi-die" data-source="headline" data-field="die_side_um" data-row="0">—</span> µm</span><span class="kpi-note">Selected layout <span data-draw="kpi-run" data-source="headline" data-field="die_run" data-row="0">—</span>; limit 1950 µm</span></div>
-    <div class="kpi"><span class="kpi-label">Standard-cell area, freeze</span><span class="kpi-value"><span data-draw="kpi-std" data-source="headline" data-field="std_mm2" data-row="0">—</span> mm²</span><span class="kpi-note">Genus, plus two 8 KiB SRAM macros</span></div>
+    <div class="kpi"><span class="kpi-label">Standard-cell area, final design</span><span class="kpi-value"><span data-draw="kpi-std" data-source="headline" data-field="std_mm2" data-row="0">—</span> mm²</span><span class="kpi-note">Genus, plus two 8 KiB SRAM macros</span></div>
     <div class="kpi"><span class="kpi-label">Burst JTAG vs per-word wire time</span><span class="kpi-value"><span data-draw="kpi-speed" data-source="headline" data-field="speedup_min" data-row="0">—</span></span><span class="kpi-note">Lowest speed-up across models, TCK 1 MHz</span></div>
     <div class="kpi"><span class="kpi-label">Compute share of an inference</span><span class="kpi-value" data-draw="kpi-compute" data-source="headline" data-field="compute_share_max" data-row="0">—</span><span class="kpi-note">Highest across models, burst protocol, wire time only</span></div>
   </div>
@@ -158,14 +158,14 @@
         <div class="chart" data-draw="area" data-source="area"></div>
       </div>
       <div class="card">
-        <h3>FPGA headroom proxy (XC7A35T)</h3>
-        <p class="note">yosys synth_xilinx LUT estimate against 20,800 LUTs; the dashed line is the 85% ceiling the plan set. No Vivado run or board this round.</p>
+        <h3>FPGA implementation (EGo1, 50 MHz)</h3>
+        <p class="note">Vivado LUT use against the 20,800 LUTs of the XC7A35T; the dashed line is 85%. All seven published models ran on the board byte-exact.</p>
         <div class="chart" data-draw="fpga" data-source="fpga"></div>
       </div>
     </div>
     <div class="card">
-      <h3>Full-chip layout trials</h3>
-      <p class="note">Innovus full-chip place and route, TT 1.8 V 25 °C, 50 MHz, with PrimeTime STA on the extracted parasitics. Both SRAM macros have all signal pins on one edge; the r90 and mx layouts turn those pins toward the logic. PrimeTime reads hold about 0.1 ns worse than Innovus, so the selected run raises the Innovus hold target.</p>
+      <h3>SRAM placement and the final layout</h3>
+      <p class="note">Innovus full-chip place and route at 70% utilization, PrimeTime on the extracted parasitics, TT 1.8 V 25 °C, 50 MHz. Each SRAM has all 109 signal pins on one edge; the final layout puts the macros in opposite corners with each pin edge facing open logic.</p>
       <div class="tbl">
         <table data-source="layout" data-row-key="run">
           <thead><tr><th data-field="run">Run</th><th data-field="layout">Layout</th><th data-field="utilization">Util.</th><th data-field="die_side_um">Die µm</th><th data-field="setup_wns_ns">Innovus setup ns</th><th data-field="hold_wns_ns">Innovus hold ns</th><th data-field="pt_setup_wns_ns">PT setup ns</th><th data-field="pt_hold_wns_ns">PT hold ns</th><th data-field="wire_m">Wire m</th><th data-field="checks_passed">Checks</th><th data-field="eligible">Eligible</th></tr></thead>
@@ -242,10 +242,10 @@
   dash.calc('headline', {
     inputs: ['models', 'layout', 'area', 'e2e_grouped'],
     title: 'Headline figures',
-    description: 'Lowest INT4 accuracy, smallest eligible freeze die, freeze standard-cell area, burst speed-up and compute share.',
+    description: 'Lowest INT4 accuracy, final layout die, final standard-cell area, burst speed-up and compute share.',
     fn: (models, layout, area, e2e_grouped) => {
       const low = models.reduce((a, b) => (b.int4_test < a.int4_test ? b : a));
-      const fin = layout.filter((r) => r.rtl === 'Freeze RTL' && r.eligible).sort((a, b) => a.die_side_um - b.die_side_um || b.setup_wns_ns - a.setup_wns_ns)[0];
+      const fin = layout.filter((r) => r.rtl === 'Final RTL')[0];
       const tot = d3.rollup(e2e_grouped, (v) => d3.sum(v, (r) => r.ms), (r) => r.model, (r) => r.protocol);
       const comp = d3.rollup(e2e_grouped.filter((r) => r.group === 'Compute' && r.protocol === 'Burst'), (v) => d3.sum(v, (r) => r.ms), (r) => r.model);
       const speed = [...tot].map(([, p]) => p.get('Per-word (ABI 3)') / p.get('Burst'));
@@ -460,12 +460,11 @@
     el.replaceChildren();
     const W = el.clientWidth, H = rows.length * 40 + 30;
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
-    const L = Math.min(W * 0.45, npu.textWidth(svg, rows.map((r) => r.version)) + 12), R = 48;
+    const L = Math.min(W * 0.62, npu.textWidth(svg, rows.map((r) => r.version)) + 12), R = 48;
     const x = d3.scaleLinear([0, d3.max(rows, (r) => r.total_mm2)], [L, W - R]).nice();
     const y = d3.scaleBand(rows.map((r) => r.version), [0, H - 30]).padding(0.25);
     svg.append('g').attr('transform', `translate(0,${H - 30})`).call(d3.axisBottom(x).ticks(4).tickFormat((v) => v + ' mm²').tickSize(-(H - 30))).call(npu.axis).call((g) => g.select('.domain').remove());
     svg.append('g').selectAll('text').data(rows).join('text').attr('x', L - 8).attr('y', (r) => y(r.version) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((r) => r.version)
-      .each(function () { const n = this; while (n.getComputedTextLength() > L - 12 && n.textContent.length > 4) n.textContent = n.textContent.slice(0, -2) + '…'; });
     svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', L).attr('width', (r) => x(r.total_mm2) - L).attr('y', (r) => y(r.version)).attr('height', y.bandwidth()).attr('rx', 2).attr('fill', 'var(--cds-chart-muted)');
     svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', L).attr('width', (r) => x(r.standard_mm2) - L).attr('y', (r) => y(r.version) + y.bandwidth() * 0.2).attr('height', y.bandwidth() * 0.6).attr('rx', 2).attr('fill', dash.colors[0]);
     svg.append('g').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.total_mm2) + 6).attr('y', (r) => y(r.version) + y.bandwidth() / 2).attr('dy', '0.35em').text((r) => d3.format('.2f')(r.total_mm2));

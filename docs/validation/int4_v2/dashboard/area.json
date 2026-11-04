@@ -1,32 +1,38 @@
 [
  {
-  "version": "INT4 v1\uff08ABI 3\uff0c\u540e\u4eff\u62a5\u544a\uff09",
+  "version": "INT4 v1",
   "commit": "02185d8+fixes",
   "standard_mm2": 1.113,
   "total_mm2": 1.915
  },
  {
-  "version": "ABI 4 \u9996\u7248\uff08\u65b0\u7b97\u5b50\uff09",
+  "version": "ABI 4 首版",
   "commit": "2a855c0 tree",
   "standard_mm2": 1.219,
   "total_mm2": 2.022
  },
  {
-  "version": "+ u4 + \u7d27\u51d1\u53c2\u6570",
+  "version": "+ u4 / 紧凑参数",
   "commit": "f5218d8",
   "standard_mm2": 1.199,
   "total_mm2": 2.002
  },
  {
-  "version": "+ \u5171\u4eab\u5efa\u7acb\u4e58\u6cd5\u5668\u7b49\u9762\u79ef\u4f18\u5316",
+  "version": "+ 面积优化",
   "commit": "425f5a1",
   "standard_mm2": 1.047,
   "total_mm2": 1.85
  },
  {
-  "version": "\u51bb\u7ed3\u7248\uff08+ \u5411\u91cf element / \u53cc Requant / JTAG \u7a81\u53d1\uff09",
+  "version": "+ 吞吐优化",
   "commit": "660faed",
   "standard_mm2": 1.131,
   "total_mm2": 1.934
+ },
+ {
+  "version": "最终版",
+  "commit": "35fa8bb",
+  "standard_mm2": 1.132,
+  "total_mm2": 1.935
  }
 ]

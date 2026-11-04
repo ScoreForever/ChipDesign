@@ -1,5 +1,5 @@
 {
- "candidate": "r90_u70_h15",
+ "candidate": "diagonal_facing_h25",
  "note": "TT corner only; M5/M6 fill only; no IR/EM, seal ring or chip-level ESD review",
  "checks": {
   "Calibre DRC": {
@@ -12,7 +12,7 @@
   },
   "PrimeTime STA": {
    "pass": true,
-   "detail": "setup WNS +0.709 ns, hold WNS +0.042 ns; SRAM interface timed by Innovus"
+   "detail": "setup WNS +1.094 ns, hold WNS +0.154 ns; SRAM interface timed by Innovus"
   },
   "Formality LEC": {
    "pass": true,

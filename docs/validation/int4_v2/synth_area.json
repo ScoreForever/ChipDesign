@@ -1,7 +1,44 @@
 [
- {"name": "INT4 v1（ABI 3，后仿报告）", "commit": "02185d8+fixes", "standard_cell_area_um2": 1112578, "total_area_um2": 1915465, "source": "eda-results-int8-int4-20261102 POSTLAYOUT_METRICS"},
- {"name": "ABI 4 首版（新算子）", "commit": "2a855c0 tree", "standard_cell_area_um2": 1219288.7, "total_area_um2": 2022175.9, "source": "int4v2-layout/exp"},
- {"name": "+ u4 + 紧凑参数", "commit": "f5218d8", "standard_cell_area_um2": 1199351.9, "total_area_um2": 2002239.1, "source": "int4v2-layout/exp2"},
- {"name": "+ 共享建立乘法器等面积优化", "commit": "425f5a1", "standard_cell_area_um2": 1047255.3, "total_area_um2": 1850142.5, "source": "int4v2-area/exp"},
- {"name": "冻结版（+ 向量 element / 双 Requant / JTAG 突发）", "commit": "660faed", "standard_cell_area_um2": 1131423.6, "total_area_um2": 1934310.8, "source": "int4v2-final/exp"}
+ {
+  "name": "INT4 v1（ABI 3，后仿报告）",
+  "commit": "02185d8+fixes",
+  "standard_cell_area_um2": 1112578,
+  "total_area_um2": 1915465,
+  "source": "eda-results-int8-int4-20261102 POSTLAYOUT_METRICS"
+ },
+ {
+  "name": "ABI 4 首版（新算子）",
+  "commit": "2a855c0 tree",
+  "standard_cell_area_um2": 1219288.7,
+  "total_area_um2": 2022175.9,
+  "source": "int4v2-layout/exp"
+ },
+ {
+  "name": "+ u4 + 紧凑参数",
+  "commit": "f5218d8",
+  "standard_cell_area_um2": 1199351.9,
+  "total_area_um2": 2002239.1,
+  "source": "int4v2-layout/exp2"
+ },
+ {
+  "name": "+ 共享建立乘法器等面积优化",
+  "commit": "425f5a1",
+  "standard_cell_area_um2": 1047255.3,
+  "total_area_um2": 1850142.5,
+  "source": "int4v2-area/exp"
+ },
+ {
+  "name": "上板修复前（+ 向量 element / 双 Requant / JTAG 突发）",
+  "commit": "660faed",
+  "standard_cell_area_um2": 1131423.6,
+  "total_area_um2": 1934310.8,
+  "source": "int4v2-final/exp"
+ },
+ {
+  "name": "最终版（含上板修复）",
+  "commit": "35fa8bb",
+  "standard_cell_area_um2": 1131992,
+  "total_area_um2": 1934879,
+  "source": "int4v2-final2 Genus"
+ }
 ]
