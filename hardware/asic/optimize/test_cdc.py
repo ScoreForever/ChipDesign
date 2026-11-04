@@ -51,7 +51,7 @@ class CdcTests(unittest.TestCase):
                 p=root/name; p.parent.mkdir(parents=True,exist_ok=True); p.write_text('evidence')
             (root/'status.json').write_text(json.dumps(dict(status='complete')))
             (root/'metrics.json').write_text(json.dumps(dict(setup_wns_ns=.1,hold_wns_ns=.1,setup_tns_ns=0,hold_tns_ns=0,die_area_mm2=1,wire_length_um=100,macro_count=2)))
-            checks={k:True for k in ['placement','drc','pg_drc','connectivity','pg_connectivity','antenna','drv','ports','pad_geometry','cdc']}
+            checks={k:True for k in ['placement','drc','pg_drc','connectivity','pg_connectivity','antenna','drv','ports','pad_geometry','cdc','macro_pins']}
             (root/'checks.json').write_text(json.dumps(checks))
             self.assertFalse(flow.metrics(root)['eligible'])
             with (root/'cdc_paths.tsv').open('w',newline='') as stream:
@@ -102,8 +102,8 @@ proc report_timing {args} {
 proc get_property {obj name} {
     switch $name {
         slack {if {$::fault eq "negative"} {return -1}; return 19}
-        arrival_time {return 1}
-        required_time {if {$::fault eq "overridden"} {return 1000}; return 20}
+        arrival {return 1}
+        required {if {$::fault eq "overridden"} {return 1000}; return 20}
     }
     error "unmodeled property $name"
 }
