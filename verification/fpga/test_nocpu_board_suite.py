@@ -27,7 +27,7 @@ class Tests(unittest.TestCase):
             def __init__(self): self.calls=[]
             def command(self,*args): self.calls.append(args)
             def write(self,*args): self.calls.append(args)
-        m={'model_bytes':4,'op_count':1,'input_base':0,'input_bytes':1,'output_base':4,'output_bytes':4,'input_dtype':'i8'}
+        m={'model_bytes':4,'op_count':1,'input_base':0,'input_bytes':1,'output_base':4,'output_bytes':4,'input_dtype':'i4'}
         fake=Fake()
         suite.raw_upload(fake, suite.Package(bytes([1,2,3,4]),m))
         self.assertEqual(fake.calls[0],(suite.Op.MODEL_BEGIN,))

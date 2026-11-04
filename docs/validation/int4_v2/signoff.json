@@ -1,0 +1,26 @@
+{
+ "candidate": "diagonal_facing_h25",
+ "note": "TT corner only; M5/M6 fill only; no IR/EM, seal ring or chip-level ESD review",
+ "checks": {
+  "Calibre DRC": {
+   "pass": true,
+   "detail": "no blocking rule; 2427 accepted reports, all IO-cell ESD/latch-up guidelines or deck reminders"
+  },
+  "Calibre LVS": {
+   "pass": true,
+   "detail": "45 IO resistor property deviations, max 3.47% (accepted)"
+  },
+  "PrimeTime STA": {
+   "pass": true,
+   "detail": "setup WNS +1.094 ns, hold WNS +0.154 ns; SRAM interface timed by Innovus"
+  },
+  "Formality LEC": {
+   "pass": true,
+   "detail": "Formality equivalence verified"
+  },
+  "Xcelium SDF gate-level": {
+   "pass": true,
+   "detail": "41 JTAG commands on the u4_chain fixture with burst IRs, no fatal timing diagnostics"
+  }
+ }
+}

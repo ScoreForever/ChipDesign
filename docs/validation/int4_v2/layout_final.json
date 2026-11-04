@@ -1,0 +1,60 @@
+{
+ "note": "Final layout on the ABI 4 RTL with the FPGA board fixes (code of commit 35fa8bb); Innovus full-chip PnR + PrimeTime on SPEF, TT 1.8V 25C, 50 MHz.",
+ "selected": "diagonal_facing_h25",
+ "candidates": [
+  {
+   "name": "diagonal_facing_h25",
+   "layout": "diagonal_facing",
+   "utilization": 0.7,
+   "hold_target": 0.25,
+   "die_area_mm2": 3.687321658,
+   "die_side_um": 1920,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     723.85,
+     554.595,
+     "R90"
+    ],
+    [
+     "activation",
+     1000.15,
+     1169.405,
+     723.85,
+     554.595,
+     "R270"
+    ]
+   ],
+   "core_area_mm2": 2.624659206,
+   "std_area_um2": 1222311.507200183,
+   "instances": 60713,
+   "setup_wns_ns": 0.551,
+   "hold_wns_ns": 0.241,
+   "setup_tns_ns": 0.0,
+   "hold_tns_ns": 0.0,
+   "pt_setup_wns_ns": 1.094,
+   "pt_hold_wns_ns": 0.154,
+   "wire_length_um": 3904379.82,
+   "overflow_h_pct": 0.32,
+   "overflow_v_pct": 0.16,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "signoff_passed": true,
+   "sdf_passed": true
+  }
+ ]
+}

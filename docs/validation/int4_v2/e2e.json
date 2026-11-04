@@ -1,0 +1,702 @@
+[
+ {
+  "model": "mnist_l",
+  "protocol": "burst",
+  "tck_ns": 1000.0,
+  "compute_cycles": 55536,
+  "model_bytes": 4592,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 27,
+  "burst_scans": 1253,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 44529,
+    "sim_ns": 44529000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 4062,
+    "sim_ns": 4062000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 632170
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 611,
+    "sim_ns": 611000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 52469
+ },
+ {
+  "model": "mnist_l",
+  "protocol": "legacy",
+  "tck_ns": 1000.0,
+  "compute_cycles": 55536,
+  "model_bytes": 4592,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 1280,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 267036,
+    "sim_ns": 267036000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 22869,
+    "sim_ns": 22869000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 632170
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 2310,
+    "sim_ns": 2310000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 295449
+ },
+ {
+  "model": "har",
+  "protocol": "burst",
+  "tck_ns": 1000.0,
+  "compute_cycles": 28072,
+  "model_bytes": 4216,
+  "input_bytes": 576,
+  "output_bytes": 24,
+  "commands": 27,
+  "burst_scans": 1201,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 41051,
+    "sim_ns": 41051000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 5764,
+    "sim_ns": 5764000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 357530
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 447,
+    "sim_ns": 447000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 50529
+ },
+ {
+  "model": "har",
+  "protocol": "legacy",
+  "tck_ns": 1000.0,
+  "compute_cycles": 28072,
+  "model_bytes": 4216,
+  "input_bytes": 576,
+  "output_bytes": 24,
+  "commands": 1228,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 245322,
+    "sim_ns": 245322000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 33495,
+    "sim_ns": 33495000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 357530
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 283437
+ },
+ {
+  "model": "ecg",
+  "protocol": "burst",
+  "tck_ns": 1000.0,
+  "compute_cycles": 26217,
+  "model_bytes": 3908,
+  "input_bytes": 64,
+  "output_bytes": 20,
+  "commands": 27,
+  "burst_scans": 995,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 38202,
+    "sim_ns": 38202000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 1028,
+    "sim_ns": 1028000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 338980
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 406,
+    "sim_ns": 406000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 42903
+ },
+ {
+  "model": "ecg",
+  "protocol": "legacy",
+  "tck_ns": 1000.0,
+  "compute_cycles": 26217,
+  "model_bytes": 3908,
+  "input_bytes": 64,
+  "output_bytes": 20,
+  "commands": 1022,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 227535,
+    "sim_ns": 227535000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 3927,
+    "sim_ns": 3927000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 338980
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 1155,
+    "sim_ns": 1155000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 235851
+ },
+ {
+  "model": "kws_l",
+  "protocol": "burst",
+  "tck_ns": 1000.0,
+  "compute_cycles": 143634,
+  "model_bytes": 7224,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 27,
+  "burst_scans": 1877,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 68875,
+    "sim_ns": 68875000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 2730,
+    "sim_ns": 2730000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 1513150
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 693,
+    "sim_ns": 693000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 75565
+ },
+ {
+  "model": "kws_l",
+  "protocol": "legacy",
+  "tck_ns": 1000.0,
+  "compute_cycles": 143634,
+  "model_bytes": 7224,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 1904,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 419034,
+    "sim_ns": 419034000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 14553,
+    "sim_ns": 14553000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 1513150
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 2772,
+    "sim_ns": 2772000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 439593
+ },
+ {
+  "model": "kws_m",
+  "protocol": "burst",
+  "tck_ns": 1000.0,
+  "compute_cycles": 127855,
+  "model_bytes": 7072,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 27,
+  "burst_scans": 1839,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 67469,
+    "sim_ns": 67469000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 2730,
+    "sim_ns": 2730000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 1355360
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 693,
+    "sim_ns": 693000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 74159
+ },
+ {
+  "model": "kws_m",
+  "protocol": "legacy",
+  "tck_ns": 1000.0,
+  "compute_cycles": 127855,
+  "model_bytes": 7072,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 1866,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 410256,
+    "sim_ns": 410256000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 14553,
+    "sim_ns": 14553000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 1355360
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 2772,
+    "sim_ns": 2772000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 430815
+ },
+ {
+  "model": "gtsrb_l",
+  "protocol": "burst",
+  "tck_ns": 1000.0,
+  "compute_cycles": 132473,
+  "model_bytes": 7688,
+  "input_bytes": 2048,
+  "output_bytes": 172,
+  "commands": 27,
+  "burst_scans": 2474,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 73167,
+    "sim_ns": 73167000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 19380,
+    "sim_ns": 19380000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 1401540
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 1964,
+    "sim_ns": 1964000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 97778
+ },
+ {
+  "model": "gtsrb_l",
+  "protocol": "legacy",
+  "tck_ns": 1000.0,
+  "compute_cycles": 132473,
+  "model_bytes": 7688,
+  "input_bytes": 2048,
+  "output_bytes": 172,
+  "commands": 2501,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 445830,
+    "sim_ns": 445830000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 118503,
+    "sim_ns": 118503000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 1401540
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 9933,
+    "sim_ns": 9933000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 577500
+ },
+ {
+  "model": "fashion_cnn",
+  "protocol": "burst",
+  "tck_ns": 1000.0,
+  "compute_cycles": 72812,
+  "model_bytes": 8008,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 27,
+  "burst_scans": 2107,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 76127,
+    "sim_ns": 76127000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 4062,
+    "sim_ns": 4062000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 804930
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 611,
+    "sim_ns": 611000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 84067
+ },
+ {
+  "model": "fashion_cnn",
+  "protocol": "legacy",
+  "tck_ns": 1000.0,
+  "compute_cycles": 72812,
+  "model_bytes": 8008,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 2134,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 464310,
+    "sim_ns": 464310000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 22869,
+    "sim_ns": 22869000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 804930
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 2310,
+    "sim_ns": 2310000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 492723
+ }
+]

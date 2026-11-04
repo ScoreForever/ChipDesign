@@ -1,0 +1,127 @@
+{
+  "name": "kws_l",
+  "weights": 9792,
+  "float_val": 0.9322529822192213,
+  "float_test": 0.9365793780687398,
+  "int4_val": 0.9209993481636047,
+  "int4_test": 0.9150981903076172,
+  "int4_test_recall": [
+    0.9761336515513126,
+    0.9061728395061729,
+    0.8941176470588236,
+    0.8472906403940886,
+    0.9393203883495146,
+    0.9065656565656566,
+    0.9191919191919192,
+    0.9104477611940298,
+    0.9659367396593674,
+    0.8980099502487562,
+    0.8157248157248157,
+    1.0
+  ],
+  "int4_test_balanced": 0.9149093341203715,
+  "hardware": {
+    "c8": {
+      "model_bytes": 7224,
+      "activation_peak": 6248,
+      "op_count": 9,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    },
+    "c4": {
+      "model_bytes": 7224,
+      "activation_peak": 6248,
+      "op_count": 9,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    }
+  },
+  "test_samples": 4888,
+  "seconds": 742.1003339290619,
+  "args": {
+    "name": "kws_l",
+    "data": "../datasets",
+    "out": "../zoo_runs/aff/s2",
+    "fp_epochs": "150",
+    "qat_epochs": "150",
+    "lr": "0.003",
+    "qat_lr": "0.0005",
+    "batch": "256",
+    "seed": "2",
+    "balanced": "False",
+    "distill": "True",
+    "capacity_only": "False",
+    "affine": "False",
+    "relu_max": "15"
+  }
+}

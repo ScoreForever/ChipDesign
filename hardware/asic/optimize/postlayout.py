@@ -115,7 +115,9 @@ def main():
         (out/'routed.sdf').write_text(text)
         save(out/'sdf_rewrite.json',dict(source=str(candidate/'outputs/routed.sdf.gz'),
              source_sha256=digest(candidate/'outputs/routed.sdf.gz'),sram_clk_q_iopaths_unqualified=rewritten))
-        subprocess.run(['python3',str(HERE/'make_trace.py'),str(out/'commands.txt')],check=True,cwd=ROOT)
+        profile_path=candidate.parent.parent/'build_profile.json'
+        cols=json.loads(profile_path.read_text())['array_cols'] if profile_path.exists() else 8
+        subprocess.run(['python3',str(HERE/'make_trace.py'),str(out/'commands.txt'),str(cols)],check=True,cwd=ROOT)
         # Clock-domain-crossing capture flops sample asynchronous inputs by
         # design; a Verilog timing check there turns Q into X. Disable checks
         # on exactly these flops (and nothing else), found in the netlist.

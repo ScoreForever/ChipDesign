@@ -1,0 +1,18 @@
+{
+  "armed": true,
+  "time": 1793587454.2622495,
+  "sentinel": 123456789,
+  "status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  },
+  "job": 7
+}

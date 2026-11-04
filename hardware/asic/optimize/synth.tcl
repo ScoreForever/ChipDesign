@@ -12,18 +12,22 @@ close $fh
 # Both stores map to the course SRAM macro; the waveform RAM is an FPGA/simulation
 # debug option and is explicitly excluded from the ASIC build, as are the
 # per-operator summaries (global performance counters remain).
-read_hdl -sv -define {SYNTHESIS NPU_USE_RA1SHD_MODEL NPU_USE_RA1SHD_ACTIVATION NPU_ENABLE_WAVE_TRACE=0 NPU_ENABLE_OP_TRACE=0} $sources
+read_hdl -sv -define [list SYNTHESIS NPU_USE_RA1SHD_MODEL NPU_USE_RA1SHD_ACTIVATION NPU_ENABLE_WAVE_TRACE=0 NPU_ENABLE_OP_TRACE=0 NPU_ARRAY_COLS=$array_cols] $sources
 elaborate my_soc_top
 check_design -unresolved > check_design.rpt
 set_units -time ns -capacitance pF
 set ::env(EDA_CLOCK_NS) 20
 set ::env(EDA_IO_DELAY_NS) 2
 set ::env(EDA_CLOCK_UNCERTAINTY_NS) 0.2
+set ::env(EDA_NPU_CDC_SCOPED) 1
 source $source_root/hardware/soc/synth/scripts/soc_constraints.tcl
 report_clocks > clocks.rpt
 syn_generic
 syn_map
+source [file join [file dirname [info script]] npu_jtag_cdc.tcl]
+npu_cdc::apply
 syn_opt
+npu_cdc::audit_synth cdc_paths.tsv
 report_area -depth 4 > area.rpt
 report_timing > timing.rpt
 write_hdl > mapped.v

@@ -1,0 +1,7 @@
+ecg          OK  frames 16, label match 16/16
+fashion_cnn  OK  frames 16, label match 15/16
+gtsrb_l      OK  frames 16, label match 15/16
+har          OK  frames 16, label match 16/16
+kws_l        OK  frames 16, label match 15/16
+kws_m        OK  frames 16, label match 15/16
+mnist_l      OK  frames 16, label match 15/16

@@ -1,0 +1,7 @@
++====================+====================+=============================================+
+| Launch Setup Clock | Launch Hold Clock  | Pin                                         |
++====================+====================+=============================================+
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/gather_state_reg[0]/D |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/perf_a_pending_reg/D  |
+| clk_out1_clk_wiz_0 | clk_out1_clk_wiz_0 | u_soc/i_control/i_npu/slot_busy_reg[3]/D    |
++--------------------+--------------------+---------------------------------------------+

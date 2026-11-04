@@ -1,0 +1,92 @@
+[
+ {
+  "model": "MNIST-L",
+  "stage": "ABI4 first cut",
+  "cycles": 68496
+ },
+ {
+  "model": "KWS-L",
+  "stage": "ABI4 first cut",
+  "cycles": 177630
+ },
+ {
+  "model": "KWS-M",
+  "stage": "ABI4 first cut",
+  "cycles": 156185
+ },
+ {
+  "model": "HAR-1D",
+  "stage": "ABI4 first cut",
+  "cycles": 30760
+ },
+ {
+  "model": "ECG-1D",
+  "stage": "ABI4 first cut",
+  "cycles": 37325
+ },
+ {
+  "model": "GTSRB-L",
+  "stage": "ABI4 first cut",
+  "cycles": 165025
+ },
+ {
+  "model": "MNIST-L",
+  "stage": "+ vector element, row pad",
+  "cycles": 55536
+ },
+ {
+  "model": "KWS-L",
+  "stage": "+ vector element, row pad",
+  "cycles": 143634
+ },
+ {
+  "model": "KWS-M",
+  "stage": "+ vector element, row pad",
+  "cycles": 127855
+ },
+ {
+  "model": "HAR-1D",
+  "stage": "+ vector element, row pad",
+  "cycles": 28072
+ },
+ {
+  "model": "ECG-1D",
+  "stage": "+ vector element, row pad",
+  "cycles": 26217
+ },
+ {
+  "model": "MNIST-L",
+  "stage": "+ dual requant (final)",
+  "cycles": 49416
+ },
+ {
+  "model": "Fashion-CNN",
+  "stage": "+ dual requant (final)",
+  "cycles": 72812
+ },
+ {
+  "model": "KWS-L",
+  "stage": "+ dual requant (final)",
+  "cycles": 126414
+ },
+ {
+  "model": "KWS-M",
+  "stage": "+ dual requant (final)",
+  "cycles": 110115
+ },
+ {
+  "model": "HAR-1D",
+  "stage": "+ dual requant (final)",
+  "cycles": 25048
+ },
+ {
+  "model": "ECG-1D",
+  "stage": "+ dual requant (final)",
+  "cycles": 21286
+ },
+ {
+  "model": "GTSRB-L",
+  "stage": "+ dual requant (final)",
+  "cycles": 122804
+ }
+]

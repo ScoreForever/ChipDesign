@@ -1,0 +1,38 @@
+[
+ {
+  "version": "INT4 v1",
+  "commit": "02185d8+fixes",
+  "standard_mm2": 1.113,
+  "total_mm2": 1.915
+ },
+ {
+  "version": "ABI 4 首版",
+  "commit": "2a855c0 tree",
+  "standard_mm2": 1.219,
+  "total_mm2": 2.022
+ },
+ {
+  "version": "+ u4 / 紧凑参数",
+  "commit": "f5218d8",
+  "standard_mm2": 1.199,
+  "total_mm2": 2.002
+ },
+ {
+  "version": "+ 面积优化",
+  "commit": "425f5a1",
+  "standard_mm2": 1.047,
+  "total_mm2": 1.85
+ },
+ {
+  "version": "+ 吞吐优化",
+  "commit": "660faed",
+  "standard_mm2": 1.131,
+  "total_mm2": 1.934
+ },
+ {
+  "version": "最终版",
+  "commit": "35fa8bb",
+  "standard_mm2": 1.132,
+  "total_mm2": 1.935
+ }
+]

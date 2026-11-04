@@ -1,0 +1,525 @@
+<meta name="dash-one-writer">
+<style>
+  .npu { display: flex; flex-direction: column; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); max-width: 1200px; margin-inline: auto; }
+  .npu-head { display: flex; flex-direction: column; gap: var(--cds-gap-sm); }
+  .npu-head h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+  .npu-head p { margin: 0; color: var(--color-fg-muted); max-width: 70ch; }
+  .npu .lede b, .npu .kpi b { font-weight: 500; color: var(--color-fg); }
+  .npu-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: var(--cds-gap-md); }
+  .kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
+  .kpi-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .kpi-value { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; min-height: 1.3em; }
+  .kpi-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .npu section { display: flex; flex-direction: column; gap: var(--cds-gap-md); }
+  .npu h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr)); gap: var(--cds-gap-md); }
+  .card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-sm); min-width: 0; }
+  .card h3 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+  .card .note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0; }
+  .chart { position: relative; min-height: 220px; }
+  .chart svg { display: block; }
+  .chart text { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); font-family: var(--font-anthropic-sans); }
+  .tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; z-index: 2; }
+  .tip .t-head { color: var(--cds-text-secondary); }
+  .tip .t-row { display: flex; align-items: center; gap: var(--cds-gap-xs); font-variant-numeric: tabular-nums; }
+  .tip .sw { width: 0.6rem; height: 0.6rem; border-radius: 2px; flex: none; }
+  .legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); min-height: 1.2em; }
+  .legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+  .legend i { width: 0.6rem; height: 0.6rem; border-radius: 2px; display: inline-block; }
+  .seg { display: inline-flex; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); overflow: hidden; align-self: flex-start; }
+  .seg button { font: inherit; font-size: var(--cds-font-size-caption); background: transparent; color: var(--color-fg-muted); border: 0; padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--color-bg); color: var(--color-fg); }
+  .tbl { overflow-x: auto; }
+  .tbl table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .tbl th, .tbl td { text-align: right; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .tbl th:first-child, .tbl td:first-child { text-align: left; }
+  .tbl th { color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); }
+  .tbl td.ok { color: var(--color-ok); }
+  .tbl td.bad { color: var(--color-bad); }
+  .fuse { display: grid; gap: 2px; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; min-height: 220px; align-content: start; }
+  .fuse div { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-radius: 2px; min-width: 0; overflow-wrap: anywhere; }
+  .fuse .h { color: var(--color-fg-muted); }
+  .fuse .fit { background: var(--color-bg); }
+  .fuse .nofit { color: var(--color-fg-muted); background: repeating-linear-gradient(135deg, transparent 0 4px, var(--color-border-line) 4px 5px); }
+  .fuse-wrap { overflow-x: auto; }
+  .fuse-wrap .fuse { min-width: 40rem; }
+  .decisions { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: var(--cds-gap-xs); max-width: 80ch; }
+  .decisions li { color: var(--color-fg-muted); }
+  .decisions li b { color: var(--color-fg); font-weight: 500; }
+  .fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-xs); color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: inherit; }
+  .fail::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: var(--color-bad); }
+  [data-dash-source-state=empty] { color: transparent; }
+  [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+</style>
+
+<div class="npu">
+  <header class="npu-head" id="top">
+    <h1>INT4 no-CPU NPU v2</h1>
+    <p class="lede">All <b data-draw="kpi-models" data-source="headline" data-field="models" data-row="0">—</b> real-dataset models clear 90% INT4 accuracy (lowest <b data-draw="kpi-minacc" data-source="headline" data-field="min_acc" data-row="0">—</b>, <b data-draw="kpi-minmodel" data-source="headline" data-field="min_model" data-row="0">—</b>), the chip closes at <b data-draw="kpi-die2" data-source="headline" data-field="die_side_um" data-row="0">—</b> µm per side against a 1950 µm limit, and an inference is dominated by moving the model over JTAG, not by compute.</p>
+  </header>
+
+  <div class="npu-kpis">
+    <div class="kpi"><span class="kpi-label">Lowest INT4 test accuracy</span><span class="kpi-value" data-draw="kpi-minacc" data-source="headline" data-field="min_acc" data-row="0">—</span><span class="kpi-note">Bit-exact integer inference, full test set</span></div>
+    <div class="kpi"><span class="kpi-label">Die side, pad ring included</span><span class="kpi-value"><span data-draw="kpi-die" data-source="headline" data-field="die_side_um" data-row="0">—</span> µm</span><span class="kpi-note">Selected layout <span data-draw="kpi-run" data-source="headline" data-field="die_run" data-row="0">—</span>; limit 1950 µm</span></div>
+    <div class="kpi"><span class="kpi-label">Standard-cell area, final design</span><span class="kpi-value"><span data-draw="kpi-std" data-source="headline" data-field="std_mm2" data-row="0">—</span> mm²</span><span class="kpi-note">Genus, plus two 8 KiB SRAM macros</span></div>
+    <div class="kpi"><span class="kpi-label">Burst JTAG vs per-word wire time</span><span class="kpi-value"><span data-draw="kpi-speed" data-source="headline" data-field="speedup_min" data-row="0">—</span></span><span class="kpi-note">Lowest speed-up across models, TCK 1 MHz</span></div>
+    <div class="kpi"><span class="kpi-label">Compute share of an inference</span><span class="kpi-value" data-draw="kpi-compute" data-source="headline" data-field="compute_share_max" data-row="0">—</span><span class="kpi-note">Highest across models, burst protocol, wire time only</span></div>
+  </div>
+
+  <section id="accuracy">
+    <h2>Models</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>INT4 test accuracy against float</h3>
+        <p class="note">Each line runs from the float model to the INT4 integer result; the dashed line is the 90% target.</p>
+        <div class="legend"><span><i style="background: var(--cds-chart-muted)"></i>Float</span><span><i class="sw-0"></i>INT4 (hardware bit-exact)</span></div>
+        <div class="chart" data-draw="acc" data-source="models"></div>
+      </div>
+      <div class="card">
+        <h3>Model footprint and compute</h3>
+        <p class="note">Model and activation bytes are limited to 8,192 each; cycles on the 4×8 array at 50 MHz.</p>
+        <div class="tbl">
+          <table data-source="models" data-row-key="model">
+            <thead><tr><th data-field="model">Model</th><th data-field="dataset">Dataset</th><th data-field="int4_test">INT4</th><th data-field="model_bytes">Model B</th><th data-field="activation_peak">Act. peak B</th><th data-field="descriptors">Desc.</th><th data-field="cycles_c8">Cycles</th><th data-field="latency_us">µs</th><th data-field="mac_utilization">MAC util.</th></tr></thead>
+            <tbody data-draw="models-table" data-source="models"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="e2e">
+    <h2>From JTAG write to result readout</h2>
+    <div class="card">
+      <h3>Wire time per inference, by phase</h3>
+      <p class="note">RTL simulation on the physical JTAG pins, TCK 1 MHz, core 50 MHz; includes uploading the model once. Host software time is not in this chart.</p>
+      <div class="seg" role="group" aria-label="Protocol">
+        <button type="button" data-proto="Burst" aria-pressed="true">Burst</button>
+        <button type="button" data-proto="Per-word (ABI 3)" aria-pressed="false">Per-word (ABI 3)</button>
+        <button type="button" data-proto="both" aria-pressed="false">Both on one scale</button>
+      </div>
+      <div class="legend" data-draw="e2e-legend" data-source="e2e_grouped"></div>
+      <div class="chart" data-draw="e2e" data-source="e2e_grouped"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <h3>Host RPC estimate</h3>
+        <p class="note">Each command is one submit plus about two polls; burst scans are batched 64 per RPC; 4.0 ms per OpenOCD RPC from the previous board run.</p>
+        <div class="tbl">
+          <table data-source="host" data-row-key="model,protocol">
+            <thead><tr><th data-field="model">Model</th><th data-field="protocol">Protocol</th><th data-field="commands">Commands</th><th data-field="burst_scans">Burst scans</th><th data-field="rpcs">RPCs</th><th data-field="host_seconds">Host s</th></tr></thead>
+            <tbody data-draw="host-table" data-source="host"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Where compute cycles go</h3>
+        <p class="note">Mutually exclusive cycle classes from the RTL performance counters, 4×8 array.</p>
+        <div class="legend" data-draw="bd-legend" data-source="breakdown"></div>
+        <div class="chart" data-draw="bd" data-source="breakdown"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="optimizations">
+    <h2>Optimizations and fusion</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Cycles by optimization stage</h3>
+        <p class="note">Same models and frames on each RTL stage; Fashion-CNN was trained after stage two.</p>
+        <div class="legend" data-draw="st-legend" data-source="stages"></div>
+        <div class="chart" data-draw="st" data-source="stages"></div>
+      </div>
+      <div class="card">
+        <h3>TILE 16 vs 8 (kept at 16)</h3>
+        <p class="note">Halving the psum tile saves standard-cell area but costs cycles; the die is not area-limited at two SRAMs.</p>
+        <div class="tbl">
+          <table data-source="tile8" data-row-key="model">
+            <thead><tr><th data-field="model">Model</th><th data-field="tile16">TILE 16</th><th data-field="tile8">TILE 8</th><th data-source="tile8_delta" data-field="change">Change</th></tr></thead>
+            <tbody data-draw="tile-table" data-source="tile8 tile8_delta"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Fusion ablation, cycles / writes</h3>
+      <p class="note">Each fusion kind switched off in the compiler. Hatched cells no longer fit the 16 descriptors or 8 KiB SRAMs: fusion is what makes these models fit. In u4 models, ReLU is done by the requant clamp, so switching off ReLU fusion changes nothing.</p>
+      <div class="fuse-wrap"><div class="fuse" data-draw="fuse" data-source="fusion"></div></div>
+    </div>
+  </section>
+
+  <section id="silicon">
+    <h2>Area, layout and signoff</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Synthesized area by version</h3>
+        <p class="note">Genus standard cells, and the total with two RA1SHD_2048x32M8 macros.</p>
+        <div class="legend"><span><i class="sw-0"></i>Standard cells</span><span><i style="background: var(--cds-chart-muted)"></i>Total with SRAM</span></div>
+        <div class="chart" data-draw="area" data-source="area"></div>
+      </div>
+      <div class="card">
+        <h3>FPGA implementation (EGo1, 50 MHz)</h3>
+        <p class="note">Vivado LUT use against the 20,800 LUTs of the XC7A35T; the dashed line is 85%. All seven published models ran on the board byte-exact.</p>
+        <div class="chart" data-draw="fpga" data-source="fpga"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>SRAM placement and the final layout</h3>
+      <p class="note">Innovus full-chip place and route at 70% utilization, PrimeTime on the extracted parasitics, TT 1.8 V 25 °C, 50 MHz. Each SRAM has all 109 signal pins on one edge; the final layout puts the macros in opposite corners with each pin edge facing open logic.</p>
+      <div class="tbl">
+        <table data-source="layout" data-row-key="run">
+          <thead><tr><th data-field="run">Run</th><th data-field="layout">Layout</th><th data-field="utilization">Util.</th><th data-field="die_side_um">Die µm</th><th data-field="setup_wns_ns">Innovus setup ns</th><th data-field="hold_wns_ns">Innovus hold ns</th><th data-field="pt_setup_wns_ns">PT setup ns</th><th data-field="pt_hold_wns_ns">PT hold ns</th><th data-field="wire_m">Wire m</th><th data-field="checks_passed">Checks</th><th data-field="eligible">Eligible</th></tr></thead>
+          <tbody data-draw="layout-table" data-source="layout"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" id="signoff">
+      <h3>Signoff of the selected layout</h3>
+      <p class="note">Independent signoff checks and the Xcelium SDF gate-level simulation on the selected candidate.</p>
+      <div class="tbl">
+        <table data-source="signoff" data-row-key="check">
+          <thead><tr><th data-field="check">Check</th><th data-field="passed">Result</th><th data-field="detail">Detail</th></tr></thead>
+          <tbody data-draw="signoff-table" data-source="signoff"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="decisions">
+    <h2>What was decided</h2>
+    <ul class="decisions">
+      <li><b>Adopted:</b> single-rounding requant, unsigned u4 activations, a one-word parameter format, a shared setup multiplier, a vector element engine, narrow-kernel row padding, one depthwise weight row per tap, dual requant lanes, in-place Add and JTAG burst IRs.</li>
+      <li><b>Kept as a build option:</b> TILE 8, since the die is not area-limited and the cycle cost is real.</li>
+      <li><b>Rejected:</b> a third SRAM for a 16 KiB model store (only 8 KiB macros fit the die), one shared SRAM for model and activations, and a hardware switch for fusion (fusion changes the descriptor list, so the compiler owns it).</li>
+      <li><b>Not covered:</b> multi-corner STA, IR and EM, a Vivado run and a board run; the full report is docs/INT4_V2_REPORT.md.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  window.npu = (() => {
+    const pct = d3.format('.2%'), pct1 = d3.format('.1%'), int = d3.format(','), ms = (v) => (v >= 100 ? d3.format(',.0f')(v) : d3.format('.1f')(v)) + ' ms';
+    const fail = (el, id) => { if (dash.data(id).status === 'error') { const d = document.createElement('div'); d.className = 'fail'; d.textContent = 'Failed to load'; el.replaceChildren(d); } else el.replaceChildren(); };
+    const ok = (...ids) => ids.every((id) => dash.data(id).status === 'ok');
+    const tip = (box) => {
+      let t = box.querySelector(':scope > .tip');
+      if (!t) { t = document.createElement('div'); t.className = 'tip'; t.hidden = true; box.appendChild(t); }
+      return {
+        show(ev, head, rows) {
+          t.replaceChildren();
+          const h = document.createElement('div'); h.className = 't-head'; h.textContent = head; t.appendChild(h);
+          for (const [color, name, value] of rows) {
+            const r = document.createElement('div'); r.className = 't-row';
+            if (color) { const s = document.createElement('span'); s.className = 'sw'; s.style.background = color; r.appendChild(s); }
+            const n = document.createElement('span'); n.textContent = name + ' '; r.appendChild(n);
+            const v = document.createElement('b'); v.textContent = value; r.appendChild(v);
+            t.appendChild(r);
+          }
+          t.hidden = false;
+          const [x, y] = d3.pointer(ev, box), bw = box.clientWidth, tw = t.offsetWidth;
+          t.style.left = Math.max(0, Math.min(x + 12, bw - tw)) + 'px';
+          t.style.top = (y + 12) + 'px';
+        },
+        hide() { t.hidden = true; },
+      };
+    };
+    const legend = (el, names, colors) => {
+      el.replaceChildren(...names.map((n, i) => { const s = document.createElement('span'); const k = document.createElement('i'); k.style.background = colors[i]; s.append(k, n); return s; }));
+    };
+    const textWidth = (svg, strings) => {
+      const g = svg.append('g'); let w = 0;
+      for (const s of strings) { const t = g.append('text').text(s); w = Math.max(w, t.node().getComputedTextLength()); }
+      g.remove(); return w;
+    };
+    const axis = (g) => g.attr('font-size', null).attr('font-family', null).call((a) => a.select('.domain').attr('stroke', 'var(--cds-chart-axis)')).call((a) => a.selectAll('.tick line').attr('stroke', 'var(--cds-chart-grid)'));
+    return { pct, pct1, int, ms, fail, ok, tip, legend, textWidth, axis };
+  })();
+  document.querySelectorAll('.sw-0').forEach((el) => { el.style.background = dash.colors[0]; });
+  window.npuProto = 'Burst';
+</script>
+
+<script>
+  dash.calc('headline', {
+    inputs: ['models', 'layout', 'area', 'e2e_grouped'],
+    title: 'Headline figures',
+    description: 'Lowest INT4 accuracy, final layout die, final standard-cell area, burst speed-up and compute share.',
+    fn: (models, layout, area, e2e_grouped) => {
+      const low = models.reduce((a, b) => (b.int4_test < a.int4_test ? b : a));
+      const fin = layout.filter((r) => r.rtl === 'Final RTL')[0];
+      const tot = d3.rollup(e2e_grouped, (v) => d3.sum(v, (r) => r.ms), (r) => r.model, (r) => r.protocol);
+      const comp = d3.rollup(e2e_grouped.filter((r) => r.group === 'Compute' && r.protocol === 'Burst'), (v) => d3.sum(v, (r) => r.ms), (r) => r.model);
+      const speed = [...tot].map(([, p]) => p.get('Per-word (ABI 3)') / p.get('Burst'));
+      const share = [...comp].map(([m, c]) => c / tot.get(m).get('Burst'));
+      return [{ models: models.length, min_acc: low.int4_test, min_model: low.model, die_side_um: fin ? fin.die_side_um : null, die_run: fin ? fin.run.split(': ')[1] : null,
+        std_mm2: area[area.length - 1].standard_mm2, speedup_min: d3.min(speed), compute_share_max: d3.max(share) }];
+    },
+  });
+  dash.calc('e2e_grouped', {
+    inputs: ['e2e'],
+    title: 'Wire time by phase group',
+    description: 'Phases summed into model upload, input upload, compute, output readout and control (capability, commit, start, status, ack).',
+    fn: (e2e) => {
+      const group = { 'Model upload': 'Model upload', 'Input upload': 'Input upload', 'Compute': 'Compute', 'Output readout': 'Output readout' };
+      const out = d3.rollups(e2e, (v) => d3.sum(v, (r) => r.ms), (r) => r.model, (r) => r.protocol, (r) => group[r.phase] || 'Control');
+      return out.flatMap(([model, ps]) => ps.flatMap(([protocol, gs]) => gs.map(([g, v]) => ({ model, protocol, group: g, ms: Math.round(v * 1000) / 1000 }))));
+    },
+  });
+  dash.calc('tile8_delta', {
+    inputs: ['tile8'],
+    title: 'TILE 8 cycle change',
+    description: 'TILE 8 cycles over TILE 16 cycles, minus one.',
+    fn: (tile8) => tile8.map((r) => ({ model: r.model, change: r.tile8 / r.tile16 - 1 })),
+  });
+
+  const head = (name, field, f) => dash.draw(name, (el) => {
+    const d = dash.data('headline');
+    el.classList.toggle('dash-skeleton', d.status === 'loading');
+    el.textContent = d.status === 'ok' && d.data[0] && d.data[0][field] != null ? f(d.data[0][field]) : '—';
+  });
+  head('kpi-models', 'models', String);
+  head('kpi-minacc', 'min_acc', npu.pct);
+  head('kpi-minmodel', 'min_model', String);
+  head('kpi-die', 'die_side_um', d3.format(',.0f'));
+  head('kpi-die2', 'die_side_um', d3.format(',.0f'));
+  head('kpi-run', 'die_run', String);
+  head('kpi-std', 'std_mm2', d3.format('.3f'));
+  head('kpi-speed', 'speedup_min', (v) => d3.format('.1f')(v) + '×');
+  head('kpi-compute', 'compute_share_max', npu.pct1);
+</script>
+
+<script>
+  // Accuracy dumbbell
+  dash.draw('acc', (el) => {
+    if (!npu.ok('models')) return npu.fail(el, 'models');
+    const rows = dash.data('models').data.map((r) => ({ ...r, int4_test: +r.int4_test, float_test: +r.float_test }));
+    el.replaceChildren();
+    const W = el.clientWidth, rowH = 30, H = rows.length * rowH + 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const L = npu.textWidth(svg, rows.map((r) => r.model)) + 12, R = 54;
+    const x = d3.scaleLinear([0.88, 1], [L, W - R]);
+    const y = d3.scaleBand(rows.map((r) => r.model), [0, H - 30]).padding(0.3);
+    svg.append('g').attr('transform', `translate(0,${H - 30})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - L - R) / 70))).tickFormat(d3.format('.0%')).tickSize(-(H - 30))).call(npu.axis).call((g) => g.select('.domain').remove());
+    svg.append('line').attr('x1', x(0.9)).attr('x2', x(0.9)).attr('y1', 0).attr('y2', H - 30).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    svg.append('g').selectAll('text').data(rows).join('text').attr('x', L - 8).attr('y', (r) => y(r.model) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((r) => r.model);
+    const g = svg.append('g').selectAll('g').data(rows).join('g');
+    g.append('line').attr('x1', (r) => x(r.int4_test)).attr('x2', (r) => x(r.float_test)).attr('y1', (r) => y(r.model) + y.bandwidth() / 2).attr('y2', (r) => y(r.model) + y.bandwidth() / 2).attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 2).attr('stroke-linecap', 'round');
+    g.append('circle').attr('cx', (r) => x(r.float_test)).attr('cy', (r) => y(r.model) + y.bandwidth() / 2).attr('r', 4.5).attr('fill', 'var(--cds-chart-muted)');
+    g.append('circle').attr('cx', (r) => x(r.int4_test)).attr('cy', (r) => y(r.model) + y.bandwidth() / 2).attr('r', 5.5).attr('fill', dash.colors[0]);
+    g.append('text').attr('x', (r) => Math.max(x(r.int4_test), x(r.float_test)) + 9).attr('y', (r) => y(r.model) + y.bandwidth() / 2).attr('dy', '0.35em').text((r) => npu.pct1(r.int4_test));
+    const t = npu.tip(el);
+    g.append('rect').attr('x', 0).attr('width', W).attr('y', (r) => y(r.model) - 4).attr('height', y.bandwidth() + 8).attr('fill', 'transparent')
+      .on('pointermove', (ev, r) => t.show(ev, `${r.model} · ${r.dataset}`, [[dash.colors[0], 'INT4', npu.pct(r.int4_test)], ['var(--cds-chart-muted)', 'Float', npu.pct(r.float_test)], [null, 'Balanced INT4', npu.pct(+r.int4_balanced)]]))
+      .on('pointerleave', () => t.hide());
+  });
+
+  dash.draw('models-table', (el) => {
+    if (!npu.ok('models')) return el.replaceChildren();
+    el.replaceChildren(...dash.data('models').data.map((r) => {
+      const tr = document.createElement('tr');
+      for (const v of [r.model, r.dataset, npu.pct1(+r.int4_test), npu.int(+r.model_bytes), npu.int(+r.activation_peak), r.descriptors, npu.int(+r.cycles_c8), npu.int(Math.round(+r.latency_us)), r.mac_utilization == null ? '—' : npu.pct1(+r.mac_utilization)]) {
+        const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+      }
+      return tr;
+    }));
+  });
+</script>
+
+<script>
+  // End-to-end stacked bars
+  const GROUPS = ['Model upload', 'Input upload', 'Compute', 'Output readout', 'Control'];
+  const gcolor = (i) => dash.colors[i];
+  document.querySelectorAll('.seg button[data-proto]').forEach((b) => b.addEventListener('click', () => {
+    window.npuProto = b.dataset.proto;
+    document.querySelectorAll('.seg button[data-proto]').forEach((o) => o.setAttribute('aria-pressed', String(o === b)));
+    dash.draw('e2e');
+  }));
+  dash.draw('e2e-legend', (el) => (npu.ok('e2e_grouped') ? npu.legend(el, GROUPS, GROUPS.map((_, i) => gcolor(i))) : el.replaceChildren()));
+  dash.draw('e2e', (el) => {
+    if (!npu.ok('e2e_grouped')) return npu.fail(el, 'e2e');
+    const all = dash.data('e2e_grouped').data;
+    const proto = window.npuProto;
+    const rows = all.filter((r) => proto === 'both' || r.protocol === proto);
+    const key = (r) => (proto === 'both' ? `${r.model} · ${r.protocol === 'Burst' ? 'burst' : 'per-word'}` : r.model);
+    const bars = d3.rollups(rows, (v) => Object.fromEntries(v.map((r) => [r.group, r.ms])), key).map(([k, v]) => ({ key: k, ...v, total: d3.sum(GROUPS, (g) => v[g] || 0) }));
+    el.replaceChildren();
+    const W = el.clientWidth, rowH = proto === 'both' ? 22 : 30, H = bars.length * rowH + 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const L = npu.textWidth(svg, bars.map((b) => b.key)) + 12, R = npu.textWidth(svg, bars.map((b) => npu.ms(b.total))) + 14;
+    const x = d3.scaleLinear([0, d3.max(bars, (b) => b.total)], [L, W - R]).nice();
+    const y = d3.scaleBand(bars.map((b) => b.key), [0, H - 30]).padding(0.25);
+    svg.append('g').attr('transform', `translate(0,${H - 30})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - L - R) / 80))).tickFormat((v) => v + ' ms').tickSize(-(H - 30))).call(npu.axis).call((g) => g.select('.domain').remove());
+    svg.append('g').selectAll('text').data(bars).join('text').attr('x', L - 8).attr('y', (b) => y(b.key) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((b) => b.key);
+    const stack = d3.stack().keys(GROUPS).value((b, k) => b[k] || 0)(bars);
+    const t = npu.tip(el);
+    svg.append('g').selectAll('g').data(stack).join('g').attr('fill', (s, i) => gcolor(i)).selectAll('rect').data((s) => s).join('rect')
+      .attr('x', (d) => x(d[0])).attr('width', (d) => Math.max(0, x(d[1]) - x(d[0]))).attr('y', (d) => y(d.data.key)).attr('height', Math.min(y.bandwidth(), 32));
+    svg.append('g').selectAll('text').data(bars).join('text').attr('x', (b) => x(b.total) + 6).attr('y', (b) => y(b.key) + y.bandwidth() / 2).attr('dy', '0.35em').text((b) => npu.ms(b.total));
+    svg.append('g').selectAll('rect').data(bars).join('rect').attr('x', 0).attr('width', W).attr('y', (b) => y(b.key)).attr('height', y.bandwidth()).attr('fill', 'transparent')
+      .on('pointermove', (ev, b) => t.show(ev, `${b.key} · ${npu.ms(b.total)}`, GROUPS.map((g, i) => [gcolor(i), g, `${npu.ms(b[g] || 0)} (${npu.pct1((b[g] || 0) / b.total)})`])))
+      .on('pointerleave', () => t.hide());
+  });
+
+  dash.draw('host-table', (el) => {
+    if (!npu.ok('host')) return el.replaceChildren();
+    el.replaceChildren(...dash.data('host').data.map((r) => {
+      const tr = document.createElement('tr');
+      for (const v of [r.model, r.protocol, npu.int(+r.commands), npu.int(+r.burst_scans), npu.int(+r.rpcs), d3.format('.2f')(+r.host_seconds)]) {
+        const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+      }
+      return tr;
+    }));
+  });
+
+  // Compute breakdown, 100% stacked
+  const CATS = ['MAC issue', 'Wait activation', 'Wait weight', 'Wait result slot', 'Kernel prepare', 'Element / other'];
+  dash.draw('bd-legend', (el) => (npu.ok('breakdown') ? npu.legend(el, CATS, CATS.map((_, i) => dash.colors[i])) : el.replaceChildren()));
+  dash.draw('bd', (el) => {
+    if (!npu.ok('breakdown')) return npu.fail(el, 'breakdown');
+    const bars = d3.rollups(dash.data('breakdown').data, (v) => Object.fromEntries(v.map((r) => [r.category, +r.cycles])), (r) => r.model).map(([m, v]) => ({ model: m, ...v, total: d3.sum(CATS, (c) => v[c] || 0) }));
+    el.replaceChildren();
+    const W = el.clientWidth, H = bars.length * 30 + 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const L = npu.textWidth(svg, bars.map((b) => b.model)) + 12, R = 8;
+    const x = d3.scaleLinear([0, 1], [L, W - R]);
+    const y = d3.scaleBand(bars.map((b) => b.model), [0, H - 30]).padding(0.25);
+    svg.append('g').attr('transform', `translate(0,${H - 30})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.format('.0%')).tickSize(-(H - 30))).call(npu.axis).call((g) => g.select('.domain').remove());
+    svg.append('g').selectAll('text').data(bars).join('text').attr('x', L - 8).attr('y', (b) => y(b.model) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((b) => b.model);
+    const stack = d3.stack().keys(CATS).value((b, k) => (b[k] || 0) / b.total)(bars);
+    svg.append('g').selectAll('g').data(stack).join('g').attr('fill', (s, i) => dash.colors[i]).selectAll('rect').data((s) => s).join('rect')
+      .attr('x', (d) => x(d[0])).attr('width', (d) => Math.max(0, x(d[1]) - x(d[0]))).attr('y', (d) => y(d.data.model)).attr('height', y.bandwidth());
+    const t = npu.tip(el);
+    svg.append('g').selectAll('rect').data(bars).join('rect').attr('x', 0).attr('width', W).attr('y', (b) => y(b.model)).attr('height', y.bandwidth()).attr('fill', 'transparent')
+      .on('pointermove', (ev, b) => t.show(ev, `${b.model} · ${npu.int(b.total)} cycles`, CATS.map((c, i) => [dash.colors[i], c, `${npu.int(b[c] || 0)} (${npu.pct1((b[c] || 0) / b.total)})`])))
+      .on('pointerleave', () => t.hide());
+  });
+</script>
+
+<script>
+  // Optimization stages, grouped bars
+  dash.draw('st-legend', (el) => {
+    if (!npu.ok('stages')) return el.replaceChildren();
+    const names = [...new Set(dash.data('stages').data.map((r) => r.stage))];
+    npu.legend(el, names, names.map((_, i) => (i === names.length - 1 ? dash.colors[0] : i === 0 ? 'var(--cds-chart-muted)' : dash.colors[2])));
+  });
+  dash.draw('st', (el) => {
+    if (!npu.ok('stages')) return npu.fail(el, 'stages');
+    const rows = dash.data('stages').data.map((r) => ({ ...r, cycles: +r.cycles }));
+    const stages = [...new Set(rows.map((r) => r.stage))], models = [...new Set(rows.map((r) => r.model))];
+    const col = (s) => { const i = stages.indexOf(s); return i === stages.length - 1 ? dash.colors[0] : i === 0 ? 'var(--cds-chart-muted)' : dash.colors[2]; };
+    el.replaceChildren();
+    const W = el.clientWidth, H = models.length * 40 + 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const L = npu.textWidth(svg, models) + 12, R = 12;
+    const x = d3.scaleLinear([0, d3.max(rows, (r) => r.cycles)], [L, W - R]).nice();
+    const y = d3.scaleBand(models, [0, H - 30]).padding(0.2);
+    const yi = d3.scaleBand(stages, [0, y.bandwidth()]).padding(0.1);
+    svg.append('g').attr('transform', `translate(0,${H - 30})`).call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - L - R) / 80))).tickFormat(d3.format('~s')).tickSize(-(H - 30))).call(npu.axis).call((g) => g.select('.domain').remove());
+    svg.append('g').selectAll('text').data(models).join('text').attr('x', L - 8).attr('y', (m) => y(m) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((m) => m);
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', L).attr('width', (r) => x(r.cycles) - L).attr('y', (r) => y(r.model) + yi(r.stage)).attr('height', yi.bandwidth()).attr('rx', 2).attr('fill', (r) => col(r.stage));
+    const t = npu.tip(el);
+    svg.append('g').selectAll('rect').data(models).join('rect').attr('x', 0).attr('width', W).attr('y', (m) => y(m)).attr('height', y.bandwidth()).attr('fill', 'transparent')
+      .on('pointermove', (ev, m) => { const mine = rows.filter((r) => r.model === m); const first = mine[0].cycles; t.show(ev, m, mine.map((r) => [col(r.stage), r.stage, `${npu.int(r.cycles)}${r === mine[0] ? '' : ' (' + d3.format('+.1%')(r.cycles / first - 1) + ')'}`])); })
+      .on('pointerleave', () => t.hide());
+  });
+
+  dash.draw('tile-table', (el) => {
+    if (!npu.ok('tile8', 'tile8_delta')) return el.replaceChildren();
+    const delta = new Map(dash.data('tile8_delta').data.map((r) => [r.model, r.change]));
+    el.replaceChildren(...dash.data('tile8').data.map((r) => {
+      const tr = document.createElement('tr');
+      for (const v of [r.model, npu.int(+r.tile16), npu.int(+r.tile8), d3.format('+.1%')(delta.get(r.model))]) { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); }
+      return tr;
+    }));
+  });
+
+  // Fusion ablation grid
+  dash.draw('fuse', (el) => {
+    if (!npu.ok('fusion')) return npu.fail(el, 'fusion');
+    const rows = dash.data('fusion').data;
+    const configs = [...new Set(rows.map((r) => r.config))], models = [...new Set(rows.map((r) => r.model))];
+    el.style.gridTemplateColumns = `minmax(6rem, auto) repeat(${configs.length}, minmax(0, 1fr))`;
+    const cell = (cls, text) => { const d = document.createElement('div'); d.className = cls; d.textContent = text; d.title = text; return d; };
+    const out = [cell('h', 'Model'), ...configs.map((c) => cell('h', c))];
+    for (const m of models) {
+      out.push(cell('', m));
+      for (const c of configs) {
+        const r = rows.find((x) => x.model === m && x.config === c);
+        const fits = r && (r.fits === true || r.fits === 'true');
+        out.push(!r ? cell('', '—') : fits ? cell('fit', `${npu.int(+r.cycles)} / ${npu.int(+r.writes)}`) : cell('nofit', `Exceeds ${r.limit}`));
+      }
+    }
+    el.replaceChildren(...out);
+  });
+</script>
+
+<script>
+  // Area by version
+  dash.draw('area', (el) => {
+    if (!npu.ok('area')) return npu.fail(el, 'area');
+    const rows = dash.data('area').data.map((r) => ({ ...r, standard_mm2: +r.standard_mm2, total_mm2: +r.total_mm2 }));
+    el.replaceChildren();
+    const W = el.clientWidth, H = rows.length * 40 + 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const L = Math.min(W * 0.62, npu.textWidth(svg, rows.map((r) => r.version)) + 12), R = 48;
+    const x = d3.scaleLinear([0, d3.max(rows, (r) => r.total_mm2)], [L, W - R]).nice();
+    const y = d3.scaleBand(rows.map((r) => r.version), [0, H - 30]).padding(0.25);
+    svg.append('g').attr('transform', `translate(0,${H - 30})`).call(d3.axisBottom(x).ticks(4).tickFormat((v) => v + ' mm²').tickSize(-(H - 30))).call(npu.axis).call((g) => g.select('.domain').remove());
+    svg.append('g').selectAll('text').data(rows).join('text').attr('x', L - 8).attr('y', (r) => y(r.version) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((r) => r.version)
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', L).attr('width', (r) => x(r.total_mm2) - L).attr('y', (r) => y(r.version)).attr('height', y.bandwidth()).attr('rx', 2).attr('fill', 'var(--cds-chart-muted)');
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', L).attr('width', (r) => x(r.standard_mm2) - L).attr('y', (r) => y(r.version) + y.bandwidth() * 0.2).attr('height', y.bandwidth() * 0.6).attr('rx', 2).attr('fill', dash.colors[0]);
+    svg.append('g').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.total_mm2) + 6).attr('y', (r) => y(r.version) + y.bandwidth() / 2).attr('dy', '0.35em').text((r) => d3.format('.2f')(r.total_mm2));
+    const t = npu.tip(el);
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', 0).attr('width', W).attr('y', (r) => y(r.version)).attr('height', y.bandwidth()).attr('fill', 'transparent')
+      .on('pointermove', (ev, r) => t.show(ev, `${r.version} · ${r.commit}`, [[dash.colors[0], 'Standard cells', d3.format('.3f')(r.standard_mm2) + ' mm²'], ['var(--cds-chart-muted)', 'Total with SRAM', d3.format('.3f')(r.total_mm2) + ' mm²']]))
+      .on('pointerleave', () => t.hide());
+  });
+
+  // FPGA LUT proxy
+  const LUTS = 20800, CEILING = 0.85;
+  dash.draw('fpga', (el) => {
+    if (!npu.ok('fpga')) return npu.fail(el, 'fpga');
+    const rows = dash.data('fpga').data.map((r) => ({ ...r, lut: +r.lut, ff: +r.ff }));
+    el.replaceChildren();
+    const W = el.clientWidth, H = rows.length * 40 + 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const L = npu.textWidth(svg, rows.map((r) => r.build)) + 12, R = 48;
+    const x = d3.scaleLinear([0, LUTS], [L, W - R]);
+    const y = d3.scaleBand(rows.map((r) => r.build), [0, H - 30]).padding(0.25);
+    svg.append('g').attr('transform', `translate(0,${H - 30})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.format('~s')).tickSize(-(H - 30))).call(npu.axis).call((g) => g.select('.domain').remove());
+    svg.append('line').attr('x1', x(LUTS * CEILING)).attr('x2', x(LUTS * CEILING)).attr('y1', 0).attr('y2', H - 30).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    svg.append('g').selectAll('text').data(rows).join('text').attr('x', L - 8).attr('y', (r) => y(r.build) + y.bandwidth() / 2).attr('dy', '0.35em').attr('text-anchor', 'end').text((r) => r.build);
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', L).attr('width', (r) => x(r.lut) - L).attr('y', (r) => y(r.build)).attr('height', Math.min(y.bandwidth(), 32)).attr('rx', 2)
+      .attr('fill', (r) => (r.lut > LUTS * CEILING ? 'var(--cds-chart-status-critical)' : r.build.includes('default') ? dash.colors[0] : 'var(--cds-chart-muted)'));
+    svg.append('g').selectAll('text').data(rows).join('text').attr('x', (r) => x(r.lut) + 6).attr('y', (r) => y(r.build) + y.bandwidth() / 2).attr('dy', '0.35em').text((r) => d3.format('.0%')(r.lut / LUTS));
+    const t = npu.tip(el);
+    svg.append('g').selectAll('rect').data(rows).join('rect').attr('x', 0).attr('width', W).attr('y', (r) => y(r.build)).attr('height', y.bandwidth()).attr('fill', 'transparent')
+      .on('pointermove', (ev, r) => t.show(ev, r.build, [[null, 'LUT', npu.int(r.lut)], [null, 'FF', npu.int(r.ff)], [null, 'BRAM36', String(r.bram36)], [null, 'DSP', String(r.dsp)]]))
+      .on('pointerleave', () => t.hide());
+  });
+
+  dash.draw('layout-table', (el) => {
+    if (!npu.ok('layout')) return el.replaceChildren();
+    el.replaceChildren(...dash.data('layout').data.map((r) => {
+      const tr = document.createElement('tr');
+      const elig = r.eligible === true || r.eligible === 'true';
+      const vals = [[r.run], [r.layout], [d3.format('.0%')(+r.utilization)], [d3.format(',.0f')(+r.die_side_um), +r.die_side_um <= 1950 ? 'ok' : 'bad'],
+        [d3.format('+.3f')(+r.setup_wns_ns), +r.setup_wns_ns >= 0 ? '' : 'bad'], [d3.format('+.3f')(+r.hold_wns_ns), +r.hold_wns_ns >= 0 ? '' : 'bad'],
+        ...[r.pt_setup_wns_ns, r.pt_hold_wns_ns].map((v) => (v == null ? ['—'] : [d3.format('+.3f')(+v), +v >= 0 ? '' : 'bad'])),
+        [d3.format('.2f')(+r.wire_m)], [`${r.checks_passed} / ${r.checks}`], [elig ? 'Yes' : 'No', elig ? 'ok' : 'bad']];
+      for (const [v, cls] of vals) { const td = document.createElement('td'); td.textContent = v; if (cls) td.className = cls; tr.appendChild(td); }
+      return tr;
+    }));
+  });
+
+  dash.draw('signoff-table', (el) => {
+    if (!npu.ok('signoff')) return el.replaceChildren();
+    el.replaceChildren(...dash.data('signoff').data.map((r) => {
+      const tr = document.createElement('tr'); const pass = r.passed === true || r.passed === 'true';
+      for (const [v, cls] of [[r.check], [pass ? 'Pass' : 'Fail', pass ? 'ok' : 'bad'], [r.detail]]) { const td = document.createElement('td'); td.textContent = v; if (cls) td.className = cls; tr.appendChild(td); }
+      return tr;
+    }));
+  });
+
+  const named = document.getElementById(location.hash.slice(1));
+  if (named) setTimeout(() => { named.scrollIntoView(); dash.setLink(named.id); }, 300);
+</script>

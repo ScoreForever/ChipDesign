@@ -1,0 +1,2 @@
+PASS NPU_JTAG_BURST_CDC: 32 rate/phase sweeps, word-address carry/wrap, read pipeline, backpressure, overrun/error, Shift-DR/TCK pause, TMS/global reset, restart
+D:\IWS\Advanced_SoC\ChipDesign\build\int4_v2_update_20261104\verification\fpga\tb_npu_jtag_burst_cdc.sv:147: $finish called at 7244869000 (1ps)

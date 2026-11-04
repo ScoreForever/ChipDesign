@@ -1,0 +1,271 @@
+{
+ "note": "Per Conv/FC operator the trace gives MAC-issue and wait-for-activation cycles; everything else (result-slot waits, element ops, descriptor/parameter fetch) is kept as measured on 4x8. Dense layers issue P*ceil(K/R)*ceil(OC/C) vectors: the column factor comes from the measured 4x4/4x8 ratio, the row factor is 4/R. Depthwise layers issue P*taps*OC/lanes with lanes = R (block-diagonal mapping on the shared array) or C (a per-column depthwise path). Activation waits scale with MAC issue (optimistic) or stay at the 4x8 count per gathered vector (pessimistic: activation bandwidth does not improve).",
+ "models": {
+  "mnist_l": {
+   "cycles_4x8": 49416,
+   "cycles_4x4_measured": 70118,
+   "configs": {
+    "4x4": {
+     "optimistic": 65942,
+     "pessimistic": 65942,
+     "change_optimistic": 0.3344,
+     "change_pessimistic": 0.3344
+    },
+    "4x8": {
+     "optimistic": 49416,
+     "pessimistic": 49416,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 41145,
+     "pessimistic": 41145,
+     "change_optimistic": -0.1674,
+     "change_pessimistic": -0.1674
+    },
+    "8x8": {
+     "optimistic": 31126,
+     "pessimistic": 36072,
+     "change_optimistic": -0.3701,
+     "change_pessimistic": -0.27
+    },
+    "4x8+dw_path": {
+     "optimistic": 39397,
+     "pessimistic": 42360,
+     "change_optimistic": -0.2027,
+     "change_pessimistic": -0.1428
+    }
+   },
+   "depthwise_share_4x8": 0.4055,
+   "dense_share_4x8": 0.3347
+  },
+  "fashion_cnn": {
+   "cycles_4x8": 72812,
+   "cycles_4x4_measured": 142868,
+   "configs": {
+    "4x4": {
+     "optimistic": 137966,
+     "pessimistic": 137966,
+     "change_optimistic": 0.8948,
+     "change_pessimistic": 0.8948
+    },
+    "4x8": {
+     "optimistic": 72812,
+     "pessimistic": 72812,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 40231,
+     "pessimistic": 40231,
+     "change_optimistic": -0.4475,
+     "change_pessimistic": -0.4475
+    },
+    "8x8": {
+     "optimistic": 40231,
+     "pessimistic": 49284,
+     "change_optimistic": -0.4475,
+     "change_pessimistic": -0.3231
+    },
+    "4x8+dw_path": {
+     "optimistic": 72812,
+     "pessimistic": 72812,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    }
+   },
+   "depthwise_share_4x8": 0.0,
+   "dense_share_4x8": 0.8949
+  },
+  "kws_l": {
+   "cycles_4x8": 126414,
+   "cycles_4x4_measured": 177912,
+   "configs": {
+    "4x4": {
+     "optimistic": 172308,
+     "pessimistic": 172308,
+     "change_optimistic": 0.363,
+     "change_pessimistic": 0.363
+    },
+    "4x8": {
+     "optimistic": 126414,
+     "pessimistic": 126414,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 103461,
+     "pessimistic": 103461,
+     "change_optimistic": -0.1816,
+     "change_pessimistic": -0.1816
+    },
+    "8x8": {
+     "optimistic": 76524,
+     "pessimistic": 90027,
+     "change_optimistic": -0.3947,
+     "change_pessimistic": -0.2878
+    },
+    "4x8+dw_path": {
+     "optimistic": 99477,
+     "pessimistic": 106164,
+     "change_optimistic": -0.2131,
+     "change_pessimistic": -0.1602
+    }
+   },
+   "depthwise_share_4x8": 0.4262,
+   "dense_share_4x8": 0.3631
+  },
+  "kws_m": {
+   "cycles_4x8": 110115,
+   "cycles_4x4_measured": 156199,
+   "configs": {
+    "4x4": {
+     "optimistic": 143065,
+     "pessimistic": 143065,
+     "change_optimistic": 0.2992,
+     "change_pessimistic": 0.2992
+    },
+    "4x8": {
+     "optimistic": 110115,
+     "pessimistic": 110115,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 93635,
+     "pessimistic": 93635,
+     "change_optimistic": -0.1497,
+     "change_pessimistic": -0.1497
+    },
+    "8x8": {
+     "optimistic": 68515,
+     "pessimistic": 72918,
+     "change_optimistic": -0.3778,
+     "change_pessimistic": -0.3378
+    },
+    "4x8+dw_path": {
+     "optimistic": 84995,
+     "pessimistic": 87615,
+     "change_optimistic": -0.2281,
+     "change_pessimistic": -0.2043
+    }
+   },
+   "depthwise_share_4x8": 0.4563,
+   "dense_share_4x8": 0.2993
+  },
+  "har": {
+   "cycles_4x8": 25048,
+   "cycles_4x4_measured": 40240,
+   "configs": {
+    "4x4": {
+     "optimistic": 39088,
+     "pessimistic": 39088,
+     "change_optimistic": 0.5605,
+     "change_pessimistic": 0.5605
+    },
+    "4x8": {
+     "optimistic": 25048,
+     "pessimistic": 25048,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 18028,
+     "pessimistic": 18028,
+     "change_optimistic": -0.2803,
+     "change_pessimistic": -0.2803
+    },
+    "8x8": {
+     "optimistic": 15224,
+     "pessimistic": 18000,
+     "change_optimistic": -0.3922,
+     "change_pessimistic": -0.2814
+    },
+    "4x8+dw_path": {
+     "optimistic": 22244,
+     "pessimistic": 23128,
+     "change_optimistic": -0.1119,
+     "change_pessimistic": -0.0767
+    }
+   },
+   "depthwise_share_4x8": 0.2239,
+   "dense_share_4x8": 0.5605
+  },
+  "ecg": {
+   "cycles_4x8": 21286,
+   "cycles_4x4_measured": 30062,
+   "configs": {
+    "4x4": {
+     "optimistic": 27082,
+     "pessimistic": 27082,
+     "change_optimistic": 0.2723,
+     "change_pessimistic": 0.2723
+    },
+    "4x8": {
+     "optimistic": 21286,
+     "pessimistic": 21286,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 18388,
+     "pessimistic": 18388,
+     "change_optimistic": -0.1361,
+     "change_pessimistic": -0.1361
+    },
+    "8x8": {
+     "optimistic": 14680,
+     "pessimistic": 16674,
+     "change_optimistic": -0.3103,
+     "change_pessimistic": -0.2167
+    },
+    "4x8+dw_path": {
+     "optimistic": 17578,
+     "pessimistic": 18726,
+     "change_optimistic": -0.1742,
+     "change_pessimistic": -0.1203
+    }
+   },
+   "depthwise_share_4x8": 0.3484,
+   "dense_share_4x8": 0.2723
+  },
+  "gtsrb_l": {
+   "cycles_4x8": 122804,
+   "cycles_4x4_measured": 203750,
+   "configs": {
+    "4x4": {
+     "optimistic": 192893,
+     "pessimistic": 192893,
+     "change_optimistic": 0.5707,
+     "change_pessimistic": 0.5707
+    },
+    "4x8": {
+     "optimistic": 122804,
+     "pessimistic": 122804,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 87752,
+     "pessimistic": 87752,
+     "change_optimistic": -0.2854,
+     "change_pessimistic": -0.2854
+    },
+    "8x8": {
+     "optimistic": 70141,
+     "pessimistic": 85514,
+     "change_optimistic": -0.4288,
+     "change_pessimistic": -0.3037
+    },
+    "4x8+dw_path": {
+     "optimistic": 105192,
+     "pessimistic": 108980,
+     "change_optimistic": -0.1434,
+     "change_pessimistic": -0.1126
+    }
+   },
+   "depthwise_share_4x8": 0.2868,
+   "dense_share_4x8": 0.5709
+  }
+ }
+}

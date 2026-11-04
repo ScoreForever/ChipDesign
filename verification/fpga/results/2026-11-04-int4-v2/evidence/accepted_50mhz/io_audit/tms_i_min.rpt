@@ -1,0 +1,237 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Wed Nov  4 10:31:01 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_timing -of_objects [get_timing_paths -from [get_ports tms_i] -delay_type min -max_paths 10000 -nworst 1] -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_hh5pakox/run/io_audit/tms_i_min.rpt
+| Design       : fpga_top
+| Device       : 7a35t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             474.426ns  (arrival time - required time)
+  Source:                 tms_i
+                            (input port clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_soc/i_host/FSM_sequential_tap_reg[3]/D
+                            (rising edge-triggered cell FDCE clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck_i
+  Path Type:              Hold (Min at Slow Process Corner)
+  Requirement:            0.000ns  (tck_i rise@0.000ns - tck_i rise@0.000ns)
+  Data Path Delay:        5.088ns  (logic 1.529ns (30.056%)  route 3.559ns (69.945%))
+  Logic Levels:           2  (IBUF=1 LUT5=1)
+  Input Delay:            475.000ns
+  Clock Path Skew:        5.284ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    5.284ns
+    Source Clock Delay      (SCD):    0.000ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck_i rise edge)      0.000     0.000 r  
+                         input delay                475.000   475.000    
+    C15                                               0.000   475.000 r  tms_i (IN)
+                         net (fo=0)                   0.000   475.000    tms_i
+    C15                                                               r  tms_i_IBUF_inst/I
+    C15                  IBUF (Prop_ibuf_I_O)         1.436   476.436 r  tms_i_IBUF_inst/O
+                         net (fo=4, routed)           3.559   479.995    u_soc/i_host/tms_i
+    SLICE_X52Y149                                                     r  u_soc/i_host/FSM_sequential_tap[3]_i_1/I3
+    SLICE_X52Y149        LUT5 (Prop_lut5_I3_O)        0.093   480.088 r  u_soc/i_host/FSM_sequential_tap[3]_i_1/O
+                         net (fo=1, routed)           0.000   480.088    u_soc/i_host/tap_next[3]
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[3]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck_i rise edge)      0.000     0.000 r  
+    H16                                               0.000     0.000 r  tck_i (IN)
+                         net (fo=0)                   0.000     0.000    tck_i
+    H16                                                               r  tck_i_IBUF_inst/I
+    H16                  IBUF (Prop_ibuf_I_O)         1.479     1.479 r  tck_i_IBUF_inst/O
+                         net (fo=1, routed)           1.972     3.450    tck_i_IBUF
+    BUFGCTRL_X0Y16                                                    r  tck_i_IBUF_BUFG_inst/I
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096     3.546 r  tck_i_IBUF_BUFG_inst/O
+                         net (fo=255, routed)         1.737     5.284    u_soc/i_host/tck_i_IBUF_BUFG
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[3]/C
+                         clock pessimism              0.000     5.284    
+                         clock uncertainty            0.035     5.319    
+    SLICE_X52Y149        FDCE (Hold_fdce_C_D)         0.343     5.662    u_soc/i_host/FSM_sequential_tap_reg[3]
+  -------------------------------------------------------------------
+                         required time                         -5.662    
+                         arrival time                         480.088    
+  -------------------------------------------------------------------
+                         slack                                474.426    
+
+Slack (MET) :             474.436ns  (arrival time - required time)
+  Source:                 tms_i
+                            (input port clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_soc/i_host/FSM_sequential_tap_reg[2]/D
+                            (rising edge-triggered cell FDCE clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck_i
+  Path Type:              Hold (Min at Slow Process Corner)
+  Requirement:            0.000ns  (tck_i rise@0.000ns - tck_i rise@0.000ns)
+  Data Path Delay:        5.098ns  (logic 1.530ns (30.016%)  route 3.568ns (69.983%))
+  Logic Levels:           2  (IBUF=1 LUT5=1)
+  Input Delay:            475.000ns
+  Clock Path Skew:        5.284ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    5.284ns
+    Source Clock Delay      (SCD):    0.000ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck_i rise edge)      0.000     0.000 r  
+                         input delay                475.000   475.000    
+    C15                                               0.000   475.000 r  tms_i (IN)
+                         net (fo=0)                   0.000   475.000    tms_i
+    C15                                                               r  tms_i_IBUF_inst/I
+    C15                  IBUF (Prop_ibuf_I_O)         1.436   476.436 r  tms_i_IBUF_inst/O
+                         net (fo=4, routed)           3.568   480.004    u_soc/i_host/tms_i
+    SLICE_X52Y149                                                     r  u_soc/i_host/FSM_sequential_tap[2]_i_1/I1
+    SLICE_X52Y149        LUT5 (Prop_lut5_I1_O)        0.094   480.098 r  u_soc/i_host/FSM_sequential_tap[2]_i_1/O
+                         net (fo=1, routed)           0.000   480.098    u_soc/i_host/tap_next[2]
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[2]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck_i rise edge)      0.000     0.000 r  
+    H16                                               0.000     0.000 r  tck_i (IN)
+                         net (fo=0)                   0.000     0.000    tck_i
+    H16                                                               r  tck_i_IBUF_inst/I
+    H16                  IBUF (Prop_ibuf_I_O)         1.479     1.479 r  tck_i_IBUF_inst/O
+                         net (fo=1, routed)           1.972     3.450    tck_i_IBUF
+    BUFGCTRL_X0Y16                                                    r  tck_i_IBUF_BUFG_inst/I
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096     3.546 r  tck_i_IBUF_BUFG_inst/O
+                         net (fo=255, routed)         1.737     5.284    u_soc/i_host/tck_i_IBUF_BUFG
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[2]/C
+                         clock pessimism              0.000     5.284    
+                         clock uncertainty            0.035     5.319    
+    SLICE_X52Y149        FDCE (Hold_fdce_C_D)         0.343     5.662    u_soc/i_host/FSM_sequential_tap_reg[2]
+  -------------------------------------------------------------------
+                         required time                         -5.662    
+                         arrival time                         480.098    
+  -------------------------------------------------------------------
+                         slack                                474.436    
+
+Slack (MET) :             474.446ns  (arrival time - required time)
+  Source:                 tms_i
+                            (input port clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_soc/i_host/FSM_sequential_tap_reg[0]/D
+                            (rising edge-triggered cell FDCE clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck_i
+  Path Type:              Hold (Min at Slow Process Corner)
+  Requirement:            0.000ns  (tck_i rise@0.000ns - tck_i rise@0.000ns)
+  Data Path Delay:        5.095ns  (logic 1.536ns (30.152%)  route 3.559ns (69.849%))
+  Logic Levels:           2  (IBUF=1 LUT5=1)
+  Input Delay:            475.000ns
+  Clock Path Skew:        5.284ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    5.284ns
+    Source Clock Delay      (SCD):    0.000ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck_i rise edge)      0.000     0.000 r  
+                         input delay                475.000   475.000    
+    C15                                               0.000   475.000 r  tms_i (IN)
+                         net (fo=0)                   0.000   475.000    tms_i
+    C15                                                               r  tms_i_IBUF_inst/I
+    C15                  IBUF (Prop_ibuf_I_O)         1.436   476.436 r  tms_i_IBUF_inst/O
+                         net (fo=4, routed)           3.559   479.995    u_soc/i_host/tms_i
+    SLICE_X52Y149                                                     r  u_soc/i_host/FSM_sequential_tap[0]_i_1/I0
+    SLICE_X52Y149        LUT5 (Prop_lut5_I0_O)        0.100   480.095 r  u_soc/i_host/FSM_sequential_tap[0]_i_1/O
+                         net (fo=1, routed)           0.000   480.095    u_soc/i_host/tap_next[0]
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck_i rise edge)      0.000     0.000 r  
+    H16                                               0.000     0.000 r  tck_i (IN)
+                         net (fo=0)                   0.000     0.000    tck_i
+    H16                                                               r  tck_i_IBUF_inst/I
+    H16                  IBUF (Prop_ibuf_I_O)         1.479     1.479 r  tck_i_IBUF_inst/O
+                         net (fo=1, routed)           1.972     3.450    tck_i_IBUF
+    BUFGCTRL_X0Y16                                                    r  tck_i_IBUF_BUFG_inst/I
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096     3.546 r  tck_i_IBUF_BUFG_inst/O
+                         net (fo=255, routed)         1.737     5.284    u_soc/i_host/tck_i_IBUF_BUFG
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[0]/C
+                         clock pessimism              0.000     5.284    
+                         clock uncertainty            0.035     5.319    
+    SLICE_X52Y149        FDCE (Hold_fdce_C_D)         0.330     5.649    u_soc/i_host/FSM_sequential_tap_reg[0]
+  -------------------------------------------------------------------
+                         required time                         -5.649    
+                         arrival time                         480.095    
+  -------------------------------------------------------------------
+                         slack                                474.446    
+
+Slack (MET) :             474.452ns  (arrival time - required time)
+  Source:                 tms_i
+                            (input port clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Destination:            u_soc/i_host/FSM_sequential_tap_reg[1]/D
+                            (rising edge-triggered cell FDCE clocked by tck_i  {rise@0.000ns fall@500.000ns period=1000.000ns})
+  Path Group:             tck_i
+  Path Type:              Hold (Min at Slow Process Corner)
+  Requirement:            0.000ns  (tck_i rise@0.000ns - tck_i rise@0.000ns)
+  Data Path Delay:        5.104ns  (logic 1.536ns (30.098%)  route 3.568ns (69.901%))
+  Logic Levels:           2  (IBUF=1 LUT5=1)
+  Input Delay:            475.000ns
+  Clock Path Skew:        5.284ns (DCD - SCD - CPR)
+    Destination Clock Delay (DCD):    5.284ns
+    Source Clock Delay      (SCD):    0.000ns
+    Clock Pessimism Removal (CPR):    -0.000ns
+  Clock Uncertainty:      0.035ns  ((TSJ^2 + TIJ^2)^1/2 + DJ) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Total Input Jitter      (TIJ):    0.000ns
+    Discrete Jitter          (DJ):    0.000ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock tck_i rise edge)      0.000     0.000 r  
+                         input delay                475.000   475.000    
+    C15                                               0.000   475.000 r  tms_i (IN)
+                         net (fo=0)                   0.000   475.000    tms_i
+    C15                                                               r  tms_i_IBUF_inst/I
+    C15                  IBUF (Prop_ibuf_I_O)         1.436   476.436 r  tms_i_IBUF_inst/O
+                         net (fo=4, routed)           3.568   480.004    u_soc/i_host/tms_i
+    SLICE_X52Y149                                                     r  u_soc/i_host/FSM_sequential_tap[1]_i_1/I2
+    SLICE_X52Y149        LUT5 (Prop_lut5_I2_O)        0.100   480.104 r  u_soc/i_host/FSM_sequential_tap[1]_i_1/O
+                         net (fo=1, routed)           0.000   480.104    u_soc/i_host/tap_next[1]
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[1]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock tck_i rise edge)      0.000     0.000 r  
+    H16                                               0.000     0.000 r  tck_i (IN)
+                         net (fo=0)                   0.000     0.000    tck_i
+    H16                                                               r  tck_i_IBUF_inst/I
+    H16                  IBUF (Prop_ibuf_I_O)         1.479     1.479 r  tck_i_IBUF_inst/O
+                         net (fo=1, routed)           1.972     3.450    tck_i_IBUF
+    BUFGCTRL_X0Y16                                                    r  tck_i_IBUF_BUFG_inst/I
+    BUFGCTRL_X0Y16       BUFG (Prop_bufg_I_O)         0.096     3.546 r  tck_i_IBUF_BUFG_inst/O
+                         net (fo=255, routed)         1.737     5.284    u_soc/i_host/tck_i_IBUF_BUFG
+    SLICE_X52Y149        FDCE                                         r  u_soc/i_host/FSM_sequential_tap_reg[1]/C
+                         clock pessimism              0.000     5.284    
+                         clock uncertainty            0.035     5.319    
+    SLICE_X52Y149        FDCE (Hold_fdce_C_D)         0.333     5.652    u_soc/i_host/FSM_sequential_tap_reg[1]
+  -------------------------------------------------------------------
+                         required time                         -5.652    
+                         arrival time                         480.104    
+  -------------------------------------------------------------------
+                         slack                                474.452    
+
+
+
+

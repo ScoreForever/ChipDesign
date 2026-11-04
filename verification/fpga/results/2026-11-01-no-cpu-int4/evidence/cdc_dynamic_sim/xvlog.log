@@ -1,0 +1,10 @@
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/IWS/Advanced_SoC/ChipDesign/build/no_cpu_INT4_update/hardware/soc/rtl/clk_rst/rstgen_bypass.sv" into library work
+INFO: [VRFC 10-311] analyzing module rstgen_bypass
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/IWS/Advanced_SoC/ChipDesign/build/no_cpu_INT4_update/hardware/soc/rtl/clk_rst/rstgen.sv" into library work
+INFO: [VRFC 10-311] analyzing module rstgen
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/IWS/Advanced_SoC/ChipDesign/build/no_cpu_INT4_update/hardware/soc/rtl/common_cells/cdc_2phase.sv" into library work
+INFO: [VRFC 10-311] analyzing module cdc_2phase
+INFO: [VRFC 10-311] analyzing module cdc_2phase_src
+INFO: [VRFC 10-311] analyzing module cdc_2phase_dst
+INFO: [VRFC 10-2263] Analyzing SystemVerilog file "D:/IWS/Advanced_SoC/ChipDesign/build/no_cpu_INT4_update/verification/fpga/tb_cdc_reset.sv" into library work
+INFO: [VRFC 10-311] analyzing module tb_cdc_reset

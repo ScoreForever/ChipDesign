@@ -1,0 +1,349 @@
+{
+ "note": "SRAM placement study at 70% utilization on the RTL before the FPGA board fixes; hold target 0.15 ns except west_stack and south_row_mx (0.02 ns). Overflow is the Innovus routing-congestion overflow.",
+ "candidates": [
+  {
+   "name": "ws_u70",
+   "layout": "west_stack",
+   "utilization": 0.7,
+   "hold_target": 0.02,
+   "die_side_um": 1920,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     554.595,
+     723.85,
+     "R0"
+    ],
+    [
+     "activation",
+     196.0,
+     991.85,
+     554.595,
+     723.85,
+     "R0"
+    ]
+   ],
+   "setup_wns_ns": 0.297,
+   "hold_wns_ns": 0.038,
+   "pt_setup_wns_ns": 0.93,
+   "pt_hold_wns_ns": 0.029,
+   "wire_length_um": 3517503.09,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "congestion": "Overflow: 1090 = 636 (0.28% H) + 455 (0.20% V)",
+   "instances": 53002,
+   "overflow_h_pct": 0.28,
+   "overflow_v_pct": 0.2,
+   "pins": "朝下，背对逻辑"
+  },
+  {
+   "name": "mx_u70",
+   "layout": "south_row_mx",
+   "utilization": 0.7,
+   "hold_target": 0.02,
+   "die_side_um": 1860,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     554.595,
+     723.85,
+     "MX"
+    ],
+    [
+     "activation",
+     822.595,
+     196.0,
+     554.595,
+     723.85,
+     "MX"
+    ]
+   ],
+   "setup_wns_ns": 0.188,
+   "hold_wns_ns": 0.043,
+   "pt_setup_wns_ns": 0.602,
+   "pt_hold_wns_ns": -0.037,
+   "wire_length_um": 3675018.615,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "congestion": "Overflow: 1380 = 899 (0.42% H) + 480 (0.22% V)",
+   "instances": 52999,
+   "overflow_h_pct": 0.42,
+   "overflow_v_pct": 0.22,
+   "pins": "朝北，面向逻辑"
+  },
+  {
+   "name": "r90_u70_h15",
+   "layout": "west_stack_r90",
+   "utilization": 0.7,
+   "hold_target": 0.15,
+   "die_side_um": 1860,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     723.85,
+     554.595,
+     "R90"
+    ],
+    [
+     "activation",
+     196.0,
+     822.595,
+     723.85,
+     554.595,
+     "R90"
+    ]
+   ],
+   "setup_wns_ns": 0.252,
+   "hold_wns_ns": 0.144,
+   "pt_setup_wns_ns": 0.709,
+   "pt_hold_wns_ns": 0.042,
+   "wire_length_um": 3751307.39,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "congestion": "Overflow: 1521 = 980 (0.45% H) + 540 (0.25% V)",
+   "instances": 53627,
+   "overflow_h_pct": 0.45,
+   "overflow_v_pct": 0.25,
+   "pins": "朝东，面向逻辑（两颗挤在西南角）"
+  },
+  {
+   "name": "west_split_h15",
+   "layout": "west_split_r90",
+   "utilization": 0.7,
+   "hold_target": 0.15,
+   "die_side_um": 1860,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     723.85,
+     554.595,
+     "R90"
+    ],
+    [
+     "activation",
+     196.0,
+     1109.405,
+     723.85,
+     554.595,
+     "R90"
+    ]
+   ],
+   "setup_wns_ns": -0.127,
+   "hold_wns_ns": 0.147,
+   "pt_setup_wns_ns": 0.378,
+   "pt_hold_wns_ns": 0.14,
+   "wire_length_um": 3786535.68,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": false,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": false,
+   "congestion": "Overflow: 1980 = 958 (0.44% H) + 1023 (0.47% V)",
+   "instances": 53734,
+   "overflow_h_pct": 0.44,
+   "overflow_v_pct": 0.47,
+   "pins": "朝东，面向逻辑"
+  },
+  {
+   "name": "west_east_h15",
+   "layout": "west_east",
+   "utilization": 0.7,
+   "hold_target": 0.15,
+   "die_side_um": 1920,
+   "macros": [
+    [
+     "model",
+     196.0,
+     682.7,
+     723.85,
+     554.595,
+     "R90"
+    ],
+    [
+     "activation",
+     1000.15,
+     682.7,
+     723.85,
+     554.595,
+     "R270"
+    ]
+   ],
+   "setup_wns_ns": 0.157,
+   "hold_wns_ns": 0.141,
+   "pt_setup_wns_ns": 0.879,
+   "pt_hold_wns_ns": 0.14,
+   "wire_length_um": 4129634.29,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "congestion": "Overflow: 1894 = 1023 (0.44% H) + 871 (0.38% V)",
+   "instances": 53875,
+   "overflow_h_pct": 0.44,
+   "overflow_v_pct": 0.38,
+   "pins": "相互对着，中间只有 80 µm 通道"
+  },
+  {
+   "name": "south_north_h15",
+   "layout": "south_north",
+   "utilization": 0.7,
+   "hold_target": 0.15,
+   "die_side_um": 1920,
+   "macros": [
+    [
+     "model",
+     682.7,
+     196.0,
+     554.595,
+     723.85,
+     "MX"
+    ],
+    [
+     "activation",
+     682.7,
+     1000.15,
+     554.595,
+     723.85,
+     "R0"
+    ]
+   ],
+   "setup_wns_ns": 0.571,
+   "hold_wns_ns": 0.148,
+   "pt_setup_wns_ns": 1.188,
+   "pt_hold_wns_ns": 0.143,
+   "wire_length_um": 3935746.01,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "congestion": "Overflow: 1086 = 684 (0.30% H) + 403 (0.18% V)",
+   "instances": 53778,
+   "overflow_h_pct": 0.3,
+   "overflow_v_pct": 0.18,
+   "pins": "相互对着，中间只有 80 µm 通道"
+  },
+  {
+   "name": "diagonal_facing_h15",
+   "layout": "diagonal_facing",
+   "utilization": 0.7,
+   "hold_target": 0.15,
+   "die_side_um": 1920,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     723.85,
+     554.595,
+     "R90"
+    ],
+    [
+     "activation",
+     1000.15,
+     1169.405,
+     723.85,
+     554.595,
+     "R270"
+    ]
+   ],
+   "setup_wns_ns": 0.406,
+   "hold_wns_ns": 0.15,
+   "pt_setup_wns_ns": 0.976,
+   "pt_hold_wns_ns": 0.056,
+   "wire_length_um": 3600375.575,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "congestion": "Overflow: 1049 = 724 (0.31% H) + 324 (0.14% V)",
+   "instances": 53695,
+   "overflow_h_pct": 0.31,
+   "overflow_v_pct": 0.14,
+   "pins": "各自面向开阔的逻辑区"
+  }
+ ],
+ "conclusion": "两颗宏叠在西南角（`west_stack_r90`）拥塞最高之一、PrimeTime hold 余量只有 +0.042 ns；一南一北、一西一东两种布局时序最好，但两颗宏的引脚边互相对着，中间只有 80 µm 的 halo 通道，宏在芯片中部连成一堵墙，不符合“引脚面向逻辑区”；西边一上一下的布局 setup 不收敛。最终选 `diagonal_facing`：两颗宏分别在西南、东北角，引脚边各自面向开阔的逻辑区，线长最短、拥塞最低，PrimeTime setup / hold 均为正；代价是 die 从 1860 µm 增加到 1920 µm（预算 1950 µm）。这组比较在上板修复前的 RTL 上进行；最终版图在修复后的 RTL 上重跑完整流程，hold 目标提到 0.25 ns（见上表）。"
+}

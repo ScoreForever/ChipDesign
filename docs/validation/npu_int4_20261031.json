@@ -1,0 +1,1261 @@
+{
+  "scope": "INT4 RTL, course SRAM model and host functional validation; no INT4 mapped area, STA, PnR, bitstream or board claim",
+  "branch": "codex/int4-soc-refactor-20261031",
+  "int8_parent": "88cae88810fc1575c1472428c3fed4235a7b5dbf",
+  "abi": "0x00030000",
+  "operands": "signed INT4 packed low nibble first",
+  "quantization": "Q15 / INT32 raw+bias",
+  "programs": {
+    "behavioral": {
+      "directory": "build/int4_final",
+      "program_tests": 82,
+      "negative_tests": [
+        "opcode",
+        "reserved",
+        "old_abi",
+        "wrong_cols",
+        "stride",
+        "shape",
+        "destination",
+        "source",
+        "multiplier",
+        "shift",
+        "lifecycle"
+      ],
+      "unit_logs": {
+        "mac_int4_4.log": "PASS INT4 MAC exhaustive pairs and bank tags cols=4 outputs=512",
+        "mac_int4_8.log": "PASS INT4 MAC exhaustive pairs and bank tags cols=8 outputs=512",
+        "quant.log": "PASS requant independent vectors=20000 II=1",
+        "memories.log": "PASS packed INT4 memories, byte-neighbour RMW, halfword model reads, held snapshots, masks/wrap/full scan/reset rmw=700",
+        "activation_pressure.log": "PASS high pressure random SRAM reads=8436 writes=4465 write_stalls=16201 read_stalls=11569 peak=8",
+        "trace.log": "PASS trace payload, per-operator boundaries, offset, trigger, overflow, failure, disable, reset and unread RAM protection",
+        "stalls_cnn_False\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=609 writes=423 mstall=535 astall=741 wstall=966 wmax=36 fifo=8 reserved=8",
+        "stalls_cnn_True\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=227 writes=41 mstall=319 astall=362 wstall=73 wmax=24 fifo=5 reserved=7",
+        "stalls_slot_pressure_True\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=64 writes=512 mstall=103 astall=60 wstall=1040 wmax=38 fifo=8 reserved=8",
+        "stalls_upper_activation_True\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=2048 writes=2048 mstall=72 astall=1930 wstall=7959 wmax=40 fifo=6 reserved=6"
+      },
+      "checked_write_events": 233732,
+      "result": "PASS",
+      "summary_sha256": "a687d8d6a7e1eac2626be73712d3e08ce8212145ad2bf59d24eb18d2f6429177"
+    },
+    "course_macro_wave_off": {
+      "directory": "build/int4_macro_final",
+      "program_tests": 82,
+      "negative_tests": [
+        "opcode",
+        "reserved",
+        "old_abi",
+        "wrong_cols",
+        "stride",
+        "shape",
+        "destination",
+        "source",
+        "multiplier",
+        "shift",
+        "lifecycle"
+      ],
+      "unit_logs": {
+        "mac_int4_4.log": "PASS INT4 MAC exhaustive pairs and bank tags cols=4 outputs=512",
+        "mac_int4_8.log": "PASS INT4 MAC exhaustive pairs and bank tags cols=8 outputs=512",
+        "quant.log": "PASS requant independent vectors=20000 II=1",
+        "memories.log": "PASS packed INT4 memories, byte-neighbour RMW, halfword model reads, held snapshots, masks/wrap/full scan/reset rmw=700",
+        "activation_pressure.log": "PASS high pressure random SRAM reads=8436 writes=4465 write_stalls=16201 read_stalls=11569 peak=8",
+        "trace.log": "PASS trace payload, per-operator boundaries, offset, trigger, overflow, failure, disable, reset and unread RAM protection",
+        "stalls_cnn_False\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=609 writes=423 mstall=535 astall=741 wstall=966 wmax=36 fifo=8 reserved=8",
+        "stalls_cnn_True\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=227 writes=41 mstall=319 astall=362 wstall=73 wmax=24 fifo=5 reserved=7",
+        "stalls_slot_pressure_True\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=64 writes=512 mstall=103 astall=60 wstall=1040 wmax=38 fifo=8 reserved=8",
+        "stalls_upper_activation_True\\rtl.log": "PASS random read/write stalls, stable payload, drain and performance scoreboard reads=2048 writes=2048 mstall=72 astall=1930 wstall=7959 wmax=40 fifo=6 reserved=6"
+      },
+      "checked_write_events": 233732,
+      "result": "PASS",
+      "summary_sha256": "a687d8d6a7e1eac2626be73712d3e08ce8212145ad2bf59d24eb18d2f6429177"
+    }
+  },
+  "trace_configurations": [
+    {
+      "configuration": "simulation",
+      "defines": [],
+      "wave_enabled": true,
+      "operator_summaries": true,
+      "elaborated_wave_arrays": [
+        "ram0",
+        "ram1",
+        "ram2",
+        "ram3"
+      ],
+      "result": "PASS"
+    },
+    {
+      "configuration": "asic",
+      "defines": [
+        "-DSYNTHESIS"
+      ],
+      "wave_enabled": false,
+      "operator_summaries": false,
+      "elaborated_wave_arrays": [],
+      "result": "PASS"
+    },
+    {
+      "configuration": "fpga",
+      "defines": [
+        "-DSYNTHESIS",
+        "-DCHIPDESIGN_FPGA_MEM"
+      ],
+      "wave_enabled": true,
+      "operator_summaries": true,
+      "elaborated_wave_arrays": [
+        "ram0",
+        "ram1",
+        "ram2",
+        "ram3"
+      ],
+      "result": "PASS"
+    },
+    {
+      "configuration": "explicit_off",
+      "defines": [
+        "-DNPU_ENABLE_WAVE_TRACE=0"
+      ],
+      "wave_enabled": false,
+      "operator_summaries": true,
+      "elaborated_wave_arrays": [],
+      "result": "PASS"
+    },
+    {
+      "configuration": "asic_explicit_on",
+      "defines": [
+        "-DSYNTHESIS",
+        "-DNPU_ENABLE_WAVE_TRACE=1"
+      ],
+      "wave_enabled": true,
+      "operator_summaries": false,
+      "elaborated_wave_arrays": [
+        "ram0",
+        "ram1",
+        "ram2",
+        "ram3"
+      ],
+      "result": "PASS"
+    },
+    {
+      "configuration": "fpga_explicit_off",
+      "defines": [
+        "-DSYNTHESIS",
+        "-DCHIPDESIGN_FPGA_MEM",
+        "-DNPU_ENABLE_WAVE_TRACE=0"
+      ],
+      "wave_enabled": false,
+      "operator_summaries": true,
+      "elaborated_wave_arrays": [],
+      "result": "PASS"
+    },
+    {
+      "configuration": "asic_ops_on",
+      "defines": [
+        "-DSYNTHESIS",
+        "-DNPU_ENABLE_OP_TRACE=1"
+      ],
+      "wave_enabled": false,
+      "operator_summaries": true,
+      "elaborated_wave_arrays": [],
+      "result": "PASS"
+    },
+    {
+      "configuration": "simulation_ops_off",
+      "defines": [
+        "-DNPU_ENABLE_OP_TRACE=0"
+      ],
+      "wave_enabled": true,
+      "operator_summaries": false,
+      "elaborated_wave_arrays": [
+        "ram0",
+        "ram1",
+        "ram2",
+        "ram3"
+      ],
+      "result": "PASS"
+    }
+  ],
+  "trace_host": "PASS",
+  "host_unittests": {
+    "passed": 21
+  },
+  "fpga_evidence_tool_unittests": {
+    "passed": 18,
+    "skipped": 1
+  },
+  "physical_handoff_parser_unittests": {
+    "passed": 18,
+    "scope": "5 geometry/handoff + 13 parser tests, no EDA tools"
+  },
+  "top_elaboration": [
+    "my_soc_top behavioral",
+    "my_soc_top SYNTHESIS dual SRAM macro / debug defaults off"
+  ],
+  "selected_programs": [
+    {
+      "case": "cnn_c8_f1_j0",
+      "commands": 318,
+      "bytes": 560,
+      "peak": 51,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "FC",
+          "Requant",
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        630,
+        629
+      ],
+      "writes": [
+        41,
+        41
+      ],
+      "checked_write_events": 82,
+      "performance": [
+        [
+          630,
+          184,
+          0,
+          0,
+          184,
+          0,
+          227,
+          0,
+          0,
+          227,
+          1,
+          41,
+          184,
+          151,
+          108,
+          0,
+          30,
+          4,
+          2,
+          11,
+          41,
+          131,
+          24,
+          29
+        ],
+        [
+          629,
+          184,
+          0,
+          0,
+          184,
+          0,
+          227,
+          0,
+          0,
+          227,
+          0,
+          41,
+          184,
+          150,
+          108,
+          0,
+          30,
+          4,
+          2,
+          11,
+          41,
+          131,
+          24,
+          29
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            410,
+            1793,
+            11,
+            151,
+            18,
+            0,
+            168
+          ],
+          [
+            410,
+            630,
+            770,
+            11,
+            0,
+            90,
+            0,
+            16
+          ]
+        ],
+        [
+          [
+            0,
+            409,
+            1793,
+            11,
+            150,
+            18,
+            0,
+            168
+          ],
+          [
+            409,
+            629,
+            770,
+            11,
+            0,
+            90,
+            0,
+            16
+          ]
+        ]
+      ]
+    },
+    {
+      "case": "cnn_c8_f0_j0",
+      "commands": 510,
+      "bytes": 1008,
+      "peak": 576,
+      "groups": [
+        [
+          "Conv"
+        ],
+        [
+          "Requant"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "MaxPool"
+        ],
+        [
+          "FC"
+        ],
+        [
+          "Requant"
+        ],
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        1812,
+        1812
+      ],
+      "writes": [
+        423,
+        423
+      ],
+      "checked_write_events": 846,
+      "performance": [
+        [
+          1812,
+          296,
+          0,
+          0,
+          296,
+          0,
+          609,
+          0,
+          0,
+          609,
+          0,
+          423,
+          184,
+          150,
+          108,
+          82,
+          30,
+          4,
+          2,
+          11,
+          423,
+          131,
+          24,
+          29
+        ],
+        [
+          1812,
+          296,
+          0,
+          0,
+          296,
+          0,
+          609,
+          0,
+          0,
+          609,
+          0,
+          423,
+          184,
+          150,
+          108,
+          82,
+          30,
+          4,
+          2,
+          11,
+          423,
+          131,
+          24,
+          29
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            489,
+            4097,
+            11,
+            150,
+            18,
+            82,
+            168
+          ],
+          [
+            489,
+            824,
+            2053,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            824,
+            1144,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1144,
+            1428,
+            3,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1428,
+            1640,
+            4098,
+            11,
+            0,
+            90,
+            0,
+            16
+          ],
+          [
+            1640,
+            1742,
+            2053,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1742,
+            1812,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            489,
+            4097,
+            11,
+            150,
+            18,
+            82,
+            168
+          ],
+          [
+            489,
+            824,
+            2053,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            824,
+            1144,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1144,
+            1428,
+            3,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1428,
+            1640,
+            4098,
+            11,
+            0,
+            90,
+            0,
+            16
+          ],
+          [
+            1640,
+            1742,
+            2053,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1742,
+            1812,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ]
+    },
+    {
+      "case": "max_k_int4_c8_f1_j0",
+      "commands": 928,
+      "bytes": 2120,
+      "peak": 516,
+      "groups": [
+        [
+          "FC"
+        ]
+      ],
+      "cycles": [
+        2087,
+        2087
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "performance": [
+        [
+          2087,
+          1042,
+          0,
+          0,
+          1042,
+          0,
+          256,
+          0,
+          0,
+          256,
+          0,
+          1,
+          256,
+          0,
+          1533,
+          0,
+          256,
+          1,
+          1,
+          2,
+          1,
+          256,
+          0,
+          0
+        ],
+        [
+          2087,
+          1042,
+          0,
+          0,
+          1042,
+          0,
+          256,
+          0,
+          0,
+          256,
+          0,
+          1,
+          256,
+          0,
+          1533,
+          0,
+          256,
+          1,
+          1,
+          2,
+          1,
+          256,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            2087,
+            4098,
+            11,
+            0,
+            1533,
+            0,
+            256
+          ]
+        ],
+        [
+          [
+            0,
+            2087,
+            4098,
+            11,
+            0,
+            1533,
+            0,
+            256
+          ]
+        ]
+      ]
+    },
+    {
+      "case": "odd_packed_relu_c8_f1_j0",
+      "commands": 168,
+      "bytes": 64,
+      "peak": 12,
+      "groups": [
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        96,
+        96
+      ],
+      "writes": [
+        17,
+        17
+      ],
+      "checked_write_events": 34,
+      "performance": [
+        [
+          96,
+          16,
+          0,
+          0,
+          16,
+          0,
+          17,
+          0,
+          0,
+          17,
+          0,
+          17,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          17,
+          0,
+          0,
+          0
+        ],
+        [
+          96,
+          16,
+          0,
+          0,
+          16,
+          0,
+          17,
+          0,
+          0,
+          17,
+          0,
+          17,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          17,
+          0,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            96,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            96,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ]
+    },
+    {
+      "case": "full_activation_8k_c8_f1_j0",
+      "commands": 8348,
+      "bytes": 64,
+      "peak": 8192,
+      "groups": [
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        65564,
+        65564
+      ],
+      "writes": [
+        16384,
+        16384
+      ],
+      "checked_write_events": 32768,
+      "performance": [
+        [
+          65564,
+          16,
+          0,
+          0,
+          16,
+          0,
+          16384,
+          0,
+          0,
+          16384,
+          0,
+          16384,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          16384,
+          0,
+          0,
+          0
+        ],
+        [
+          65564,
+          16,
+          0,
+          0,
+          16,
+          0,
+          16384,
+          0,
+          0,
+          16384,
+          0,
+          16384,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          16384,
+          0,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            65564,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            65564,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ]
+    },
+    {
+      "case": "trained_c8_f1_j0",
+      "commands": 512,
+      "bytes": 1008,
+      "peak": 480,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "ReLU",
+          "MaxPool"
+        ],
+        [
+          "FC"
+        ]
+      ],
+      "cycles": [
+        3234,
+        3234
+      ],
+      "writes": [
+        804,
+        804
+      ],
+      "checked_write_events": 1608,
+      "performance": [
+        [
+          3234,
+          848,
+          0,
+          0,
+          848,
+          0,
+          2200,
+          0,
+          0,
+          2200,
+          0,
+          804,
+          2440,
+          148,
+          247,
+          0,
+          190,
+          4,
+          2,
+          11,
+          804,
+          2200,
+          0,
+          240
+        ],
+        [
+          3234,
+          848,
+          0,
+          0,
+          848,
+          0,
+          2200,
+          0,
+          0,
+          2200,
+          0,
+          804,
+          2440,
+          148,
+          247,
+          0,
+          190,
+          4,
+          2,
+          11,
+          804,
+          2200,
+          0,
+          240
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1163,
+            1793,
+            11,
+            59,
+            5,
+            0,
+            960
+          ],
+          [
+            1163,
+            2866,
+            1793,
+            11,
+            89,
+            5,
+            0,
+            1440
+          ],
+          [
+            2866,
+            3234,
+            4098,
+            11,
+            0,
+            237,
+            0,
+            40
+          ]
+        ],
+        [
+          [
+            0,
+            1163,
+            1793,
+            11,
+            59,
+            5,
+            0,
+            960
+          ],
+          [
+            1163,
+            2866,
+            1793,
+            11,
+            89,
+            5,
+            0,
+            1440
+          ],
+          [
+            2866,
+            3234,
+            4098,
+            11,
+            0,
+            237,
+            0,
+            40
+          ]
+        ]
+      ]
+    }
+  ],
+  "course_networks": {
+    "results": [
+      {
+        "network": "ecg",
+        "cols": 8,
+        "supported": false,
+        "reason": "MaxPool supports 2x2/stride2/no padding"
+      },
+      {
+        "network": "mnist",
+        "cols": 8,
+        "supported": true,
+        "cycles": [
+          5696,
+          5696
+        ],
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "model_bytes": 1608,
+        "activation_peak": 784,
+        "operator_cycles": [
+          2706,
+          2121,
+          869
+        ],
+        "predicted_class": 9,
+        "checked_write_events": 1980
+      },
+      {
+        "network": "kws",
+        "cols": 8,
+        "supported": true,
+        "cycles": [
+          3234,
+          3234
+        ],
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "model_bytes": 1008,
+        "activation_peak": 480,
+        "operator_cycles": [
+          1163,
+          1703,
+          368
+        ],
+        "predicted_class": 1,
+        "checked_write_events": 1608
+      },
+      {
+        "network": "har",
+        "cols": 8,
+        "supported": true,
+        "cycles": [
+          823,
+          823
+        ],
+        "groups": [
+          [
+            "FC",
+            "Requant",
+            "ReLU"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "model_bytes": 1584,
+        "activation_peak": 48,
+        "operator_cycles": [
+          705,
+          118
+        ],
+        "predicted_class": 1,
+        "checked_write_events": 76
+      },
+      {
+        "network": "ecg",
+        "cols": 4,
+        "supported": false,
+        "reason": "MaxPool supports 2x2/stride2/no padding"
+      },
+      {
+        "network": "mnist",
+        "cols": 4,
+        "supported": true,
+        "cycles": [
+          5781,
+          5781
+        ],
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "model_bytes": 1608,
+        "activation_peak": 784,
+        "operator_cycles": [
+          2702,
+          2101,
+          978
+        ],
+        "predicted_class": 9,
+        "checked_write_events": 1980
+      },
+      {
+        "network": "kws",
+        "cols": 4,
+        "supported": true,
+        "cycles": [
+          5866,
+          5866
+        ],
+        "groups": [
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "Conv",
+            "Requant",
+            "ReLU",
+            "MaxPool"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "model_bytes": 1008,
+        "activation_peak": 480,
+        "operator_cycles": [
+          2249,
+          3329,
+          288
+        ],
+        "predicted_class": 1,
+        "checked_write_events": 1608
+      },
+      {
+        "network": "har",
+        "cols": 4,
+        "supported": true,
+        "cycles": [
+          1202,
+          1202
+        ],
+        "groups": [
+          [
+            "FC",
+            "Requant",
+            "ReLU"
+          ],
+          [
+            "FC"
+          ]
+        ],
+        "model_bytes": 1584,
+        "activation_peak": 48,
+        "operator_cycles": [
+          1037,
+          165
+        ],
+        "predicted_class": 1,
+        "checked_write_events": 76
+      }
+    ],
+    "geomean_cycles_c8": 2474.970027021981,
+    "supported_c8": "3/4",
+    "geomean_cycles_c4": 3441.5163083891443,
+    "supported_c4": "3/4"
+  },
+  "accuracy_validated": false,
+  "asic_eda": "Not run per user instruction; no source upload",
+  "fpga_eda": "Started local runs were stopped per user instruction; no completed INT4 synthesis/route evidence",
+  "source_sha256": {
+    "hardware/npu/rtl/npu_activation_store.sv": "769563a898b506de63c7cc434b2ed85e4142e17573ca8463ce4e00eed7a45f80",
+    "hardware/npu/rtl/npu_mac_array.sv": "8c2479b6a4a63b5755916bd34ead0993335ff2512f70c696e58559116f01aa76",
+    "hardware/npu/rtl/npu_model_store.sv": "f03880d44737e4798b790b6b0e519b1e7f316e8941757fcdcba506ef4cb3bf4b",
+    "hardware/npu/rtl/npu_program_core.sv": "94f3481e821c771b9a4b8ed5b92f652d39d19cbd618131350c38bb94881c3fa7",
+    "hardware/npu/rtl/npu_trace_capture.sv": "bb736481f668845a28b88adb47359b09a78357d518fc02c3b3a53e90544c6645",
+    "hardware/npu/rtl/requant_lane.sv": "ac69a0da0e2a128f36d034ba35e9e86139af716eacbac607756aeb000e608a2d",
+    "hardware/npu/scripts/run_program_regression.py": "ccb4783e546a15eba639be65935ce9276b5368217f4d9d800d15a3500082ae50",
+    "hardware/npu/scripts/run_trace_configuration.py": "b3c0fd30b030ef6803041180cc49fd920fa15841a12a937b7d853e0763f8e74b",
+    "hardware/npu/tb/tb_npu_activation_pressure.sv": "a07cd701bfaa9a10faa0556ef8ec6c058bc5e5a2d96958cd334e2c02d52b1a54",
+    "hardware/npu/tb/tb_npu_mac_int4.sv": "c11126edb6661b203cd996ccc3e5eb2884694b05a995ce04a2afba851ebbdd61",
+    "hardware/npu/tb/tb_npu_memories.sv": "a720c8bcb2983c3fa4b874412af917224e918393289d14f0462b5e0755316670",
+    "hardware/npu/tb/tb_npu_stalls.sv": "c3fd71004b7d2af3b038e5c9ea1f04ee5e5c8f5f509d03753a8a1f716f824037",
+    "hardware/npu/tb/tb_npu_trace.sv": "749d5c638a18ba1d968ed64c5587c93c23257472edf2643d530da4681d690341",
+    "hardware/npu/tb/tb_npu_trace_configuration.sv": "61a86d5963c4a19a1215cb59974c16cc7d10b48bc7f0cd4d1cee24a6e7d0a0c7",
+    "hardware/npu/tb/tb_requant_lane.sv": "d946ab8603c1959119cd9f4ae2be9a4e6db8690aa82583d3cb9d8046abf614e6",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "d5b1604bb6eaf6816e1e65566fa4072563835386920329c6df3099613ecbbcd9",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "b72b6a105a4f9447d0bebe4759839c764d19a36ddcaed8fcd87548c63dec75f5",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "d82f338685b043bc6b7c8b662e741080809de1184a6767bdea541ce65d2f37b2",
+    "hardware/soc/rtl/my_soc_top.sv": "819e2eef2990d0a7a52d4b88b93d60444bf9713e2117cd691d8f0dafe8ba9c70",
+    "hardware/soc/sim/tb/tb_npu_program.sv": "1f35659946a71bf21fc969af3db7cc12b30b879703d6fe973a305db58e277fdf",
+    "software/host/course_benchmarks.py": "a413b464a7f11635de3e12f4c3a5a7b66b0668e84cf5269d6deb5b9fd220117c",
+    "software/host/explore_conv_streaming.py": "f13931d4d3ef69f0d34d41c360e4aee743aa978b5be832cec11e9af46d510f7d",
+    "software/host/make_demo.py": "469f5098a1c5de7e765d8c9fed99b2f685718abf525b437834630066cc076d33",
+    "software/host/nocpu_jtag.py": "40c4676ce8d1cd11cea37332efbe98256347c9b4f9a614c0afdf27b3e9565a44",
+    "software/host/npu_program.py": "cf57583002c9b3946aa5bb67fa8e1c41c4d174b6887fb46ff70a81509a9d6284",
+    "software/host/npu_trace.py": "829cf71d276a3c7479cb79618bf3a720931ff2f5e521cc1bf5915e781ebecddf",
+    "software/tests/test_npu_int4.py": "c158a1f5ce3a8e497ceca99ac1e9da46d1f6b4fa29f677e4ad3afcf29223b921"
+  }
+}

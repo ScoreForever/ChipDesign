@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 2 end-to-end operator/compiler/controller/JTAG regression (Icarus)."""
+"""ABI 4 INT4 end-to-end operator/compiler/controller/JTAG regression (Icarus)."""
 from pathlib import Path
 import argparse
 import hashlib
@@ -12,15 +12,15 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'software/host'))
-from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz,ABI
+from npu_program import compile_model,reference,Package,requant,from_tinycnn_npz,ABI,pack_i4,quantize_int8_model,encode_tensor,q8
 from nocpu_jtag import Npu,Op
 
 def fixtures(seed=7):
     r=random.Random(seed)
     def mac(op,src,dst,k,oc,**kw):
-        return dict(op=op,input=src,output=dst,channels=oc,weights=[r.randrange(-8,9) for _ in range(k*oc)],
+        return dict(op=op,input=src,output=dst,channels=oc,weights=[r.randrange(-8,8) for _ in range(k*oc)],
                     bias=[r.randrange(-50,51) for _ in range(oc)],**kw)
-    def q(src,dst,c,shift=-3):return dict(op='Requant',input=src,output=dst,multiplier=[0x40000000]*c,shift=[shift]*c)
+    def q(src,dst,c,shift=-3):return dict(op='Requant',input=src,output=dst,multiplier=[0x4000]*c,shift=[shift]*c)
     a=dict(input=dict(name='x',shape=[4,6,3]),nodes=[
         mac('Conv','x','a',27,5,kernel=3,pads=[1]*4),q('a','b',5),
         dict(op='ReLU',input='b',output='c'),dict(op='MaxPool',input='c',output='d'),
@@ -38,49 +38,51 @@ def fixtures(seed=7):
         mac('Conv','x','a',45,10,kernel=3,stride=[2,1],pads=[1,0,1,2]),q('a','b',10),
         mac('Conv','b','c',10,3,kernel=1),q('c','y',3)])
     edge=dict(input=dict(name='x',shape=[1,1,9]),nodes=[
-        dict(op='FC',input='x',output='a',channels=9,weights=[(-128 if i%2 else 127) for i in range(81)],
-             bias=[-2**31,2**31-1,-1,0,1,-2**31+5,2**31-6,123456789,-123456789]),
-        dict(op='Requant',input='a',output='y',multiplier=[0,1,0x7fffffff,0x40000000,0x60000000,0x7fffffff,123,0x50000000,0],
+        dict(op='FC',input='x',output='a',channels=9,weights=[(-8 if i%2 else 7) for i in range(81)],
+             bias=[-2**17,2**17-1,-1,0,1,-2**17+5,2**17-6,123456,-123456]),
+        dict(op='Requant',input='a',output='y',multiplier=[0,1,0x7fff,0x4000,0x6000,0x7fff,123,0x5000,0],
              shift=[31,-31,0,-1,1,-12,12,5,-5])])
     long=dict(input=dict(name='x',shape=[1,1,257]),nodes=[mac('FC','x','y',257,9)])
-    long['nodes'][0]['weights']=[-128]*(257*9)
+    long['nodes'][0]['weights']=[-8]*(257*9)
     for name,model in [('cnn',a),('pool_first',b),('mlp',c),('i32_pool',d),('strided',e),('edges',edge),('long_k',long)]:
-        frame=[r.randrange(-128,128) for _ in range(__import__('math').prod(model['input']['shape']))]
-        if name=='long_k':frame=[-128]*257
+        frame=[r.randrange(-8,8) for _ in range(__import__('math').prod(model['input']['shape']))]
+        if name=='long_k':frame=[-8]*257
         yield name,model,frame
-    # Original network, independently checked against the pre-refactor oracle.
-    sys.path.insert(0,str(ROOT/'hardware/npu/tools'))
-    import tinycnn8_golden as old
-    t=old.build_model(seed,8,'extreme');nodes=[];src='x'
-    for idx in (1,2):
-        cfg=t[f'conv{idx}'];dst=f'c{idx}'
-        nodes.extend([dict(op='Conv',input=src,output=dst,channels=8,kernel=3,pads=[1]*4,weights=cfg['weights'],bias=cfg['bias']),
-                      dict(op='Requant',input=dst,output=f'q{idx}',multiplier=cfg['multiplier'],shift=cfg['shift']),
-                      dict(op='ReLU',input=f'q{idx}',output=f'r{idx}'),dict(op='MaxPool',input=f'r{idx}',output=f'p{idx}')])
+    nodes=[];src='x'
+    for idx,c in ((1,1),(2,8)):
+        dst=f'c{idx}'
+        nodes.extend([mac('Conv',src,dst,9*c,8,kernel=3,pads=[1]*4),q(dst,f'q{idx}',8),
+            dict(op='ReLU',input=f'q{idx}',output=f'r{idx}'),dict(op='MaxPool',input=f'r{idx}',output=f'p{idx}')])
         src=f'p{idx}'
-    nodes.append(dict(op='FC',input=src,output='y',channels=8,weights=t['fc']['weights'],bias=t['fc']['bias']))
-    model=dict(input=dict(name='x',shape=[20,16,1]),nodes=nodes)
-    gold=old.run_model(t);new=reference(model,t['input'])
-    assert new['p1']==gold['pool1'] and new['p2']==gold['pool2'] and new['y']==gold['fc']
-    yield 'tinycnn',model,t['input']
+    nodes.append(mac('FC',src,'y',160,8))
+    yield 'tinycnn',dict(input=dict(name='x',shape=[20,16,1]),nodes=nodes),[r.randrange(-8,8) for _ in range(320)]
+    yield 'max_k_int4',dict(input=dict(name='x',shape=[1,1,1024]),nodes=[
+        dict(op='FC',input='x',output='y',channels=1,weights=[-8]*1024,bias=[0])]),[-8]*1024
+    yield 'odd_packed_relu',dict(input=dict(name='x',shape=[1,1,17]),nodes=[
+        dict(op='ReLU',input='x',output='y')]),[-8,-7,-1,0,1,6,7]*2+[-8,0,7]
     yield 'host_i32_quant',dict(input=dict(name='x',shape=[3,5,3],dtype='i32'),nodes=[
-        dict(op='Requant',input='x',output='a',multiplier=[0x40000000,0x7fffffff,0],shift=[-4,1,-31]),
+        dict(op='Requant',input='x',output='a',multiplier=[0x4000,0x7fff,0],shift=[-4,1,-31]),
         dict(op='ReLU',input='a',output='b'),dict(op='MaxPool',input='b',output='y')]),[r.randrange(-2**31,2**31) for _ in range(45)]
     yield 'host_i32_pool',dict(input=dict(name='x',shape=[4,4,2],dtype='i32'),nodes=[
         dict(op='MaxPool',input='x',output='a'),dict(op='ReLU',input='a',output='y')]),[r.randrange(-2**31,2**31) for _ in range(32)]
     yield 'tiny_padded',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
-        dict(op='Conv',input='x',output='a',channels=1,kernel=3,pads=[2]*4,weights=list(range(-4,5)),bias=[-7]),
-        dict(op='MaxPool',input='a',output='y')]),[-128]
+        dict(op='Conv',input='x',output='a',channels=1,kernel=3,pads=[2]*4,weights=[-4,-3,-2,-1,0,1,2,3,4],bias=[-7]),
+        dict(op='MaxPool',input='a',output='y')]),[-8]
+    # One-pixel, stride-two asymmetric padding exercises empty tap ranges
+    # (extent+padding-tap <= 0) and rounded-up lower/upper coordinate bounds.
+    yield 'tiny_strided_asymmetric',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
+        dict(op='Conv',input='x',output='y',channels=2,kernel=3,stride=[2,2],
+             pads=[0,2,2,0],weights=[(-8+i%16) for i in range(18)],bias=[-7,9])]),[-8]
     yield 'one_mac',dict(input=dict(name='x',shape=[1,1,1]),nodes=[
-        dict(op='FC',input='x',output='y',channels=1,weights=[-128],bias=[2**31-1])]),[-128]
+        dict(op='FC',input='x',output='y',channels=1,weights=[-8],bias=[2**17-1])]),[-8]
     yield 'negative_pool',dict(input=dict(name='x',shape=[3,3,1]),nodes=[
-        dict(op='MaxPool',input='x',output='y')]),list(range(-9,0))
-    yield 'full_activation',dict(input=dict(name='x',shape=[64,64,1]),nodes=[
-        dict(op='ReLU',input='x',output='y')]),[r.randrange(-128,128) for _ in range(4096)]
+        dict(op='MaxPool',input='x',output='y')]),[-8,-7,-6,-5,-4,-3,-2,-1,-1]
+    yield 'full_activation',dict(input=dict(name='x',shape=[64,128,1]),nodes=[
+        dict(op='ReLU',input='x',output='y')]),[r.randrange(-8,8) for _ in range(8192)]
     # Keep the old exact-4KiB fixture and explicitly cover the expanded SRAM
     # high address bit, including full-capacity in-place execution.
-    yield 'full_activation_8k',dict(input=dict(name='x',shape=[64,128,1]),nodes=[
-        dict(op='ReLU',input='x',output='y')]),[r.randrange(-128,128) for _ in range(8192)]
+    yield 'full_activation_8k',dict(input=dict(name='x',shape=[128,128,1]),nodes=[
+        dict(op='ReLU',input='x',output='y')]),[r.randrange(-8,8) for _ in range(16384)]
     yield 'upper_activation',dict(input=dict(name='x',shape=[32,32,1],dtype='i32'),nodes=[
         q('x','a',1,-5),dict(op='ReLU',input='a',output='y')]),[r.randrange(-2**31,2**31) for _ in range(1024)]
     # Fast 1x1 producer versus eight-lane postprocessing deliberately reaches
@@ -88,13 +90,90 @@ def fixtures(seed=7):
     yield 'slot_pressure',dict(input=dict(name='x',shape=[8,8,1]),nodes=[
         dict(op='Conv',input='x',output='a',channels=8,kernel=1,
              weights=[1,-1,2,-2,3,-3,4,-4],bias=[0]*8),
-        q('a','y',8,-2)]),[2*i-64 for i in range(64)]
+        q('a','y',8,-2)]),[i%16-8 for i in range(64)]
+    yield from fixtures_v4(r,mac,q)
+
+def fixtures_v4(r,mac,q):
+    """ABI 4 operators: depthwise/rectangular convolution, general and average
+    pooling, residual Add, the 1x2 fused pool and post-pool/Add fusion."""
+    frame=lambda shape:[r.randrange(-8,8) for _ in range(__import__('math').prod(shape))]
+    def dw(src,dst,c,kernel,**kw):
+        kh,kw_=(kernel,kernel) if isinstance(kernel,int) else kernel
+        return dict(op='Conv',input=src,output=dst,channels=c,groups=c,kernel=kernel,
+                    weights=[r.randrange(-8,8) for _ in range(c*kh*kw_)],bias=[r.randrange(-50,51) for _ in range(c)],**kw)
+    relu=lambda s,d:dict(op='ReLU',input=s,output=d)
+    shape=[6,7,16]
+    yield 'dwconv',dict(input=dict(name='x',shape=shape),nodes=[
+        dw('x','a',16,3,pads=[1]*4),q('a','b',16),relu('b','c'),
+        dw('c','d',16,3,stride=2,pads=[1,1,0,0]),q('d','y',16)]),frame(shape)
+    shape=[5,9,8]
+    yield 'dw_rect_pool',dict(input=dict(name='x',shape=shape),nodes=[
+        dw('x','a',8,[3,5],pads=[1,2,1,2]),q('a','b',8),relu('b','c'),dict(op='MaxPool',input='c',output='y')]),frame(shape)
+    shape=[1,40,1]
+    yield 'conv1d',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',5,8,kernel=[1,5],pads=[0,2,0,2]),q('a','b',8),relu('b','c'),
+        dict(op='MaxPool',input='c',output='d',kernel=[1,2],stride=[1,2]),
+        mac('Conv','d','e',7*8,8,kernel=[1,7],stride=[1,2],pads=[0,3,0,3]),q('e','y',8)]),frame(shape)
+    shape=[7,6,3]
+    yield 'rect_kernels',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',5*5*3,6,kernel=5,pads=[2,2,2,2]),q('a','b',6),
+        mac('Conv','b','c',7*1*6,5,kernel=[7,1],pads=[3,0,3,0],stride=[2,1]),q('c','y',5)]),frame(shape)
+    shape=[9,10,4]
+    yield 'pool_general',dict(input=dict(name='x',shape=shape),nodes=[
+        dict(op='MaxPool',input='x',output='a',kernel=3,stride=2),
+        dict(op='AvgPool',input='a',output='b',kernel=[2,3],stride=[1,1]),
+        dict(op='Requant',input='b',output='c',multiplier=[0x5555]*4,shift=[-2]*4),relu('c','y')]),frame(shape)
+    shape=[6,5,8]
+    yield 'gap_head',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',9*8,8,kernel=3,pads=[1]*4),q('a','b',8),relu('b','c'),
+        dict(op='AvgPool',input='c',output='d',kernel=[6,5]),
+        dict(op='Requant',input='d',output='e',multiplier=[0x6000]*8,shift=[-5]*8),
+        mac('FC','e','y',8,5)]),frame(shape)
+    shape=[4,5,8]
+    yield 'residual_add',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',9*8,8,kernel=3,pads=[1]*4),q('a','b',8),
+        dict(op='Add',input='b',input2='x',output='c',weights=[3,-5]),
+        dict(op='Requant',input='c',output='d',multiplier=[0x4000]*8,shift=[-2]*8),relu('d','e'),
+        dict(op='Add',input='e',input2='b',output='y',weights=[-128,127])]),frame(shape)
+    shape=[2,9,3]
+    # u4 tensors: unsigned post-ReLU codes 0..15 into Conv, pooling and Add.
+    uq=lambda s,d,c,shift=-3,lo=0,hi=15:dict(op='Requant',input=s,output=d,dtype='u4',clamp=[lo,hi],
+                                               multiplier=[0x6000]*c,shift=[shift]*c)
+    shape=[6,6,8]
+    yield 'u4_chain',dict(input=dict(name='x',shape=shape,dtype='u4'),nodes=[
+        mac('Conv','x','a',9*8,8,kernel=3,pads=[1]*4),uq('a','b',8),relu('b','c'),
+        dict(op='MaxPool',input='c',output='d'),
+        dw('d','e',8,3,pads=[1]*4),uq('e','f',8,lo=2,hi=11),
+        dict(op='Add',input='f',input2='d',output='g',weights=[5,-7]),uq('g','h',8,-2),
+        dict(op='AvgPool',input='h',output='i',kernel=[2,2],stride=[1,1]),q('i','j',8,-5),
+        dict(op='MaxPool',input='h',output='k',kernel=[2,2],stride=[1,1]),
+        dict(op='Add',input='j',input2='k',output='y',weights=[-3,2])]),[r.randrange(0,16) for _ in range(288)]
+    # Add written exactly over its second operand while the first lives on.
+    shape=[5,6,8]
+    yield 'add_inplace_src2',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',8,8,kernel=1),uq('a','b',8),
+        mac('Conv','b','c',8,8,kernel=1),q('c','d',8),
+        dict(op='Add',input='b',input2='d',output='e',weights=[7,-9]),q('e','f',8,-4),
+        dict(op='Add',input='f',input2='b',output='y',weights=[1,1])]),frame(shape)
+    # Single-channel kernels up to four taps wide use one padded K group per row.
+    shape=[13,9,1]
+    yield 'rowpad_kernels',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','a',7*3,8,kernel=[7,3],stride=[2,2],pads=[3,1,3,1]),uq('a','b',8),
+        dict(op='AvgPool',input='b',output='c',kernel=[2,2],stride=[1,1]),q('c','d',8,-4),
+        mac('Conv','d','y',2*1*8,6,kernel=[2,1])]),frame(shape)
+    shape=[6,8,1]
+    yield 'rowpad_4x2',dict(input=dict(name='x',shape=shape),nodes=[
+        mac('Conv','x','y',4*2,5,kernel=[4,2],pads=[1,0,2,1])]),frame(shape)
+    shape=[2,9,3]
+    yield 'pool_i32_window',dict(input=dict(name='x',shape=shape,dtype='i32'),nodes=[
+        dict(op='MaxPool',input='x',output='a',kernel=[2,4],stride=[1,3]),relu('a','y')]),\
+        [r.randrange(-2**31,2**31) for _ in range(54)]
 
 class Recorder:
     """Records the real host API. Expected data comes only from logical oracle."""
     def __init__(self,pkg,output):
-        self.rows=[];self.regs={0:ABI,0x50:8192,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16}
-        self.output=output;self.started=False;self.completed=False;self.pkg=pkg
+        self.rows=[];self.regs={0:ABI,0x50:8192,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16,0x6c:0x0f200404}
+        self.output=output;self.started=False;self.completed=False;self.pkg=pkg;self.burst_addr=0
         self.check_live_perf=False
     def exchange(self,op,addr=0,data=0):
         value=0;mask=0xffffffff
@@ -111,13 +190,26 @@ class Recorder:
                 chunk=self.output[at:at+4];value=int.from_bytes(chunk.ljust(4,b'\0'),'little');mask=(1<<(8*len(chunk)))-1
             else:value=self.regs.get(addr,0)
         if op==Op.ACK:self.started=False
+        if op in (Op.READ,Op.WRITE):self.burst_addr=addr+4
         self.rows.append(f'{int(op):02x} {addr:08x} {int(data)&0xffffffff:08x} 00 {mask:08x} {value:08x}')
         if op==Op.START and self.check_live_perf:
             self.rows.extend(['01 00000100 0 04 0 0','01 00000194 0 04 0 0','0a 0 0 0 0 0'])
         return value
+    # Burst rows: 80 = write next word, 81 = read next word (expected value);
+    # the testbench maps them to IR 13h/14h scans or to plain commands.
+    def burst_write(self,words):
+        for w in words:
+            self.rows.append(f'80 {self.burst_addr:08x} {w&0xffffffff:08x} 00 00000000 00000000');self.burst_addr+=4
+    def burst_read(self,count):
+        values=[]
+        for _ in range(count):
+            at=self.burst_addr-0x20000-self.pkg.manifest['output_base']
+            chunk=self.output[at:at+4];value=int.from_bytes(chunk.ljust(4,b'\0'),'little');mask=(1<<(8*len(chunk)))-1
+            self.rows.append(f'81 {self.burst_addr:08x} 0 00 {mask:08x} {value:08x}');self.burst_addr+=4;values.append(value)
+        return values
 
 def encoded(values,dtype):
-    return struct.pack('<'+'i'*len(values),*values) if dtype=='i32' else bytes(v&255 for v in values)
+    return encode_tensor(values,dtype)
 
 def run(command,log):
     try:
@@ -134,14 +226,29 @@ def run(command,log):
 
 def negative_tests(out,image):
     name,model,frame=next(fixtures());base=compile_model(model)
-    mutations=[('opcode',0,99,18),('reserved',44,1,18),('stride',20,0,18),
+    mutations=[('opcode',0,99,18),('reserved',44,1,18),('old_abi',60,0,18),('wrong_cols',60,0x49340f44,18),('stride',20,0,18),
                ('shape',40,0,19),('destination',8,8188,20),('source',4,2048,21),
-               ('multiplier',struct.unpack_from('<I',base.image,32)[0]+4,0xffffffff,22),
-               ('shift',struct.unpack_from('<I',base.image,32)[0]+8,32,22)]
+               # Parameter word: shift field -32 is reserved.
+               ('shift',struct.unpack_from('<I',base.image,32)[0]+4,0x80000000,22)]
+    # ABI 4 fields, on fixtures that use them: (name, fixture, op, word, f(old), error).
+    by_name={n:m for n,m,_ in fixtures()}
+    v4=[('dw_channels','dwconv',0,4,lambda w:(12<<16)|12,18),                 # depthwise C not a COLS multiple
+        ('pool_window','pool_general',0,5,lambda w:(w&0xffff0000)|200|(3<<8),19),  # window taller than input
+        ('add_src2_overlap','residual_add',1,11,None,20),                     # src2 overlaps dst
+        ('add_fused_pool','residual_add',1,0,lambda w:w|(1<<10),18),          # MaxPool fusion on Add
+        ('u4_int32','host_i32_pool',0,0,lambda w:w|(1<<15),18),               # u4 source declared INT32
+        ('dw_on_fc','mlp',0,0,lambda w:w|(1<<13),18),                         # depthwise flag on FC
+        ('pool1d_unfused','cnn',0,0,lambda w:(w&~(1<<10))|(1<<14),18)]                 # 1x2 flag without fused pool
     results=[]
-    for name,offset,value,error in mutations:
-        data=bytearray(base.image);struct.pack_into('<I',data,offset,value)
-        pkg=Package(bytes(data),base.manifest);rec=Recorder(pkg,b'');host=Npu(rec);host.load_model(pkg)
+    targets=[(n,base,o,v,e) for n,o,v,e in mutations]
+    for n,fixture,op,word,f,error in v4:
+        pkg=compile_model(by_name[fixture]);w=struct.unpack_from('<I',pkg.image,op*64+word*4)[0]
+        if f is None:w=(struct.unpack_from('<I',pkg.image,op*64+8)[0]+4)  # dst byte offset + 4
+        else:w=f(w)
+        targets.append((n,pkg,op*64+word*4,w&0xffffffff,error))
+    for name,base_pkg,offset,value,error in targets:
+        data=bytearray(base_pkg.image);struct.pack_into('<I',data,offset,value)
+        pkg=Package(bytes(data),base_pkg.manifest);rec=Recorder(pkg,b'');host=Npu(rec);host.load_model(pkg)
         parts=rec.rows[-1].split();parts[3]=f'{error:x}';rec.rows[-1]=' '.join(parts)
         rec.rows.extend(['01 40 0 0 ffffffff 0','07 0 0 5 0 0','09 0 0 0 0 0'])
         trace=out/f'negative_{name}.txt';trace.write_text('\n'.join(rec.rows)+'\n')
@@ -155,18 +262,18 @@ def negative_tests(out,image):
     c(7,error=5);c(6,error=5);c(2,0x20000,error=5)
     c(5);c(6,error=7);c(2,0x20004,error=6)
     # Use the real host sequence, then insert commands immediately after START.
-    before=len(rec.rows);host.infer(bytes(v&255 for v in frame))
+    before=len(rec.rows);host.infer(pack_i4(frame))
     start=next(i for i in range(before,len(rec.rows)) if rec.rows[i].startswith('07 '))
     rec.rows[start+1:start+1]=['07 0 0 4 0 0','02 10000 0 4 0 0','01 20000 0 4 0 0']
     ack=next(i for i in range(start,len(rec.rows)) if rec.rows[i].startswith('08 '))
     rec.rows[ack:ack]=['03 0 0 9 0 0','05 0 0 9 0 0']
     # Start another inference, abort it, and ensure no stale done arrives.
-    old=len(rec.rows);host.infer(bytes(v&255 for v in frame))
+    old=len(rec.rows);host.infer(pack_i4(frame))
     start=next(i for i in range(old,len(rec.rows)) if rec.rows[i].startswith('07 '))
     rec.rows=rec.rows[:start+1]
     c(9);c(0xf1,data=100);c(1,4,mask=0x7f,value=0);c(7,error=5)
     host.load_model(base)
-    old=len(rec.rows);host.infer(bytes(v&255 for v in frame))
+    old=len(rec.rows);host.infer(pack_i4(frame))
     start=next(i for i in range(old,len(rec.rows)) if rec.rows[i].startswith('07 '))
     rec.rows=rec.rows[:start]+['02 28 2 0 0 0']+rec.rows[start:start+1]
     c(0xf0);c(1,8,mask=0xffffffff,value=10);c(1,4,mask=0x49,value=0x40);c(9);c(2,0x28,10000000)
@@ -179,17 +286,28 @@ def negative_tests(out,image):
     return results+['lifecycle']
 
 def unit_tests(out,defines,macro_model=None):
+    for cols in (4,8):
+        image=out/f'mac_int4_{cols}.vvp'
+        run(['iverilog','-g2012',*(['-DCOLS4'] if cols==4 else []),'-s','tb_npu_mac_int4','-o',image,
+             'hardware/npu/rtl/npu_mac_array.sv','hardware/npu/tb/tb_npu_mac_int4.sv'],out/f'mac_int4_{cols}_compile.log')
+        run(['vvp',image],out/f'mac_int4_{cols}.log')
     sys.path.insert(0,str(ROOT/'hardware/npu/tools'))
-    import tinycnn8_golden as oracle
     r=random.Random(20261023);rows=[]
-    edges=[-2**31,2**31-1,-1,0,1,127,-129,65537,-65537]
+    edges=[-2**31,2**31-1,-1,0,1,7,-129,65537,-65537]
     for i in range(20000):
         x=edges[i%len(edges)] if i%3==0 else r.randrange(-2**31,2**31)
-        m=r.choice([0,1,0x7fffffff,0x40000000,-2**31,r.randrange(-2**31,2**31)])
-        shift=r.randrange(-31,32);lo,hi=r.choice([(-128,127),(0,100),(-64,63)])
-        expected=oracle.requant(x,0,m,shift,activation_min=lo,activation_max=hi)
+        m=r.choice([0,1,0x7fff,0x4000,r.randrange(0,2**15)])
+        shift=r.randrange(-31,32);lo,hi=r.choice([(-8,7),(0,7),(-4,3),(0,15),(2,11)])
+        # Independent single-rounding model on the hardware's Q8 multiplier:
+        # exact rational, ties toward +inf.
+        m8,s8=q8(m,shift)
+        sx=max(-2**31,min(2**31-1,x*(1<<max(s8,0))))
+        from fractions import Fraction
+        exact=Fraction(sx*m8,1<<(8+max(-s8,0)))
+        scaled=__import__('math').floor(exact+Fraction(1,2))
+        expected=max(lo,min(hi,scaled))
         assert requant(x,m,shift,lo,hi)==expected
-        rows.append(f'{x&0xffffffff:08x} {m&0xffffffff:08x} {shift&63:02x} {lo&255:02x} {hi:02x} {expected&255:02x}')
+        rows.append(f'{x&0xffffffff:08x} {m8:08x} {s8&63:02x} {lo&255:02x} {hi:02x} {expected&15:01x}')
     vectors=out/'quant.hex';vectors.write_text('\n'.join(rows)+'\n')
     qimage=out/'quant.vvp'
     run(['iverilog','-g2012','-s','tb_requant_lane','-o',qimage,
@@ -229,7 +347,8 @@ def unit_tests(out,defines,macro_model=None):
 
 def simulate(out,image,name,model,frame,cols,fuse,jtag,wave_disabled=False):
     """Run one compiled model through the real host API on an RTL image; check every tensor write."""
-    case=out/f'{name}_c{cols}_f{int(fuse)}_j{int(jtag)}';case.mkdir(exist_ok=True)
+    tag=int(fuse) if isinstance(fuse,bool) else 's'  # 's': a list of fusion switches
+    case=out/f'{name}_c{cols}_f{tag}_j{int(jtag)}';case.mkdir(exist_ok=True)
     pkg=compile_model(model,cols=cols,fuse=fuse);pkg.save(case)
     logical=reference(model,frame);expected=logical[model['nodes'][-1]['output']]
     output=encoded(expected,pkg.manifest['output_dtype']);rec=Recorder(pkg,output)
@@ -237,12 +356,12 @@ def simulate(out,image,name,model,frame,cols,fuse,jtag,wave_disabled=False):
     host=Npu(rec)
     host.load_model(pkg)
     for _ in range(2):
-        got=host.infer(encoded(frame,model['input'].get('dtype','i8')))
+        got=host.infer(encoded(frame,model['input'].get('dtype','i4')))
         assert got==output
         rec.rows.extend(['01 00000038 0 0 0 0','01 00000040 0 0 0 0'])
         rec.rows.append('01 00000068 0 0 ffffffff 00010018')
         rec.rows.extend(f'01 {0x100+4*i:08x} 0 0 0 0' for i in range(24))
-        rec.rows.extend(['01 00000180 0 0 ffffffff 00010080',
+        rec.rows.extend(['01 00000180 0 0 ffffffff 00030080',
                          f'01 00000184 0 0 ffffffff {0 if wave_disabled else 1024:08x}'])
         rec.rows.extend(f'01 {addr:08x} 0 0 0 0' for addr in range(0x190,0x1a0,4))
         rec.rows.extend(f'01 {0x200+4*i:08x} 0 0 0 0' for i in range(pkg.manifest['op_count']*8))
@@ -253,13 +372,22 @@ def simulate(out,image,name,model,frame,cols,fuse,jtag,wave_disabled=False):
     # are subsequently overwritten through lifetime reuse.
     events=[]
     for tensor,info in list(pkg.manifest['tensors'].items())[1:]:
-        values=logical[tensor];channels=info['shape'][2]
+        values=logical[tensor];channels=info['shape'][2];wide=info['dtype']=='i32'
         for oc in range(0,channels,cols):
             for pos in range(len(values)//channels):
-                for lane in range(min(cols,channels-oc)):
-                    index=pos*channels+oc+lane;size=4 if info['dtype']=='i32' else 1
-                    address=info['base']+index*size;mask=15 if size==4 else 1
-                    events.append((address<<48)|(mask<<32)|(values[index]&0xffffffff))
+                width=min(cols,channels-oc)
+                # Nibble outputs leave two adjacent lanes per write; an odd
+                # tensor's final write also clears the padding nibble.
+                for lane in range(0,width,1 if wide else 2):
+                    index=pos*channels+oc+lane
+                    address=info['base']*2+index*(8 if wide else 1)
+                    if wide:
+                        events.append((address<<48)|(255<<32)|(values[index]&0xffffffff));continue
+                    count=2 if lane+1<width else 1
+                    value=sum((values[index+i]&15)<<(4*i) for i in range(count))
+                    mask=(1<<count)-1
+                    if len(values)%2 and index+count-1==len(values)-1:mask=(mask<<1)|1
+                    events.append((address<<48)|(mask<<32)|value)
     events*=2;event_file=case/'writes.hex';event_file.write_text(''.join(f'{v:016x}\n' for v in events))
     log=run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}',
              f'+EVENTS={event_file.relative_to(ROOT).as_posix()}',f'+EVENT_COUNT={len(events)}'],case/'rtl.log')
@@ -309,6 +437,9 @@ def main():
     ap.add_argument('--wave-disabled',action='store_true',help='exercise ASIC-style disabled waveform trace, preserving operator summaries')
     ap.add_argument('--trained-model',type=Path,help='optional real trained NPZ; needs NumPy')
     ap.add_argument('--define',action='append',default=[],help='extra Verilog define, e.g. NPU_ENABLE_WAVE_TRACE=0')
+    ap.add_argument('--jobs',type=int,default=1,help='parallel simulations per build')
+    ap.add_argument('--only',help='comma-separated fixture names (debug)')
+    ap.add_argument('--skip-unit',action='store_true',help='skip block-level unit benches (debug)')
     args=ap.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=True)
     sources=(ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
     defines=['-D'+d for d in args.define]
@@ -316,22 +447,24 @@ def main():
     if args.macro_model:
         sources.append(str(args.macro_model.resolve()))
         defines.extend(['-DNPU_USE_RA1SHD_MODEL','-DNPU_USE_RA1SHD_ACTIVATION'])
-    unit_tests(out,defines,args.macro_model)
+    if not args.skip_unit:unit_tests(out,defines,args.macro_model)
     cases=list(fixtures())
     if args.trained_model:
         rng=random.Random(20261023)
-        cases.append(('trained',from_tinycnn_npz(args.trained_model),[rng.randrange(-32,33) for _ in range(320)]))
+        cases.append(('trained',from_tinycnn_npz(args.trained_model),[rng.randrange(-8,8) for _ in range(320)]))
+    if args.only:cases=[c for c in cases if c[0] in args.only.split(',')]
     results=[];variants=[(8,False),(4,False),(8,True)] if not args.quick else [(8,False)]
     negatives=[]
+    from concurrent.futures import ThreadPoolExecutor
     for cols,jtag in variants:
         image=out/f'program_{cols}_{jtag}.vvp'
         ds=defines+(['-DCOLS4','-DNPU_ARRAY_COLS=4'] if cols==4 else [])+(['-DJTAG_TEST'] if jtag else [])
         run(['iverilog','-g2012','-s','tb_npu_program','-o',image,*ds,*sources,'hardware/soc/sim/tb/tb_npu_program.sv'],out/f'compile_{cols}_{jtag}.log')
-        for name,model,frame in cases:
-            if jtag and name!='cnn':continue
-            for fuse in (True,False):
-                if name in ('tinycnn','trained') and not fuse:continue # raw Conv alone needs 10240 B, exceeding 8 KiB
-                row=simulate(out,image,name,model,frame,cols,fuse,jtag,args.wave_disabled)
+        jobs=[(name,model,frame,fuse) for name,model,frame in cases if not jtag or name in ('cnn','residual_add')
+              for fuse in (True,False)
+              if not (name in ('tinycnn','trained') and not fuse)] # raw Conv alone needs 10240 B, exceeding 8 KiB
+        with ThreadPoolExecutor(args.jobs) as pool:
+            for row in pool.map(lambda j:simulate(out,image,j[0],j[1],j[2],cols,j[3],jtag,args.wave_disabled),jobs):
                 results.append(row);print('PASS',row['case'],flush=True)
         if cols==8 and not jtag:negatives=negative_tests(out,image)
     # A common post chain must demonstrate physical savings, not only equal outputs.

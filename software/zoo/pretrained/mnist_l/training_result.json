@@ -1,0 +1,135 @@
+{
+  "name": "mnist_l",
+  "weights": 5088,
+  "float_val": 0.9931666666666666,
+  "float_test": 0.9925,
+  "int4_val": 0.9901666641235352,
+  "int4_test": 0.9894000291824341,
+  "int4_test_recall": [
+    0.9959183673469387,
+    0.9964757709251101,
+    0.9932170542635659,
+    0.9900990099009901,
+    0.9898167006109979,
+    0.9876681614349776,
+    0.9812108559498957,
+    0.9902723735408561,
+    0.9845995893223819,
+    0.9831516352824579
+  ],
+  "int4_test_balanced": 0.9892429518578172,
+  "hardware": {
+    "c8": {
+      "model_bytes": 6272,
+      "activation_peak": 3528,
+      "op_count": 10,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Add",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    },
+    "c4": {
+      "model_bytes": 5912,
+      "activation_peak": 3528,
+      "op_count": 10,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Add",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    }
+  },
+  "test_samples": 10000,
+  "seconds": 537.3226556777954,
+  "args": {
+    "name": "mnist_l",
+    "data": "../datasets",
+    "out": "../zoo_runs/final",
+    "fp_epochs": "80",
+    "qat_epochs": "60",
+    "lr": "0.003",
+    "qat_lr": "0.0005",
+    "batch": "256",
+    "seed": "0",
+    "balanced": "False",
+    "distill": "True",
+    "relu_max": "15"
+  }
+}

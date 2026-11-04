@@ -4,7 +4,8 @@ set prects_stats [capture_cell_stats prects]
 set_interactive_constraint_modes [all_constraint_modes -active]
 create_clock -period 20 -name core_clk [get_pins i_pad_clk_i/C]
 create_clock -period 1000 -name jtag_clk [get_pins i_pad_tck_i/C]
-set_clock_groups -asynchronous -group core_clk -group jtag_clk
+source $here/npu_jtag_cdc.tcl
+npu_cdc::apply
 set_clock_uncertainty 0.2 [get_clocks {core_clk jtag_clk}]
 set_input_transition 0.5 [get_ports {clk_i tck_i}]
 set_interactive_constraint_modes {}
@@ -53,6 +54,7 @@ timeDesign -postRoute -hold -expandedViews -outDir timing_hold
 report_timing -late -max_paths 100 > timing_setup.rpt
 report_timing -early -max_paths 100 > timing_hold.rpt
 report_constraint -all_violators > constraints.rpt
+npu_cdc::audit cdc_paths.tsv
 report_area > area.rpt
 reportCongestion -overflow > congestion.rpt
 set_power_analysis_mode -method static

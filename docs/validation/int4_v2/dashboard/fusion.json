@@ -1,0 +1,282 @@
+[
+ {
+  "model": "MNIST-L",
+  "config": "All fused",
+  "fits": true,
+  "cycles": 49416,
+  "writes": 8666,
+  "limit": null
+ },
+ {
+  "model": "MNIST-L",
+  "config": "No requant fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "MNIST-L",
+  "config": "No ReLU fusion",
+  "fits": true,
+  "cycles": 49416,
+  "writes": 8666,
+  "limit": null
+ },
+ {
+  "model": "MNIST-L",
+  "config": "No maxpool fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "activation SRAM"
+ },
+ {
+  "model": "MNIST-L",
+  "config": "Nothing fused",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "Fashion-CNN",
+  "config": "All fused",
+  "fits": true,
+  "cycles": 72812,
+  "writes": 3162,
+  "limit": null
+ },
+ {
+  "model": "Fashion-CNN",
+  "config": "No requant fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "activation SRAM"
+ },
+ {
+  "model": "Fashion-CNN",
+  "config": "No ReLU fusion",
+  "fits": true,
+  "cycles": 72812,
+  "writes": 3162,
+  "limit": null
+ },
+ {
+  "model": "Fashion-CNN",
+  "config": "No maxpool fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "activation SRAM"
+ },
+ {
+  "model": "Fashion-CNN",
+  "config": "Nothing fused",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "activation SRAM"
+ },
+ {
+  "model": "KWS-L",
+  "config": "All fused",
+  "fits": true,
+  "cycles": 126414,
+  "writes": 21036,
+  "limit": null
+ },
+ {
+  "model": "KWS-L",
+  "config": "No requant fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "KWS-L",
+  "config": "No ReLU fusion",
+  "fits": true,
+  "cycles": 126414,
+  "writes": 21036,
+  "limit": null
+ },
+ {
+  "model": "KWS-L",
+  "config": "No maxpool fusion",
+  "fits": true,
+  "cycles": 126414,
+  "writes": 21036,
+  "limit": null
+ },
+ {
+  "model": "KWS-L",
+  "config": "Nothing fused",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "KWS-M",
+  "config": "All fused",
+  "fits": true,
+  "cycles": 110115,
+  "writes": 22532,
+  "limit": null
+ },
+ {
+  "model": "KWS-M",
+  "config": "No requant fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "KWS-M",
+  "config": "No ReLU fusion",
+  "fits": true,
+  "cycles": 110115,
+  "writes": 22532,
+  "limit": null
+ },
+ {
+  "model": "KWS-M",
+  "config": "No maxpool fusion",
+  "fits": true,
+  "cycles": 110115,
+  "writes": 22532,
+  "limit": null
+ },
+ {
+  "model": "KWS-M",
+  "config": "Nothing fused",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "HAR-1D",
+  "config": "All fused",
+  "fits": true,
+  "cycles": 25048,
+  "writes": 3622,
+  "limit": null
+ },
+ {
+  "model": "HAR-1D",
+  "config": "No requant fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "activation SRAM"
+ },
+ {
+  "model": "HAR-1D",
+  "config": "No ReLU fusion",
+  "fits": true,
+  "cycles": 25048,
+  "writes": 3622,
+  "limit": null
+ },
+ {
+  "model": "HAR-1D",
+  "config": "No maxpool fusion",
+  "fits": true,
+  "cycles": 30556,
+  "writes": 7718,
+  "limit": null
+ },
+ {
+  "model": "HAR-1D",
+  "config": "Nothing fused",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "activation SRAM"
+ },
+ {
+  "model": "ECG-1D",
+  "config": "All fused",
+  "fits": true,
+  "cycles": 21286,
+  "writes": 5397,
+  "limit": null
+ },
+ {
+  "model": "ECG-1D",
+  "config": "No requant fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "ECG-1D",
+  "config": "No ReLU fusion",
+  "fits": true,
+  "cycles": 21286,
+  "writes": 5397,
+  "limit": null
+ },
+ {
+  "model": "ECG-1D",
+  "config": "No maxpool fusion",
+  "fits": true,
+  "cycles": 24776,
+  "writes": 7957,
+  "limit": null
+ },
+ {
+  "model": "ECG-1D",
+  "config": "Nothing fused",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "GTSRB-L",
+  "config": "All fused",
+  "fits": true,
+  "cycles": 122804,
+  "writes": 14343,
+  "limit": null
+ },
+ {
+  "model": "GTSRB-L",
+  "config": "No requant fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ },
+ {
+  "model": "GTSRB-L",
+  "config": "No ReLU fusion",
+  "fits": true,
+  "cycles": 122804,
+  "writes": 14343,
+  "limit": null
+ },
+ {
+  "model": "GTSRB-L",
+  "config": "No maxpool fusion",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "activation SRAM"
+ },
+ {
+  "model": "GTSRB-L",
+  "config": "Nothing fused",
+  "fits": false,
+  "cycles": null,
+  "writes": null,
+  "limit": "16 descriptors"
+ }
+]

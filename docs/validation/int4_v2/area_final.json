@@ -1,0 +1,1522 @@
+{
+ "macro_area_um2": 802887.182,
+ "flop_area_um2": 517979.3920000058,
+ "comb_area_um2": 614012.8063999709,
+ "comb_by_module": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024": 406555.4303999834,
+  "npu_activation_store_BYTES8192": 126537.91359998664,
+  "my_soc_top": 39289.6896,
+  "requant_lane_TAG_WIDTH17": 20843.424000000363,
+  "requant_lane_TAG_WIDTH1": 20786.348800000374
+ },
+ "flops_by_register": {
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:psum": {
+   "count": 2304,
+   "area_um2": 121385.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:results": {
+   "count": 1024,
+   "area_um2": 42709.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_count": {
+   "count": 683,
+   "area_um2": 40233.6
+  },
+  "npu_activation_store_BYTES8192:cache_data": {
+   "count": 512,
+   "area_um2": 21354.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:d": {
+   "count": 265,
+   "area_um2": 14271.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_data": {
+   "count": 256,
+   "area_um2": 13487.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:known_base": {
+   "count": 255,
+   "area_um2": 13434.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:known_size": {
+   "count": 255,
+   "area_um2": 13434.6
+  },
+  "npu_activation_store_BYTES8192:q_data": {
+   "count": 256,
+   "area_um2": 10677.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:bias_cache": {
+   "count": 144,
+   "area_um2": 7586.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_addr": {
+   "count": 112,
+   "area_um2": 5900.7
+  },
+  "npu_activation_store_BYTES8192:cache_tag": {
+   "count": 112,
+   "area_um2": 4671.4
+  },
+  "npu_activation_store_BYTES8192:q_addr": {
+   "count": 88,
+   "area_um2": 3670.4
+  },
+  "my_soc_top:i_host_dr": {
+   "count": 72,
+   "area_um2": 3477.2
+  },
+  "my_soc_top:i_host_req_payload": {
+   "count": 72,
+   "area_um2": 3477.2
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:mult_cache": {
+   "count": 64,
+   "area_um2": 3371.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:result_addr": {
+   "count": 64,
+   "area_um2": 3371.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[0].delayed.delay": {
+   "count": 70,
+   "area_um2": 3077.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_addr": {
+   "count": 56,
+   "area_um2": 2950.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_offsets": {
+   "count": 56,
+   "area_um2": 2950.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_tag_pipe": {
+   "count": 66,
+   "area_um2": 2897.7
+  },
+  "npu_activation_store_BYTES8192:q_mask": {
+   "count": 64,
+   "area_um2": 2669.4
+  },
+  "npu_activation_store_BYTES8192:saved_data": {
+   "count": 64,
+   "area_um2": 2669.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[1].delayed.delay": {
+   "count": 60,
+   "area_um2": 2638.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:shift_cache": {
+   "count": 48,
+   "area_um2": 2528.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_mask": {
+   "count": 56,
+   "area_um2": 2511.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[2].delayed.delay": {
+   "count": 50,
+   "area_um2": 2199.6
+  },
+  "my_soc_top:i_host_cmd_addr_o": {
+   "count": 32,
+   "area_um2": 1966.9
+  },
+  "my_soc_top:i_host_cmd_data_o": {
+   "count": 32,
+   "area_um2": 1966.9
+  },
+  "my_soc_top:i_host_reply_data": {
+   "count": 32,
+   "area_um2": 1966.9
+  },
+  "my_soc_top:i_host_rsp_mailbox_data": {
+   "count": 32,
+   "area_um2": 1966.9
+  },
+  "my_soc_top:i_control_i_controller_data": {
+   "count": 32,
+   "area_um2": 1931.8
+  },
+  "my_soc_top:i_control_i_controller_addr": {
+   "count": 32,
+   "area_um2": 1927.4
+  },
+  "my_soc_top:i_control_i_controller_completed_id": {
+   "count": 32,
+   "area_um2": 1896.7
+  },
+  "my_soc_top:i_control_i_controller_job_id": {
+   "count": 32,
+   "area_um2": 1881.3
+  },
+  "my_soc_top:i_host_burst_word": {
+   "count": 30,
+   "area_um2": 1830.8
+  },
+  "requant_lane_TAG_WIDTH17:s2_product": {
+   "count": 41,
+   "area_um2": 1800.1
+  },
+  "requant_lane_TAG_WIDTH1:s2_product": {
+   "count": 41,
+   "area_um2": 1800.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[3].delayed.delay": {
+   "count": 40,
+   "area_um2": 1760.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_acc": {
+   "count": 32,
+   "area_um2": 1685.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_data": {
+   "count": 32,
+   "area_um2": 1510.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_a_streak": {
+   "count": 32,
+   "area_um2": 1479.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_m_streak": {
+   "count": 32,
+   "area_um2": 1479.6
+  },
+  "requant_lane_TAG_WIDTH17:s3_scaled": {
+   "count": 32,
+   "area_um2": 1422.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_base": {
+   "count": 28,
+   "area_um2": 1420.3
+  },
+  "requant_lane_TAG_WIDTH1:s3_scaled": {
+   "count": 32,
+   "area_um2": 1418.1
+  },
+  "my_soc_top:i_control_i_controller_trace_control_o": {
+   "count": 32,
+   "area_um2": 1391.8
+  },
+  "my_soc_top:i_control_i_controller_elapsed": {
+   "count": 32,
+   "area_um2": 1387.4
+  },
+  "my_soc_top:i_control_i_controller_command_elapsed": {
+   "count": 32,
+   "area_um2": 1380.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:act_reads": {
+   "count": 32,
+   "area_um2": 1345.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:act_writes": {
+   "count": 32,
+   "area_um2": 1345.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cycles": {
+   "count": 32,
+   "area_um2": 1345.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issues": {
+   "count": 32,
+   "area_um2": 1345.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:model_reads": {
+   "count": 32,
+   "area_um2": 1345.7
+  },
+  "requant_lane_TAG_WIDTH17:s1_value": {
+   "count": 32,
+   "area_um2": 1339.1
+  },
+  "requant_lane_TAG_WIDTH1:s1_value": {
+   "count": 32,
+   "area_um2": 1339.1
+  },
+  "npu_activation_store_BYTES8192:held_data": {
+   "count": 32,
+   "area_um2": 1334.7
+  },
+  "npu_activation_store_BYTES8192:low_word": {
+   "count": 32,
+   "area_um2": 1334.7
+  },
+  "my_soc_top:i_control_i_controller_rsp_data_o": {
+   "count": 32,
+   "area_um2": 1334.7
+  },
+  "my_soc_top:i_control_i_controller_timeout_limit": {
+   "count": 32,
+   "area_um2": 1334.7
+  },
+  "my_soc_top:i_control_i_controller_trace_offset_o": {
+   "count": 32,
+   "area_um2": 1334.7
+  },
+  "my_soc_top:i_control_i_trace_register_data": {
+   "count": 32,
+   "area_um2": 1334.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:dst_span": {
+   "count": 31,
+   "area_um2": 1332.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[4].delayed.delay": {
+   "count": 30,
+   "area_um2": 1321.5
+  },
+  "npu_activation_store_BYTES8192:saved_word": {
+   "count": 22,
+   "area_um2": 1310.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:src_span": {
+   "count": 31,
+   "area_um2": 1297.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:weight_span": {
+   "count": 31,
+   "area_um2": 1293.0
+  },
+  "npu_activation_store_BYTES8192:high_word": {
+   "count": 28,
+   "area_um2": 1167.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:known_i": {
+   "count": 17,
+   "area_um2": 1025.2
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[5].delayed.delay": {
+   "count": 20,
+   "area_um2": 882.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_col_step": {
+   "count": 16,
+   "area_um2": 843.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:pool_chk_h": {
+   "count": 16,
+   "area_um2": 843.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:pool_chk_w": {
+   "count": 16,
+   "area_um2": 843.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_pos": {
+   "count": 16,
+   "area_um2": 814.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_g": {
+   "count": 16,
+   "area_um2": 812.2
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_events": {
+   "count": 18,
+   "area_um2": 790.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_g": {
+   "count": 16,
+   "area_um2": 757.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:positions": {
+   "count": 16,
+   "area_um2": 748.6
+  },
+  "requant_lane_TAG_WIDTH17:s1_tag": {
+   "count": 17,
+   "area_um2": 746.4
+  },
+  "requant_lane_TAG_WIDTH17:s2_tag": {
+   "count": 17,
+   "area_um2": 746.4
+  },
+  "requant_lane_TAG_WIDTH17:s3_tag": {
+   "count": 17,
+   "area_um2": 746.4
+  },
+  "requant_lane_TAG_WIDTH17:out_tag": {
+   "count": 17,
+   "area_um2": 746.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_row_jump": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_row_step": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_scan_product": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:origin": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:origin_x": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:origin_y": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:pool_scan_jump": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:pool_scan_product": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:scan_jump": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:scan_product": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_row_jump": {
+   "count": 14,
+   "area_um2": 737.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:oct": {
+   "count": 16,
+   "area_um2": 735.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:groups": {
+   "count": 16,
+   "area_um2": 733.2
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_seq": {
+   "count": 16,
+   "area_um2": 728.8
+  },
+  "my_soc_top:i_control_i_controller_input_count": {
+   "count": 14,
+   "area_um2": 717.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:known_valid": {
+   "count": 17,
+   "area_um2": 709.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_tile": {
+   "count": 16,
+   "area_um2": 704.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_col_step": {
+   "count": 14,
+   "area_um2": 704.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_row_jump": {
+   "count": 16,
+   "area_um2": 700.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:param_channel": {
+   "count": 16,
+   "area_um2": 698.1
+  },
+  "my_soc_top:i_control_i_controller_input_bytes_o": {
+   "count": 16,
+   "area_um2": 693.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_seq": {
+   "count": 16,
+   "area_um2": 684.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:dst_pixels": {
+   "count": 16,
+   "area_um2": 682.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_tile": {
+   "count": 16,
+   "area_um2": 678.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:dw": {
+   "count": 16,
+   "area_um2": 676.1
+  },
+  "my_soc_top:i_control_i_controller_model_bytes_o": {
+   "count": 16,
+   "area_um2": 676.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gathered": {
+   "count": 16,
+   "area_um2": 673.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_offset": {
+   "count": 16,
+   "area_um2": 673.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:row_stride": {
+   "count": 16,
+   "area_um2": 669.5
+  },
+  "npu_activation_store_BYTES8192:cache_valid": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_activation_store_BYTES8192:saved_mask": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:dh": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_addr": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_count": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_col_jump": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:oh": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:ow": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:ret_pos_addr": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:src_pixels": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:x_step": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "my_soc_top:i_control_i_controller_input_base_o": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "my_soc_top:i_control_i_controller_output_base_o": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "my_soc_top:i_control_i_controller_output_bytes_o": {
+   "count": 16,
+   "area_um2": 667.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_skew[3].delayed.act_delay": {
+   "count": 15,
+   "area_um2": 658.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:weight_tile_base": {
+   "count": 12,
+   "area_um2": 632.2
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:y_step": {
+   "count": 14,
+   "area_um2": 601.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_offset": {
+   "count": 14,
+   "area_um2": 592.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cursor_base": {
+   "count": 14,
+   "area_um2": 588.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tile_base": {
+   "count": 14,
+   "area_um2": 583.9
+  },
+  "my_soc_top:i_control_i_controller_model_count": {
+   "count": 12,
+   "area_um2": 559.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_bank_pipe": {
+   "count": 11,
+   "area_um2": 518.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_xs": {
+   "count": 12,
+   "area_um2": 500.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_ys": {
+   "count": 12,
+   "area_um2": 500.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_address": {
+   "count": 12,
+   "area_um2": 500.5
+  },
+  "my_soc_top:i_host_cmd_op_o": {
+   "count": 8,
+   "area_um2": 491.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_valid_pipe": {
+   "count": 11,
+   "area_um2": 482.9
+  },
+  "my_soc_top:i_control_i_controller_op": {
+   "count": 8,
+   "area_um2": 478.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_c": {
+   "count": 11,
+   "area_um2": 467.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_deskew[6].delayed.delay": {
+   "count": 10,
+   "area_um2": 443.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[7].psum_q": {
+   "count": 10,
+   "area_um2": 443.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[5].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[4].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[3].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[2].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[1].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[0].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[6].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_skew[2].delayed.act_delay": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[0].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[1].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[2].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[6].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[7].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[0].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[1].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[2].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[6].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[7].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[3].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[4].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[5].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[3].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[4].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[5].psum_q": {
+   "count": 10,
+   "area_um2": 439.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_last_x": {
+   "count": 8,
+   "area_um2": 421.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:scan_last_x": {
+   "count": 8,
+   "area_um2": 421.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:inflight": {
+   "count": 10,
+   "area_um2": 421.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_x": {
+   "count": 8,
+   "area_um2": 410.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_x": {
+   "count": 8,
+   "area_um2": 410.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tap_y": {
+   "count": 8,
+   "area_um2": 410.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[0].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[2].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[6].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[1].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[3].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[4].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[5].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[7].psum_q": {
+   "count": 9,
+   "area_um2": 395.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:param_span": {
+   "count": 9,
+   "area_um2": 379.8
+  },
+  "requant_lane_TAG_WIDTH17:s1_multiplier": {
+   "count": 8,
+   "area_um2": 373.2
+  },
+  "requant_lane_TAG_WIDTH1:s1_multiplier": {
+   "count": 8,
+   "area_um2": 373.2
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cursor_x": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cursor_y": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[0].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[1].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[2].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[3].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[4].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[5].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[6].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[7].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[0].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[1].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[2].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[3].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[4].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[5].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[6].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[7].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[0].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[1].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[2].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[3].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[4].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[5].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[6].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[7].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[0].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[1].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[2].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[3].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[4].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[5].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[6].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[7].weight_bank": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tile_x": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tile_y": {
+   "count": 8,
+   "area_um2": 333.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_consecutive": {
+   "count": 6,
+   "area_um2": 324.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:octs": {
+   "count": 7,
+   "area_um2": 324.9
+  },
+  "my_soc_top:i_host_reply_error": {
+   "count": 5,
+   "area_um2": 307.3
+  },
+  "my_soc_top:i_host_rsp_mailbox_error": {
+   "count": 5,
+   "area_um2": 307.3
+  },
+  "my_soc_top:i_control_i_controller_config_written": {
+   "count": 7,
+   "area_um2": 292.0
+  },
+  "requant_lane_TAG_WIDTH17:s2_rshift": {
+   "count": 6,
+   "area_um2": 281.0
+  },
+  "requant_lane_TAG_WIDTH1:s2_rshift": {
+   "count": 6,
+   "area_um2": 281.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_sample_inflight": {
+   "count": 6,
+   "area_um2": 272.2
+  },
+  "requant_lane_TAG_WIDTH17:s1_rshift": {
+   "count": 6,
+   "area_um2": 261.2
+  },
+  "requant_lane_TAG_WIDTH1:s1_rshift": {
+   "count": 6,
+   "area_um2": 261.2
+  },
+  "my_soc_top:i_host_ir": {
+   "count": 5,
+   "area_um2": 243.7
+  },
+  "my_soc_top:i_host_ir_shift": {
+   "count": 5,
+   "area_um2": 243.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:pc": {
+   "count": 5,
+   "area_um2": 232.7
+  },
+  "requant_lane_TAG_WIDTH1:s3_max": {
+   "count": 5,
+   "area_um2": 228.3
+  },
+  "requant_lane_TAG_WIDTH1:s3_min": {
+   "count": 5,
+   "area_um2": 228.3
+  },
+  "requant_lane_TAG_WIDTH17:s1_max": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH17:s1_min": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH17:s2_max": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH17:s2_min": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH17:s3_max": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH17:s3_min": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH1:s1_max": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH1:s1_min": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH1:s2_max": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "requant_lane_TAG_WIDTH1:s2_min": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[0].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[1].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[2].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[3].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[4].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[5].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[0].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[1].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[2].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[3].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[4].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[5].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[1].cols[6].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[0].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[0].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[1].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[2].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[3].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[4].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[5].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[3].cols[6].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[0].cols[6].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[1].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[2].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[3].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[4].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[5].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_rows[2].cols[6].act_q": {
+   "count": 5,
+   "area_um2": 219.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:i_array_skew[1].delayed.act_delay": {
+   "count": 5,
+   "area_um2": 217.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_p": {
+   "count": 5,
+   "area_um2": 215.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:rq_pending": {
+   "count": 5,
+   "area_um2": 215.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:tile_positions": {
+   "count": 5,
+   "area_um2": 212.9
+  },
+  "my_soc_top:i_control_i_controller_op_count_o": {
+   "count": 5,
+   "area_um2": 210.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:error_op": {
+   "count": 5,
+   "area_um2": 208.5
+  },
+  "my_soc_top:i_control_i_controller_error_code": {
+   "count": 5,
+   "area_um2": 208.5
+  },
+  "my_soc_top:i_control_i_controller_error_op": {
+   "count": 5,
+   "area_um2": 208.5
+  },
+  "my_soc_top:i_control_i_controller_rsp_error_o": {
+   "count": 5,
+   "area_um2": 208.5
+  },
+  "my_soc_top:i_host_tap": {
+   "count": 4,
+   "area_um2": 195.4
+  },
+  "npu_activation_store_BYTES8192:count": {
+   "count": 4,
+   "area_um2": 184.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:fetch_word": {
+   "count": 4,
+   "area_um2": 184.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:astep": {
+   "count": 4,
+   "area_um2": 180.0
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:slot_busy": {
+   "count": 4,
+   "area_um2": 175.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:state": {
+   "count": 4,
+   "area_um2": 173.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_count": {
+   "count": 4,
+   "area_um2": 171.2
+  },
+  "requant_lane_TAG_WIDTH17:out_data": {
+   "count": 4,
+   "area_um2": 166.8
+  },
+  "requant_lane_TAG_WIDTH1:out_data": {
+   "count": 4,
+   "area_um2": 166.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_mask": {
+   "count": 4,
+   "area_um2": 166.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:k_valid": {
+   "count": 4,
+   "area_um2": 166.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:slot_ready": {
+   "count": 4,
+   "area_um2": 166.8
+  },
+  "npu_activation_store_BYTES8192:rotation": {
+   "count": 3,
+   "area_um2": 155.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_head": {
+   "count": 3,
+   "area_um2": 147.1
+  },
+  "npu_activation_store_BYTES8192:tail": {
+   "count": 3,
+   "area_um2": 140.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:write_tail": {
+   "count": 3,
+   "area_um2": 138.3
+  },
+  "npu_activation_store_BYTES8192:head": {
+   "count": 3,
+   "area_um2": 131.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_lane": {
+   "count": 3,
+   "area_um2": 131.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:read_lane": {
+   "count": 3,
+   "area_um2": 131.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_sample_slots": {
+   "count": 3,
+   "area_um2": 131.7
+  },
+  "npu_activation_store_BYTES8192:state": {
+   "count": 3,
+   "area_um2": 129.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_y": {
+   "count": 3,
+   "area_um2": 129.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_x": {
+   "count": 3,
+   "area_um2": 127.3
+  },
+  "my_soc_top:i_control_i_controller_state": {
+   "count": 3,
+   "area_um2": 127.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:error": {
+   "count": 3,
+   "area_um2": 125.1
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_row": {
+   "count": 2,
+   "area_um2": 105.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:estate": {
+   "count": 2,
+   "area_um2": 96.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_first": {
+   "count": 2,
+   "area_um2": 96.6
+  },
+  "my_soc_top:i_host_ack_sync": {
+   "count": 2,
+   "area_um2": 96.6
+  },
+  "my_soc_top:i_host_req_sync": {
+   "count": 2,
+   "area_um2": 96.6
+  },
+  "my_soc_top:i_host_sys_reset_sync": {
+   "count": 2,
+   "area_um2": 96.6
+  },
+  "my_soc_top:i_host_tck_reset_sync": {
+   "count": 2,
+   "area_um2": 96.6
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:element_slot": {
+   "count": 2,
+   "area_um2": 94.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_row": {
+   "count": 2,
+   "area_um2": 94.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:read_slot": {
+   "count": 2,
+   "area_um2": 94.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_sample_banks": {
+   "count": 2,
+   "area_um2": 87.8
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:bank_ready": {
+   "count": 2,
+   "area_um2": 83.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_state": {
+   "count": 2,
+   "area_um2": 83.4
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:lstate": {
+   "count": 2,
+   "area_um2": 83.4
+  },
+  "my_soc_top:i_host_td_o_reg(.CDN": {
+   "count": 1,
+   "area_um2": 65.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:add_second_reg(.CP": {
+   "count": 1,
+   "area_um2": 63.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:checking_reg(.CP": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:dwconv_reg(.CP": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "my_soc_top:i_control_i_controller_done_reg(.CP": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "my_soc_top:i_host_ack_toggle_reg(.CDN": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "my_soc_top:i_host_burst_request_reg(.CDN": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "my_soc_top:i_host_cmd_valid_o_reg(.CDN": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "my_soc_top:i_host_req_seen_reg(.CDN": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "my_soc_top:i_host_req_toggle_reg(.CDN": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "my_soc_top:i_host_waiting_reply_reg(.CDN": {
+   "count": 1,
+   "area_um2": 61.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:pool1d_reg(.CP": {
+   "count": 1,
+   "area_um2": 59.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:validation_ok_reg(.CP": {
+   "count": 1,
+   "area_um2": 52.7
+  },
+  "my_soc_top:i_control_rst_reg(.CP": {
+   "count": 1,
+   "area_um2": 52.7
+  },
+  "my_soc_top:i_host_pending_reg(.CDN": {
+   "count": 1,
+   "area_um2": 50.5
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:elem_pool_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:mac_op_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:q_enable_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:pool_enable_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_sample_active_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "my_soc_top:i_host_burst_error_pending_reg(.CDN": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "my_soc_top:i_host_have_reply_reg(.CDN": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "my_soc_top:i_host_overrun_reg(.CDN": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "my_soc_top:i_control_i_model_store_high_half_reg(.CP": {
+   "count": 1,
+   "area_um2": 48.3
+  },
+  "npu_activation_store_BYTES8192:memory_high_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "requant_lane_TAG_WIDTH17:s1_valid_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "requant_lane_TAG_WIDTH17:s2_valid_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "requant_lane_TAG_WIDTH17:out_valid_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "requant_lane_TAG_WIDTH17:s3_valid_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:done_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:fetch_bad_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:relu_enable_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:validation_done_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:gather_contiguous_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:last_group_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:cursor_at_last_x_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_controller_input_i32_o_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_model_store_pending_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_controller_model_loading_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_controller_model_valid_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_trace_active_q_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_trace_read_valid_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_controller_job_active_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "my_soc_top:i_control_i_controller_input_loading_reg(.CP": {
+   "count": 1,
+   "area_um2": 43.9
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:has_next_q_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:issue_more_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:kernel_prepare_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:load_more_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_a_pending_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "npu_program_core_ACT_BYTES8192_MODEL_BYTES8192_COLS8_MAX_OPS16_MAX_K1024:perf_m_pending_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "my_soc_top:i_control_i_controller_core_reset_o_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "my_soc_top:i_control_i_controller_faulted_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "my_soc_top:i_control_i_controller_input_valid_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "my_soc_top:i_control_i_controller_rsp_valid_o_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "my_soc_top:i_control_i_trace_finished_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "my_soc_top:i_control_i_trace_saw_active_reg(.CP": {
+   "count": 1,
+   "area_um2": 41.7
+  },
+  "my_soc_top:i_control_i_trace_read_error": {
+   "count": 1,
+   "area_um2": 41.7
+  }
+ }
+}

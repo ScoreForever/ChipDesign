@@ -19,7 +19,8 @@ class FlowTests(unittest.TestCase):
         for layout in flow.LAYOUTS:
             g=flow.geometry(std,SIZES,.6,layout);margin=g['margin_um'];core=g['core_side_um']
             self.assertEqual([m[0] for m in g['macros']],['model','activation'])
-            boxes=[m[1:] for m in g['macros']]
+            boxes=[m[1:5] for m in g['macros']]
+            self.assertTrue(all(m[5] in flow.PIN_SIDE for m in g['macros']))
             for x,y,w,h in boxes:
                 self.assertGreater(x,margin+26);self.assertLess(x+w,margin+core-26)
                 self.assertGreater(y,margin+26);self.assertLess(y+h,margin+core-26)
@@ -30,8 +31,8 @@ class FlowTests(unittest.TestCase):
             self.assertGreaterEqual(gap,2*26)
         with self.assertRaises(ValueError):flow.geometry(std,SIZES,.6,'nowhere')
     def test_area_budget_skips_oversized_candidates_without_tools(self):
-        # The die cap is 2x2 mm; an oversized point never launches Innovus.
-        self.assertEqual(flow.MAX_DIE_UM,2000)
+        # The die cap is 1.95x1.95 mm; an oversized point never launches Innovus.
+        self.assertEqual(flow.MAX_DIE_UM,1950)
         self.assertGreater(flow.geometry(4e6,SIZES,.55)['die_side_um'],flow.MAX_DIE_UM)
         with tempfile.TemporaryDirectory() as d:
             root=Path(d);syn=root/'synthesis';syn.mkdir()

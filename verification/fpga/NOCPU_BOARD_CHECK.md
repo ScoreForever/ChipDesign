@@ -1,6 +1,6 @@
 # No-CPU FPGA 人工上板与证据复核
 
-本流程针对 ABI 2.1 和当前无 CPU NPU。`nocpu_board_check.py` 实现的是 **JTAG 能力读取与重复推理 smoke test**，不是完整的板级签核套件，也不自动烧录、改变复位状态或核实 FPGA 当前配置帧。
+本流程针对 ABI 3.0 INT4 和当前无 CPU NPU。`nocpu_board_check.py` 实现的是 **JTAG 能力读取与重复推理 smoke test**，不是完整的板级签核套件，也不自动烧录、改变复位状态或核实 FPGA 当前配置帧。
 
 ## 1. 构建并复核
 

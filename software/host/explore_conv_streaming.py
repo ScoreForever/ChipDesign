@@ -14,13 +14,13 @@ def explore(h=8,w=8,ci=2,cm=4,co=3):
     r=random.Random(23)
     wa=[r.randrange(-3,4) for _ in range(cm*9*ci)]
     wb=[r.randrange(-3,4) for _ in range(co*9*cm)]
-    source=[r.randrange(-128,128) for _ in range(h*w*ci)]
+    source=[r.randrange(-8,8) for _ in range(h*w*ci)]
     model=dict(input=dict(name='x',shape=[h,w,ci]),nodes=[
         dict(op='Conv',input='x',output='a',channels=cm,kernel=3,pads=[1]*4,weights=wa,bias=[1]*cm),
-        dict(op='Requant',input='a',output='b',multiplier=[0x40000000],shift=[-2]),
+        dict(op='Requant',input='a',output='b',multiplier=[0x4000],shift=[-2]),
         dict(op='ReLU',input='b',output='c'),
         dict(op='Conv',input='c',output='d',channels=co,kernel=3,pads=[1]*4,weights=wb,bias=[-1]*co),
-        dict(op='Requant',input='d',output='e',multiplier=[0x40000000],shift=[-3]),
+        dict(op='Requant',input='d',output='e',multiplier=[0x4000],shift=[-3]),
         dict(op='ReLU',input='e',output='y')])
     expected=reference(model,source)['y'];cache={};actual=[];peak=0;produced=0;switches=0;mode=None
     def switch(new):
@@ -38,7 +38,7 @@ def explore(h=8,w=8,ci=2,cm=4,co=3):
                         iy=y+ky-1;ix=x+kx-1
                         if 0<=iy<h and 0<=ix<w:
                             for c in range(ci):acc+=source[(iy*w+ix)*ci+c]*wa[o*9*ci+(ky*3+kx)*ci+c]
-                row.append(max(0,requant(acc,0x40000000,-2)))
+                row.append(max(0,requant(acc,0x4000,-2)))
         produced+=1;return row
     for y in range(h):
         required={iy for iy in (y-1,y,y+1) if 0<=iy<h}
@@ -55,12 +55,14 @@ def explore(h=8,w=8,ci=2,cm=4,co=3):
                         iy=y+ky-1;ix=x+kx-1
                         if 0<=iy<h and 0<=ix<w:
                             for c in range(cm):acc+=cache[iy][ix*cm+c]*wb[o*9*cm+(ky*3+kx)*cm+c]
-                actual.append(max(0,requant(acc,0x40000000,-3)))
+                actual.append(max(0,requant(acc,0x4000,-3)))
     assert actual==expected and produced==h
-    def loads(spatial_tiles,k,oc):return spatial_tiles*((k+3)//4)*((oc+7)//8)*4*8
+    def loads(spatial_tiles,k,oc):
+        row_bytes=sum(2 if oc-base<=4 else 4 for base in range(0,oc,8))
+        return spatial_tiles*((k+3)//4)*4*row_bytes
     return dict(scope='software-only feasibility; no RTL timing/area claim',shape=[h,w,ci,cm,co],
-                comparisons=len(expected),producer_rows=produced,intermediate_full_bytes=h*w*cm,
-                row_cache_peak_bytes=peak,intermediate_write_read_bytes_avoided=2*h*w*cm,
+                comparisons=len(expected),producer_rows=produced,intermediate_full_bytes=(h*w*cm+1)//2,
+                row_cache_peak_bytes=(peak+1)//2,intermediate_write_read_bytes_avoided=2*((h*w*cm+1)//2),
                 layerwise_weight_switches=1,row_schedule_weight_switches=switches,
                 layerwise_weight_load_bytes=loads((h*w+15)//16,9*ci,cm)+loads((h*w+15)//16,9*cm,co),
                 row_schedule_weight_load_bytes=loads(h*((w+15)//16),9*ci,cm)+loads(h*((w+15)//16),9*cm,co))

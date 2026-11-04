@@ -1,0 +1,997 @@
+{
+ "models": {
+  "mnist_l": {
+   "int4_test": 0.9887999892234802,
+   "int4_test_balanced": 0.9886119804167857,
+   "float_test": 0.9925,
+   "weights": 5088,
+   "model_bytes": 4592,
+   "activation_peak": 3528,
+   "descriptors": 10,
+   "test_samples": 10000,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/mnist_l",
+   "cycles_c8": 49416,
+   "cycles_c4": 70118,
+   "macs": 420864,
+   "mac_utilization": 0.2661486158329286,
+   "breakdown": {
+    "mac_issue": 26688,
+    "wait_activation": 9892,
+    "wait_weight": 1974,
+    "wait_slot": 4964,
+    "kernel_prepare": 1962,
+    "element_and_other": 3936
+   }
+  },
+  "fashion_cnn": {
+   "int4_test": 0.9010999798774719,
+   "int4_test_balanced": 0.9010999999999999,
+   "float_test": 0.9102,
+   "weights": 14288,
+   "model_bytes": 8008,
+   "activation_peak": 2744,
+   "descriptors": 5,
+   "test_samples": 10000,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/cnn/s1/fashion_cnn",
+   "cycles_c8": 72812,
+   "cycles_c4": 142868,
+   "macs": 1467968,
+   "mac_utilization": 0.6300335109597319,
+   "breakdown": {
+    "mac_issue": 47056,
+    "wait_activation": 18106,
+    "wait_weight": 2508,
+    "wait_slot": 636,
+    "kernel_prepare": 3334,
+    "element_and_other": 1172
+   }
+  },
+  "kws_l": {
+   "int4_test": 0.9150981903076172,
+   "int4_test_balanced": 0.9149093341203715,
+   "float_test": 0.9365793780687398,
+   "weights": 9792,
+   "model_bytes": 7224,
+   "activation_peak": 6248,
+   "descriptors": 9,
+   "test_samples": 4888,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/aff/s2/kws_l",
+   "cycles_c8": 126414,
+   "cycles_c4": 177912,
+   "macs": 1152576,
+   "mac_utilization": 0.2849209739427595,
+   "breakdown": {
+    "mac_issue": 72774,
+    "wait_activation": 27006,
+    "wait_weight": 348,
+    "wait_slot": 17712,
+    "kernel_prepare": 4680,
+    "element_and_other": 3894
+   }
+  },
+  "kws_m": {
+   "int4_test": 0.9042553305625916,
+   "int4_test_balanced": 0.9039819567602216,
+   "float_test": 0.9302373158756138,
+   "weights": 9160,
+   "model_bytes": 7072,
+   "activation_peak": 5248,
+   "descriptors": 11,
+   "test_samples": 4888,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/kws_m",
+   "cycles_c8": 110115,
+   "cycles_c4": 156199,
+   "macs": 1085480,
+   "mac_utilization": 0.3080529446487763,
+   "breakdown": {
+    "mac_issue": 74395,
+    "wait_activation": 8805,
+    "wait_weight": 339,
+    "wait_slot": 17975,
+    "kernel_prepare": 4780,
+    "element_and_other": 3821
+   }
+  },
+  "har": {
+   "int4_test": 0.9273837804794312,
+   "int4_test_balanced": 0.92875758655891,
+   "float_test": 0.9406175771971497,
+   "weights": 5216,
+   "model_bytes": 4216,
+   "activation_peak": 2624,
+   "descriptors": 7,
+   "test_samples": 2947,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/har",
+   "cycles_c8": 25048,
+   "cycles_c4": 40240,
+   "macs": 331136,
+   "mac_utilization": 0.4131267965506228,
+   "breakdown": {
+    "mac_issue": 14096,
+    "wait_activation": 5552,
+    "wait_weight": 213,
+    "wait_slot": 2436,
+    "kernel_prepare": 896,
+    "element_and_other": 1855
+   }
+  },
+  "ecg": {
+   "int4_test": 0.9700803756713867,
+   "int4_test_balanced": 0.8184657435662009,
+   "float_test": 0.9858395761008588,
+   "weights": 3568,
+   "model_bytes": 3908,
+   "activation_peak": 1600,
+   "descriptors": 13,
+   "test_samples": 21892,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/ecg",
+   "cycles_c8": 21286,
+   "cycles_c4": 30062,
+   "macs": 149664,
+   "mac_utilization": 0.21972188292774594,
+   "breakdown": {
+    "mac_issue": 9224,
+    "wait_activation": 3988,
+    "wait_weight": 185,
+    "wait_slot": 3630,
+    "kernel_prepare": 584,
+    "element_and_other": 3675
+   }
+  },
+  "gtsrb_l": {
+   "int4_test": 0.9201900362968445,
+   "int4_test_balanced": 0.8878562832329263,
+   "float_test": 0.9515439429928741,
+   "weights": 10496,
+   "model_bytes": 7688,
+   "activation_peak": 8192,
+   "descriptors": 10,
+   "test_samples": 12630,
+   "run": "/data/zzy/chipdesign_int4v2/zoo_runs/aff/s1/gtsrb_l",
+   "cycles_c8": 122804,
+   "cycles_c4": 203750,
+   "macs": 1612136,
+   "mac_utilization": 0.4102411159245627,
+   "breakdown": {
+    "mac_issue": 74580,
+    "wait_activation": 30746,
+    "wait_weight": 671,
+    "wait_slot": 6954,
+    "kernel_prepare": 4740,
+    "element_and_other": 5113
+   }
+  }
+ },
+ "e2e": {
+  "mnist_l": {
+   "burst": {
+    "total_ms": 53.22632,
+    "tck": 52469,
+    "commands": 27,
+    "burst_scans": 1253
+   },
+   "legacy": {
+    "total_ms": 296.20632,
+    "tck": 295449,
+    "commands": 1280,
+    "burst_scans": 0
+   }
+  },
+  "fashion_cnn": {
+   "burst": {
+    "total_ms": 85.29223999999999,
+    "tck": 84067,
+    "commands": 27,
+    "burst_scans": 2107
+   },
+   "legacy": {
+    "total_ms": 493.94824,
+    "tck": 492723,
+    "commands": 2134,
+    "burst_scans": 0
+   }
+  },
+  "kws_l": {
+   "burst": {
+    "total_ms": 77.86228,
+    "tck": 75565,
+    "commands": 27,
+    "burst_scans": 1877
+   },
+   "legacy": {
+    "total_ms": 441.89027999999996,
+    "tck": 439593,
+    "commands": 1904,
+    "burst_scans": 0
+   }
+  },
+  "kws_m": {
+   "burst": {
+    "total_ms": 76.13029999999999,
+    "tck": 74159,
+    "commands": 27,
+    "burst_scans": 1839
+   },
+   "legacy": {
+    "total_ms": 432.7862999999999,
+    "tck": 430815,
+    "commands": 1866,
+    "burst_scans": 0
+   }
+  },
+  "har": {
+   "burst": {
+    "total_ms": 50.79896000000001,
+    "tck": 50529,
+    "commands": 27,
+    "burst_scans": 1201
+   },
+   "legacy": {
+    "total_ms": 283.70696,
+    "tck": 283437,
+    "commands": 1228,
+    "burst_scans": 0
+   }
+  },
+  "ecg": {
+   "burst": {
+    "total_ms": 43.097719999999995,
+    "tck": 42903,
+    "commands": 27,
+    "burst_scans": 995
+   },
+   "legacy": {
+    "total_ms": 236.04571999999996,
+    "tck": 235851,
+    "commands": 1022,
+    "burst_scans": 0
+   }
+  },
+  "gtsrb_l": {
+   "burst": {
+    "total_ms": 100.00308,
+    "tck": 97778,
+    "commands": 27,
+    "burst_scans": 2474
+   },
+   "legacy": {
+    "total_ms": 579.72508,
+    "tck": 577500,
+    "commands": 2501,
+    "burst_scans": 0
+   }
+  }
+ },
+ "area": {
+  "final": {
+   "standard_mm2": 1.1319921983999768,
+   "macro_mm2": 0.802887182,
+   "groups": {
+    "SRAM 宏 ×2": 802887.182,
+    "NPU 组合逻辑（MAC 阵列、地址、控制）": 406555.4303999834,
+    "激活存储接口": 179519.11359998665,
+    "其它 NPU 寄存器（触发器）": 123261.89999999985,
+    "psum 累加器（触发器）": 121385.8,
+    "JTAG / mailbox / 控制器": 83073.2896,
+    "Requant lane": 58725.972800000745,
+    "结果槽（触发器）": 42709.8,
+    "描述符与区域表（触发器）": 41140.2,
+    "性能计数器（触发器）": 40233.6,
+    "写队列（触发器）": 21899.3,
+    "参数与读缓存（触发器）": 13487.300000000001
+   }
+  }
+ },
+ "layout": {
+  "final": {
+   "name": "diagonal_facing_h25",
+   "layout": "diagonal_facing",
+   "utilization": 0.7,
+   "hold_target": 0.25,
+   "die_area_mm2": 3.687321658,
+   "die_side_um": 1920,
+   "macros": [
+    [
+     "model",
+     196.0,
+     196.0,
+     723.85,
+     554.595,
+     "R90"
+    ],
+    [
+     "activation",
+     1000.15,
+     1169.405,
+     723.85,
+     554.595,
+     "R270"
+    ]
+   ],
+   "core_area_mm2": 2.624659206,
+   "std_area_um2": 1222311.507200183,
+   "instances": 60713,
+   "setup_wns_ns": 0.551,
+   "hold_wns_ns": 0.241,
+   "setup_tns_ns": 0.0,
+   "hold_tns_ns": 0.0,
+   "pt_setup_wns_ns": 1.094,
+   "pt_hold_wns_ns": 0.154,
+   "wire_length_um": 3904379.82,
+   "overflow_h_pct": 0.32,
+   "overflow_v_pct": 0.16,
+   "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+   },
+   "eligible": true,
+   "signoff_passed": true,
+   "sdf_passed": true
+  },
+  "placement": [
+   {
+    "name": "ws_u70",
+    "layout": "west_stack",
+    "utilization": 0.7,
+    "hold_target": 0.02,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      554.595,
+      723.85,
+      "R0"
+     ],
+     [
+      "activation",
+      196.0,
+      991.85,
+      554.595,
+      723.85,
+      "R0"
+     ]
+    ],
+    "setup_wns_ns": 0.297,
+    "hold_wns_ns": 0.038,
+    "pt_setup_wns_ns": 0.93,
+    "pt_hold_wns_ns": 0.029,
+    "wire_length_um": 3517503.09,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1090 = 636 (0.28% H) + 455 (0.20% V)",
+    "instances": 53002,
+    "overflow_h_pct": 0.28,
+    "overflow_v_pct": 0.2,
+    "pins": "朝下，背对逻辑"
+   },
+   {
+    "name": "mx_u70",
+    "layout": "south_row_mx",
+    "utilization": 0.7,
+    "hold_target": 0.02,
+    "die_side_um": 1860,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      554.595,
+      723.85,
+      "MX"
+     ],
+     [
+      "activation",
+      822.595,
+      196.0,
+      554.595,
+      723.85,
+      "MX"
+     ]
+    ],
+    "setup_wns_ns": 0.188,
+    "hold_wns_ns": 0.043,
+    "pt_setup_wns_ns": 0.602,
+    "pt_hold_wns_ns": -0.037,
+    "wire_length_um": 3675018.615,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1380 = 899 (0.42% H) + 480 (0.22% V)",
+    "instances": 52999,
+    "overflow_h_pct": 0.42,
+    "overflow_v_pct": 0.22,
+    "pins": "朝北，面向逻辑"
+   },
+   {
+    "name": "r90_u70_h15",
+    "layout": "west_stack_r90",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1860,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      196.0,
+      822.595,
+      723.85,
+      554.595,
+      "R90"
+     ]
+    ],
+    "setup_wns_ns": 0.252,
+    "hold_wns_ns": 0.144,
+    "pt_setup_wns_ns": 0.709,
+    "pt_hold_wns_ns": 0.042,
+    "wire_length_um": 3751307.39,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1521 = 980 (0.45% H) + 540 (0.25% V)",
+    "instances": 53627,
+    "overflow_h_pct": 0.45,
+    "overflow_v_pct": 0.25,
+    "pins": "朝东，面向逻辑（两颗挤在西南角）"
+   },
+   {
+    "name": "west_split_h15",
+    "layout": "west_split_r90",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1860,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      196.0,
+      1109.405,
+      723.85,
+      554.595,
+      "R90"
+     ]
+    ],
+    "setup_wns_ns": -0.127,
+    "hold_wns_ns": 0.147,
+    "pt_setup_wns_ns": 0.378,
+    "pt_hold_wns_ns": 0.14,
+    "wire_length_um": 3786535.68,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": false,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": false,
+    "congestion": "Overflow: 1980 = 958 (0.44% H) + 1023 (0.47% V)",
+    "instances": 53734,
+    "overflow_h_pct": 0.44,
+    "overflow_v_pct": 0.47,
+    "pins": "朝东，面向逻辑"
+   },
+   {
+    "name": "west_east_h15",
+    "layout": "west_east",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      196.0,
+      682.7,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      1000.15,
+      682.7,
+      723.85,
+      554.595,
+      "R270"
+     ]
+    ],
+    "setup_wns_ns": 0.157,
+    "hold_wns_ns": 0.141,
+    "pt_setup_wns_ns": 0.879,
+    "pt_hold_wns_ns": 0.14,
+    "wire_length_um": 4129634.29,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1894 = 1023 (0.44% H) + 871 (0.38% V)",
+    "instances": 53875,
+    "overflow_h_pct": 0.44,
+    "overflow_v_pct": 0.38,
+    "pins": "相互对着，中间只有 80 µm 通道"
+   },
+   {
+    "name": "south_north_h15",
+    "layout": "south_north",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      682.7,
+      196.0,
+      554.595,
+      723.85,
+      "MX"
+     ],
+     [
+      "activation",
+      682.7,
+      1000.15,
+      554.595,
+      723.85,
+      "R0"
+     ]
+    ],
+    "setup_wns_ns": 0.571,
+    "hold_wns_ns": 0.148,
+    "pt_setup_wns_ns": 1.188,
+    "pt_hold_wns_ns": 0.143,
+    "wire_length_um": 3935746.01,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1086 = 684 (0.30% H) + 403 (0.18% V)",
+    "instances": 53778,
+    "overflow_h_pct": 0.3,
+    "overflow_v_pct": 0.18,
+    "pins": "相互对着，中间只有 80 µm 通道"
+   },
+   {
+    "name": "diagonal_facing_h15",
+    "layout": "diagonal_facing",
+    "utilization": 0.7,
+    "hold_target": 0.15,
+    "die_side_um": 1920,
+    "macros": [
+     [
+      "model",
+      196.0,
+      196.0,
+      723.85,
+      554.595,
+      "R90"
+     ],
+     [
+      "activation",
+      1000.15,
+      1169.405,
+      723.85,
+      554.595,
+      "R270"
+     ]
+    ],
+    "setup_wns_ns": 0.406,
+    "hold_wns_ns": 0.15,
+    "pt_setup_wns_ns": 0.976,
+    "pt_hold_wns_ns": 0.056,
+    "wire_length_um": 3600375.575,
+    "checks": {
+     "antenna": true,
+     "cdc": true,
+     "connectivity": true,
+     "drc": true,
+     "drv": true,
+     "macro_pins": true,
+     "pad_geometry": true,
+     "pg_connectivity": true,
+     "pg_drc": true,
+     "placement": true,
+     "ports": true
+    },
+    "eligible": true,
+    "congestion": "Overflow: 1049 = 724 (0.31% H) + 324 (0.14% V)",
+    "instances": 53695,
+    "overflow_h_pct": 0.31,
+    "overflow_v_pct": 0.14,
+    "pins": "各自面向开阔的逻辑区"
+   }
+  ]
+ },
+ "fpga": {
+  "device": "EGo1 XC7A35T",
+  "clock": "50 MHz",
+  "lut": 17322,
+  "lut_pct": "83.28",
+  "ff": 6249,
+  "ff_pct": "15.02",
+  "bram": 4,
+  "dsp": 20,
+  "wns": "0.000",
+  "whs": "0.035",
+  "models": 7,
+  "golden": 112,
+  "runs": 224,
+  "report": "verification/fpga/results/2026-11-04-int4-v2/report.md",
+  "report_link": "../verification/fpga/results/2026-11-04-int4-v2/report.md"
+ },
+ "array_model": {
+  "mnist_l": {
+   "cycles_4x8": 49416,
+   "cycles_4x4_measured": 70118,
+   "configs": {
+    "4x4": {
+     "optimistic": 65942,
+     "pessimistic": 65942,
+     "change_optimistic": 0.3344,
+     "change_pessimistic": 0.3344
+    },
+    "4x8": {
+     "optimistic": 49416,
+     "pessimistic": 49416,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 41145,
+     "pessimistic": 41145,
+     "change_optimistic": -0.1674,
+     "change_pessimistic": -0.1674
+    },
+    "8x8": {
+     "optimistic": 31126,
+     "pessimistic": 36072,
+     "change_optimistic": -0.3701,
+     "change_pessimistic": -0.27
+    },
+    "4x8+dw_path": {
+     "optimistic": 39397,
+     "pessimistic": 42360,
+     "change_optimistic": -0.2027,
+     "change_pessimistic": -0.1428
+    }
+   },
+   "depthwise_share_4x8": 0.4055,
+   "dense_share_4x8": 0.3347
+  },
+  "fashion_cnn": {
+   "cycles_4x8": 72812,
+   "cycles_4x4_measured": 142868,
+   "configs": {
+    "4x4": {
+     "optimistic": 137966,
+     "pessimistic": 137966,
+     "change_optimistic": 0.8948,
+     "change_pessimistic": 0.8948
+    },
+    "4x8": {
+     "optimistic": 72812,
+     "pessimistic": 72812,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 40231,
+     "pessimistic": 40231,
+     "change_optimistic": -0.4475,
+     "change_pessimistic": -0.4475
+    },
+    "8x8": {
+     "optimistic": 40231,
+     "pessimistic": 49284,
+     "change_optimistic": -0.4475,
+     "change_pessimistic": -0.3231
+    },
+    "4x8+dw_path": {
+     "optimistic": 72812,
+     "pessimistic": 72812,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    }
+   },
+   "depthwise_share_4x8": 0.0,
+   "dense_share_4x8": 0.8949
+  },
+  "kws_l": {
+   "cycles_4x8": 126414,
+   "cycles_4x4_measured": 177912,
+   "configs": {
+    "4x4": {
+     "optimistic": 172308,
+     "pessimistic": 172308,
+     "change_optimistic": 0.363,
+     "change_pessimistic": 0.363
+    },
+    "4x8": {
+     "optimistic": 126414,
+     "pessimistic": 126414,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 103461,
+     "pessimistic": 103461,
+     "change_optimistic": -0.1816,
+     "change_pessimistic": -0.1816
+    },
+    "8x8": {
+     "optimistic": 76524,
+     "pessimistic": 90027,
+     "change_optimistic": -0.3947,
+     "change_pessimistic": -0.2878
+    },
+    "4x8+dw_path": {
+     "optimistic": 99477,
+     "pessimistic": 106164,
+     "change_optimistic": -0.2131,
+     "change_pessimistic": -0.1602
+    }
+   },
+   "depthwise_share_4x8": 0.4262,
+   "dense_share_4x8": 0.3631
+  },
+  "kws_m": {
+   "cycles_4x8": 110115,
+   "cycles_4x4_measured": 156199,
+   "configs": {
+    "4x4": {
+     "optimistic": 143065,
+     "pessimistic": 143065,
+     "change_optimistic": 0.2992,
+     "change_pessimistic": 0.2992
+    },
+    "4x8": {
+     "optimistic": 110115,
+     "pessimistic": 110115,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 93635,
+     "pessimistic": 93635,
+     "change_optimistic": -0.1497,
+     "change_pessimistic": -0.1497
+    },
+    "8x8": {
+     "optimistic": 68515,
+     "pessimistic": 72918,
+     "change_optimistic": -0.3778,
+     "change_pessimistic": -0.3378
+    },
+    "4x8+dw_path": {
+     "optimistic": 84995,
+     "pessimistic": 87615,
+     "change_optimistic": -0.2281,
+     "change_pessimistic": -0.2043
+    }
+   },
+   "depthwise_share_4x8": 0.4563,
+   "dense_share_4x8": 0.2993
+  },
+  "har": {
+   "cycles_4x8": 25048,
+   "cycles_4x4_measured": 40240,
+   "configs": {
+    "4x4": {
+     "optimistic": 39088,
+     "pessimistic": 39088,
+     "change_optimistic": 0.5605,
+     "change_pessimistic": 0.5605
+    },
+    "4x8": {
+     "optimistic": 25048,
+     "pessimistic": 25048,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 18028,
+     "pessimistic": 18028,
+     "change_optimistic": -0.2803,
+     "change_pessimistic": -0.2803
+    },
+    "8x8": {
+     "optimistic": 15224,
+     "pessimistic": 18000,
+     "change_optimistic": -0.3922,
+     "change_pessimistic": -0.2814
+    },
+    "4x8+dw_path": {
+     "optimistic": 22244,
+     "pessimistic": 23128,
+     "change_optimistic": -0.1119,
+     "change_pessimistic": -0.0767
+    }
+   },
+   "depthwise_share_4x8": 0.2239,
+   "dense_share_4x8": 0.5605
+  },
+  "ecg": {
+   "cycles_4x8": 21286,
+   "cycles_4x4_measured": 30062,
+   "configs": {
+    "4x4": {
+     "optimistic": 27082,
+     "pessimistic": 27082,
+     "change_optimistic": 0.2723,
+     "change_pessimistic": 0.2723
+    },
+    "4x8": {
+     "optimistic": 21286,
+     "pessimistic": 21286,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 18388,
+     "pessimistic": 18388,
+     "change_optimistic": -0.1361,
+     "change_pessimistic": -0.1361
+    },
+    "8x8": {
+     "optimistic": 14680,
+     "pessimistic": 16674,
+     "change_optimistic": -0.3103,
+     "change_pessimistic": -0.2167
+    },
+    "4x8+dw_path": {
+     "optimistic": 17578,
+     "pessimistic": 18726,
+     "change_optimistic": -0.1742,
+     "change_pessimistic": -0.1203
+    }
+   },
+   "depthwise_share_4x8": 0.3484,
+   "dense_share_4x8": 0.2723
+  },
+  "gtsrb_l": {
+   "cycles_4x8": 122804,
+   "cycles_4x4_measured": 203750,
+   "configs": {
+    "4x4": {
+     "optimistic": 192893,
+     "pessimistic": 192893,
+     "change_optimistic": 0.5707,
+     "change_pessimistic": 0.5707
+    },
+    "4x8": {
+     "optimistic": 122804,
+     "pessimistic": 122804,
+     "change_optimistic": 0.0,
+     "change_pessimistic": 0.0
+    },
+    "4x16": {
+     "optimistic": 87752,
+     "pessimistic": 87752,
+     "change_optimistic": -0.2854,
+     "change_pessimistic": -0.2854
+    },
+    "8x8": {
+     "optimistic": 70141,
+     "pessimistic": 85514,
+     "change_optimistic": -0.4288,
+     "change_pessimistic": -0.3037
+    },
+    "4x8+dw_path": {
+     "optimistic": 105192,
+     "pessimistic": 108980,
+     "change_optimistic": -0.1434,
+     "change_pessimistic": -0.1126
+    }
+   },
+   "depthwise_share_4x8": 0.2868,
+   "dense_share_4x8": 0.5709
+  }
+ },
+ "signoff": {
+  "candidate": "diagonal_facing_h25",
+  "note": "TT corner only; M5/M6 fill only; no IR/EM, seal ring or chip-level ESD review",
+  "checks": {
+   "Calibre DRC": {
+    "pass": true,
+    "detail": "no blocking rule; 2427 accepted reports, all IO-cell ESD/latch-up guidelines or deck reminders"
+   },
+   "Calibre LVS": {
+    "pass": true,
+    "detail": "45 IO resistor property deviations, max 3.47% (accepted)"
+   },
+   "PrimeTime STA": {
+    "pass": true,
+    "detail": "setup WNS +1.094 ns, hold WNS +0.154 ns; SRAM interface timed by Innovus"
+   },
+   "Formality LEC": {
+    "pass": true,
+    "detail": "Formality equivalence verified"
+   },
+   "Xcelium SDF gate-level": {
+    "pass": true,
+    "detail": "41 JTAG commands on the u4_chain fixture with burst IRs, no fatal timing diagnostics"
+   }
+  }
+ }
+}

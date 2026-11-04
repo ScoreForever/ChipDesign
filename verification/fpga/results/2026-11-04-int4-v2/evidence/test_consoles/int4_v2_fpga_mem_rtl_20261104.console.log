@@ -1,0 +1,151 @@
+PASS 20000 quant vectors, dual-SRAM memory semantics, trace, random read/write stalls and drain
+PASS cnn_c8_f1_j0
+PASS cnn_c8_f0_j0
+PASS pool_first_c8_f1_j0
+PASS pool_first_c8_f0_j0
+PASS mlp_c8_f1_j0
+PASS mlp_c8_f0_j0
+PASS i32_pool_c8_f1_j0
+PASS i32_pool_c8_f0_j0
+PASS strided_c8_f1_j0
+PASS strided_c8_f0_j0
+PASS edges_c8_f1_j0
+PASS edges_c8_f0_j0
+PASS long_k_c8_f1_j0
+PASS long_k_c8_f0_j0
+PASS tinycnn_c8_f1_j0
+PASS max_k_int4_c8_f1_j0
+PASS max_k_int4_c8_f0_j0
+PASS odd_packed_relu_c8_f1_j0
+PASS odd_packed_relu_c8_f0_j0
+PASS host_i32_quant_c8_f1_j0
+PASS host_i32_quant_c8_f0_j0
+PASS host_i32_pool_c8_f1_j0
+PASS host_i32_pool_c8_f0_j0
+PASS tiny_padded_c8_f1_j0
+PASS tiny_padded_c8_f0_j0
+PASS tiny_strided_asymmetric_c8_f1_j0
+PASS tiny_strided_asymmetric_c8_f0_j0
+PASS one_mac_c8_f1_j0
+PASS one_mac_c8_f0_j0
+PASS negative_pool_c8_f1_j0
+PASS negative_pool_c8_f0_j0
+PASS full_activation_c8_f1_j0
+PASS full_activation_c8_f0_j0
+PASS full_activation_8k_c8_f1_j0
+PASS full_activation_8k_c8_f0_j0
+PASS upper_activation_c8_f1_j0
+PASS upper_activation_c8_f0_j0
+PASS slot_pressure_c8_f1_j0
+PASS slot_pressure_c8_f0_j0
+PASS dwconv_c8_f1_j0
+PASS dwconv_c8_f0_j0
+PASS dw_rect_pool_c8_f1_j0
+PASS dw_rect_pool_c8_f0_j0
+PASS conv1d_c8_f1_j0
+PASS conv1d_c8_f0_j0
+PASS rect_kernels_c8_f1_j0
+PASS rect_kernels_c8_f0_j0
+PASS pool_general_c8_f1_j0
+PASS pool_general_c8_f0_j0
+PASS gap_head_c8_f1_j0
+PASS gap_head_c8_f0_j0
+PASS residual_add_c8_f1_j0
+PASS residual_add_c8_f0_j0
+PASS u4_chain_c8_f1_j0
+PASS u4_chain_c8_f0_j0
+PASS add_inplace_src2_c8_f1_j0
+PASS add_inplace_src2_c8_f0_j0
+PASS rowpad_kernels_c8_f1_j0
+PASS rowpad_kernels_c8_f0_j0
+PASS rowpad_4x2_c8_f1_j0
+PASS rowpad_4x2_c8_f0_j0
+PASS pool_i32_window_c8_f1_j0
+PASS pool_i32_window_c8_f0_j0
+PASS trained_c8_f1_j0
+PASS reject opcode
+PASS reject reserved
+PASS reject old_abi
+PASS reject wrong_cols
+PASS reject stride
+PASS reject shape
+PASS reject destination
+PASS reject source
+PASS reject shift
+PASS reject dw_channels
+PASS reject pool_window
+PASS reject add_src2_overlap
+PASS reject add_fused_pool
+PASS reject u4_int32
+PASS reject dw_on_fc
+PASS reject pool1d_unfused
+PASS lifecycle/abort/timeout/incomplete
+PASS cnn_c4_f1_j0
+PASS cnn_c4_f0_j0
+PASS pool_first_c4_f1_j0
+PASS pool_first_c4_f0_j0
+PASS mlp_c4_f1_j0
+PASS mlp_c4_f0_j0
+PASS i32_pool_c4_f1_j0
+PASS i32_pool_c4_f0_j0
+PASS strided_c4_f1_j0
+PASS strided_c4_f0_j0
+PASS edges_c4_f1_j0
+PASS edges_c4_f0_j0
+PASS long_k_c4_f1_j0
+PASS long_k_c4_f0_j0
+PASS tinycnn_c4_f1_j0
+PASS max_k_int4_c4_f1_j0
+PASS max_k_int4_c4_f0_j0
+PASS odd_packed_relu_c4_f1_j0
+PASS odd_packed_relu_c4_f0_j0
+PASS host_i32_quant_c4_f1_j0
+PASS host_i32_quant_c4_f0_j0
+PASS host_i32_pool_c4_f1_j0
+PASS host_i32_pool_c4_f0_j0
+PASS tiny_padded_c4_f1_j0
+PASS tiny_padded_c4_f0_j0
+PASS tiny_strided_asymmetric_c4_f1_j0
+PASS tiny_strided_asymmetric_c4_f0_j0
+PASS one_mac_c4_f1_j0
+PASS one_mac_c4_f0_j0
+PASS negative_pool_c4_f1_j0
+PASS negative_pool_c4_f0_j0
+PASS full_activation_c4_f1_j0
+PASS full_activation_c4_f0_j0
+PASS full_activation_8k_c4_f1_j0
+PASS full_activation_8k_c4_f0_j0
+PASS upper_activation_c4_f1_j0
+PASS upper_activation_c4_f0_j0
+PASS slot_pressure_c4_f1_j0
+PASS slot_pressure_c4_f0_j0
+PASS dwconv_c4_f1_j0
+PASS dwconv_c4_f0_j0
+PASS dw_rect_pool_c4_f1_j0
+PASS dw_rect_pool_c4_f0_j0
+PASS conv1d_c4_f1_j0
+PASS conv1d_c4_f0_j0
+PASS rect_kernels_c4_f1_j0
+PASS rect_kernels_c4_f0_j0
+PASS pool_general_c4_f1_j0
+PASS pool_general_c4_f0_j0
+PASS gap_head_c4_f1_j0
+PASS gap_head_c4_f0_j0
+PASS residual_add_c4_f1_j0
+PASS residual_add_c4_f0_j0
+PASS u4_chain_c4_f1_j0
+PASS u4_chain_c4_f0_j0
+PASS add_inplace_src2_c4_f1_j0
+PASS add_inplace_src2_c4_f0_j0
+PASS rowpad_kernels_c4_f1_j0
+PASS rowpad_kernels_c4_f0_j0
+PASS rowpad_4x2_c4_f1_j0
+PASS rowpad_4x2_c4_f0_j0
+PASS pool_i32_window_c4_f1_j0
+PASS pool_i32_window_c4_f0_j0
+PASS trained_c4_f1_j0
+PASS cnn_c8_f1_j1
+PASS cnn_c8_f0_j1
+PASS residual_add_c8_f1_j1
+PASS residual_add_c8_f0_j1
+ALL 132 PROGRAM TESTS PASSED

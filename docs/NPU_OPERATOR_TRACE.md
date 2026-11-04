@@ -36,12 +36,12 @@ python software/host/nocpu_jtag.py trace --package <package_dir> --output build/
 
 ## Trace 寄存器
 
-沿用 ABI 2 的 READ/WRITE，字节地址、4-byte 对齐。
+使用 ABI 3.0 的 READ/WRITE，寄存器字节地址、4-byte 对齐。ASIC 默认关闭波形 RAM 和逐算子摘要；全局性能计数仍在。
 
 | 地址 | 内容 |
 | --- | --- |
-| 0x180 | 布局标识 `0x00010080`，version 1，128-bit sample |
-| 0x184 | 深度 1024 |
+| 0x180 | 布局标识 `0x00030080`，version 3，128-bit sample |
+| 0x184 | 深度 1024；未综合波形 RAM 时为0 |
 | 0x188 | 配置：bit0 enable、bit1 wait-slot trigger、bits7:4 PC；其余位保留为 0 |
 | 0x18c | 相对选定算子开始的周期 offset |
 | 0x190 | 状态：bit0 started、bit1 full、bit2 job finished、bit3 truncated |
@@ -61,7 +61,7 @@ MAC 三类等待沿用整次计数的“结果槽 → 权重 → 激活”互斥
 
 ## 128-bit 样本格式
 
-所有值在系统时钟上升沿之前采样，再写入同步 BRAM。未出现有效请求/写回时，对应地址和 write mask 归零。
+所有值在系统时钟上升沿之前采样，再写入同步 BRAM。未出现有效请求/写回时，对应地址和写入 nibble 数归零。
 
 | 32-bit 字 | 位域 |
 | --- | --- |
@@ -70,8 +70,8 @@ MAC 三类等待沿用整次计数的“结果槽 → 权重 → 激活”互斥
 | word1 bits15:12 / 19:16 | slot busy / slot ready，均为 4-bit mask |
 | word1 bits21:20 / 27:22 | 权重 bank ready mask / 总 inflight issue 数 |
 | word1 bits29:28 / 31:30 | gather state / weight load state |
-| word2 bits15:0 / 31:16 | model / activation 字节地址 |
-| word3 bits15:0 / 19:16 | write 字节地址 / mask |
+| word2 bits15:0 / 31:16 | model byte 地址 / activation nibble 地址 |
+| word3 bits15:0 / 19:16 | write nibble 地址 / 写入 nibble 数（0=无，1=INT4，2=奇数张量末元素及padding，8=INT32） |
 | word3 bits23:20 / 27:24 | 核心 state / 描述符 PC |
 | word3 bits30:28 / 31 | opcode / quantized；fetch 期间记为 0 |
 

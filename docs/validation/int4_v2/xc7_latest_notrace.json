@@ -1,0 +1,37 @@
+{
+  "defines": [
+    "SYNTHESIS",
+    "CHIPDESIGN_FPGA_MEM",
+    "NPU_ARRAY_COLS=8",
+    "NPU_ENABLE_WAVE_TRACE=0",
+    "NPU_ENABLE_OP_TRACE=0"
+  ],
+  "lut": 15691,
+  "ff": 6391,
+  "lutram_cells": 300,
+  "bram36": 4.0,
+  "dsp": 48,
+  "carry4": 1374,
+  "cells": {
+    "BUFG": 2,
+    "CARRY4": 1374,
+    "DSP48E1": 48,
+    "FDCE": 362,
+    "FDCE_1": 1,
+    "FDPE": 3,
+    "FDRE": 5993,
+    "FDSE": 32,
+    "IBUF": 5,
+    "INV": 363,
+    "LUT2": 3049,
+    "LUT3": 3149,
+    "LUT4": 2224,
+    "LUT5": 4282,
+    "LUT6": 2987,
+    "MUXF7": 15,
+    "MUXF8": 4,
+    "OBUF": 2,
+    "RAM32M": 300,
+    "RAMB36E1": 4
+  }
+}

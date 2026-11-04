@@ -1,4 +1,4 @@
-# Independent ABI-2 full-chip flow. All geometry is generated in config.tcl.
+# Independent ABI-3 INT4 full-chip flow. All geometry is generated in config.tcl.
 source config.tcl
 set here [file dirname [file normalize [info script]]]
 setMultiCpuUsage -localCpu $threads
@@ -40,7 +40,8 @@ set init_mmmc_file [file normalize mmmc.tcl]
 set init_top_cell my_soc_top
 setDesignMode -bottomRoutingLayer METAL2 -topRoutingLayer METAL6
 setDelayCalMode -SIAware true
-setOptMode -fixHoldAllowSetupTnsDegrade false -holdTargetSlack 0.02
+if {![info exists hold_target]} {set hold_target 0.02}
+setOptMode -fixHoldAllowSetupTnsDegrade false -holdTargetSlack $hold_target
 # The course default caps optimization at 75% density; above that hold fixing
 # stops inserting buffers and leaves violations (seen at 70% utilization).
 setOptMode -maxDensity 0.9
@@ -93,19 +94,39 @@ foreach {side ori} {top R180 bottom R0 left R270 right R90} {
 # connection here matches nothing and raises IMPDB-1221.
 set macro_insts [dbGet -p2 top.insts.cell.name RA1SHD_2048x32M8]
 if {[llength $macro_insts]!=2 || $macro_insts eq "0x0"} {error "Expected exactly two mapped SRAMs (model and activation)"}
-# macros: list of {instance x y w h}, matched by role so each store keeps its box.
+# macros: list of {instance x y w h orient}, matched by role so each store keeps
+# its box; w x h is the placed footprint and older configs default to R0.
 set macros {}
 foreach box $macro_boxes {
-    lassign $box role mx my mw mh
+    lassign $box role mx my mw mh orient
+    if {$orient eq ""} {set orient R0}
     set pattern [expr {$role eq "model" ? "*model_store*" : "*activation*"}]
     set match {}
     foreach inst $macro_insts {if {[string match $pattern [dbGet $inst.name]]} {lappend match [dbGet $inst.name]}}
     if {[llength $match]!=1} {error "Cannot identify the $role SRAM instance: $match"}
     set name [lindex $match 0]
-    placeInstance $name $mx $my R0 -fixed
+    placeInstance $name $mx $my $orient -fixed
     addHaloToBlock $halo_um $halo_um $halo_um $halo_um $name -snapToSite
-    lappend macros [list $name $mx $my $mw $mh]
+    lappend macros [list $name $mx $my $mw $mh $orient]
 }
+# Which side the D/Q bus actually faces: mean D/Q pin position relative to the
+# placed box. flow.py compares it with the side the orientation should give.
+set pin_report [open macro_pins.tsv w]
+foreach m $macros {
+    lassign $m name mx my mw mh orient
+    set sx 0.0; set sy 0.0; set n 0
+    foreach term [dbGet [dbGet -p top.insts.name $name].instTerms] {
+        # dbGet returns lists; a bus bit such as D[0] comes back brace-quoted.
+        if {![string match {[DQ]\[*} [lindex [dbGet $term.cellTerm.name] 0]]} {continue}
+        lassign [lindex [dbGet $term.pt] 0] px py
+        set sx [expr {$sx+$px}]; set sy [expr {$sy+$py}]; incr n
+    }
+    if {$n == 0} {error "No D/Q pins found on $name"}
+    set dx [expr {($sx/$n-($mx+$mw/2.0))/$mw}]; set dy [expr {($sy/$n-($my+$mh/2.0))/$mh}]
+    if {abs($dx) > abs($dy)} {set side [expr {$dx > 0 ? "E" : "W"}]} else {set side [expr {$dy > 0 ? "N" : "S"}]}
+    puts $pin_report "$name\t$orient\t$side\t$n\t[format %.3f $dx]\t[format %.3f $dy]"
+}
+close $pin_report
 # Label ports on package-facing PAD metal, including irq_o.
 foreach spec $pads {
     lassign $spec name master port direction side x y orient

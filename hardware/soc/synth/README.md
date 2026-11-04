@@ -1,6 +1,7 @@
 # 无 CPU 双 SRAM 综合入口
 
 当前 DC/Genus 入口读取 `chipdesign_nocpu.f`，顶层为 `my_soc_top`。
+当前协议为 ABI 3.0：INT4 激活/权重、INT32 原始结果/bias、Q15 量化。旧 INT8 网表与结果目录不能复用。
 默认模型区和激活区各8 KiB；映射综合同时实例化两颗 `RA1SHD_2048x32M8`，
 分别位于 `i_control/i_model_store/i_sram` 与 `i_control/i_activation/i_sram`。
 同一宏类型的Liberty/DB只加载一次，不为第二颗实例重复列出库。
@@ -27,7 +28,7 @@ elaboration要求技术库，不能把读入检查当作完整综合。Genus可�
 - `EDA_MODEL_SRAM_DB`：DC必须提供对应宏DB。
 - `EDA_NPU_COLS=4|8`：选择共享阵列列数。
 - `EDA_NPU_WAVE_TRACE=0|1`：可选覆盖波形RAM构建开关；默认不设置，ASIC综合自动关闭波形RAM，
-  保留性能计数器和逐算子摘要。显式开启会带回16 KiB波形存储，其ASIC宏化和面积需另行评估。
+  保留全局性能计数器。逐算子摘要由下面的独立开关控制；显式开启波形会带回16 KiB存储，其ASIC宏化和面积需另行评估。
 - `EDA_NPU_OP_TRACE=0|1`：覆盖逐算子摘要开关；默认不设置，ASIC综合自动关闭（约0.2 mm²），
   全局性能计数器保留，`0x1a8`报告0。
 
@@ -43,7 +44,8 @@ elaboration要求技术库，不能把读入检查当作完整综合。Genus可�
 `EDA_JTAG_CLOCK_NS` 修改。宏Liberty/DB需与物理LEF/GDS及角落匹配。
 当前checked-in课程PnR模板仍含旧 `i_mainmem_i_mainmem` 单宏位置和电源连接，
 不能直接当作双宏版的物理交接：需针对上述两个新实例重新规划位置、halo、block ring及供电。
-本次用户目标为2×2 mm²，仅用于面积估算和设计选择，不以EDA面积严格达标作为验收条件。
+最新外形限制为1950×1950 μm²；独立 `hardware/asic/optimize` 流程已同步候选上限。
+本次仅完成 INT4 SoC 重构和功能验证，ASIC EDA 由另一位同事执行。
 
 FPGA入口为 `hardware/fpga/scripts/build_nocpu.py`，未定义ASIC宏时由同步RAM推断映射；
 仿真、综合、PnR/STA及板级结果应分别记录。当前实施记录见

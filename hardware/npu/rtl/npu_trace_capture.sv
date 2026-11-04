@@ -133,7 +133,7 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
     end else if(read_addr>='h1000 && read_addr<'h1000+DEPTH*16)begin
      if(!buffer_read)read_error<=2;
     end else case(read_addr)
-     'h180:register_data<=32'h00010080;'h184:register_data<=WAVE_ENABLE ? DEPTH : 0;
+     'h180:register_data<=32'h00030080;'h184:register_data<=WAVE_ENABLE ? DEPTH : 0;
      'h188:register_data<=control;'h18c:register_data<=offset;
      'h190:register_data<={28'd0,truncated,finished,(count==DEPTH),started};
      'h194:register_data<=count;'h198:register_data<=first_stamp;'h19c:register_data<=last_stamp;

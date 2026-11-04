@@ -1,11 +1,68 @@
 # No-CPU full-chip physical optimization
 
-This is an independent ABI-2 course flow for `my_soc_top`. It preserves the
+## Scoped mailbox CDC constraints (2026-11-02)
+
+The optimize flow now opts into scoped CDC constraints with
+`EDA_NPU_CDC_SCOPED=1` before sourcing the shared clock/IO constraints. Legacy
+DC/course synthesis drivers retain their existing behavior; they are **not**
+covered by this change or qualified for mailbox CDC signoff.
+
+`npu_jtag_cdc.tcl` applies mapped-register constraints after `syn_map`, before
+`syn_opt`, and again when P&R rebuilds the clock roots. There is no whole-domain
+clock-group cut in this path. It resolves exactly 72 request and 37 response
+Q-to-D pairs, applies a 20 ns maximum excluding clock latency, and cuts only
+their asynchronous phase-based hold checks. Toggle false paths terminate only
+at stage-zero D; reset assertion cuts terminate only at the four reset-bank
+CDN pins. Stage-zero to stage-one setup/hold remains timed. No mailbox RTL is
+changed and no synchronizer protection/placement or MTBF qualification is
+claimed by this patch.
+
+The option `set_max_delay -ignore_clock_latency` and timing-path properties
+must be qualified against the installed Genus/Innovus versions. On the course
+node (INT4 v2 runs, 2026-11-03) Innovus 21 reports the path properties as
+`arrival`, `required` and `slack` (`arrival_time` is empty), and Genus 19 has a
+setup-only `report_timing` with slack in ps, audited by `audit_synth`; see
+`docs/VALIDATION_FLOW.md` for the commands of the signed-off run.
+Unsupported commands/properties, a different reset-cell pin, or renamed/missing
+registers must stop the flow; do not silently fall back to plain max-delay or
+whole-clock false paths. The local Tcl API model is not vendor-tool evidence.
+
+The budget is deliberately Q-to-D: launch tCQ is excluded and must fit within
+the remaining protocol margin. At 50 MHz the ideal earliest request capture is
+about two destination periods after asynchronous launch (about 40 ns, depending
+on phase), not a guaranteed 60 ns. The 20 ns data budget is a conservative
+engineering target; library tCQ/setup, reset assumptions, jitter and permitted
+clock frequencies still need real-tool/protocol review before signoff.
+
+Both synthesis and routed stages export `cdc_paths.tsv`: 109 exact payload
+paths with finite nonnegative slack and an effective required time no greater
+than 20 ns, plus setup/hold paths for both toggle synchronizers (113 rows).
+The Python checker rejects duplicates, missing/changed endpoints, NaN, negative
+slack and inconsistent/looser budgets. Candidate eligibility requires the live
+audit file and a positive CDC check; old successful `checks.json` files alone
+cannot qualify a candidate. Synthesis imports with any `set_clock_groups`
+command are rejected instead of trying to override inherited exceptions.
+Generate a new handoff and use a new experiment directory after this change.
+
+Local regression (from this directory):
+
+```bash
+python -m unittest test_cdc -v
+```
+
+Four CDC tests and five affected flow tests passed locally. Negative cases
+include cut paths, a missing register, an overridden 1000 ns budget, negative
+slack and stale eligibility. Real synthesis, P&R and extracted STA are pending;
+no prior physical acceptance or FPGA WNS is evidence for this modified ASIC
+flow. This audit is a timing gate, not a replacement for CDC/RDC protocol or
+metastability analysis.
+
+This is an independent ABI-3 INT4 course flow for `my_soc_top`. It preserves the
 legacy six-PAD SoC scripts. The full-chip build adds all seven signal PADs,
 28 supply PADs, four corners, 35 wire-bond openings, IO/core fillers, the
 two SRAM macros (model and activation store) with their power rings, a core
 PDN, CTS and METAL2–6 routing. The die, including the PAD ring, is capped at
-2 mm x 2 mm (`MAX_DIE_UM`); candidates whose computed die exceeds it are
+1.95 mm x 1.95 mm (`MAX_DIE_UM`); candidates whose computed die exceeds it are
 recorded as over budget and never start Innovus.
 
 Run on the authorized course node, in a frozen source checkout:
@@ -18,6 +75,14 @@ python3 hardware/asic/optimize/flow.py baseline --output /absolute/new/experimen
 python3 hardware/asic/optimize/flow.py search --output /absolute/new/experiment
 python3 hardware/asic/optimize/postlayout.py --candidate /absolute/new/experiment/candidates/u60
 ```
+
+The 2026-10-31 INT4 refactor has functional RTL/host evidence only; ASIC EDA
+is delegated to another engineer. Use a new experiment directory, not an INT8
+handoff. `--cols 4|8` selects the array (default 8); keep the same value on every
+invocation for an experiment, including preflight. `build_profile.json` records
+INT4 operands and Q15 scaling and rejects profile changes on reuse. Source
+fingerprints still guard the exact RTL and constraints. The two physical 8 KiB
+SRAM macros are unchanged; packing doubles logical INT4 capacity, not macro area.
 
 Use the Python 3.8 environment available after sourcing EDA; the system Python
 may be too old. Never copy private PDK or SRAM views into this repository.
@@ -65,8 +130,8 @@ cell density, estimated global congestion and final detailed-route DRC are
 different measures and must not be conflated.
 
 The default is 20ns core and 1000ns JTAG, 2ns IO budget, 0.2ns uncertainty,
-TT libraries and the course captable. No new timing exceptions or frequency
-reduction are used for acceptance. Hold optimization targets +0.020ns, with the
+TT libraries and the course captable. The scoped CDC exceptions above bound
+mailbox transfers without changing clock frequencies. Hold optimization targets +0.020ns, with the
 optimization density cap raised from the course 0.75 to 0.9 (at 70% utilization
 the default stopped hold buffering); physical eligibility still requires >=0.
 After routing the flow adds floating M5/M6 metal fill (foundry minimum density
@@ -74,7 +139,7 @@ After routing the flow adds floating M5/M6 metal fill (foundry minimum density
 and extraction, so DRC, connectivity, SPEF and SDF all include them. Independent repeat
 and baseline/final SDF checks are required before reporting an optimized result.
 The physical JTAG test loads nonzero oracle data, compares two inference results,
-checks IRQ and protocol/physical reset recovery (ABI 2.1) without hierarchy
+checks IRQ and protocol/physical reset recovery (ABI 3.0) without hierarchy
 backdoors. SDF is annotated at elaboration through `xrun -sdf_cmd_file`
 (Xcelium ignores a run-time `$sdf_annotate` with a non-constant file name).
 Timing checks are disabled on exactly six CDC capture flops, the req/ack

@@ -5,6 +5,9 @@ set jobs [lindex $argv 2]
 set frequency_mhz 50
 set ppa_mode [expr {[llength $argv] > 3}]
 set synth_only [expr {[llength $argv] > 4 && [lindex $argv 4] eq "synth_only"}]
+set array_cols 8
+if {[llength $argv] > 5} {set array_cols [lindex $argv 5]}
+if {$array_cols ni {4 8}} {error "Array columns must be 4 or 8"}
 if {[llength $argv] > 3} { set frequency_mhz [lindex $argv 3] }
 if {![string is double -strict $frequency_mhz] || $frequency_mhz <= 0} {
     error "Output frequency must be positive MHz"
@@ -124,7 +127,12 @@ if {[catch {
         }
     }
     set_property include_dirs $includes [current_fileset]
-    set_property verilog_define {SYNTHESIS CHIPDESIGN_FPGA_MEM} [current_fileset]
+    # Debug traces are off by default: with the ABI 4 operators a yosys XC7
+    # estimate gives ~15.7k LUT without them versus ~18.9k with them (the
+    # last board-validated build used 17.3k of 20.8k). Set CHIPDESIGN_TRACE=1
+    # in the environment to build them in for bring-up.
+    set trace_defines [expr {[info exists ::env(CHIPDESIGN_TRACE)] && $::env(CHIPDESIGN_TRACE) ? {} : {NPU_ENABLE_WAVE_TRACE=0 NPU_ENABLE_OP_TRACE=0}}]
+    set_property verilog_define [list SYNTHESIS CHIPDESIGN_FPGA_MEM NPU_ARRAY_COLS=$array_cols {*}$trace_defines] [current_fileset]
     read_verilog -sv $sources
     read_verilog -sv [file join $repo hardware/fpga/fpga_top.sv]
     read_xdc [file join $repo hardware/fpga/ego1_pins.xdc]
@@ -173,12 +181,27 @@ if {[catch {
     reports place
     set last_stage place
     set stage route
+    # Match implement_nocpu.tcl: preserve the clock/I/O/CDC requirements and
+    # improve placement before routing. The full build must use the same
+    # physical flow as the source-verified checkpoint implementation helper.
+    phys_opt_design
     route_design
+    set initial_wns [get_property SLACK [lindex [get_timing_paths -delay_type max -max_paths 1] 0]]
+    if {$initial_wns < 0} {
+        phys_opt_design -directive AggressiveExplore
+        route_design -directive Explore
+    }
     audit_npu_jtag_cdc [file join $out route_npu_jtag_cdc.tsv]
     source [file join $repo hardware/fpga/scripts/audit_jtag_io.tcl]
     audit_jtag_io [file join $out io_audit]
     write_checkpoint -force [file join $out route.dcp]
     reports route
+    report_timing -delay_type max -max_paths 50 -nworst 1 -input_pins -nets -file [file join $out route_setup_paths.rpt]
+    report_timing -delay_type min -max_paths 20 -nworst 1 -input_pins -nets -file [file join $out route_hold_paths.rpt]
+    report_high_fanout_nets -max_nets 50 -file [file join $out route_high_fanout.rpt]
+    report_cdc -details -file [file join $out route_cdc.rpt]
+    reject_critical_npu_jtag_cdc [file join $out route_cdc.rpt]
+    report_clock_interaction -file [file join $out route_clock_interaction.rpt]
     bram_guard route
     if {$ppa_mode} {
         # Actual MMCM clock period, rather than the requested wizard frequency.

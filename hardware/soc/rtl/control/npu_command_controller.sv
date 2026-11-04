@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// ABI 2.1 transactional program endpoint. Opcodes 1..10:
+// ABI 4 INT4 transactional program endpoint. Opcodes 1..10:
 // READ WRITE MODEL_BEGIN MODEL_COMMIT INPUT_BEGIN INPUT_COMMIT START ACK RESET CLEAR.
 module npu_command_controller #(
  parameter ACT_BYTES=8192,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
@@ -94,9 +94,9 @@ module npu_command_controller #(
       end else if(trace_selected)begin
        if(owned)reply(4,0);else state<=TWAIT;
       end else case(addr)
-       'h00:reply(0,32'h00020001);
+       'h00:reply(0,32'h00040000);
        'h04:reply(0,{25'd0,faulted,input_loading,model_loading,done,input_valid,model_valid,owned});
-       'h08:reply(0,error_code); 'h0c:reply(0,'h1f);
+       'h08:reply(0,error_code); 'h0c:reply(0,'h7f); // opcodes 1..7
        'h10:reply(0,model_bytes_o); 'h14:reply(0,op_count_o); 'h18:reply(0,input_base_o);
        'h1c:reply(0,input_bytes_o); 'h20:reply(0,output_base_o); 'h24:reply(0,output_bytes_o);
        'h28:reply(0,timeout_limit); 'h2c:reply(0,job_id); 'h30:reply(0,completed_id); 'h34:reply(0,error_op);
@@ -104,6 +104,7 @@ module npu_command_controller #(
        'h44:reply(0,model_reads_i); 'h48:reply(0,act_reads_i); 'h4c:reply(0,elapsed);
        'h50:reply(0,ACT_BYTES); 'h54:reply(0,MODEL_BYTES); 'h58:reply(0,(4<<16)|COLS);
        'h5c:reply(0,MAX_K); 'h60:reply(0,MAX_OPS);'h64:reply(0,input_i32_o);
+       'h6c:reply(0,32'h0f200404); // Q15, raw INT32, activation/weight INT4.
        'h68:reply(0,32'h00010018); // Performance extension v1, 24 counters.
        default:reply(2,0);
       endcase

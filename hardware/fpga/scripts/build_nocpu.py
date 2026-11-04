@@ -25,6 +25,7 @@ def main():
     ap.add_argument('--output',type=Path,required=True)
     ap.add_argument('--jobs',type=int,default=4)
     ap.add_argument('--mhz',type=float,default=50)
+    ap.add_argument('--cols',type=int,choices=(4,8),default=8)
     ap.add_argument('--implement',action='store_true')
     args=ap.parse_args()
     out=args.output.resolve()
@@ -52,8 +53,8 @@ def main():
     tmp=stage/'tmp';tmp.mkdir();env['TEMP']=env['TMP']=str(tmp)
     command=[str(vivado),'-mode','batch','-source',str(repo/'hardware/fpga/scripts/build_ego1.tcl'),
              '-log',str(run/'vivado.log'),'-journal',str(run/'vivado.jou'),
-             '-tclargs',str(repo),str(run),str(args.jobs),str(args.mhz)]
-    if not args.implement:command.append('synth_only')
+             '-tclargs',str(repo),str(run),str(args.jobs),str(args.mhz),
+             'full' if args.implement else 'synth_only',str(args.cols)]
     startup=None
     if os.name=='nt':
         startup=subprocess.STARTUPINFO();startup.dwFlags|=subprocess.STARTF_USESHOWWINDOW

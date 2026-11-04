@@ -1,0 +1,895 @@
+[
+ {
+  "model": "ecg",
+  "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/ecg",
+  "test_samples": 21892,
+  "int4_test": 0.9700803756713867,
+  "int4_test_balanced": 0.8184657435662009,
+  "recall": [
+   0.9892378166565484,
+   0.7235188509874326,
+   0.8908085694540429,
+   0.5341614906832298,
+   0.9546019900497512
+  ],
+  "float_test": 0.9858395761008588,
+  "int4_val_at_selection": 0.97533118724823,
+  "weights": 3568,
+  "hardware": {
+   "c8": {
+    "model_bytes": 3908,
+    "activation_peak": 1600,
+    "descriptors": 13,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   },
+   "c4": {
+    "model_bytes": 3908,
+    "activation_peak": 1600,
+    "descriptors": 13,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   }
+  },
+  "metadata": {
+   "name": "ecg",
+   "input_scale": 0.4517950415611267,
+   "preprocess": "per-beat z-score, 2x decimation",
+   "dataset": "ecg",
+   "accuracy_validated": true,
+   "int4_test_accuracy": 0.9691211581230164,
+   "int4_val_accuracy": 0.97533118724823
+  }
+ },
+ {
+  "model": "fashion_cnn",
+  "run": "/data/zzy/chipdesign_int4v2/zoo_runs/cnn/s1/fashion_cnn",
+  "test_samples": 10000,
+  "int4_test": 0.9010999798774719,
+  "int4_test_balanced": 0.9010999999999999,
+  "recall": [
+   0.845,
+   0.981,
+   0.848,
+   0.914,
+   0.862,
+   0.97,
+   0.703,
+   0.966,
+   0.977,
+   0.945
+  ],
+  "float_test": 0.9102,
+  "int4_val_at_selection": 0.9103333353996277,
+  "weights": 14288,
+  "hardware": {
+   "c8": {
+    "model_bytes": 8008,
+    "activation_peak": 2744,
+    "descriptors": 5,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   },
+   "c4": {
+    "model_bytes": 8008,
+    "activation_peak": 2744,
+    "descriptors": 5,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   }
+  },
+  "metadata": {
+   "name": "fashion_cnn",
+   "input_scale": 0.13056084513664246,
+   "preprocess": "(pixel/255-0.5)/0.5",
+   "dataset": "fashion_cnn",
+   "accuracy_validated": true,
+   "int4_test_accuracy": 0.9010999798774719,
+   "int4_val_accuracy": 0.9103333353996277
+  }
+ },
+ {
+  "model": "gtsrb_l",
+  "run": "/data/zzy/chipdesign_int4v2/zoo_runs/aff/s1/gtsrb_l",
+  "test_samples": 12630,
+  "int4_test": 0.9201900362968445,
+  "int4_test_balanced": 0.8878562832329263,
+  "recall": [
+   0.5333333333333333,
+   0.9875,
+   0.9333333333333333,
+   0.8755555555555555,
+   0.9318181818181818,
+   0.8841269841269841,
+   0.9266666666666666,
+   0.8555555555555555,
+   0.9044444444444445,
+   0.9333333333333333,
+   0.9590909090909091,
+   0.8928571428571429,
+   0.9405797101449276,
+   0.9958333333333333,
+   0.9518518518518518,
+   0.9857142857142858,
+   1.0,
+   0.9472222222222222,
+   0.8358974358974359,
+   0.8,
+   0.8222222222222222,
+   0.5666666666666667,
+   0.8583333333333333,
+   0.8,
+   0.8444444444444444,
+   0.9375,
+   0.9722222222222222,
+   0.5,
+   0.92,
+   0.8777777777777778,
+   0.76,
+   0.8629629629629629,
+   1.0,
+   0.9857142857142858,
+   0.9916666666666667,
+   0.9641025641025641,
+   0.975,
+   1.0,
+   0.9478260869565217,
+   0.9,
+   0.9666666666666667,
+   0.7166666666666667,
+   0.9333333333333333
+  ],
+  "float_test": 0.9515439429928741,
+  "int4_val_at_selection": 0.9831081032752991,
+  "weights": 10496,
+  "hardware": {
+   "c8": {
+    "model_bytes": 7688,
+    "activation_peak": 8192,
+    "descriptors": 10,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   },
+   "c4": {
+    "model_bytes": 7688,
+    "activation_peak": 8192,
+    "descriptors": 10,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   }
+  },
+  "metadata": {
+   "name": "gtsrb_l",
+   "input_scale": 0.1688510626554489,
+   "preprocess": "RGB 32x32 bilinear, per-image z-score / 2",
+   "dataset": "gtsrb_l",
+   "accuracy_validated": true,
+   "int4_test_accuracy": 0.9201900362968445,
+   "int4_val_accuracy": 0.9831081032752991,
+   "input_channel_padding": {
+    "original": 3,
+    "padded": 4
+   }
+  }
+ },
+ {
+  "model": "har",
+  "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/har",
+  "test_samples": 2947,
+  "int4_test": 0.9273837804794312,
+  "int4_test_balanced": 0.92875758655891,
+  "recall": [
+   0.9959677419354839,
+   0.9490445859872612,
+   0.9928571428571429,
+   0.7718940936863544,
+   0.8627819548872181,
+   1.0
+  ],
+  "float_test": 0.9406175771971497,
+  "int4_val_at_selection": 0.919747531414032,
+  "weights": 5216,
+  "hardware": {
+   "c8": {
+    "model_bytes": 4216,
+    "activation_peak": 2624,
+    "descriptors": 7,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   },
+   "c4": {
+    "model_bytes": 4216,
+    "activation_peak": 2624,
+    "descriptors": 7,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   }
+  },
+  "metadata": {
+   "name": "har",
+   "input_scale": 0.4554251432418823,
+   "preprocess": "per-axis z-score with training mean/std",
+   "dataset": "har",
+   "accuracy_validated": true,
+   "int4_test_accuracy": 0.92840176820755,
+   "int4_val_accuracy": 0.919747531414032
+  }
+ },
+ {
+  "model": "kws_l",
+  "run": "/data/zzy/chipdesign_int4v2/zoo_runs/aff/s2/kws_l",
+  "test_samples": 4888,
+  "int4_test": 0.9150981903076172,
+  "int4_test_balanced": 0.9149093341203715,
+  "recall": [
+   0.9761336515513126,
+   0.9061728395061729,
+   0.8941176470588236,
+   0.8472906403940886,
+   0.9393203883495146,
+   0.9065656565656566,
+   0.9191919191919192,
+   0.9104477611940298,
+   0.9659367396593674,
+   0.8980099502487562,
+   0.8157248157248157,
+   1.0
+  ],
+  "float_test": 0.9365793780687398,
+  "int4_val_at_selection": 0.9209993481636047,
+  "weights": 9792,
+  "hardware": {
+   "c8": {
+    "model_bytes": 7224,
+    "activation_peak": 6248,
+    "descriptors": 9,
+    "groups": [
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   },
+   "c4": {
+    "model_bytes": 7224,
+    "activation_peak": 6248,
+    "descriptors": 9,
+    "groups": [
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   }
+  },
+  "metadata": {
+   "name": "kws_l",
+   "input_scale": 0.3056631088256836,
+   "preprocess": "49x10 MFCC, global z-score",
+   "dataset": "kws_l",
+   "accuracy_validated": true,
+   "int4_test_accuracy": 0.9150981903076172,
+   "int4_val_accuracy": 0.9209993481636047
+  }
+ },
+ {
+  "model": "kws_m",
+  "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/kws_m",
+  "test_samples": 4888,
+  "int4_test": 0.9042553305625916,
+  "int4_test_balanced": 0.9039819567602216,
+  "recall": [
+   0.9570405727923628,
+   0.8987654320987655,
+   0.9035294117647059,
+   0.8571428571428571,
+   0.9490291262135923,
+   0.9267676767676768,
+   0.8964646464646465,
+   0.8980099502487562,
+   0.9440389294403893,
+   0.8233830845771144,
+   0.7936117936117936,
+   1.0
+  ],
+  "float_test": 0.9302373158756138,
+  "int4_val_at_selection": 0.919198751449585,
+  "weights": 9160,
+  "hardware": {
+   "c8": {
+    "model_bytes": 7072,
+    "activation_peak": 5248,
+    "descriptors": 11,
+    "groups": [
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   },
+   "c4": {
+    "model_bytes": 7072,
+    "activation_peak": 5248,
+    "descriptors": 11,
+    "groups": [
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   }
+  },
+  "metadata": {
+   "name": "kws_m",
+   "input_scale": 0.3214356601238251,
+   "preprocess": "49x10 MFCC, global z-score",
+   "dataset": "kws_m",
+   "accuracy_validated": true,
+   "int4_test_accuracy": 0.9042553305625916,
+   "int4_val_accuracy": 0.919198751449585
+  }
+ },
+ {
+  "model": "mnist_l",
+  "run": "/data/zzy/chipdesign_int4v2/zoo_runs/final/mnist_l",
+  "test_samples": 10000,
+  "int4_test": 0.9887999892234802,
+  "int4_test_balanced": 0.9886119804167857,
+  "recall": [
+   0.9948979591836735,
+   0.9964757709251101,
+   0.9932170542635659,
+   0.9891089108910891,
+   0.9898167006109979,
+   0.984304932735426,
+   0.9801670146137788,
+   0.9883268482490273,
+   0.9866529774127311,
+   0.9831516352824579
+  ],
+  "float_test": 0.9925,
+  "int4_val_at_selection": 0.9901666641235352,
+  "weights": 5088,
+  "hardware": {
+   "c8": {
+    "model_bytes": 4592,
+    "activation_peak": 3528,
+    "descriptors": 10,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   },
+   "c4": {
+    "model_bytes": 4592,
+    "activation_peak": 3528,
+    "descriptors": 10,
+    "groups": [
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant",
+      "MaxPool"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Add",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "Conv",
+      "Requant"
+     ],
+     [
+      "AvgPool",
+      "Requant"
+     ],
+     [
+      "FC"
+     ]
+    ]
+   }
+  },
+  "metadata": {
+   "name": "mnist_l",
+   "input_scale": 0.12822221219539642,
+   "preprocess": "(pixel/255-0.5)/0.5",
+   "dataset": "mnist_l",
+   "accuracy_validated": true,
+   "int4_test_accuracy": 0.9894000291824341,
+   "int4_val_accuracy": 0.9901666641235352
+  }
+ }
+]

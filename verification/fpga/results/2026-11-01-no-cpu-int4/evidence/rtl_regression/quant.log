@@ -1,0 +1,2 @@
+PASS requant independent vectors=20000 II=1
+hardware/npu/tb/tb_requant_lane.sv:25: $finish called at 200120000 (1ps)

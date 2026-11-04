@@ -1,0 +1,282 @@
+{
+  "passed": true,
+  "model_commit": "78664e9c5da977288dcf721b470f1fc09aa30793",
+  "rtl_cases": 137,
+  "production_cases": 137,
+  "rtl_repetitions_per_case": 2,
+  "host_capacity_rejections": [
+    {
+      "model": "ecg",
+      "configuration": "none",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "ecg",
+      "configuration": "no_requant",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "fashion_cnn",
+      "configuration": "none",
+      "reason": "activation capacity exceeded: conv1 needs [392,50568), capacity 8192; consider fusion/larger build"
+    },
+    {
+      "model": "fashion_cnn",
+      "configuration": "no_requant",
+      "reason": "activation capacity exceeded: conv1 needs [392,50568), capacity 8192; consider fusion/larger build"
+    },
+    {
+      "model": "fashion_cnn",
+      "configuration": "no_maxpool",
+      "reason": "activation capacity exceeded: pool3 needs [6664,8232), capacity 8192; consider fusion/larger build"
+    },
+    {
+      "model": "gtsrb_l",
+      "configuration": "none",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "gtsrb_l",
+      "configuration": "no_requant",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "gtsrb_l",
+      "configuration": "no_maxpool",
+      "reason": "activation capacity exceeded: q2 needs [2048,14336), capacity 8192; consider fusion/larger build"
+    },
+    {
+      "model": "har",
+      "configuration": "none",
+      "reason": "activation capacity exceeded: conv1 needs [576,16960), capacity 8192; consider fusion/larger build"
+    },
+    {
+      "model": "har",
+      "configuration": "no_requant",
+      "reason": "activation capacity exceeded: conv1 needs [576,16960), capacity 8192; consider fusion/larger build"
+    },
+    {
+      "model": "kws_l",
+      "configuration": "none",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "kws_l",
+      "configuration": "no_requant",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "kws_m",
+      "configuration": "none",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "kws_m",
+      "configuration": "no_requant",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "mnist_l",
+      "configuration": "none",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "mnist_l",
+      "configuration": "no_requant",
+      "reason": "too many physical operators"
+    },
+    {
+      "model": "mnist_l",
+      "configuration": "no_maxpool",
+      "reason": "activation capacity exceeded: pool3 needs [6664,8232), capacity 8192; consider fusion/larger build"
+    }
+  ],
+  "published_first_frame_comparisons": [
+    "ecg_frame00_all_c4_f1_j0",
+    "ecg_frame00_all_c8_f1_j0",
+    "ecg_frame00_no_maxpool_c8_fs_j0",
+    "ecg_frame00_no_relu_c8_fs_j0",
+    "fashion_cnn_frame00_all_c4_f1_j0",
+    "fashion_cnn_frame00_all_c8_f1_j0",
+    "fashion_cnn_frame00_no_relu_c8_fs_j0",
+    "gtsrb_l_frame00_all_c4_f1_j0",
+    "gtsrb_l_frame00_all_c8_f1_j0",
+    "gtsrb_l_frame00_no_relu_c8_fs_j0",
+    "har_frame00_all_c4_f1_j0",
+    "har_frame00_all_c8_f1_j0",
+    "har_frame00_no_maxpool_c8_fs_j0",
+    "har_frame00_no_relu_c8_fs_j0",
+    "kws_l_frame00_all_c4_f1_j0",
+    "kws_l_frame00_all_c8_f1_j0",
+    "kws_l_frame00_no_maxpool_c8_fs_j0",
+    "kws_l_frame00_no_relu_c8_fs_j0",
+    "kws_m_frame00_all_c4_f1_j0",
+    "kws_m_frame00_all_c8_f1_j0",
+    "kws_m_frame00_no_maxpool_c8_fs_j0",
+    "kws_m_frame00_no_relu_c8_fs_j0",
+    "mnist_l_frame00_all_c4_f1_j0",
+    "mnist_l_frame00_all_c8_f1_j0",
+    "mnist_l_frame00_no_relu_c8_fs_j0"
+  ],
+  "board_frames": 112,
+  "board_runs": 224,
+  "all_24_board_rtl_counters_equal": true,
+  "bitstream_sha256": "8bdb83a721a06f6ce53aa84ce455f6c0da3353af582f7c56c4a18a248fdf2c2c",
+  "implemented_source_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "4148cbd18fd2d40549ee67925881b0c86f35014502798dba09fd6c7e048c2f87",
+    "hardware/npu/rtl/requant_lane.sv": "1b5148776491ce45147d8d6756ba641f7f0531a6704c52b1579410d05f9da2e3",
+    "hardware/npu/rtl/npu_model_store.sv": "f03880d44737e4798b790b6b0e519b1e7f316e8941757fcdcba506ef4cb3bf4b",
+    "hardware/npu/rtl/npu_activation_store.sv": "4481959a1e67773fa73e7b2af84a5d0a8019b799feb7390067907cf9f2e583f2",
+    "hardware/npu/rtl/npu_program_core.sv": "c08c2e2ad83ff57bdcbbf0f4f05f907a019ba32fab5bb9a46de7c1adadc185ad",
+    "hardware/npu/rtl/npu_trace_capture.sv": "bb736481f668845a28b88adb47359b09a78357d518fc02c3b3a53e90544c6645",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "2eb239ab5527b502c5ffb35516476bdbb180ecdf9550e567528f5dd6c9df1b9a",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "b72b6a105a4f9447d0bebe4759839c764d19a36ddcaed8fcd87548c63dec75f5",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "1a5502bc780fae1dc07e97e068046af244e925c697d7f6fd4cde83d6dc74017a",
+    "hardware/soc/rtl/my_soc_top.sv": "8112b1b5d1a0df0ec6d431967e837d55415413082b42b5f171be6f64229d8033",
+    "hardware/soc/sim/filelists/chipdesign_nocpu.f": "daf29f3a90b9e95aa9b713416aaa25b5934b781d450d0693d4795e421d6bd61f",
+    "hardware/fpga/fpga_top.sv": "236ed0f77c6b0379e848edffb8a81cbfcfe233ff7e61eb0b599b60d0dbb31080",
+    "hardware/fpga/ego1_pins.xdc": "8628583cf2f2078a50d72a42e1da6fda8b80dfef77192f7f43272e7e92c517bc",
+    "hardware/fpga/ego1_timing.xdc": "1053d6db3987abd5eb558c72a9d5b4be7944633cf329439c766173e87aa5c0d0",
+    "hardware/fpga/ego1_configuration.xdc": "c25b411c7385ff165e341597cd0680af860adc87cf73fb682b3667f9b79050cf",
+    "hardware/fpga/check_bram_drc.tcl": "ecd6c298117a6e7bdafd04e17b0545db07fee86dbff9cfbe383c5948e57bd835",
+    "hardware/fpga/scripts/build_ego1.tcl": "19ec8f352d47a7350670bdbf76cc5bcfa9d2dcb2b251e7e0f851b2db5de9e608",
+    "hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl": "10fd23d35f7df29033ee4d77a5886f1a1ed81b3db6576c5c7c971a595eb116ff",
+    "hardware/fpga/scripts/audit_jtag_io.tcl": "81c5d6831abb805b075f8339f80c37b12206fe0a4071db1905de5eac811dea9a"
+  },
+  "models": [
+    {
+      "model": "ecg",
+      "frames": 16,
+      "board_runs": 32,
+      "sampled_label_correct": 16,
+      "cycles_min": 21286,
+      "cycles_max": 21286,
+      "core_us_min": 425.72,
+      "core_us_max": 425.72,
+      "writes": [
+        5397
+      ],
+      "mac_issues": [
+        9224
+      ],
+      "model_bytes": 3908,
+      "op_count": 13,
+      "activation_peak": 1600
+    },
+    {
+      "model": "fashion_cnn",
+      "frames": 16,
+      "board_runs": 32,
+      "sampled_label_correct": 15,
+      "cycles_min": 72811,
+      "cycles_max": 72812,
+      "core_us_min": 1456.22,
+      "core_us_max": 1456.24,
+      "writes": [
+        3162
+      ],
+      "mac_issues": [
+        47056
+      ],
+      "model_bytes": 8008,
+      "op_count": 5,
+      "activation_peak": 2744
+    },
+    {
+      "model": "gtsrb_l",
+      "frames": 16,
+      "board_runs": 32,
+      "sampled_label_correct": 15,
+      "cycles_min": 122804,
+      "cycles_max": 122804,
+      "core_us_min": 2456.08,
+      "core_us_max": 2456.08,
+      "writes": [
+        14343
+      ],
+      "mac_issues": [
+        74580
+      ],
+      "model_bytes": 7688,
+      "op_count": 10,
+      "activation_peak": 8192
+    },
+    {
+      "model": "har",
+      "frames": 16,
+      "board_runs": 32,
+      "sampled_label_correct": 16,
+      "cycles_min": 25043,
+      "cycles_max": 25048,
+      "core_us_min": 500.86,
+      "core_us_max": 500.96,
+      "writes": [
+        3622
+      ],
+      "mac_issues": [
+        14096
+      ],
+      "model_bytes": 4216,
+      "op_count": 7,
+      "activation_peak": 2624
+    },
+    {
+      "model": "kws_l",
+      "frames": 16,
+      "board_runs": 32,
+      "sampled_label_correct": 15,
+      "cycles_min": 126411,
+      "cycles_max": 126414,
+      "core_us_min": 2528.22,
+      "core_us_max": 2528.28,
+      "writes": [
+        21036
+      ],
+      "mac_issues": [
+        72774
+      ],
+      "model_bytes": 7224,
+      "op_count": 9,
+      "activation_peak": 6248
+    },
+    {
+      "model": "kws_m",
+      "frames": 16,
+      "board_runs": 32,
+      "sampled_label_correct": 15,
+      "cycles_min": 110112,
+      "cycles_max": 110115,
+      "core_us_min": 2202.24,
+      "core_us_max": 2202.3,
+      "writes": [
+        22532
+      ],
+      "mac_issues": [
+        74395
+      ],
+      "model_bytes": 7072,
+      "op_count": 11,
+      "activation_peak": 5248
+    },
+    {
+      "model": "mnist_l",
+      "frames": 16,
+      "board_runs": 32,
+      "sampled_label_correct": 15,
+      "cycles_min": 49415,
+      "cycles_max": 49416,
+      "core_us_min": 988.3,
+      "core_us_max": 988.32,
+      "writes": [
+        8666
+      ],
+      "mac_issues": [
+        26688
+      ],
+      "model_bytes": 4592,
+      "op_count": 10,
+      "activation_peak": 3528
+    }
+  ],
+  "limitation": "16 published sampled frames per model; not a full-dataset accuracy reevaluation; physical tests remain pending."
+}

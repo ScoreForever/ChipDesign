@@ -1,0 +1,8 @@
+model kcycles latency_ms
+MNIST-L 49.4 0.99
+Fashion-CNN 72.8 1.46
+KWS-L 126.4 2.53
+KWS-M 110.1 2.20
+HAR-1D 25.0 0.50
+ECG-1D 21.3 0.43
+GTSRB-L 122.8 2.46

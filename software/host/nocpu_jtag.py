@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 2.1 host: reusable model loading and arbitrary input/output tensors over JTAG."""
+"""ABI 4.0 INT4 host: reusable model loading and arbitrary input/output tensors over JTAG."""
 from __future__ import annotations
 import argparse
 from enum import IntEnum
@@ -8,7 +8,7 @@ from pathlib import Path
 import socket
 import time
 
-ABI=0x20001  # must match npu_program.ABI and the controller's register 0
+from npu_program import ABI, NUMERIC_FORMAT, encode_tensor, decode_tensor
 
 
 class Op(IntEnum):
@@ -101,6 +101,37 @@ class JtagTransport:
         # In particular, do not automatically retry START/COMMIT after timeout.
         raise TimeoutError('JTAG response timed out; operation may have executed; inspect status before retrying')
 
+    # Burst transfers: one 32-bit scan per word at the address following the
+    # last IR=12h command; many scans travel in one Tcl RPC round trip.
+    def burst_write(self, words):
+        self.rpc.execute(f'irscan {self.tap} 0x13 -endstate IDLE')
+        for i in range(0,len(words),64):
+            self.rpc.execute(' ; '.join(f'drscan {self.tap} 32 0x{w&0xffffffff:08x} -endstate IDLE' for w in words[i:i+64]))
+        self.burst_check()
+
+    def burst_read(self, count):
+        """Read `count` words after the last command's address."""
+        if count<=0:return []
+        self.rpc.execute(f'irscan {self.tap} 0x14 -endstate IDLE')
+        values=[]
+        for i in range(0,count,64):
+            n=min(64,count-i)
+            # Tcl returns only the last command's value, so collect explicitly.
+            # runtest 4: the read must cross back through the TCK synchronizer
+            # before the next Capture-DR returns it.
+            script='set _r {}; '+' ; '.join(f'lappend _r [drscan {self.tap} 32 0] ; runtest 4' for _ in range(n))+' ; set _r'
+            values.extend(int(v,16) for v in self.rpc.execute(script).split())
+        last=self.burst_check()
+        # Each scan returned the previous read; the first one is stale.
+        return (values[1:]+[last&0xffffffff])
+
+    def burst_check(self):
+        self.rpc.execute(f'irscan {self.tap} 0x12 -endstate IDLE')
+        response=self.scan(0)
+        if (response>>69)&1:
+            raise RuntimeError('JTAG burst fault (busy mailbox or NPU error); the transfer is incomplete')
+        return response
+
 
 def signed32(value):
     return value if value<2**31 else value-2**32
@@ -109,8 +140,20 @@ def signed32(value):
 class Npu:
     def __init__(self,transport):
         self.transport=transport
-        if self.read(0)!=ABI:raise RuntimeError('requires NPU ABI 2.1; recompile packages for this hardware')
+        if self.read(0)!=ABI:raise RuntimeError('requires NPU ABI 4.0 INT4; recompile packages for this hardware')
     def command(self,op,addr=0,data=0):return self.transport.exchange(op,addr,data)
+    def write_block(self,addr,words):
+        """Write consecutive words; bursts after the first when the transport can."""
+        if not words:return
+        self.write(addr,words[0])
+        if len(words)>1 and hasattr(self.transport,'burst_write'):self.transport.burst_write(list(words[1:]))
+        else:
+            for i,w in enumerate(words[1:],1):self.write(addr+4*i,w)
+    def read_block(self,addr,count):
+        if count<=0:return []
+        first=self.read(addr)
+        if count>1 and hasattr(self.transport,'burst_read'):return [first]+self.transport.burst_read(count-1)
+        return [first]+[self.read(addr+4*i) for i in range(1,count)]
     def read(self,addr):return self.command(Op.READ,addr)
     def write(self,addr,data):return self.command(Op.WRITE,addr,int(data)&0xffffffff)
     def status(self):
@@ -140,7 +183,7 @@ class Npu:
         from npu_trace import decode_sample
         status=self.read(4);job=self.read(0x2c)
         if status&1:raise RuntimeError('trace requires an idle/completed NPU')
-        if self.read(0x180)!=0x00010080:raise RuntimeError('requires trace extension v1, 128-bit samples')
+        if self.read(0x180)!=0x00030080:raise RuntimeError('requires INT4 trace extension v3, 128-bit samples')
         header={name:self.read(addr) for name,addr in (
             ('depth',0x184),('configured_control',0x188),('configured_offset',0x18c),
             ('flags',0x190),('count',0x194),('first_cycle',0x198),('last_cycle',0x19c),
@@ -175,11 +218,13 @@ class Npu:
                 raise RuntimeError('trace PC does not match capture configuration')
         if self.read(0x2c)!=job or self.read(4)!=status:
             raise RuntimeError('job changed during trace read; discard capture')
-        return dict(version=1,job=job,status=status,header=header,operators=operators,samples=samples)
+        return dict(version=3,job=job,status=status,header=header,operators=operators,samples=samples)
     def load_model(self,package):
         m=package.manifest
         # All host checks happen before MODEL_BEGIN invalidates the old model.
-        caps={r:self.read(r) for r in (0x50,0x54,0x58,0x5c,0x60)}
+        caps={r:self.read(r) for r in (0x50,0x54,0x58,0x5c,0x60,0x6c)}
+        if caps[0x6c]!=NUMERIC_FORMAT or m.get('numeric_format')!=NUMERIC_FORMAT or m.get('packing')!='low_nibble_first':
+            raise ValueError('requires packed INT4 / INT32 / Q15 model format')
         if m['abi']!=ABI or m['cols']!=(caps[0x58]&65535):raise ValueError('ABI/array mismatch; recompile package')
         if len(package.image)!=m['model_bytes'] or len(package.image)%4 or len(package.image)>caps[0x54]:raise ValueError('model capacity/length')
         if not 0<m['op_count']<=caps[0x60] or m['activation_peak']>caps[0x50]:raise ValueError('program/activation capacity')
@@ -187,13 +232,22 @@ class Npu:
         for reg,key in zip(range(0x10,0x28,4),('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes')):
             self.write(reg,m[key])
         self.write(0x64,int(m['input_dtype']=='i32'))
-        for offset in range(0,len(package.image),4):self.write(0x10000+offset,int.from_bytes(package.image[offset:offset+4],'little'))
+        self.write_block(0x10000,[int.from_bytes(package.image[o:o+4],'little') for o in range(0,len(package.image),4)])
         self.command(Op.MODEL_COMMIT)
+        self.manifest=dict(m)
+    def infer_values(self,values,timeout=10):
+        if not hasattr(self,'manifest'):raise RuntimeError('load a model before typed inference')
+        m=self.manifest;values=list(values)
+        if len(values)!=m['input_elements']:raise ValueError('input element count')
+        return decode_tensor(self.infer(encode_tensor(values,m['input_dtype']),timeout),m['output_dtype'],m['output_elements'])
     def infer(self,frame,timeout=10):
         frame=bytes(frame);base=self.read(0x18);length=self.read(0x1c)
         if len(frame)!=length:raise ValueError(f'expected {length} input bytes')
+        m=getattr(self,'manifest',None)
+        if m and m['input_dtype'] in ('i4','u4') and m['input_elements']%2 and frame[-1]&0xf0:
+            raise ValueError('nonzero INT4 input padding nibble')
         self.command(Op.INPUT_BEGIN)
-        for offset in range(0,len(frame),4):self.write(0x20000+base+offset,int.from_bytes(frame[offset:offset+4].ljust(4,b'\0'),'little'))
+        self.write_block(0x20000+base,[int.from_bytes(frame[o:o+4].ljust(4,b'\0'),'little') for o in range(0,len(frame),4)])
         self.command(Op.INPUT_COMMIT);self.command(Op.START)
         deadline=time.monotonic()+timeout
         while True:
@@ -203,7 +257,7 @@ class Npu:
             if time.monotonic()>deadline:raise TimeoutError('inference still active; inspect status, do not automatically retry START')
             time.sleep(0.001)
         base=self.read(0x20);length=self.read(0x24)
-        result=b''.join(self.read(0x20000+base+i).to_bytes(4,'little') for i in range(0,length,4))[:length]
+        result=b''.join(v.to_bytes(4,'little') for v in self.read_block(0x20000+base,(length+3)//4))[:length]
         self.command(Op.ACK)
         return result
 
