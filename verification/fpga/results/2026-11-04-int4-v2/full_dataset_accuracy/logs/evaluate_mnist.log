@@ -1,0 +1,2 @@
+REBUILD mnist_l
+PASS mnist_l correct 9888 / 10000 accuracy 0.9887999892234802 published_equal False

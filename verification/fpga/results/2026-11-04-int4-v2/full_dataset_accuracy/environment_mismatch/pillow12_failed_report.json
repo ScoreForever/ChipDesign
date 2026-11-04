@@ -1,0 +1,23 @@
+{
+  "model": "gtsrb_l",
+  "passed": false,
+  "started_utc": "2026-11-04T04:29:11.479560+00:00",
+  "model_sha256": "bc74029c2f4190cd78fc578ee7d074d6a0e24a26c93a548c950eba67a4279730",
+  "golden_sha256": "98abd64026051f9476107fdcfb1ae023c2a6fd580bcccbaf76c08f0f7b9508f3",
+  "device": "cuda",
+  "batch_size": 256,
+  "versions": {
+    "torch": "2.5.1+cu121",
+    "torchvision": "0.20.1+cu121",
+    "torchaudio": "2.5.1+cu121",
+    "numpy": "2.4.3",
+    "pillow": "12.1.1",
+    "wfdb": "4.3.1",
+    "soundfile": "0.14.0"
+  },
+  "loader_sha256": "4861f33beccb7904fff4e69a4bc8dfd06a653ea48bfd94971fd686453d5e52ac",
+  "fastref_sha256": "88a3edb59716cbd289d6e4b31c06f30b0d6e145d706e2628b0c0a6e491f5b067",
+  "test_samples": 12630,
+  "error": "AssertionError: ('gtsrb_l', 7893, 'rebuilt input mismatch')",
+  "finished_utc": "2026-11-04T04:29:17.082503+00:00"
+}

@@ -1,0 +1,103 @@
+{
+  "model": "har",
+  "passed": true,
+  "started_utc": "2026-11-04T04:27:25.574311+00:00",
+  "model_sha256": "125f5b133b451e5ea5742838c3c008474e94aab1b0013a91eee01e7c4311b49c",
+  "golden_sha256": "25cff1a7c3743123496bc9a0bca1965fb14de70a6f978413d34aab07e10d3d22",
+  "device": "cuda",
+  "batch_size": 256,
+  "versions": {
+    "torch": "2.5.1+cu121",
+    "torchvision": "0.20.1+cu121",
+    "torchaudio": "2.5.1+cu121",
+    "numpy": "2.4.3",
+    "pillow": "12.1.1",
+    "wfdb": "4.3.1",
+    "soundfile": "0.14.0"
+  },
+  "loader_sha256": "4861f33beccb7904fff4e69a4bc8dfd06a653ea48bfd94971fd686453d5e52ac",
+  "fastref_sha256": "88a3edb59716cbd289d6e4b31c06f30b0d6e145d706e2628b0c0a6e491f5b067",
+  "test_samples": 2947,
+  "golden_input_and_label_matches": 16,
+  "golden_output_matches": 16,
+  "frames_sha256": "46d60ea841d908d4d4e3b5ba018ab926db6284b3216358224fbebbcd0a625802",
+  "labels_sha256": "e8ff5cd2d96b1f415e67b5ef55264caa83f0cfb6e265d8fa1925028c1385ae2a",
+  "correct": 2733,
+  "int4_test": 0.9273837804794312,
+  "int4_test_balanced": 0.92875758655891,
+  "recall": [
+    0.9959677419354839,
+    0.9490445859872612,
+    0.9928571428571429,
+    0.7718940936863544,
+    0.8627819548872181,
+    1.0
+  ],
+  "confusion": [
+    [
+      494,
+      0,
+      2,
+      0,
+      0,
+      0
+    ],
+    [
+      4,
+      447,
+      20,
+      0,
+      0,
+      0
+    ],
+    [
+      3,
+      0,
+      417,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      2,
+      0,
+      379,
+      110,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      73,
+      459,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      0,
+      537
+    ]
+  ],
+  "class_counts": [
+    496,
+    471,
+    420,
+    491,
+    532,
+    537
+  ],
+  "outputs_sha256": "613f1325b38e83304aa276615f630a989ca7035029afbbbbeedeb321e8d2c26b",
+  "evaluation_seconds": 0.14100000000325963,
+  "total_seconds": 1.7190000000409782,
+  "gpu_peak_bytes": 70058496,
+  "published_accuracy": 0.9273837804794312,
+  "accuracy_delta": 0.0,
+  "published_balanced": 0.92875758655891,
+  "published_metrics_equal": true,
+  "finished_utc": "2026-11-04T04:27:27.460948+00:00"
+}

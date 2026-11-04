@@ -1,0 +1,9 @@
+REBUILD gtsrb_l
+Traceback (most recent call last):
+  File "D:\IWS\Advanced_SoC\ChipDesign\build\int4_v2_update_20261104\verification\fpga\reevaluate_int4_v2_zoo.py", line 103, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "D:\IWS\Advanced_SoC\ChipDesign\build\int4_v2_update_20261104\verification\fpga\reevaluate_int4_v2_zoo.py", line 55, in main
+    assert values==row['input'],(name,row['index'],'rebuilt input mismatch')
+           ^^^^^^^^^^^^^^^^^^^^
+AssertionError: ('gtsrb_l', 7893, 'rebuilt input mismatch')

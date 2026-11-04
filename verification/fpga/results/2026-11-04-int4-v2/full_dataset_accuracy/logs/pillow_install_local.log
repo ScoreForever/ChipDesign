@@ -1,0 +1,5 @@
+Processing d:\iws\advanced_soc\chipdesign\build\int4_v2_update_20261104\build\int4_v2_full_accuracy_20261104\wheels\pillow-13.0.0-cp311-cp311-win_amd64.whl
+pillow is already installed with the same version as the provided wheel. Use --force-reinstall to force an installation of the wheel.
+
+[notice] A new release of pip is available: 24.0 -> 26.3
+[notice] To update, run: D:\IWS\Advanced_SoC\ChipDesign\build\zoo_eval_env\Scripts\python.exe -m pip install --upgrade pip
