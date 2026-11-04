@@ -1,0 +1,212 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 4,
+  "model_bytes": 7072,
+  "op_count": 11,
+  "input_elements": 490,
+  "input_base": 0,
+  "input_bytes": 245,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 48,
+  "output_elements": 12,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    12
+  ],
+  "activation_peak": 5248,
+  "groups": [
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "AvgPool",
+      "Requant"
+    ],
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "input": {
+      "base": 0,
+      "bytes": 245,
+      "shape": [
+        49,
+        10,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q2": {
+      "base": 248,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q4": {
+      "base": 2748,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q6": {
+      "base": 0,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q8": {
+      "base": 2500,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q10": {
+      "base": 0,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q12": {
+      "base": 2500,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q14": {
+      "base": 0,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q16": {
+      "base": 2500,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q18": {
+      "base": 0,
+      "bytes": 2500,
+      "shape": [
+        25,
+        5,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "q20": {
+      "base": 2500,
+      "bytes": 20,
+      "shape": [
+        1,
+        1,
+        40
+      ],
+      "dtype": "u4"
+    },
+    "fc21": {
+      "base": 0,
+      "bytes": 48,
+      "shape": [
+        1,
+        1,
+        12
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {
+    "name": "kws_m",
+    "input_scale": 0.3214356601238251,
+    "classes": [
+      "yes",
+      "no",
+      "up",
+      "down",
+      "left",
+      "right",
+      "on",
+      "off",
+      "stop",
+      "go",
+      "unknown",
+      "silence"
+    ],
+    "preprocess": "49x10 MFCC, global z-score",
+    "dataset": "kws_m",
+    "accuracy_validated": true,
+    "int4_test_accuracy": 0.9042553305625916,
+    "int4_val_accuracy": 0.919198751449585
+  }
+}

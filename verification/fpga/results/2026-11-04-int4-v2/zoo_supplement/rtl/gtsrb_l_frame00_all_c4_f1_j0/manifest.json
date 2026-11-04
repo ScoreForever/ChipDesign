@@ -1,0 +1,236 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 4,
+  "model_bytes": 7688,
+  "op_count": 10,
+  "input_elements": 4096,
+  "input_base": 0,
+  "input_bytes": 2048,
+  "input_dtype": "i4",
+  "output_base": 28,
+  "output_bytes": 172,
+  "output_elements": 43,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    43
+  ],
+  "activation_peak": 8192,
+  "groups": [
+    [
+      "Conv",
+      "Requant",
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant",
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Add",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant",
+      "MaxPool"
+    ],
+    [
+      "AvgPool",
+      "Requant"
+    ],
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "input": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        32,
+        32,
+        4
+      ],
+      "dtype": "i4"
+    },
+    "pool3": {
+      "base": 2048,
+      "bytes": 3072,
+      "shape": [
+        16,
+        16,
+        24
+      ],
+      "dtype": "u4"
+    },
+    "q5": {
+      "base": 5120,
+      "bytes": 3072,
+      "shape": [
+        16,
+        16,
+        24
+      ],
+      "dtype": "u4"
+    },
+    "pool8": {
+      "base": 0,
+      "bytes": 1536,
+      "shape": [
+        8,
+        8,
+        48
+      ],
+      "dtype": "u4"
+    },
+    "q10": {
+      "base": 1536,
+      "bytes": 1536,
+      "shape": [
+        8,
+        8,
+        48
+      ],
+      "dtype": "u4"
+    },
+    "q12": {
+      "base": 3072,
+      "bytes": 1536,
+      "shape": [
+        8,
+        8,
+        48
+      ],
+      "dtype": "i4"
+    },
+    "q14": {
+      "base": 3072,
+      "bytes": 1536,
+      "shape": [
+        8,
+        8,
+        48
+      ],
+      "dtype": "u4"
+    },
+    "q16": {
+      "base": 0,
+      "bytes": 1536,
+      "shape": [
+        8,
+        8,
+        48
+      ],
+      "dtype": "u4"
+    },
+    "pool19": {
+      "base": 1536,
+      "bytes": 448,
+      "shape": [
+        4,
+        4,
+        56
+      ],
+      "dtype": "u4"
+    },
+    "q21": {
+      "base": 0,
+      "bytes": 28,
+      "shape": [
+        1,
+        1,
+        56
+      ],
+      "dtype": "u4"
+    },
+    "fc22": {
+      "base": 28,
+      "bytes": 172,
+      "shape": [
+        1,
+        1,
+        43
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {
+    "name": "gtsrb_l",
+    "input_scale": 0.1688510626554489,
+    "classes": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "31",
+      "32",
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39",
+      "40",
+      "41",
+      "42"
+    ],
+    "preprocess": "RGB 32x32 bilinear, per-image z-score / 2",
+    "dataset": "gtsrb_l",
+    "accuracy_validated": true,
+    "int4_test_accuracy": 0.9201900362968445,
+    "int4_val_accuracy": 0.9831081032752991,
+    "input_channel_padding": {
+      "original": 3,
+      "padded": 4
+    }
+  }
+}

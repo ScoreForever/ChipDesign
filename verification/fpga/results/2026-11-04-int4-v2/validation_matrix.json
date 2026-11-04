@@ -87,7 +87,6 @@
     }
   ],
   "not_run": [
-    "7 unavailable zoo exports",
     "physical reset button on this v2 image",
     "power cycle/reprogram on this v2 image",
     "electrical waveform measurements",
@@ -98,5 +97,17 @@
     "Baseline board_suite manual_pending is a generic checklist; use board_cdc/report.json for the four completed automatic checks.",
     "Bitstream identity from programmer path/hash/DONE/CRC plus ABI checks; no full configuration readback.",
     "No 25 MHz implementation; 50 MHz setup slack rounds to 0.000 ns, no extra margin claimed."
-  ]
+  ],
+  "zoo_supplement": {
+    "model_commit": "78664e9c5da977288dcf721b470f1fc09aa30793",
+    "model_count": 7,
+    "golden_frames": 112,
+    "board_runs": 224,
+    "rtl_cases": 137,
+    "production_cases": 137,
+    "passed": true,
+    "all_24_board_rtl_counters_equal": true,
+    "report": "zoo_supplement/report.md",
+    "full_dataset_accuracy": "NOT RUN"
+  }
 }

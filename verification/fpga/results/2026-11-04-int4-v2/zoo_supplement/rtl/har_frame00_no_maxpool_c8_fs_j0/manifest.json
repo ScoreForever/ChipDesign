@@ -1,0 +1,189 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 8,
+  "model_bytes": 4408,
+  "op_count": 10,
+  "input_elements": 1152,
+  "input_base": 0,
+  "input_bytes": 576,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 24,
+  "output_elements": 6,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    6
+  ],
+  "activation_peak": 3648,
+  "groups": [
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "AvgPool",
+      "Requant"
+    ],
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "input": {
+      "base": 0,
+      "bytes": 576,
+      "shape": [
+        1,
+        128,
+        9
+      ],
+      "dtype": "i4"
+    },
+    "q2": {
+      "base": 576,
+      "bytes": 2048,
+      "shape": [
+        1,
+        128,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "pool3": {
+      "base": 2624,
+      "bytes": 1024,
+      "shape": [
+        1,
+        64,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q5": {
+      "base": 0,
+      "bytes": 1024,
+      "shape": [
+        1,
+        64,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q7": {
+      "base": 1024,
+      "bytes": 1024,
+      "shape": [
+        1,
+        64,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "pool8": {
+      "base": 0,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q10": {
+      "base": 512,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q12": {
+      "base": 1024,
+      "bytes": 1024,
+      "shape": [
+        1,
+        32,
+        64
+      ],
+      "dtype": "u4"
+    },
+    "pool13": {
+      "base": 0,
+      "bytes": 512,
+      "shape": [
+        1,
+        16,
+        64
+      ],
+      "dtype": "u4"
+    },
+    "q15": {
+      "base": 512,
+      "bytes": 32,
+      "shape": [
+        1,
+        1,
+        64
+      ],
+      "dtype": "u4"
+    },
+    "fc16": {
+      "base": 0,
+      "bytes": 24,
+      "shape": [
+        1,
+        1,
+        6
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {
+    "name": "har",
+    "input_scale": 0.4554251432418823,
+    "classes": [
+      "walking",
+      "upstairs",
+      "downstairs",
+      "sitting",
+      "standing",
+      "laying"
+    ],
+    "preprocess": "per-axis z-score with training mean/std",
+    "dataset": "har",
+    "accuracy_validated": true,
+    "int4_test_accuracy": 0.92840176820755,
+    "int4_val_accuracy": 0.919747531414032
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 4,
+  "model_bytes": 8008,
+  "op_count": 5,
+  "input_elements": 784,
+  "input_base": 0,
+  "input_bytes": 392,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 40,
+  "output_elements": 10,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    10
+  ],
+  "activation_peak": 2744,
+  "groups": [
+    [
+      "Conv",
+      "Requant",
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant",
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "AvgPool",
+      "Requant"
+    ],
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "input": {
+      "base": 0,
+      "bytes": 392,
+      "shape": [
+        28,
+        28,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "pool3": {
+      "base": 392,
+      "bytes": 1568,
+      "shape": [
+        14,
+        14,
+        16
+      ],
+      "dtype": "u4"
+    },
+    "pool6": {
+      "base": 1960,
+      "bytes": 784,
+      "shape": [
+        7,
+        7,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q8": {
+      "base": 0,
+      "bytes": 784,
+      "shape": [
+        7,
+        7,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q10": {
+      "base": 784,
+      "bytes": 16,
+      "shape": [
+        1,
+        1,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "fc11": {
+      "base": 0,
+      "bytes": 40,
+      "shape": [
+        1,
+        1,
+        10
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {
+    "name": "fashion_cnn",
+    "input_scale": 0.13056084513664246,
+    "classes": [
+      "T-shirt/top",
+      "Trouser",
+      "Pullover",
+      "Dress",
+      "Coat",
+      "Sandal",
+      "Shirt",
+      "Sneaker",
+      "Bag",
+      "Ankle boot"
+    ],
+    "preprocess": "(pixel/255-0.5)/0.5",
+    "dataset": "fashion_cnn",
+    "accuracy_validated": true,
+    "int4_test_accuracy": 0.9010999798774719,
+    "int4_val_accuracy": 0.9103333353996277
+  }
+}

@@ -1,0 +1,272 @@
+{
+  "abi": 262144,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 8,
+  "model_bytes": 4100,
+  "op_count": 16,
+  "input_elements": 128,
+  "input_base": 0,
+  "input_bytes": 64,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 20,
+  "output_elements": 5,
+  "output_dtype": "i32",
+  "output_shape": [
+    1,
+    1,
+    5
+  ],
+  "activation_peak": 1600,
+  "groups": [
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Add",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Add",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "MaxPool"
+    ],
+    [
+      "AvgPool",
+      "Requant"
+    ],
+    [
+      "FC"
+    ]
+  ],
+  "tensors": {
+    "input": {
+      "base": 0,
+      "bytes": 64,
+      "shape": [
+        1,
+        128,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q2": {
+      "base": 64,
+      "bytes": 1024,
+      "shape": [
+        1,
+        128,
+        16
+      ],
+      "dtype": "u4"
+    },
+    "pool3": {
+      "base": 1088,
+      "bytes": 512,
+      "shape": [
+        1,
+        64,
+        16
+      ],
+      "dtype": "u4"
+    },
+    "q5": {
+      "base": 0,
+      "bytes": 512,
+      "shape": [
+        1,
+        64,
+        16
+      ],
+      "dtype": "u4"
+    },
+    "q7": {
+      "base": 512,
+      "bytes": 512,
+      "shape": [
+        1,
+        64,
+        16
+      ],
+      "dtype": "i4"
+    },
+    "q9": {
+      "base": 512,
+      "bytes": 512,
+      "shape": [
+        1,
+        64,
+        16
+      ],
+      "dtype": "u4"
+    },
+    "q11": {
+      "base": 0,
+      "bytes": 512,
+      "shape": [
+        1,
+        64,
+        16
+      ],
+      "dtype": "u4"
+    },
+    "q13": {
+      "base": 512,
+      "bytes": 1024,
+      "shape": [
+        1,
+        64,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "pool14": {
+      "base": 0,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q16": {
+      "base": 512,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q18": {
+      "base": 1024,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "i4"
+    },
+    "q20": {
+      "base": 1024,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q22": {
+      "base": 0,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q24": {
+      "base": 512,
+      "bytes": 512,
+      "shape": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "pool25": {
+      "base": 0,
+      "bytes": 256,
+      "shape": [
+        1,
+        16,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "q27": {
+      "base": 256,
+      "bytes": 16,
+      "shape": [
+        1,
+        1,
+        32
+      ],
+      "dtype": "u4"
+    },
+    "fc28": {
+      "base": 0,
+      "bytes": 20,
+      "shape": [
+        1,
+        1,
+        5
+      ],
+      "dtype": "i32"
+    }
+  },
+  "metadata": {
+    "name": "ecg",
+    "input_scale": 0.4517950415611267,
+    "classes": [
+      "N",
+      "S",
+      "V",
+      "F",
+      "Q"
+    ],
+    "preprocess": "per-beat z-score, 2x decimation",
+    "dataset": "ecg",
+    "accuracy_validated": true,
+    "int4_test_accuracy": 0.9691211581230164,
+    "int4_val_accuracy": 0.97533118724823
+  }
+}
