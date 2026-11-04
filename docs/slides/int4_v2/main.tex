@@ -175,40 +175,41 @@
 
 \begin{frame}{无 CPU SoC 全貌}
   \centering
-  \begin{tikzpicture}[x=1cm, y=1cm, sblk/.style={blk, minimum height=1.1cm, text width=1.95cm}]
-    \node[hostblk, sblk] (pc)  at (0,0)    {主机\\编译器\\OpenOCD};
-    \node[sblk]          (tap) at (3.35,0)  {JTAG TAP\\逐字 / 突发 IR};
-    \node[sblk, text width=1.45cm] (cdc) at (5.85,0) {CDC\\mailbox};
-    \node[sblk]          (ctl) at (8.35,0)  {命令控制器\\寄存器 · 生命周期};
-    \node[sblk, fill=peking!8, draw=peking, line width=0.9pt] (npu) at (11.55,0) {\textbf{NPU 程序核}\\描述符驱动};
-    \node[mem, text width=1.95cm, minimum height=0.8cm] (ms) at (11.55,1.6)  {模型 SRAM 8 KiB};
-    \node[mem, text width=1.95cm, minimum height=0.8cm] (as) at (11.55,-1.6) {激活 SRAM 8 KiB};
-    % 时钟域
+  \begin{tikzpicture}[x=1cm, y=1cm, sblk/.style={blk, minimum height=1.1cm, text width=1.75cm}]
+    \node[hostblk, sblk] (pc)  at (0,0)     {主机\\OpenOCD};
+    \node[sblk]          (tap) at (3.45,0)  {JTAG TAP\\逐字 / 突发 IR};
+    \node[sblk, text width=1.3cm] (cdc) at (6.1,0) {CDC\\mailbox};
+    \node[sblk]          (ctl) at (8.75,0)  {命令控制器\\寄存器 · 状态};
+    \node[sblk, fill=peking!8, draw=peking, line width=0.9pt] (npu) at (11.95,0) {\textbf{NPU 程序核}\\描述符驱动};
+    \node[mem, text width=1.75cm, minimum height=0.75cm] (ms) at (11.95,1.75)  {模型 SRAM\\8 KiB};
+    \node[mem, text width=1.75cm, minimum height=0.75cm] (as) at (11.95,-1.75) {激活 SRAM\\8 KiB};
+    % 时钟域：左右两块等高，CDC mailbox 骑在分界线上
     \begin{scope}[on background layer]
-      \node[fill=flowhost!6, rounded corners=3pt, fit=(tap), inner sep=7pt,
-            label={[font=\tiny, text=peking_gray]below:TCK 时钟域}] {};
-      \node[fill=peking!4, rounded corners=3pt, fit=(ctl)(npu)(ms)(as), inner sep=7pt,
-            label={[font=\tiny, text=peking_gray, anchor=north east]south east:核心 50 MHz 时钟域}] (core) {};
-      \node[draw=peking_gray!70, dashed, rounded corners=4pt, fit=(tap)(cdc)(core), inner sep=11pt,
-            label={[font=\scriptsize, text=peking_gray, anchor=north west]south west:芯片（无 CPU）}] {};
+      \coordinate (top) at (0,2.55); \coordinate (bot) at (0,-2.45);
+      \fill[flowhost!11, rounded corners=3pt] ($(tap.west|-bot)+(-0.35,0)$) rectangle (cdc.center|-top);
+      \fill[flowmodel!5, rounded corners=3pt] (cdc.center|-bot) rectangle ($(npu.east|-top)+(0.35,0)$);
+      \node[font=\tiny, text=peking_gray, anchor=north west] at ($(tap.west|-top)+(-0.3,-0.05)$) {TCK 时钟域（1 MHz）};
+      \node[font=\tiny, text=peking_gray, anchor=north west] at ($(cdc.center|-top)+(0.08,-0.05)$) {核心时钟域（50 MHz）};
+      \draw[peking_gray!70, dashed, rounded corners=4pt] ($(tap.west|-bot)+(-0.55,-0.2)$) rectangle ($(npu.east|-top)+(0.55,0.45)$);
+      \node[font=\scriptsize, text=peking_gray, anchor=north west] at ($(tap.west|-top)+(-0.5,0.42)$) {芯片（无 CPU）};
     \end{scope}
-    % 连线：橙 = 主机 JTAG，灰 = 片内请求 / 数据，蓝 = 模型读出
-    \draw[host, both] (pc) -- node[lab, above]{4 线 JTAG} node[lab, below]{TCK 1 MHz} (tap);
+    % 连线：橙虚线 = 主机经 JTAG 的数据，灰 = 片内请求 / 激活，蓝 = 模型读出
+    \draw[host, both] (pc) -- node[lab, above]{4 线 JTAG} (tap);
     \draw[data, both] (tap) -- node[lab, above]{72 bit} (cdc);
     \draw[data, both] (cdc) -- node[lab, above]{请求 / 响应} (ctl);
     \draw[data] ($(ctl.east)+(0,0.22)$) -- node[lab, above]{启动} ($(npu.west)+(0,0.22)$);
     \draw[data] ($(npu.west)+(0,-0.22)$) -- node[lab, below]{完成 IRQ} ($(ctl.east)+(0,-0.22)$);
-    \draw[host] (ctl.north) |- node[lab, pos=0.75, above]{写模型} (ms.west);
+    \draw[host] (ctl.north) |- node[lab, pos=0.75, above]{写入模型} (ms.west);
     \draw[host, both] (ctl.south) |- node[lab, pos=0.75, below]{输入 / 结果} (as.west);
-    \draw[model] (ms) -- node[lab, left]{权重 / 参数} (npu);
-    \draw[data, both] (npu) -- node[lab, left]{激活读写} (as);
+    \draw[model] (ms) -- node[lab, right]{权重 / 参数} (npu);
+    \draw[data, both] (npu) -- node[lab, right]{激活读写} (as);
   \end{tikzpicture}
   \vspace{-0.1cm}
 
-  \begin{tikzpicture}[font=\scriptsize, chev/.style={signal, signal to=east, signal from=west, draw=peking_gray!80,
-      fill=white, minimum height=0.6cm, minimum width=1.72cm, inner xsep=7pt}]
-    \foreach \t/\c [count=\i] in {主机编译/white, 上传模型/white, 模型校验/white, 上传输入/white, 启动/white, NPU 计算/peking!12, IRQ · 轮询/white, 读出结果/white}{
-      \node[chev, fill=\c] at (1.68*\i,0) {\t};
+  \begin{tikzpicture}[font=\scriptsize, chev/.style={signal, signal to=east, signal from=west, signal pointer angle=130,
+      draw=peking_gray!80, fill=white, minimum height=0.55cm, text width=1.25cm, align=flush center, inner xsep=4pt}]
+    \foreach \t/\c [count=\i] in {主机编译/white, 上传模型/white, 模型校验/white, 上传输入/white, 启动/white, NPU 计算/peking!12, 等待 IRQ/white, 读出结果/white}{
+      \node[chev, fill=\c] at (1.66*\i,0) {\t};
     }
   \end{tikzpicture}
 
