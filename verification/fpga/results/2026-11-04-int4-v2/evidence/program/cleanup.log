@@ -1,0 +1,2 @@
+{'busy': False, 'model_ready': False, 'input_ready': False, 'done': False, 'faulted': False, 'error': 0, 'error_op': 0, 'cycles': 0, 'issues': 0, 'writes': 0}
+

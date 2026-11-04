@@ -22,6 +22,7 @@ def main():
     out.mkdir(parents=True, exist_ok=False)
     rtl = root / 'hardware/soc/rtl/control/npu_jtag_transport.sv'
     bench = Path(__file__).with_name('tb_npu_jtag_cdc.sv')
+    burst_bench = Path(__file__).with_name('tb_npu_jtag_burst_cdc.sv')
     image = out / 'test.vvp'
     for name, command in (
         ('compile', ['iverilog', '-g2012', '-s', 'tb_npu_jtag_cdc', '-o',
@@ -32,6 +33,17 @@ def main():
         log = result.stdout + result.stderr
         (out / f'{name}.log').write_text(log, encoding='utf-8')
         if result.returncode or (name == 'sim' and 'PASS NPU_JTAG_CDC:' not in log):
+            raise RuntimeError(f'{name} failed: {log}')
+    burst_image=out/'burst.vvp'
+    for name,command in (
+        ('burst_compile',['iverilog','-g2012','-s','tb_npu_jtag_burst_cdc','-o',
+                          str(burst_image),str(rtl),str(burst_bench)]),
+        ('burst_sim',['vvp',str(burst_image)]),
+    ):
+        result=subprocess.run(command,capture_output=True,text=True,timeout=120)
+        log=result.stdout+result.stderr
+        (out/f'{name}.log').write_text(log,encoding='utf-8')
+        if result.returncode or (name=='burst_sim' and 'PASS NPU_JTAG_BURST_CDC:' not in log):
             raise RuntimeError(f'{name} failed: {log}')
     prefix = 'u_soc/i_host/'
     expected = set()
@@ -68,10 +80,11 @@ def main():
             entry, = [r for r in audit if r['group'] == group and r['kind'] == kind]
             if int(entry['paths']) != 1 or float(entry['min_slack_ns']) < 0:
                 raise RuntimeError(f'Invalid synchronizer timing: {group}/{kind}')
-    inputs = [rtl, bench, report, args.static_evidence / 'route_npu_jtag_cdc.tsv']
+    inputs = [rtl, bench, burst_bench, report, args.static_evidence / 'route_npu_jtag_cdc.tsv']
     summary = dict(dynamic_simulation='PASS', raw_cdc15_warnings=109,
                    reviewed_request_bits=72, reviewed_response_bits=37,
                    unexpected_warning_rows=0, waivers_created=False,
+                   legacy_phase_rate_cases=100,burst_phase_rate_cases=32,
                    limitation='Digital simulation does not model metastability; physical checks apply to supplied routed build only.',
                    sha256={str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in inputs})
     (out / 'review.json').write_text(json.dumps(summary, indent=2)+'\n', encoding='utf-8')

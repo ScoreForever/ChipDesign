@@ -46,6 +46,7 @@ report_timing -delay_type min -max_paths 20 -nworst 1 -input_pins -nets -file [f
 report_high_fanout_nets -max_nets 50 -file [file join $out route_high_fanout.rpt]
 report_utilization -hierarchical -file [file join $out route_utilization_hierarchical.rpt]
 report_cdc -details -file [file join $out route_cdc.rpt]
+reject_critical_npu_jtag_cdc [file join $out route_cdc.rpt]
 report_clock_interaction -file [file join $out route_clock_interaction.rpt]
 report_drc -file [file join $out route_drc.rpt]
 set drc_errors [llength [get_drc_violations -quiet -filter {SEVERITY == "Error"}]]

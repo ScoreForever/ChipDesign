@@ -1,0 +1,1739 @@
+{
+  "passed": true,
+  "defines": [
+    "-DSYNTHESIS",
+    "-DCHIPDESIGN_FPGA_MEM",
+    "-DNPU_ENABLE_WAVE_TRACE=0",
+    "-DNPU_ENABLE_OP_TRACE=0"
+  ],
+  "tests": [
+    {
+      "case": "cnn_c8_f1_j0",
+      "cycles": [
+        647,
+        646
+      ],
+      "writes": [
+        24,
+        24
+      ],
+      "checked_write_events": 48,
+      "passed": true
+    },
+    {
+      "case": "cnn_c8_f0_j0",
+      "cycles": [
+        1501,
+        1501
+      ],
+      "writes": [
+        305,
+        305
+      ],
+      "checked_write_events": 610,
+      "passed": true
+    },
+    {
+      "case": "pool_first_c8_f1_j0",
+      "cycles": [
+        634,
+        634
+      ],
+      "writes": [
+        114,
+        114
+      ],
+      "checked_write_events": 228,
+      "passed": true
+    },
+    {
+      "case": "pool_first_c8_f0_j0",
+      "cycles": [
+        927,
+        927
+      ],
+      "writes": [
+        180,
+        180
+      ],
+      "checked_write_events": 360,
+      "passed": true
+    },
+    {
+      "case": "mlp_c8_f1_j0",
+      "cycles": [
+        342,
+        342
+      ],
+      "writes": [
+        23,
+        23
+      ],
+      "checked_write_events": 46,
+      "passed": true
+    },
+    {
+      "case": "mlp_c8_f0_j0",
+      "cycles": [
+        443,
+        443
+      ],
+      "writes": [
+        36,
+        36
+      ],
+      "checked_write_events": 72,
+      "passed": true
+    },
+    {
+      "case": "i32_pool_c8_f1_j0",
+      "cycles": [
+        168,
+        168
+      ],
+      "writes": [
+        20,
+        20
+      ],
+      "checked_write_events": 40,
+      "passed": true
+    },
+    {
+      "case": "i32_pool_c8_f0_j0",
+      "cycles": [
+        435,
+        435
+      ],
+      "writes": [
+        80,
+        80
+      ],
+      "checked_write_events": 160,
+      "passed": true
+    },
+    {
+      "case": "strided_c8_f1_j0",
+      "cycles": [
+        663,
+        656
+      ],
+      "writes": [
+        70,
+        70
+      ],
+      "checked_write_events": 140,
+      "passed": true
+    },
+    {
+      "case": "strided_c8_f0_j0",
+      "cycles": [
+        1155,
+        1155
+      ],
+      "writes": [
+        200,
+        200
+      ],
+      "checked_write_events": 400,
+      "passed": true
+    },
+    {
+      "case": "edges_c8_f1_j0",
+      "cycles": [
+        150,
+        150
+      ],
+      "writes": [
+        5,
+        5
+      ],
+      "checked_write_events": 10,
+      "passed": true
+    },
+    {
+      "case": "edges_c8_f0_j0",
+      "cycles": [
+        250,
+        250
+      ],
+      "writes": [
+        14,
+        14
+      ],
+      "checked_write_events": 28,
+      "passed": true
+    },
+    {
+      "case": "long_k_c8_f1_j0",
+      "cycles": [
+        1138,
+        1138
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "long_k_c8_f0_j0",
+      "cycles": [
+        1138,
+        1138
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "tinycnn_c8_f1_j0",
+      "cycles": [
+        3238,
+        3238
+      ],
+      "writes": [
+        408,
+        408
+      ],
+      "checked_write_events": 816,
+      "passed": true
+    },
+    {
+      "case": "max_k_int4_c8_f1_j0",
+      "cycles": [
+        2102,
+        2102
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "max_k_int4_c8_f0_j0",
+      "cycles": [
+        2102,
+        2102
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "odd_packed_relu_c8_f1_j0",
+      "cycles": [
+        94,
+        94
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "odd_packed_relu_c8_f0_j0",
+      "cycles": [
+        94,
+        94
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "host_i32_quant_c8_f1_j0",
+      "cycles": [
+        343,
+        343
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "passed": true
+    },
+    {
+      "case": "host_i32_quant_c8_f0_j0",
+      "cycles": [
+        343,
+        343
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "passed": true
+    },
+    {
+      "case": "host_i32_pool_c8_f1_j0",
+      "cycles": [
+        117,
+        117
+      ],
+      "writes": [
+        8,
+        8
+      ],
+      "checked_write_events": 16,
+      "passed": true
+    },
+    {
+      "case": "host_i32_pool_c8_f0_j0",
+      "cycles": [
+        186,
+        186
+      ],
+      "writes": [
+        16,
+        16
+      ],
+      "checked_write_events": 32,
+      "passed": true
+    },
+    {
+      "case": "tiny_padded_c8_f1_j0",
+      "cycles": [
+        86,
+        86
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "tiny_padded_c8_f0_j0",
+      "cycles": [
+        168,
+        168
+      ],
+      "writes": [
+        10,
+        10
+      ],
+      "checked_write_events": 20,
+      "passed": true
+    },
+    {
+      "case": "tiny_strided_asymmetric_c8_f1_j0",
+      "cycles": [
+        82,
+        82
+      ],
+      "writes": [
+        2,
+        2
+      ],
+      "checked_write_events": 4,
+      "passed": true
+    },
+    {
+      "case": "tiny_strided_asymmetric_c8_f0_j0",
+      "cycles": [
+        82,
+        82
+      ],
+      "writes": [
+        2,
+        2
+      ],
+      "checked_write_events": 4,
+      "passed": true
+    },
+    {
+      "case": "one_mac_c8_f1_j0",
+      "cycles": [
+        64,
+        64
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "one_mac_c8_f0_j0",
+      "cycles": [
+        64,
+        64
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "negative_pool_c8_f1_j0",
+      "cycles": [
+        54,
+        54
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "negative_pool_c8_f0_j0",
+      "cycles": [
+        54,
+        54
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "full_activation_c8_f1_j0",
+      "cycles": [
+        32812,
+        32812
+      ],
+      "writes": [
+        8192,
+        8192
+      ],
+      "checked_write_events": 16384,
+      "passed": true
+    },
+    {
+      "case": "full_activation_c8_f0_j0",
+      "cycles": [
+        32812,
+        32812
+      ],
+      "writes": [
+        8192,
+        8192
+      ],
+      "checked_write_events": 16384,
+      "passed": true
+    },
+    {
+      "case": "full_activation_8k_c8_f1_j0",
+      "cycles": [
+        65580,
+        65580
+      ],
+      "writes": [
+        16384,
+        16384
+      ],
+      "checked_write_events": 32768,
+      "passed": true
+    },
+    {
+      "case": "full_activation_8k_c8_f0_j0",
+      "cycles": [
+        65580,
+        65580
+      ],
+      "writes": [
+        16384,
+        16384
+      ],
+      "checked_write_events": 32768,
+      "passed": true
+    },
+    {
+      "case": "upper_activation_c8_f1_j0",
+      "cycles": [
+        8286,
+        8286
+      ],
+      "writes": [
+        2048,
+        2048
+      ],
+      "checked_write_events": 4096,
+      "passed": true
+    },
+    {
+      "case": "upper_activation_c8_f0_j0",
+      "cycles": [
+        8286,
+        8286
+      ],
+      "writes": [
+        2048,
+        2048
+      ],
+      "checked_write_events": 4096,
+      "passed": true
+    },
+    {
+      "case": "slot_pressure_c8_f1_j0",
+      "cycles": [
+        337,
+        337
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "passed": true
+    },
+    {
+      "case": "slot_pressure_c8_f0_j0",
+      "cycles": [
+        1801,
+        1801
+      ],
+      "writes": [
+        768,
+        768
+      ],
+      "checked_write_events": 1536,
+      "passed": true
+    },
+    {
+      "case": "dwconv_c8_f1_j0",
+      "cycles": [
+        3168,
+        3168
+      ],
+      "writes": [
+        408,
+        408
+      ],
+      "checked_write_events": 816,
+      "passed": true
+    },
+    {
+      "case": "dwconv_c8_f0_j0",
+      "cycles": [
+        5990,
+        5990
+      ],
+      "writes": [
+        1560,
+        1560
+      ],
+      "checked_write_events": 3120,
+      "passed": true
+    },
+    {
+      "case": "dw_rect_pool_c8_f1_j0",
+      "cycles": [
+        1165,
+        1165
+      ],
+      "writes": [
+        32,
+        32
+      ],
+      "checked_write_events": 64,
+      "passed": true
+    },
+    {
+      "case": "dw_rect_pool_c8_f0_j0",
+      "cycles": [
+        3143,
+        3143
+      ],
+      "writes": [
+        752,
+        752
+      ],
+      "checked_write_events": 1504,
+      "passed": true
+    },
+    {
+      "case": "conv1d_c8_f1_j0",
+      "cycles": [
+        491,
+        491
+      ],
+      "writes": [
+        120,
+        120
+      ],
+      "checked_write_events": 240,
+      "passed": true
+    },
+    {
+      "case": "conv1d_c8_f0_j0",
+      "cycles": [
+        2166,
+        2163
+      ],
+      "writes": [
+        840,
+        840
+      ],
+      "checked_write_events": 1680,
+      "passed": true
+    },
+    {
+      "case": "rect_kernels_c8_f1_j0",
+      "cycles": [
+        2051,
+        2051
+      ],
+      "writes": [
+        198,
+        198
+      ],
+      "checked_write_events": 396,
+      "passed": true
+    },
+    {
+      "case": "rect_kernels_c8_f0_j0",
+      "cycles": [
+        3148,
+        3148
+      ],
+      "writes": [
+        570,
+        570
+      ],
+      "checked_write_events": 1140,
+      "passed": true
+    },
+    {
+      "case": "pool_general_c8_f1_j0",
+      "cycles": [
+        503,
+        503
+      ],
+      "writes": [
+        44,
+        44
+      ],
+      "checked_write_events": 88,
+      "passed": true
+    },
+    {
+      "case": "pool_general_c8_f0_j0",
+      "cycles": [
+        679,
+        679
+      ],
+      "writes": [
+        80,
+        80
+      ],
+      "checked_write_events": 160,
+      "passed": true
+    },
+    {
+      "case": "gap_head_c8_f1_j0",
+      "cycles": [
+        971,
+        971
+      ],
+      "writes": [
+        129,
+        129
+      ],
+      "checked_write_events": 258,
+      "passed": true
+    },
+    {
+      "case": "gap_head_c8_f0_j0",
+      "cycles": [
+        1936,
+        1936
+      ],
+      "writes": [
+        497,
+        497
+      ],
+      "checked_write_events": 994,
+      "passed": true
+    },
+    {
+      "case": "residual_add_c8_f1_j0",
+      "cycles": [
+        1051,
+        1051
+      ],
+      "writes": [
+        320,
+        320
+      ],
+      "checked_write_events": 640,
+      "passed": true
+    },
+    {
+      "case": "residual_add_c8_f0_j0",
+      "cycles": [
+        2164,
+        2164
+      ],
+      "writes": [
+        720,
+        720
+      ],
+      "checked_write_events": 1440,
+      "passed": true
+    },
+    {
+      "case": "u4_chain_c8_f1_j0",
+      "cycles": [
+        1632,
+        1632
+      ],
+      "writes": [
+        172,
+        172
+      ],
+      "checked_write_events": 344,
+      "passed": true
+    },
+    {
+      "case": "u4_chain_c8_f0_j0",
+      "cycles": [
+        3495,
+        3495
+      ],
+      "writes": [
+        924,
+        924
+      ],
+      "checked_write_events": 1848,
+      "passed": true
+    },
+    {
+      "case": "add_inplace_src2_c8_f1_j0",
+      "cycles": [
+        1043,
+        1043
+      ],
+      "writes": [
+        600,
+        600
+      ],
+      "checked_write_events": 1200,
+      "passed": true
+    },
+    {
+      "case": "add_inplace_src2_c8_f0_j0",
+      "cycles": [
+        3180,
+        3180
+      ],
+      "writes": [
+        1320,
+        1320
+      ],
+      "checked_write_events": 2640,
+      "passed": true
+    },
+    {
+      "case": "rowpad_kernels_c8_f1_j0",
+      "cycles": [
+        1050,
+        1050
+      ],
+      "writes": [
+        356,
+        356
+      ],
+      "checked_write_events": 712,
+      "passed": true
+    },
+    {
+      "case": "rowpad_kernels_c8_f0_j0",
+      "cycles": [
+        2327,
+        2327
+      ],
+      "writes": [
+        828,
+        828
+      ],
+      "checked_write_events": 1656,
+      "passed": true
+    },
+    {
+      "case": "rowpad_4x2_c8_f1_j0",
+      "cycles": [
+        460,
+        460
+      ],
+      "writes": [
+        240,
+        240
+      ],
+      "checked_write_events": 480,
+      "passed": true
+    },
+    {
+      "case": "rowpad_4x2_c8_f0_j0",
+      "cycles": [
+        460,
+        460
+      ],
+      "writes": [
+        240,
+        240
+      ],
+      "checked_write_events": 480,
+      "passed": true
+    },
+    {
+      "case": "pool_i32_window_c8_f1_j0",
+      "cycles": [
+        146,
+        146
+      ],
+      "writes": [
+        6,
+        6
+      ],
+      "checked_write_events": 12,
+      "passed": true
+    },
+    {
+      "case": "pool_i32_window_c8_f0_j0",
+      "cycles": [
+        208,
+        208
+      ],
+      "writes": [
+        12,
+        12
+      ],
+      "checked_write_events": 24,
+      "passed": true
+    },
+    {
+      "case": "trained_c8_f1_j0",
+      "cycles": [
+        3230,
+        3230
+      ],
+      "writes": [
+        404,
+        404
+      ],
+      "checked_write_events": 808,
+      "passed": true
+    },
+    {
+      "case": "cnn_c4_f1_j0",
+      "cycles": [
+        1063,
+        1062
+      ],
+      "writes": [
+        24,
+        24
+      ],
+      "checked_write_events": 48,
+      "passed": true
+    },
+    {
+      "case": "cnn_c4_f0_j0",
+      "cycles": [
+        2252,
+        2252
+      ],
+      "writes": [
+        305,
+        305
+      ],
+      "checked_write_events": 610,
+      "passed": true
+    },
+    {
+      "case": "pool_first_c4_f1_j0",
+      "cycles": [
+        634,
+        634
+      ],
+      "writes": [
+        114,
+        114
+      ],
+      "checked_write_events": 228,
+      "passed": true
+    },
+    {
+      "case": "pool_first_c4_f0_j0",
+      "cycles": [
+        949,
+        949
+      ],
+      "writes": [
+        180,
+        180
+      ],
+      "checked_write_events": 360,
+      "passed": true
+    },
+    {
+      "case": "mlp_c4_f1_j0",
+      "cycles": [
+        442,
+        442
+      ],
+      "writes": [
+        23,
+        23
+      ],
+      "checked_write_events": 46,
+      "passed": true
+    },
+    {
+      "case": "mlp_c4_f0_j0",
+      "cycles": [
+        577,
+        577
+      ],
+      "writes": [
+        36,
+        36
+      ],
+      "checked_write_events": 72,
+      "passed": true
+    },
+    {
+      "case": "i32_pool_c4_f1_j0",
+      "cycles": [
+        164,
+        164
+      ],
+      "writes": [
+        20,
+        20
+      ],
+      "checked_write_events": 40,
+      "passed": true
+    },
+    {
+      "case": "i32_pool_c4_f0_j0",
+      "cycles": [
+        423,
+        423
+      ],
+      "writes": [
+        80,
+        80
+      ],
+      "checked_write_events": 160,
+      "passed": true
+    },
+    {
+      "case": "strided_c4_f1_j0",
+      "cycles": [
+        836,
+        829
+      ],
+      "writes": [
+        70,
+        70
+      ],
+      "checked_write_events": 140,
+      "passed": true
+    },
+    {
+      "case": "strided_c4_f0_j0",
+      "cycles": [
+        1359,
+        1359
+      ],
+      "writes": [
+        200,
+        200
+      ],
+      "checked_write_events": 400,
+      "passed": true
+    },
+    {
+      "case": "edges_c4_f1_j0",
+      "cycles": [
+        180,
+        180
+      ],
+      "writes": [
+        5,
+        5
+      ],
+      "checked_write_events": 10,
+      "passed": true
+    },
+    {
+      "case": "edges_c4_f0_j0",
+      "cycles": [
+        298,
+        298
+      ],
+      "writes": [
+        14,
+        14
+      ],
+      "checked_write_events": 28,
+      "passed": true
+    },
+    {
+      "case": "long_k_c4_f1_j0",
+      "cycles": [
+        1288,
+        1288
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "long_k_c4_f0_j0",
+      "cycles": [
+        1288,
+        1288
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "tinycnn_c4_f1_j0",
+      "cycles": [
+        6176,
+        6176
+      ],
+      "writes": [
+        408,
+        408
+      ],
+      "checked_write_events": 816,
+      "passed": true
+    },
+    {
+      "case": "max_k_int4_c4_f1_j0",
+      "cycles": [
+        1590,
+        1590
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "max_k_int4_c4_f0_j0",
+      "cycles": [
+        1590,
+        1590
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "odd_packed_relu_c4_f1_j0",
+      "cycles": [
+        132,
+        132
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "odd_packed_relu_c4_f0_j0",
+      "cycles": [
+        132,
+        132
+      ],
+      "writes": [
+        9,
+        9
+      ],
+      "checked_write_events": 18,
+      "passed": true
+    },
+    {
+      "case": "host_i32_quant_c4_f1_j0",
+      "cycles": [
+        343,
+        343
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "passed": true
+    },
+    {
+      "case": "host_i32_quant_c4_f0_j0",
+      "cycles": [
+        343,
+        343
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "passed": true
+    },
+    {
+      "case": "host_i32_pool_c4_f1_j0",
+      "cycles": [
+        117,
+        117
+      ],
+      "writes": [
+        8,
+        8
+      ],
+      "checked_write_events": 16,
+      "passed": true
+    },
+    {
+      "case": "host_i32_pool_c4_f0_j0",
+      "cycles": [
+        186,
+        186
+      ],
+      "writes": [
+        16,
+        16
+      ],
+      "checked_write_events": 32,
+      "passed": true
+    },
+    {
+      "case": "tiny_padded_c4_f1_j0",
+      "cycles": [
+        78,
+        78
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "tiny_padded_c4_f0_j0",
+      "cycles": [
+        154,
+        154
+      ],
+      "writes": [
+        10,
+        10
+      ],
+      "checked_write_events": 20,
+      "passed": true
+    },
+    {
+      "case": "tiny_strided_asymmetric_c4_f1_j0",
+      "cycles": [
+        74,
+        74
+      ],
+      "writes": [
+        2,
+        2
+      ],
+      "checked_write_events": 4,
+      "passed": true
+    },
+    {
+      "case": "tiny_strided_asymmetric_c4_f0_j0",
+      "cycles": [
+        74,
+        74
+      ],
+      "writes": [
+        2,
+        2
+      ],
+      "checked_write_events": 4,
+      "passed": true
+    },
+    {
+      "case": "one_mac_c4_f1_j0",
+      "cycles": [
+        60,
+        60
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "one_mac_c4_f0_j0",
+      "cycles": [
+        60,
+        60
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "negative_pool_c4_f1_j0",
+      "cycles": [
+        54,
+        54
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "negative_pool_c4_f0_j0",
+      "cycles": [
+        54,
+        54
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "passed": true
+    },
+    {
+      "case": "full_activation_c4_f1_j0",
+      "cycles": [
+        32812,
+        32812
+      ],
+      "writes": [
+        8192,
+        8192
+      ],
+      "checked_write_events": 16384,
+      "passed": true
+    },
+    {
+      "case": "full_activation_c4_f0_j0",
+      "cycles": [
+        32812,
+        32812
+      ],
+      "writes": [
+        8192,
+        8192
+      ],
+      "checked_write_events": 16384,
+      "passed": true
+    },
+    {
+      "case": "full_activation_8k_c4_f1_j0",
+      "cycles": [
+        65580,
+        65580
+      ],
+      "writes": [
+        16384,
+        16384
+      ],
+      "checked_write_events": 32768,
+      "passed": true
+    },
+    {
+      "case": "full_activation_8k_c4_f0_j0",
+      "cycles": [
+        65580,
+        65580
+      ],
+      "writes": [
+        16384,
+        16384
+      ],
+      "checked_write_events": 32768,
+      "passed": true
+    },
+    {
+      "case": "upper_activation_c4_f1_j0",
+      "cycles": [
+        8286,
+        8286
+      ],
+      "writes": [
+        2048,
+        2048
+      ],
+      "checked_write_events": 4096,
+      "passed": true
+    },
+    {
+      "case": "upper_activation_c4_f0_j0",
+      "cycles": [
+        8286,
+        8286
+      ],
+      "writes": [
+        2048,
+        2048
+      ],
+      "checked_write_events": 4096,
+      "passed": true
+    },
+    {
+      "case": "slot_pressure_c4_f1_j0",
+      "cycles": [
+        420,
+        420
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "passed": true
+    },
+    {
+      "case": "slot_pressure_c4_f0_j0",
+      "cycles": [
+        1975,
+        1975
+      ],
+      "writes": [
+        768,
+        768
+      ],
+      "checked_write_events": 1536,
+      "passed": true
+    },
+    {
+      "case": "dwconv_c4_f1_j0",
+      "cycles": [
+        3266,
+        3259
+      ],
+      "writes": [
+        408,
+        408
+      ],
+      "checked_write_events": 816,
+      "passed": true
+    },
+    {
+      "case": "dwconv_c4_f0_j0",
+      "cycles": [
+        6704,
+        6697
+      ],
+      "writes": [
+        1560,
+        1560
+      ],
+      "checked_write_events": 3120,
+      "passed": true
+    },
+    {
+      "case": "dw_rect_pool_c4_f1_j0",
+      "cycles": [
+        1210,
+        1210
+      ],
+      "writes": [
+        32,
+        32
+      ],
+      "checked_write_events": 64,
+      "passed": true
+    },
+    {
+      "case": "dw_rect_pool_c4_f0_j0",
+      "cycles": [
+        3525,
+        3525
+      ],
+      "writes": [
+        752,
+        752
+      ],
+      "checked_write_events": 1504,
+      "passed": true
+    },
+    {
+      "case": "conv1d_c4_f1_j0",
+      "cycles": [
+        782,
+        782
+      ],
+      "writes": [
+        120,
+        120
+      ],
+      "checked_write_events": 240,
+      "passed": true
+    },
+    {
+      "case": "conv1d_c4_f0_j0",
+      "cycles": [
+        2846,
+        2846
+      ],
+      "writes": [
+        840,
+        840
+      ],
+      "checked_write_events": 1680,
+      "passed": true
+    },
+    {
+      "case": "rect_kernels_c4_f1_j0",
+      "cycles": [
+        3844,
+        3844
+      ],
+      "writes": [
+        198,
+        198
+      ],
+      "checked_write_events": 396,
+      "passed": true
+    },
+    {
+      "case": "rect_kernels_c4_f0_j0",
+      "cycles": [
+        5072,
+        5072
+      ],
+      "writes": [
+        570,
+        570
+      ],
+      "checked_write_events": 1140,
+      "passed": true
+    },
+    {
+      "case": "pool_general_c4_f1_j0",
+      "cycles": [
+        503,
+        503
+      ],
+      "writes": [
+        44,
+        44
+      ],
+      "checked_write_events": 88,
+      "passed": true
+    },
+    {
+      "case": "pool_general_c4_f0_j0",
+      "cycles": [
+        679,
+        679
+      ],
+      "writes": [
+        80,
+        80
+      ],
+      "checked_write_events": 160,
+      "passed": true
+    },
+    {
+      "case": "gap_head_c4_f1_j0",
+      "cycles": [
+        1721,
+        1721
+      ],
+      "writes": [
+        129,
+        129
+      ],
+      "checked_write_events": 258,
+      "passed": true
+    },
+    {
+      "case": "gap_head_c4_f0_j0",
+      "cycles": [
+        2866,
+        2866
+      ],
+      "writes": [
+        497,
+        497
+      ],
+      "checked_write_events": 994,
+      "passed": true
+    },
+    {
+      "case": "residual_add_c4_f1_j0",
+      "cycles": [
+        1698,
+        1698
+      ],
+      "writes": [
+        320,
+        320
+      ],
+      "checked_write_events": 640,
+      "passed": true
+    },
+    {
+      "case": "residual_add_c4_f0_j0",
+      "cycles": [
+        2915,
+        2915
+      ],
+      "writes": [
+        720,
+        720
+      ],
+      "checked_write_events": 1440,
+      "passed": true
+    },
+    {
+      "case": "u4_chain_c4_f1_j0",
+      "cycles": [
+        2671,
+        2671
+      ],
+      "writes": [
+        172,
+        172
+      ],
+      "checked_write_events": 344,
+      "passed": true
+    },
+    {
+      "case": "u4_chain_c4_f0_j0",
+      "cycles": [
+        4852,
+        4852
+      ],
+      "writes": [
+        924,
+        924
+      ],
+      "checked_write_events": 1848,
+      "passed": true
+    },
+    {
+      "case": "add_inplace_src2_c4_f1_j0",
+      "cycles": [
+        1506,
+        1506
+      ],
+      "writes": [
+        600,
+        600
+      ],
+      "checked_write_events": 1200,
+      "passed": true
+    },
+    {
+      "case": "add_inplace_src2_c4_f0_j0",
+      "cycles": [
+        3700,
+        3700
+      ],
+      "writes": [
+        1320,
+        1320
+      ],
+      "checked_write_events": 2640,
+      "passed": true
+    },
+    {
+      "case": "rowpad_kernels_c4_f1_j0",
+      "cycles": [
+        1726,
+        1726
+      ],
+      "writes": [
+        356,
+        356
+      ],
+      "checked_write_events": 712,
+      "passed": true
+    },
+    {
+      "case": "rowpad_kernels_c4_f0_j0",
+      "cycles": [
+        3136,
+        3136
+      ],
+      "writes": [
+        828,
+        828
+      ],
+      "checked_write_events": 1656,
+      "passed": true
+    },
+    {
+      "case": "rowpad_4x2_c4_f1_j0",
+      "cycles": [
+        697,
+        697
+      ],
+      "writes": [
+        240,
+        240
+      ],
+      "checked_write_events": 480,
+      "passed": true
+    },
+    {
+      "case": "rowpad_4x2_c4_f0_j0",
+      "cycles": [
+        697,
+        697
+      ],
+      "writes": [
+        240,
+        240
+      ],
+      "checked_write_events": 480,
+      "passed": true
+    },
+    {
+      "case": "pool_i32_window_c4_f1_j0",
+      "cycles": [
+        146,
+        146
+      ],
+      "writes": [
+        6,
+        6
+      ],
+      "checked_write_events": 12,
+      "passed": true
+    },
+    {
+      "case": "pool_i32_window_c4_f0_j0",
+      "cycles": [
+        208,
+        208
+      ],
+      "writes": [
+        12,
+        12
+      ],
+      "checked_write_events": 24,
+      "passed": true
+    },
+    {
+      "case": "trained_c4_f1_j0",
+      "cycles": [
+        5904,
+        5904
+      ],
+      "writes": [
+        404,
+        404
+      ],
+      "checked_write_events": 808,
+      "passed": true
+    },
+    {
+      "case": "cnn_c8_f1_j1",
+      "cycles": [
+        647,
+        646
+      ],
+      "writes": [
+        24,
+        24
+      ],
+      "checked_write_events": 48,
+      "passed": true
+    },
+    {
+      "case": "cnn_c8_f0_j1",
+      "cycles": [
+        1501,
+        1501
+      ],
+      "writes": [
+        305,
+        305
+      ],
+      "checked_write_events": 610,
+      "passed": true
+    },
+    {
+      "case": "residual_add_c8_f1_j1",
+      "cycles": [
+        1051,
+        1051
+      ],
+      "writes": [
+        320,
+        320
+      ],
+      "checked_write_events": 640,
+      "passed": true
+    },
+    {
+      "case": "residual_add_c8_f0_j1",
+      "cycles": [
+        2164,
+        2164
+      ],
+      "writes": [
+        720,
+        720
+      ],
+      "checked_write_events": 1440,
+      "passed": true
+    }
+  ],
+  "sources_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "4148cbd18fd2d40549ee67925881b0c86f35014502798dba09fd6c7e048c2f87",
+    "hardware/npu/rtl/requant_lane.sv": "1b5148776491ce45147d8d6756ba641f7f0531a6704c52b1579410d05f9da2e3",
+    "hardware/npu/rtl/npu_model_store.sv": "f03880d44737e4798b790b6b0e519b1e7f316e8941757fcdcba506ef4cb3bf4b",
+    "hardware/npu/rtl/npu_activation_store.sv": "4481959a1e67773fa73e7b2af84a5d0a8019b799feb7390067907cf9f2e583f2",
+    "hardware/npu/rtl/npu_program_core.sv": "c08c2e2ad83ff57bdcbbf0f4f05f907a019ba32fab5bb9a46de7c1adadc185ad",
+    "hardware/npu/rtl/npu_trace_capture.sv": "bb736481f668845a28b88adb47359b09a78357d518fc02c3b3a53e90544c6645",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "2eb239ab5527b502c5ffb35516476bdbb180ecdf9550e567528f5dd6c9df1b9a",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "b72b6a105a4f9447d0bebe4759839c764d19a36ddcaed8fcd87548c63dec75f5",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "1a5502bc780fae1dc07e97e068046af244e925c697d7f6fd4cde83d6dc74017a",
+    "hardware/soc/rtl/my_soc_top.sv": "8112b1b5d1a0df0ec6d431967e837d55415413082b42b5f171be6f64229d8033"
+  }
+}

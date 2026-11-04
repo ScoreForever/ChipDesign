@@ -365,7 +365,11 @@ module npu_program_core #(
     integer r;
     reg [15:0] calc_addr[0:3];reg [3:0] calc_mask;reg calc_contiguous;
     reg [1:0] calc_first;
-    wire has_next=issue_p!=tile_positions-5'd1; // group changes perform bounded offset setup
+    // Position and tile length change only at group setup or issue_fire.
+    // Register the lookahead predicate so issue_p's terminal-count compare
+    // does not precede the gather mask/address and activation forwarding path.
+    reg has_next_q;
+    wire has_next=has_next_q;
     always @* begin
         next_y=cursor_y;next_x=cursor_x;next_base=cursor_base;
         if(!pool_enable || pool_tap_last)begin
@@ -537,7 +541,7 @@ module npu_program_core #(
             tap_y<=0; tap_x<=0; tap_offset<=0; add_second<=0;
             ret_pos_addr<=dst; element_addr<=dst;
             cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;cursor_at_last_x<=0;
-            tile_positions<=TILE;last_group<=0;
+            tile_positions<=TILE;last_group<=0;has_next_q<=TILE>1;
             kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1; element_y<=0; element_x<=0;
         end
     endtask
@@ -850,6 +854,7 @@ module npu_program_core #(
                             k_consecutive[5]<=prep_offsets[3]==prep_offsets[2]+16'd1;
                             k_valid<=prep_valid;kernel_prepare<=0;
                             tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
+                            has_next_q<=remaining>1;
                             last_group<=issue_g==groups-16'd1;
                         end
                         if(load_start) lstate<=L_REQ;
@@ -900,8 +905,9 @@ module npu_program_core #(
                             gathered<=0; gather_row<=0;
                             gather_state<=!has_next ? 0 : calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
                             if(last_group && reserve_slot) slot_busy[issue_slot]<=1;
-                            if(issue_p==tile_positions-1) begin
-                                issue_p<=0; bank_ready[issue_seq[0]]<=0; issue_seq<=issue_seq+1'b1;
+                            if(!has_next) begin
+                                issue_p<=0;has_next_q<=tile_positions>1;
+                                bank_ready[issue_seq[0]]<=0; issue_seq<=issue_seq+1'b1;
                                 if(!last_group) begin
                                     issue_g<=issue_g+1'b1;
                                     kernel_c<=prep_kc;kernel_x<=prep_kx;kernel_y<=prep_ky;kernel_offset<=prep_offset;
@@ -921,6 +927,7 @@ module npu_program_core #(
                                 end
                             end else begin
                                 issue_p<=issue_p+1'b1;cursor_base<=next_base;
+                                has_next_q<=(issue_p+5'd1)!=(tile_positions-5'd1);
                                 cursor_y<=next_y;cursor_x<=next_x;
                                 cursor_at_last_x<=next_x==scan_last_x;
                             end

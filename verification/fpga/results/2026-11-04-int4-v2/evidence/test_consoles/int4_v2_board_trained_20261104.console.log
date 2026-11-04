@@ -1,0 +1,95 @@
+{
+  "passed": true,
+  "model_sha256": "1732c470ec65f2d2c0ebc96dd93326dabb058277b71eef1bb3717d2ddee2f83a",
+  "limitation": "INT8 export converted through lossy /16 PTQ; no dataset accuracy claim.",
+  "runs": [
+    {
+      "matches": true,
+      "performance": {
+        "job": 131,
+        "active_cycles": 3230,
+        "model_requests": 828,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 828,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 2200,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 2200,
+        "activation_wait_response_cycles": 0,
+        "writes": 404,
+        "mac_issues": 2440,
+        "mac_wait_activation_cycles": 148,
+        "mac_wait_weight_cycles": 247,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 190,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 11,
+        "post_lanes": 404,
+        "gather_contiguous_groups": 2200,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 240
+      },
+      "rtl_work_matches": {
+        "writes": true,
+        "mac_issues": true
+      },
+      "rtl_cycles": 3230,
+      "cycle_delta": 0
+    },
+    {
+      "matches": true,
+      "performance": {
+        "job": 132,
+        "active_cycles": 3230,
+        "model_requests": 828,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 828,
+        "model_wait_response_cycles": 0,
+        "activation_requests": 2200,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 2200,
+        "activation_wait_response_cycles": 0,
+        "writes": 404,
+        "mac_issues": 2440,
+        "mac_wait_activation_cycles": 148,
+        "mac_wait_weight_cycles": 247,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 190,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 11,
+        "post_lanes": 404,
+        "gather_contiguous_groups": 2200,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 240
+      },
+      "rtl_work_matches": {
+        "writes": true,
+        "mac_issues": true
+      },
+      "rtl_cycles": 3230,
+      "cycle_delta": 0
+    }
+  ],
+  "trace_geometry": {
+    "depth": 0,
+    "max_ops": 0
+  },
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  }
+}

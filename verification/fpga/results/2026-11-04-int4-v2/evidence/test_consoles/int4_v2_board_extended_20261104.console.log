@@ -1,0 +1,111 @@
+{
+  "passed": true,
+  "negative_cases": [
+    {
+      "name": "old_abi",
+      "error": 18,
+      "actual": "NPU error 18: descriptor (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "wrong_cols",
+      "error": 18,
+      "actual": "NPU error 18: descriptor (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "reserved_shift",
+      "error": 22,
+      "actual": "NPU error 22: quantization (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "dw_channels",
+      "error": 18,
+      "actual": "NPU error 18: descriptor (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "pool_window",
+      "error": 19,
+      "actual": "NPU error 19: shape (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "add_src2_overlap",
+      "error": 20,
+      "actual": "NPU error 20: range (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "add_fused_pool",
+      "error": 18,
+      "actual": "NPU error 18: descriptor (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "u4_int32",
+      "error": 18,
+      "actual": "NPU error 18: descriptor (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "dw_on_fc",
+      "error": 18,
+      "actual": "NPU error 18: descriptor (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "pool1d_unfused",
+      "error": 18,
+      "actual": "NPU error 18: descriptor (op=4, address=0x0)",
+      "passed": true
+    },
+    {
+      "name": "unaligned_read",
+      "error": 3,
+      "actual": "NPU error 3: alignment (op=1, address=0x3)",
+      "passed": true
+    },
+    {
+      "name": "unmapped_read",
+      "error": 2,
+      "actual": "NPU error 2: address (op=1, address=0xfff0)",
+      "passed": true
+    },
+    {
+      "name": "unknown_opcode",
+      "error": 1,
+      "actual": "NPU error 1: opcode (op=127, address=0x0)",
+      "passed": true
+    }
+  ],
+  "burst_checks": [
+    {
+      "name": "8KiB_roundtrip",
+      "words": 2048,
+      "passed": true
+    },
+    {
+      "name": "out_of_range_tail",
+      "response_hex": "a20002200000000000",
+      "passed": true
+    },
+    {
+      "name": "fresh_inference_after_burst_fault",
+      "passed": true
+    }
+  ],
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  }
+}
