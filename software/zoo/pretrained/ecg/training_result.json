@@ -1,0 +1,156 @@
+{
+  "name": "ecg",
+  "weights": 3568,
+  "float_val": 0.9860210141617177,
+  "float_test": 0.9858395761008588,
+  "int4_val": 0.97533118724823,
+  "int4_test": 0.9691211581230164,
+  "int4_test_recall": [
+    0.9884651470831723,
+    0.7109515260323159,
+    0.889426399447132,
+    0.5217391304347826,
+    0.957089552238806
+  ],
+  "int4_test_balanced": 0.8135343510472417,
+  "hardware": {
+    "c8": {
+      "model_bytes": 5384,
+      "activation_peak": 1600,
+      "op_count": 13,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Add",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Add",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    },
+    "c4": {
+      "model_bytes": 5144,
+      "activation_peak": 1600,
+      "op_count": 13,
+      "groups": [
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Add",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Add",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant"
+        ],
+        [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        [
+          "AvgPool",
+          "Requant"
+        ],
+        [
+          "FC"
+        ]
+      ]
+    }
+  },
+  "test_samples": 21892,
+  "seconds": 694.3612682819366,
+  "args": {
+    "name": "ecg",
+    "data": "../datasets",
+    "out": "../zoo_runs/final",
+    "fp_epochs": "80",
+    "qat_epochs": "60",
+    "lr": "0.003",
+    "qat_lr": "0.0005",
+    "batch": "256",
+    "seed": "0",
+    "balanced": "True",
+    "distill": "True",
+    "relu_max": "15"
+  }
+}

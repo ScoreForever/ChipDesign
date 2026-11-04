@@ -35,7 +35,7 @@ def main():
         pred = torch.cat(preds)
         classes = int(y.max()) + 1
         recall = [((pred == c) & (y == c)).sum().item() / max(1, (y == c).sum().item()) for c in range(classes)]
-        train = json.loads((run / 'result.json').read_text())
+        train = json.loads(next(p for p in (run / 'result.json', run / 'training_result.json') if p.exists()).read_text())
         hw = {}
         for cols in (8, 4):
             pkg = compile_model(model, cols=cols)

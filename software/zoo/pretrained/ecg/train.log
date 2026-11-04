@@ -1,0 +1,143 @@
+ecg: 3568 weights, train 76612 val 10945 test 21892
+fp epoch 1/80 loss 1.432 val 0.8844 best 0.8844
+fp epoch 2/80 loss 1.018 val 0.9343 best 0.9343
+fp epoch 3/80 loss 0.974 val 0.9558 best 0.9558
+fp epoch 4/80 loss 1.032 val 0.9579 best 0.9579
+fp epoch 5/80 loss 0.861 val 0.9695 best 0.9695
+fp epoch 6/80 loss 0.803 val 0.9669 best 0.9695
+fp epoch 7/80 loss 0.729 val 0.9689 best 0.9695
+fp epoch 8/80 loss 0.879 val 0.9715 best 0.9715
+fp epoch 9/80 loss 0.621 val 0.9659 best 0.9715
+fp epoch 10/80 loss 0.775 val 0.9747 best 0.9747
+fp epoch 11/80 loss 0.714 val 0.9628 best 0.9747
+fp epoch 12/80 loss 0.657 val 0.9672 best 0.9747
+fp epoch 13/80 loss 0.823 val 0.9745 best 0.9747
+fp epoch 14/80 loss 0.636 val 0.9698 best 0.9747
+fp epoch 15/80 loss 0.605 val 0.9741 best 0.9747
+fp epoch 16/80 loss 0.672 val 0.9733 best 0.9747
+fp epoch 17/80 loss 0.672 val 0.9738 best 0.9747
+fp epoch 18/80 loss 0.653 val 0.9746 best 0.9747
+fp epoch 19/80 loss 0.702 val 0.9762 best 0.9762
+fp epoch 20/80 loss 0.815 val 0.9763 best 0.9763
+fp epoch 21/80 loss 0.665 val 0.9725 best 0.9763
+fp epoch 22/80 loss 0.773 val 0.9762 best 0.9763
+fp epoch 23/80 loss 0.822 val 0.9755 best 0.9763
+fp epoch 24/80 loss 0.730 val 0.9730 best 0.9763
+fp epoch 25/80 loss 0.643 val 0.9758 best 0.9763
+fp epoch 26/80 loss 0.645 val 0.9792 best 0.9792
+fp epoch 27/80 loss 0.811 val 0.9783 best 0.9792
+fp epoch 28/80 loss 0.671 val 0.9762 best 0.9792
+fp epoch 29/80 loss 0.725 val 0.9795 best 0.9795
+fp epoch 30/80 loss 0.706 val 0.9761 best 0.9795
+fp epoch 31/80 loss 0.634 val 0.9833 best 0.9833
+fp epoch 32/80 loss 0.742 val 0.9818 best 0.9833
+fp epoch 33/80 loss 0.702 val 0.9839 best 0.9839
+fp epoch 34/80 loss 0.659 val 0.9855 best 0.9855
+fp epoch 35/80 loss 0.604 val 0.9810 best 0.9855
+fp epoch 36/80 loss 0.726 val 0.9823 best 0.9855
+fp epoch 37/80 loss 0.643 val 0.9821 best 0.9855
+fp epoch 38/80 loss 0.741 val 0.9815 best 0.9855
+fp epoch 39/80 loss 0.638 val 0.9830 best 0.9855
+fp epoch 40/80 loss 0.853 val 0.9818 best 0.9855
+fp epoch 41/80 loss 0.502 val 0.9750 best 0.9855
+fp epoch 42/80 loss 0.628 val 0.9839 best 0.9855
+fp epoch 43/80 loss 0.672 val 0.9841 best 0.9855
+fp epoch 44/80 loss 0.722 val 0.9817 best 0.9855
+fp epoch 45/80 loss 0.704 val 0.9840 best 0.9855
+fp epoch 46/80 loss 0.637 val 0.9798 best 0.9855
+fp epoch 47/80 loss 0.671 val 0.9849 best 0.9855
+fp epoch 48/80 loss 0.649 val 0.9825 best 0.9855
+fp epoch 49/80 loss 0.612 val 0.9836 best 0.9855
+fp epoch 50/80 loss 0.752 val 0.9860 best 0.9860
+fp epoch 51/80 loss 0.725 val 0.9813 best 0.9860
+fp epoch 52/80 loss 0.650 val 0.9845 best 0.9860
+fp epoch 53/80 loss 0.679 val 0.9842 best 0.9860
+fp epoch 54/80 loss 0.585 val 0.9857 best 0.9860
+fp epoch 55/80 loss 0.646 val 0.9831 best 0.9860
+fp epoch 56/80 loss 0.810 val 0.9836 best 0.9860
+fp epoch 57/80 loss 0.776 val 0.9832 best 0.9860
+fp epoch 58/80 loss 0.703 val 0.9825 best 0.9860
+fp epoch 59/80 loss 0.754 val 0.9851 best 0.9860
+fp epoch 60/80 loss 0.671 val 0.9836 best 0.9860
+fp epoch 61/80 loss 0.658 val 0.9858 best 0.9860
+fp epoch 62/80 loss 0.687 val 0.9851 best 0.9860
+fp epoch 63/80 loss 0.712 val 0.9843 best 0.9860
+fp epoch 64/80 loss 0.753 val 0.9839 best 0.9860
+fp epoch 65/80 loss 0.631 val 0.9841 best 0.9860
+fp epoch 66/80 loss 0.649 val 0.9848 best 0.9860
+fp epoch 67/80 loss 0.692 val 0.9848 best 0.9860
+fp epoch 68/80 loss 0.790 val 0.9836 best 0.9860
+fp epoch 69/80 loss 0.789 val 0.9836 best 0.9860
+fp epoch 70/80 loss 0.645 val 0.9848 best 0.9860
+fp epoch 71/80 loss 0.819 val 0.9845 best 0.9860
+fp epoch 72/80 loss 0.591 val 0.9858 best 0.9860
+fp epoch 73/80 loss 0.663 val 0.9844 best 0.9860
+fp epoch 74/80 loss 0.604 val 0.9852 best 0.9860
+fp epoch 75/80 loss 0.675 val 0.9847 best 0.9860
+fp epoch 76/80 loss 0.648 val 0.9841 best 0.9860
+fp epoch 77/80 loss 0.692 val 0.9849 best 0.9860
+fp epoch 78/80 loss 0.614 val 0.9849 best 0.9860
+fp epoch 79/80 loss 0.596 val 0.9849 best 0.9860
+fp epoch 80/80 loss 0.671 val 0.9846 best 0.9860
+float val 0.9860 test 0.9858
+qat epoch 1/60 loss 0.544 val 0.9546 (fake-quant 0.9497) best 0.9546
+qat epoch 2/60 loss 0.400 val 0.9437 (fake-quant 0.9454) best 0.9546
+qat epoch 3/60 loss 0.392 val 0.9635 (fake-quant 0.9604) best 0.9635
+qat epoch 4/60 loss 0.327 val 0.9446 (fake-quant 0.9643) best 0.9635
+qat epoch 5/60 loss 0.358 val 0.9615 (fake-quant 0.9635) best 0.9635
+qat epoch 6/60 loss 0.385 val 0.9618 (fake-quant 0.9606) best 0.9635
+qat epoch 7/60 loss 0.386 val 0.9594 (fake-quant 0.9656) best 0.9635
+qat epoch 8/60 loss 0.297 val 0.9622 (fake-quant 0.9665) best 0.9635
+qat epoch 9/60 loss 0.286 val 0.9674 (fake-quant 0.9674) best 0.9674
+qat epoch 10/60 loss 0.401 val 0.9409 (fake-quant 0.9432) best 0.9674
+qat epoch 11/60 loss 0.338 val 0.9609 (fake-quant 0.9641) best 0.9674
+qat epoch 12/60 loss 0.406 val 0.9634 (fake-quant 0.9635) best 0.9674
+qat epoch 13/60 loss 0.330 val 0.9612 (fake-quant 0.9618) best 0.9674
+qat epoch 14/60 loss 0.359 val 0.9666 (fake-quant 0.9692) best 0.9674
+qat epoch 15/60 loss 0.388 val 0.9645 (fake-quant 0.9670) best 0.9674
+qat epoch 16/60 loss 0.354 val 0.9688 (fake-quant 0.9686) best 0.9688
+qat epoch 17/60 loss 0.249 val 0.9703 (fake-quant 0.9696) best 0.9703
+qat epoch 18/60 loss 0.371 val 0.9704 (fake-quant 0.9711) best 0.9704
+qat epoch 19/60 loss 0.284 val 0.9709 (fake-quant 0.9690) best 0.9709
+qat epoch 20/60 loss 0.299 val 0.9647 (fake-quant 0.9646) best 0.9709
+qat epoch 21/60 loss 0.325 val 0.9665 (fake-quant 0.9695) best 0.9709
+qat epoch 22/60 loss 0.324 val 0.9667 (fake-quant 0.9696) best 0.9709
+qat epoch 23/60 loss 0.317 val 0.9720 (fake-quant 0.9720) best 0.9720
+qat epoch 24/60 loss 0.365 val 0.9639 (fake-quant 0.9652) best 0.9720
+qat epoch 25/60 loss 0.284 val 0.9703 (fake-quant 0.9714) best 0.9720
+qat epoch 26/60 loss 0.298 val 0.9750 (fake-quant 0.9738) best 0.9750
+qat epoch 27/60 loss 0.278 val 0.9656 (fake-quant 0.9682) best 0.9750
+qat epoch 28/60 loss 0.302 val 0.9712 (fake-quant 0.9714) best 0.9750
+qat epoch 29/60 loss 0.274 val 0.9730 (fake-quant 0.9742) best 0.9750
+qat epoch 30/60 loss 0.266 val 0.9712 (fake-quant 0.9738) best 0.9750
+qat epoch 31/60 loss 0.331 val 0.9731 (fake-quant 0.9730) best 0.9750
+qat epoch 32/60 loss 0.328 val 0.9748 (fake-quant 0.9751) best 0.9750
+qat epoch 33/60 loss 0.316 val 0.9591 (fake-quant 0.9578) best 0.9750
+qat epoch 34/60 loss 0.338 val 0.9753 (fake-quant 0.9712) best 0.9753
+qat epoch 35/60 loss 0.246 val 0.9709 (fake-quant 0.9710) best 0.9753
+qat epoch 36/60 loss 0.274 val 0.9728 (fake-quant 0.9733) best 0.9753
+qat epoch 37/60 loss 0.253 val 0.9720 (fake-quant 0.9720) best 0.9753
+qat epoch 38/60 loss 0.394 val 0.9691 (fake-quant 0.9719) best 0.9753
+qat epoch 39/60 loss 0.250 val 0.9668 (fake-quant 0.9667) best 0.9753
+qat epoch 40/60 loss 0.250 val 0.9721 (fake-quant 0.9727) best 0.9753
+qat epoch 41/60 loss 0.263 val 0.9665 (fake-quant 0.9696) best 0.9753
+qat epoch 42/60 loss 0.272 val 0.9717 (fake-quant 0.9741) best 0.9753
+qat epoch 43/60 loss 0.294 val 0.9675 (fake-quant 0.9719) best 0.9753
+qat epoch 44/60 loss 0.235 val 0.9720 (fake-quant 0.9717) best 0.9753
+qat epoch 45/60 loss 0.445 val 0.9725 (fake-quant 0.9740) best 0.9753
+qat epoch 46/60 loss 0.277 val 0.9688 (fake-quant 0.9701) best 0.9753
+qat epoch 47/60 loss 0.316 val 0.9715 (fake-quant 0.9717) best 0.9753
+qat epoch 48/60 loss 0.330 val 0.9707 (fake-quant 0.9737) best 0.9753
+qat epoch 49/60 loss 0.360 val 0.9711 (fake-quant 0.9730) best 0.9753
+qat epoch 50/60 loss 0.398 val 0.9701 (fake-quant 0.9735) best 0.9753
+qat epoch 51/60 loss 0.329 val 0.9727 (fake-quant 0.9735) best 0.9753
+qat epoch 52/60 loss 0.285 val 0.9698 (fake-quant 0.9716) best 0.9753
+qat epoch 53/60 loss 0.288 val 0.9667 (fake-quant 0.9697) best 0.9753
+qat epoch 54/60 loss 0.341 val 0.9745 (fake-quant 0.9741) best 0.9753
+qat epoch 55/60 loss 0.311 val 0.9689 (fake-quant 0.9735) best 0.9753
+qat epoch 56/60 loss 0.271 val 0.9716 (fake-quant 0.9748) best 0.9753
+qat epoch 57/60 loss 0.285 val 0.9740 (fake-quant 0.9746) best 0.9753
+qat epoch 58/60 loss 0.324 val 0.9720 (fake-quant 0.9729) best 0.9753
+qat epoch 59/60 loss 0.280 val 0.9713 (fake-quant 0.9702) best 0.9753
+qat epoch 60/60 loss 0.308 val 0.9725 (fake-quant 0.9736) best 0.9753
+{"name": "ecg", "weights": 3568, "float_val": 0.9860210141617177, "float_test": 0.9858395761008588, "int4_val": 0.97533118724823, "int4_test": 0.9691211581230164, "int4_test_recall": [0.9884651470831723, 0.7109515260323159, 0.889426399447132, 0.5217391304347826, 0.957089552238806], "int4_test_balanced": 0.8135343510472417, "hardware": {"c8": {"model_bytes": 5384, "activation_peak": 1600, "op_count": 13, "groups": [["Conv", "Requant", "MaxPool"], ["Conv", "Requant"], ["Conv", "Requant"], ["Add", "Requant"], ["Conv", "Requant"], ["Conv", "Requant", "MaxPool"], ["Conv", "Requant"], ["Conv", "Requant"], ["Add", "Requant"], ["Conv", "Requant"], ["Conv", "Requant", "MaxPool"], ["AvgPool", "Requant"], ["FC"]]}, "c4": {"model_bytes": 5144, "activation_peak": 1600, "op_count": 13, "groups": [["Conv", "Requant", "MaxPool"], ["Conv", "Requant"], ["Conv", "Requant"], ["Add", "Requant"], ["Conv", "Requant"], ["Conv", "Requant", "MaxPool"], ["Conv", "Requant"], ["Conv", "Requant"], ["Add", "Requant"], ["Conv", "Requant"], ["Conv", "Requant", "MaxPool"], ["AvgPool", "Requant"], ["FC"]]}}, "test_samples": 21892, "seconds": 694.3612682819366, "args": {"name": "ecg", "data": "../datasets", "out": "../zoo_runs/final", "fp_epochs": "80", "qat_epochs": "60", "lr": "0.003", "qat_lr": "0.0005", "batch": "256", "seed": "0", "balanced": "True", "distill": "True", "relu_max": "15"}}

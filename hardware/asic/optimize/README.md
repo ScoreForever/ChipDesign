@@ -18,8 +18,11 @@ changed and no synchronizer protection/placement or MTBF qualification is
 claimed by this patch.
 
 The option `set_max_delay -ignore_clock_latency` and timing-path properties
-`arrival_time`, `required_time`, `slack` must be qualified against the installed
-Genus/Innovus versions. This checkout has **not** run those tools for this patch.
+must be qualified against the installed Genus/Innovus versions. On the course
+node (INT4 v2 runs, 2026-11-03) Innovus 21 reports the path properties as
+`arrival`, `required` and `slack` (`arrival_time` is empty), and Genus 19 has a
+setup-only `report_timing` with slack in ps, audited by `audit_synth`; see
+`docs/VALIDATION_FLOW.md` for the commands of the signed-off run.
 Unsupported commands/properties, a different reset-cell pin, or renamed/missing
 registers must stop the flow; do not silently fall back to plain max-delay or
 whole-clock false paths. The local Tcl API model is not vendor-tool evidence.

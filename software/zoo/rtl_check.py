@@ -27,6 +27,11 @@ FUSIONS = {'all': True, 'none': False,
 
 
 def load_frames(run_dir, count):
+    """Test frames from test_frames.pt (a training run) or golden.json
+    (software/zoo/pretrained, no dataset needed)."""
+    if not (run_dir / 'test_frames.pt').exists():
+        rows = json.loads((run_dir / 'golden.json').read_text())['frames'][:count]
+        return [r['input'] for r in rows], [r['label'] for r in rows]
     import torch
     blob = torch.load(run_dir / 'test_frames.pt')
     frames = blob['frames'][:count]
