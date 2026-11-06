@@ -4,7 +4,7 @@
 set root [pwd]
 set result_dir $::env(EDA_RESULT_DIR)
 file mkdir $result_dir
-set_app_var search_path [concat $search_path [list $root "$root/hardware/soc/rtl/include"]]
+set_app_var search_path [concat $search_path [list $root]]
 set mapped [info exists ::env(EDA_TARGET_LIBS)]
 source hardware/soc/synth/scripts/nocpu_area_config.tcl
 if {$mapped} {

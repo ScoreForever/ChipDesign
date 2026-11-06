@@ -1,7 +1,7 @@
 # Run from repository root; RTL read check unless EDA_TARGET_LIBS is set.
 set result_dir $::env(EDA_RESULT_DIR)
 file mkdir $result_dir
-set_db init_hdl_search_path [list [pwd] "[pwd]/hardware/soc/rtl/include"]
+set_db init_hdl_search_path [list [pwd]]
 set mapped [info exists ::env(EDA_TARGET_LIBS)]
 set hdl_defines {SYNTHESIS}
 source hardware/soc/synth/scripts/nocpu_area_config.tcl

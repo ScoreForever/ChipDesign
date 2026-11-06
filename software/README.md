@@ -18,6 +18,5 @@ PTQ 导入保留 labels，input_scale乘16，删除不再适用的旧 fc_cmp_*�
 建议用数据集重新校准或训练 INT4 模型。旧 CPU MMIO driver 不再适用。
 模型编译默认激活容量8 KiB，模型区也为8 KiB；可用 `--act-bytes` 明确选择较小配置。
 主机驱动仍以能力寄存器检查实际容量；INPUT_COMMIT会等待写缓冲刷新，JTAG命令格式不变。
-runtime/、firmware/kws_baseline/ 及 tools/build_kws_workload.py 为旧 CPU 工作负载源码，
-依赖已移除的 MMIO 接口，不能用于当前硬件；其历史性能日志分析工具仅用于阅读旧实验。
+旧 CPU 固件和工作负载源码可从 Git 历史获取。
 完整模型格式和寄存器见 docs/CPU_LESS_CONTROL.md。

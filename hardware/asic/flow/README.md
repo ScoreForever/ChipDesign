@@ -14,8 +14,8 @@ simulation.
    `NPU_USE_RA1SHD_ACTIVATION` when `EDA_NPU_MODEL_SRAM=1`.
 3. In a fresh Innovus session, source `pnr/scripts/init_pnr.tcl`, then run the
    floorplan/IO, power/placement, and CTS/route/export stages in order.
-4. Run `sim/run_postlayout_xcelium.sh` with the exported netlist and SDF to
-   perform the integrated gate-level regression.
+4. For the programmable NPU gate-level regression, use the
+   [ASIC optimization flow](../optimize/README.md) and its `postlayout.py` entry point.
 
 The checked-in lab4 floorplan/power scripts retain the historical single
 `i_mainmem_i_mainmem` placement and power connection. They require adaptation
@@ -30,9 +30,7 @@ not a strict post-EDA area acceptance threshold for this change.
 The flow requires the course TSMC 180 nm PDK, IO library, SRAM timing/physical
 views, and licensed Genus, Innovus, and Xcelium installations. These external
 files are not included in the repository. Set `CHIPDESIGN_PROJECT_ROOT` when
-the source checkout is staged outside the default relative location; the
-post-layout simulation runner also requires `CHIPDESIGN_ROOT` and
-`CHIPDESIGN_PNR_ROOT`.
+the source checkout is staged outside the default relative location.
 
 The scripts provide a reproducible course flow, not foundry signoff by
 themselves. Review the target RTL revision, constraints, tool configuration,

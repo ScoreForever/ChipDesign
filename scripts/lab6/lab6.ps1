@@ -1,7 +1,7 @@
 param(
-    [ValidateSet('Check', 'OpenOcd', 'Gdb', 'UsbList', 'Attach', 'Build')]
+    [ValidateSet('Check', 'OpenOcd', 'UsbList', 'Attach', 'Build')]
     [string]$Action = 'Check',
-    [ValidateSet('nocpu', 'cpu')][string]$Target = 'cpu',
+    [ValidateSet('nocpu')][string]$Target = 'nocpu',
     [string]$Distro = 'Ubuntu',
     [string]$BusId = '',
     [string]$VivadoRoot = $env:XILINX_VIVADO
@@ -77,7 +77,6 @@ switch ($Action) {
         if (!$enumerated) { throw 'FT232H attach completed, but WSL did not enumerate it; check usbipd list.' }
     }
     OpenOcd { Invoke-Linux openocd }
-    Gdb { Invoke-Linux gdb }
     Build {
         if (!$VivadoRoot) { throw 'Vivado not found; pass -VivadoRoot.' }
         & (Join-Path $repo 'hardware/fpga/scripts/build_ego1.ps1') -VivadoRoot $VivadoRoot

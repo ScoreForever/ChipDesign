@@ -1,4 +1,10 @@
-# main + H16 FPGA 验证工作流
+# FPGA 验证
+
+当前无 CPU NPU 的构建、JTAG 和板测入口见 [No-CPU 板测流程](NOCPU_BOARD_CHECK.md)。
+
+## 2026-10-20 历史 CPU/GDB 工作流
+
+下面的命令和结果记录对应早期 CPU SoC。复现时请使用 [清理前的 Git 快照](https://github.com/ScoreForever/ChipDesign/tree/8d475b26306ec9b6103fbcf622a5dde6504d6db2) 中的脚本和相应历史硬件。
 
 > 2026-10-20 后续修复见 [CDC 与门禁修复记录](../../docs/FPGA_CDC_CLOSURE_20261020.md)。
 > 当前执行器要求 schema=3、同次构建的 `build_identity.json` 和有效外部IO路径审计。使用 `build/fpga_jtag_io_20261020_r2/`；schema=1/2旧证据仅供历史追溯。新约束在[已声明的短线接口模型](../../docs/JTAG_IO_TIMING.md)内关闭TIMING-18；物理传播/TMS输出包络尚非实测保证。

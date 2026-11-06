@@ -69,7 +69,7 @@ python verification/fpga/nocpu_board_check.py `
 - 在安全条件下安排物理复位、断电重配、TCK 暂停、长时间连续运行及必要的电气测试；不得将协议 RESET 等同于物理按键复位。
 - 汇总各阶段结论与尚未测试项目。通过本 smoke test 不代表这些补充项目、物理时序裕量或完整板级签核通过。
 
-历史 `verification/fpga/run.ps1` 主要针对 CPU/GDB 方案，不可作为当前 No-CPU 双 SRAM 版本的上板通过证据。
+旧 CPU/GDB 流程及其证据见 [2026-10-20 历史验证记录](README.md)。
 
 ## 6. 扩展实板自动回归（Windows）
 

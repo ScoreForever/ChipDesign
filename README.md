@@ -70,4 +70,4 @@ ABI 4 历史 FPGA 证据覆盖 50 MHz 下七个模型的 112 帧 / 224 次实板
 FPGA setup WNS 为 0.000 ns，物理按键/断电恢复等项目仍未完成；ABI 4 历史 ASIC 签核为 TT corner，未覆盖多角 STA、IR/EM。
 2026-10-23/24 等历史证据仅适用于当时冻结源码，不能替代当前版本验证。
 新协议不兼容旧 TinyCNN MMIO/JTAG ABI；旧固定模型实现与旧测试入口已移除，历史可从 Git 获取。
-训练/预处理仍由主机承担。仓库保留的 CPU、AXI 和课程资料不属于默认实例树。
+训练和预处理由主机承担。早期 CPU/AXI 实现可从 [Git 历史快照](https://github.com/ScoreForever/ChipDesign/tree/8d475b26306ec9b6103fbcf622a5dde6504d6db2) 获取。
