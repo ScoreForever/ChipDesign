@@ -1,6 +1,8 @@
 # 主机软件
 
-训练和音频预处理工具保留在 train/、tools/；当前硬件使用 host/ 下的 ABI 3.0 INT4 模型编译器和驱动。
+当前硬件使用 host/ 下的 ABI 4.0 INT4/u4 模型编译器和驱动；七个冻结模型及训练/评估入口位于 zoo/。
+统一版本与证据见 [main baseline](../docs/BASELINE_MAIN_20261106.md) 和 [验证流程](../docs/VALIDATION_FLOW.md)。
+train/、tools/ 中的历史训练及音频预处理工具保留供参考。
 
 ```powershell
 python software/host/make_demo.py --output build/npu_demo

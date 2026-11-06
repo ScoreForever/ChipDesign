@@ -1,9 +1,11 @@
 # 可编程 NPU
 
-当前设计只使用一套描述符驱动执行核，支持 Conv、FC、MaxPool、ReLU、Requant。
+当前设计为 ABI 4.0 INT4 v2，只使用一套描述符驱动执行核，支持 Conv（含 depthwise）、FC、MaxPool、AvgPool/GAP、Add、ReLU、Requant。
 
 - [架构、数值和融合边界](../../docs/ARCHITECTURE.md)
 - [模型格式与主机协议](../../docs/CPU_LESS_CONTROL.md)
+- [统一 main baseline](../../docs/BASELINE_MAIN_20261106.md)
+- [INT4 v2 最终设计报告](../../docs/INT4_V2_REPORT.md)
 - [双SRAM实施与验证](../../docs/NPU_DUAL_SRAM_IMPLEMENTATION_20261026.md)
 - [改造前2026-10-23验证证据](../../docs/NPU_PROGRAMMABLE_VALIDATION_20261023.md)
 

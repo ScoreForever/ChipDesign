@@ -1,0 +1,88 @@
+{
+  "model": "ecg",
+  "passed": true,
+  "started_utc": "2026-11-04T04:47:38.182961+00:00",
+  "model_sha256": "71e35bf6fa1c52f461f4a03a6a66482af78bc2102e35a2bbc5a2ea9709629cbe",
+  "golden_sha256": "8936d82dd5605d7efeea3f5ccfeeb287f8f3c2f210e85e91d87a669d0ecf1e8e",
+  "device": "cuda",
+  "batch_size": 256,
+  "versions": {
+    "torch": "2.5.1+cu121",
+    "torchvision": "0.20.1+cu121",
+    "torchaudio": "2.5.1+cu121",
+    "numpy": "2.4.3",
+    "pillow": "13.0.0",
+    "wfdb": "4.3.1",
+    "soundfile": "0.14.0"
+  },
+  "loader_sha256": "4861f33beccb7904fff4e69a4bc8dfd06a653ea48bfd94971fd686453d5e52ac",
+  "fastref_sha256": "88a3edb59716cbd289d6e4b31c06f30b0d6e145d706e2628b0c0a6e491f5b067",
+  "test_samples": 21892,
+  "golden_input_and_label_matches": 16,
+  "golden_output_matches": 16,
+  "frames_sha256": "743dbbd455cf0780fb944c3ad9aa10232c80e1f3f1bd3fd2394599fb993f25cb",
+  "labels_sha256": "1b47792c4be81cc29738c0c2e9e1a9f98fb0a29bf93718c9e014019e5e6c365b",
+  "correct": 21237,
+  "int4_test": 0.9700803756713867,
+  "int4_test_balanced": 0.8184657435662009,
+  "recall": [
+    0.9892378166565484,
+    0.7235188509874326,
+    0.8908085694540429,
+    0.5341614906832298,
+    0.9546019900497512
+  ],
+  "confusion": [
+    [
+      17924,
+      94,
+      33,
+      29,
+      39
+    ],
+    [
+      148,
+      403,
+      3,
+      2,
+      1
+    ],
+    [
+      127,
+      12,
+      1289,
+      17,
+      2
+    ],
+    [
+      50,
+      0,
+      25,
+      86,
+      0
+    ],
+    [
+      70,
+      0,
+      3,
+      0,
+      1535
+    ]
+  ],
+  "class_counts": [
+    18119,
+    557,
+    1447,
+    161,
+    1608
+  ],
+  "outputs_sha256": "432f0d531439d2aca082c0c183cec1220e00da4e50c98185e269559f737e153b",
+  "evaluation_seconds": 1.0320000000065193,
+  "total_seconds": 3.875,
+  "gpu_peak_bytes": 67557888,
+  "published_accuracy": 0.9700803756713867,
+  "accuracy_delta": 0.0,
+  "published_balanced": 0.8184657435662009,
+  "published_metrics_equal": true,
+  "finished_utc": "2026-11-04T04:47:42.087132+00:00"
+}

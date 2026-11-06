@@ -1,7 +1,8 @@
 # INT4 v2 验证流程
 
 从模型到 RTL、端到端时间、ASIC 签核和报告，每一步的命令、输入和产出。
-结果汇总见 `docs/INT4_V2_REPORT.md`，所有数字来自 `docs/validation/int4_v2/`。
+结果汇总见 `docs/INT4_V2_REPORT.md`；统一版本见 [main baseline](BASELINE_MAIN_20261106.md)。
+设计结果来自 `docs/validation/int4_v2/`，独立完整测试集重评见 `verification/fpga/results/2026-11-04-int4-v2/full_dataset_accuracy/`。
 
 验证分四层，前两层只依赖仓库内容：
 
@@ -30,7 +31,7 @@
 | 内容 | 原因 | 在哪里 |
 |---|---|---|
 | 数据集、`test_frames.pt` | 体积大（7 个模型共 76 MB）、各数据集有自己的分发许可；可由脚本重新生成并逐位校验 | `software/zoo/fetch_datasets.sh` + `make_test_frames.py` |
-| GDS、DEF、LEF、SPEF、网表、SDF | 含 TSMC 0.18 µm PDK 与 SRAM 宏的授权数据，**不能进公开仓库** | fullstack 节点 `~/chip-fullstack-2026/int4v2-hold/exp/candidates/r90_u70_h15/` |
+| GDS、DEF、LEF、SPEF、网表、SDF | 含 TSMC 0.18 µm PDK 与 SRAM 宏的授权数据，**不能进公开仓库** | 课程 EDA 节点的私有归档；当前候选名 `diagonal_facing_h25`，按交付记录定位 |
 | EDA 原始日志 | 体积大；关键数字已整理进 `docs/validation/int4_v2/` 的 JSON | 同上 |
 
 ## 环境
@@ -70,6 +71,16 @@ python3 software/zoo/e2e_timing.py --runs software/zoo/pretrained \
 SRAM 限制，与报告一致），第 0 帧周期数与 `zoo_rtl_final.json` 25/25 相同；ECG 端到端 TCK 数与 `e2e.json` 相同。
 
 ## 第 3 层：完整测试集精度
+
+已归档的七个完整任务测试集共 67,245 条评分，可在没有数据集和 PyTorch 的环境独立复核：
+
+```bash
+python3 verification/fpga/check_int4_v2_full_accuracy.py
+```
+
+这是软件整数参考评分，不是完整数据集逐帧 FPGA 执行。输入锚点、逐类指标、预测 CSV 和环境条件见
+[完整精度报告](../verification/fpga/results/2026-11-04-int4-v2/full_dataset_accuracy/report.md)。
+重新下载/重建时须对齐该报告的前端版本，特别是 GTSRB 的 Pillow 13.0.0；不能跳过 golden 输入检查。
 
 ```bash
 PYTHON=python3 software/zoo/fetch_datasets.sh datasets
@@ -118,14 +129,15 @@ GPU 非确定性会让重新训练的结果有小幅差异；发布的 `model.js
 source /opt/eda/env.sh; source /lec/eda.env
 E=/absolute/new/experiment
 python3 hardware/asic/optimize/flow.py preflight --output $E
-python3 hardware/asic/optimize/flow.py trial --output $E --name r90_u70_h15 \
-    --layout west_stack_r90 --utilization 0.70 --congestion --hold-target 0.15
-python3 hardware/asic/optimize/postlayout.py --candidate $E/candidates/r90_u70_h15   # Xcelium SDF 门级仿真
-python3 hardware/asic/optimize/signoff.py   --candidate $E/candidates/r90_u70_h15   # Calibre DRC/LVS、PrimeTime、Formality
+python3 hardware/asic/optimize/flow.py trial --output $E --name diagonal_facing_h25 \
+    --layout diagonal_facing --utilization 0.70 --congestion --hold-target 0.25
+python3 hardware/asic/optimize/postlayout.py --candidate $E/candidates/diagonal_facing_h25   # Xcelium SDF 门级仿真
+python3 hardware/asic/optimize/signoff.py   --candidate $E/candidates/diagonal_facing_h25   # Calibre DRC/LVS、PrimeTime、Formality
 ```
 
-选定版图的结果在 `docs/validation/int4_v2/layout_final.json` 和 `signoff.json`。PrimeTime 读出的 hold 比
-Innovus 差约 0.1 ns，所以 hold 目标用 0.15 ns（默认 0.02 ns 下 PrimeTime hold 为负）。
+选定版图的结果在 `docs/validation/int4_v2/layout_final.json` 和 `signoff.json`：1920 µm die，
+TT corner 的 PrimeTime setup +1.094 ns / hold +0.154 ns。当前候选 hold target 为 0.25 ns；
+旧 `r90_u70_h15` / 1860 µm 是过程实验，不是 main baseline。多角 STA、IR/EM 等未覆盖项保留。
 
 ## 报告与图表
 

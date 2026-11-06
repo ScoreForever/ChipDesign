@@ -1,0 +1,71 @@
+{
+  "status": {
+    "har": "READY",
+    "gtsrb": "READY",
+    "images": "READY",
+    "ecg": "READY",
+    "speech": "READY"
+  },
+  "urls": {
+    "har": "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip",
+    "gtsrb": "https://hf-mirror.com/datasets/tanganke/gtsrb/resolve/main/data/",
+    "speech": "https://storage.googleapis.com/download.tensorflow.org/data/speech_commands_v0.02.tar.gz",
+    "images": "https://fashion-mnist.s3.eu-central-1.amazonaws.com/",
+    "ecg": "https://physionet.org/static/published-projects/mitdb/mit-bih-arrhythmia-database-1.0.0.zip"
+  },
+  "files": {
+    "datasets/archives/speech_commands_v0.02.tar.gz": {
+      "bytes": 2428923189,
+      "sha256": "af14739ee7dc311471de98f5f9d2c9191b18aedfe957f4a6ff791c709868ff58"
+    },
+    "datasets/archives/har_coursera.zip": {
+      "bytes": 62556944,
+      "sha256": "50dabbc800629611831a85b8b71c87040525ca4af6a152c6ba9360ecee6b92dc"
+    },
+    "datasets/archives/mitdb-1.0.0.zip": {
+      "bytes": 77030320,
+      "sha256": "47b26926927c11bd9174154d367c811afc1b186f650f8a205931ca8c520f0a87"
+    },
+    "datasets/archives/train-images-idx3-ubyte.gz": {
+      "bytes": 26421880,
+      "sha256": "3aede38d61863908ad78613f6a32ed271626dd12800ba2636569512369268a84"
+    },
+    "datasets/archives/train-labels-idx1-ubyte.gz": {
+      "bytes": 29515,
+      "sha256": "a04f17134ac03560a47e3764e11b92fc97de4d1bfaf8ba1a3aa29af54cc90845"
+    },
+    "datasets/archives/t10k-images-idx3-ubyte.gz": {
+      "bytes": 4422102,
+      "sha256": "346e55b948d973a97e58d2351dde16a484bd415d4595297633bb08f03db6a073"
+    },
+    "datasets/archives/t10k-labels-idx1-ubyte.gz": {
+      "bytes": 5148,
+      "sha256": "67da17c76eaffca5446c3361aaab5c3cd6d1c2608764d35dfb1850b086bf8dd5"
+    },
+    "datasets/gtsrb/data/test-00000-of-00001.parquet": {
+      "bytes": 109166076,
+      "sha256": "2f868c4e7ae887b3aee00c3c6348ac155287e5fb0497f1c7d7683694299c7e67"
+    },
+    "datasets/gtsrb/data/train-00000-of-00001.parquet": {
+      "bytes": 224171661,
+      "sha256": "22f75b0cab6937dab1c82de33f8354ae14d4b42d42b08c94879027b26cb97cb6"
+    },
+    "datasets/tv/MNIST/raw/t10k-images-idx3-ubyte.gz": {
+      "bytes": 1648877,
+      "sha256": "8d422c7b0a1c1c79245a5bcf07fe86e33eeafee792b84584aec276f5a2dbc4e6"
+    },
+    "datasets/tv/MNIST/raw/t10k-labels-idx1-ubyte.gz": {
+      "bytes": 4542,
+      "sha256": "f7ae60f92e00ec6debd23a6088c31dbd2371eca3ffa0defaefb259924204aec6"
+    },
+    "datasets/tv/MNIST/raw/train-images-idx3-ubyte.gz": {
+      "bytes": 9912422,
+      "sha256": "440fcabf73cc546fa21475e81ea370265605f56be210a4024d2ca8f203523609"
+    },
+    "datasets/tv/MNIST/raw/train-labels-idx1-ubyte.gz": {
+      "bytes": 28881,
+      "sha256": "3552534a0a558bbed6aed32b30c495cca23d567ec52cac8be1a0730e8010255c"
+    }
+  },
+  "mnist_reuse": "Local torchvision MNIST raw files; compressed file MD5/resources checked by initial fetch, all 16 published anchors and full metrics matched."
+}

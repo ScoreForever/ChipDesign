@@ -1,0 +1,117 @@
+RANGES har_coursera.zip 62556944 bytes 60 chunks 12 workers
+RANGES speech_commands_v0.02.tar.gz 2428923189 bytes 2317 chunks 64 workers
+RANGES mitdb-1.0.0.zip 77030320 bytes 74 chunks 12 workers
+RANGES train-00000-of-00001.parquet 224171661 bytes 214 chunks 16 workers
+PROGRESS speech_commands_v0.02.tar.gz 2 / 2317
+PROGRESS train-00000-of-00001.parquet 2 / 214
+PROGRESS har_coursera.zip 7 / 60
+RANGES train-images-idx3-ubyte.gz 26421880 bytes 26 chunks 8 workers
+RETRY mitdb-1.0.0.zip 7 1 RemoteDisconnected Remote end closed connection without response
+PROGRESS speech_commands_v0.02.tar.gz 23 / 2317
+PROGRESS train-00000-of-00001.parquet 11 / 214
+PROGRESS har_coursera.zip 24 / 60
+RETRY mitdb-1.0.0.zip 6 1 RemoteDisconnected Remote end closed connection without response
+RETRY har_coursera.zip 13 1 RemoteDisconnected Remote end closed connection without response
+PROGRESS speech_commands_v0.02.tar.gz 74 / 2317
+PROGRESS har_coursera.zip 52 / 60
+PROGRESS train-00000-of-00001.parquet 29 / 214
+RETRY speech_commands_v0.02.tar.gz 133 1 RemoteDisconnected Remote end closed connection without response
+PROGRESS speech_commands_v0.02.tar.gz 99 / 2317
+PROGRESS train-00000-of-00001.parquet 40 / 214
+PROGRESS har_coursera.zip 58 / 60
+PROGRESS har_coursera.zip 60 / 60
+RETRY speech_commands_v0.02.tar.gz 138 1 RemoteDisconnected Remote end closed connection without response
+READY har
+PROGRESS mitdb-1.0.0.zip 1 / 74
+PROGRESS train-images-idx3-ubyte.gz 1 / 26
+PROGRESS speech_commands_v0.02.tar.gz 157 / 2317
+PROGRESS train-00000-of-00001.parquet 63 / 214
+PROGRESS speech_commands_v0.02.tar.gz 242 / 2317
+PROGRESS train-images-idx3-ubyte.gz 2 / 26
+PROGRESS train-00000-of-00001.parquet 90 / 214
+PROGRESS mitdb-1.0.0.zip 3 / 74
+PROGRESS speech_commands_v0.02.tar.gz 332 / 2317
+PROGRESS train-images-idx3-ubyte.gz 6 / 26
+PROGRESS train-00000-of-00001.parquet 126 / 214
+RETRY speech_commands_v0.02.tar.gz 312 1 RemoteDisconnected Remote end closed connection without response
+PROGRESS mitdb-1.0.0.zip 4 / 74
+PROGRESS speech_commands_v0.02.tar.gz 412 / 2317
+PROGRESS train-00000-of-00001.parquet 156 / 214
+PROGRESS speech_commands_v0.02.tar.gz 457 / 2317
+PROGRESS mitdb-1.0.0.zip 6 / 74
+PROGRESS train-00000-of-00001.parquet 174 / 214
+PROGRESS train-images-idx3-ubyte.gz 7 / 26
+RETRY speech_commands_v0.02.tar.gz 474 1 RemoteDisconnected Remote end closed connection without response
+RETRY speech_commands_v0.02.tar.gz 518 1 RemoteDisconnected Remote end closed connection without response
+PROGRESS speech_commands_v0.02.tar.gz 531 / 2317
+PROGRESS train-00000-of-00001.parquet 207 / 214
+PROGRESS mitdb-1.0.0.zip 11 / 74
+PROGRESS speech_commands_v0.02.tar.gz 642 / 2317
+RETRY train-00000-of-00001.parquet 154 1 TimeoutError The read operation timed out
+PROGRESS train-images-idx3-ubyte.gz 9 / 26
+PROGRESS train-00000-of-00001.parquet 214 / 214
+PROGRESS mitdb-1.0.0.zip 12 / 74
+RANGES test-00000-of-00001.parquet 109166076 bytes 105 chunks 16 workers
+PROGRESS speech_commands_v0.02.tar.gz 717 / 2317
+PROGRESS test-00000-of-00001.parquet 18 / 105
+PROGRESS speech_commands_v0.02.tar.gz 814 / 2317
+PROGRESS mitdb-1.0.0.zip 16 / 74
+PROGRESS train-images-idx3-ubyte.gz 13 / 26
+RETRY train-images-idx3-ubyte.gz 9 1 TimeoutError The read operation timed out
+PROGRESS speech_commands_v0.02.tar.gz 910 / 2317
+PROGRESS test-00000-of-00001.parquet 46 / 105
+PROGRESS mitdb-1.0.0.zip 19 / 74
+PROGRESS train-images-idx3-ubyte.gz 17 / 26
+PROGRESS speech_commands_v0.02.tar.gz 998 / 2317
+PROGRESS test-00000-of-00001.parquet 80 / 105
+PROGRESS mitdb-1.0.0.zip 21 / 74
+PROGRESS speech_commands_v0.02.tar.gz 1090 / 2317
+RETRY test-00000-of-00001.parquet 24 1 TimeoutError The read operation timed out
+PROGRESS test-00000-of-00001.parquet 105 / 105
+READY gtsrb
+RETRY speech_commands_v0.02.tar.gz 934 1 URLError <urlopen error _ssl.c:999: The handshake operation timed out>
+PROGRESS train-images-idx3-ubyte.gz 22 / 26
+PROGRESS speech_commands_v0.02.tar.gz 1189 / 2317
+PROGRESS mitdb-1.0.0.zip 24 / 74
+PROGRESS train-images-idx3-ubyte.gz 24 / 26
+PROGRESS speech_commands_v0.02.tar.gz 1289 / 2317
+PROGRESS mitdb-1.0.0.zip 27 / 74
+PROGRESS speech_commands_v0.02.tar.gz 1359 / 2317
+PROGRESS mitdb-1.0.0.zip 29 / 74
+PROGRESS speech_commands_v0.02.tar.gz 1398 / 2317
+RETRY speech_commands_v0.02.tar.gz 1400 1 RemoteDisconnected Remote end closed connection without response
+PROGRESS mitdb-1.0.0.zip 31 / 74
+PROGRESS speech_commands_v0.02.tar.gz 1462 / 2317
+PROGRESS speech_commands_v0.02.tar.gz 1580 / 2317
+PROGRESS mitdb-1.0.0.zip 35 / 74
+PROGRESS speech_commands_v0.02.tar.gz 1653 / 2317
+PROGRESS speech_commands_v0.02.tar.gz 1749 / 2317
+PROGRESS mitdb-1.0.0.zip 39 / 74
+PROGRESS speech_commands_v0.02.tar.gz 1863 / 2317
+PROGRESS speech_commands_v0.02.tar.gz 1982 / 2317
+PROGRESS mitdb-1.0.0.zip 43 / 74
+PROGRESS speech_commands_v0.02.tar.gz 2105 / 2317
+PROGRESS speech_commands_v0.02.tar.gz 2213 / 2317
+PROGRESS mitdb-1.0.0.zip 46 / 74
+PROGRESS speech_commands_v0.02.tar.gz 2315 / 2317
+PROGRESS speech_commands_v0.02.tar.gz 2317 / 2317
+EXTRACT speech
+PROGRESS mitdb-1.0.0.zip 50 / 74
+PROGRESS train-images-idx3-ubyte.gz 26 / 26
+RANGES train-labels-idx1-ubyte.gz 29515 bytes 1 chunks 8 workers
+PROGRESS train-labels-idx1-ubyte.gz 1 / 1
+RANGES t10k-images-idx3-ubyte.gz 4422102 bytes 5 chunks 8 workers
+PROGRESS mitdb-1.0.0.zip 54 / 74
+PROGRESS t10k-images-idx3-ubyte.gz 2 / 5
+PROGRESS mitdb-1.0.0.zip 58 / 74
+PROGRESS mitdb-1.0.0.zip 64 / 74
+PROGRESS t10k-images-idx3-ubyte.gz 4 / 5
+PROGRESS mitdb-1.0.0.zip 68 / 74
+PROGRESS t10k-images-idx3-ubyte.gz 5 / 5
+RANGES t10k-labels-idx1-ubyte.gz 5148 bytes 1 chunks 8 workers
+PROGRESS t10k-labels-idx1-ubyte.gz 1 / 1
+READY images
+PROGRESS mitdb-1.0.0.zip 73 / 74
+PROGRESS mitdb-1.0.0.zip 74 / 74
+READY ecg
+READY speech

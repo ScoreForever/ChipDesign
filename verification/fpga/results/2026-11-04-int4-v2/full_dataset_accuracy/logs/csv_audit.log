@@ -1,0 +1,8 @@
+PASS ecg 21237 / 21892 97.0080%
+PASS fashion_cnn 9011 / 10000 90.1100%
+PASS gtsrb_l 11622 / 12630 92.0190%
+PASS har 2733 / 2947 92.7384%
+PASS kws_l 4473 / 4888 91.5098%
+PASS kws_m 4420 / 4888 90.4255%
+PASS mnist_l 9888 / 10000 98.8800%
+PASS: 7 complete task test sets, 67245 model-sample evaluations; CSV-derived metrics match published values exactly

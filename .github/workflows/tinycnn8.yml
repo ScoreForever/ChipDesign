@@ -1,10 +1,10 @@
 name: Programmable NPU regression
 on:
   pull_request:
-    paths: ['hardware/asic/**', 'hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
+    paths: ['hardware/asic/**', 'hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', 'software/zoo/**', 'software/tests/**', 'verification/fpga/**', 'docs/validation/int4_v2/zoo_eval.json', '.github/workflows/tinycnn8.yml']
   push:
     branches: [main]
-    paths: ['hardware/asic/**', 'hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', '.github/workflows/tinycnn8.yml']
+    paths: ['hardware/asic/**', 'hardware/npu/**', 'hardware/soc/rtl/control/**', 'hardware/soc/rtl/my_soc_top.sv', 'hardware/soc/sim/**', 'software/host/**', 'software/zoo/**', 'software/tests/**', 'verification/fpga/**', 'docs/validation/int4_v2/zoo_eval.json', '.github/workflows/tinycnn8.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,7 +19,7 @@ jobs:
           python-version: '3.12'
       - name: Install simulator
         run: sudo apt-get update && sudo apt-get install -y iverilog
-      - name: Five operators, fusion, two array widths, controller, JTAG and memory stalls
+      - name: Seven operators, fusion, two array widths, controller, JTAG and memory stalls
         run: python hardware/npu/scripts/run_program_regression.py --output build/program_ci
       - name: ASIC/FPGA waveform configuration and retained operator summaries
         run: python hardware/npu/scripts/run_trace_configuration.py --output build/trace_configuration_ci
@@ -34,6 +34,21 @@ jobs:
             build/trace_configuration_ci
             build/conv_streaming.json
           retention-days: 14
+
+  model-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: INT4 compiler and numeric contract
+        run: python -m unittest discover -s software/tests -p 'test_npu_int4.py' -v
+      - name: Recompile seven published models and verify golden outputs
+        run: python software/zoo/check_golden.py
+      - name: Independently reconstruct full-test-set metrics from archived predictions
+        run: python verification/fpga/check_int4_v2_full_accuracy.py
 
   pnr-framework:
     runs-on: ubuntu-latest

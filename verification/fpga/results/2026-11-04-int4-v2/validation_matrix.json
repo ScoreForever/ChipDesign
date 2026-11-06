@@ -90,8 +90,7 @@
     "physical reset button on this v2 image",
     "power cycle/reprogram on this v2 image",
     "electrical waveform measurements",
-    "configuration flash boot",
-    "dataset accuracy evaluation"
+    "configuration flash boot"
   ],
   "notes": [
     "Baseline board_suite manual_pending is a generic checklist; use board_cdc/report.json for the four completed automatic checks.",
@@ -108,6 +107,15 @@
     "passed": true,
     "all_24_board_rtl_counters_equal": true,
     "report": "zoo_supplement/report.md",
-    "full_dataset_accuracy": "NOT RUN"
+    "full_dataset_accuracy": "PASS, software integer reference; see full_dataset_accuracy/report.md"
+  },
+  "full_dataset_accuracy": {
+    "passed": true,
+    "model_count": 7,
+    "model_sample_evaluations": 67245,
+    "all_published_metrics_equal": true,
+    "execution": "CUDA software integer reference",
+    "full_dataset_fpga_execution": false,
+    "report": "full_dataset_accuracy/report.md"
   }
 }
