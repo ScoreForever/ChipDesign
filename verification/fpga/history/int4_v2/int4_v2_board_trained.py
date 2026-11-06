@@ -7,7 +7,7 @@ import random
 import sys
 import time
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / 'software/host'))
 from nocpu_jtag import Npu, Op, TclRpc, JtagTransport, PERF_NAMES
 from npu_program import from_tinycnn_npz, compile_model, reference, encode_tensor

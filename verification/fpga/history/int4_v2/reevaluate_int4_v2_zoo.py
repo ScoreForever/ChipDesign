@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 import time
 
-ROOT=Path(__file__).resolve().parents[2]
+ROOT=Path(__file__).resolve().parents[4]
 sys.path[:0]=[str(ROOT/'software/host'),str(ROOT/'software'),str(ROOT/'software/zoo')]
 import torch
 import npu_fastref

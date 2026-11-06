@@ -51,7 +51,7 @@ jobs:
       - name: Recompile seven published models and verify golden outputs
         run: python software/zoo/check_golden.py
       - name: Independently reconstruct full-test-set metrics from archived predictions
-        run: python verification/fpga/check_int4_v2_full_accuracy.py
+        run: python verification/fpga/evidence/check_int4_v2_full_accuracy.py
 
   pnr-framework:
     runs-on: ubuntu-latest

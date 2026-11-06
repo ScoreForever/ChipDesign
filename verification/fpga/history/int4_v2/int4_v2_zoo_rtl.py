@@ -7,7 +7,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-ROOT=Path(__file__).resolve().parents[2]
+ROOT=Path(__file__).resolve().parents[4]
 sys.path[:0]=[str(ROOT/'software/host'),str(ROOT/'hardware/npu/scripts')]
 import run_program_regression as R
 from npu_program import compile_model, reference

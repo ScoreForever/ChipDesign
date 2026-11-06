@@ -2,7 +2,7 @@
 
 日期：2026-10-20。当前结论：**比特流生成、烧写、CPU JTAG 和 GDB 验证全部通过。**
 
-后续扩展验证已加入非零模型、DMA、量化边界、CPU IRQ、整片SRAM、复位及RTL比对，见[验证工作流](../verification/fpga/README.md)和[最新结果](../verification/fpga/results/2026-10-20/report.md)。
+后续扩展验证已加入非零模型、DMA、量化边界、CPU IRQ、整片SRAM、复位及RTL比对，见[验证工作流](../verification/fpga/CPU_GDB_HISTORY.md)和[最新结果](../verification/fpga/results/2026-10-20/report.md)。
 上述“通过”描述构建和连通性；**不表示完整RTL功能/实现签核**。扩展审计发现JTAG复位跨域和CDC/IO约束问题，最终报告单独列出阻塞项。
 
 ## 最终可用配置：TCK 改接 J5 第21脚

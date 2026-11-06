@@ -75,7 +75,7 @@ SRAM 限制，与报告一致），第 0 帧周期数与 `zoo_rtl_final.json` 25
 已归档的七个完整任务测试集共 67,245 条评分，可在没有数据集和 PyTorch 的环境独立复核：
 
 ```bash
-python3 verification/fpga/check_int4_v2_full_accuracy.py
+python3 verification/fpga/evidence/check_int4_v2_full_accuracy.py
 ```
 
 这是软件整数参考评分，不是完整数据集逐帧 FPGA 执行。输入锚点、逐类指标、预测 CSV 和环境条件见

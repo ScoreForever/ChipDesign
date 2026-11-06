@@ -6,11 +6,12 @@ import struct
 import sys
 import time
 
-ROOT=Path(__file__).resolve().parents[2]
+ROOT=Path(__file__).resolve().parents[4]
 sys.path[:0]=[str(ROOT/'software/host'),str(ROOT/'hardware/npu/scripts')]
 from nocpu_jtag import Npu, Op, TclRpc, JtagTransport
 from npu_program import Package, compile_model, reference, encode_tensor
 from run_program_regression import fixtures
+sys.path.insert(0, str(ROOT/'verification/fpga/board'))
 from nocpu_board_suite import raw_upload, expect_error
 
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import sys
 import time
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT/'software/host'))
 from nocpu_jtag import Npu, Op, JtagTransport, TclRpc
 from npu_program import compile_model, reference, encode_tensor

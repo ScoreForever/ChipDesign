@@ -6,7 +6,7 @@
 本次未改 CPU/NPU/JTAG RTL。比特流 SHA256：`015e93fa87080f09380b687ffbdc8c5923483fc7e443555280c049a12e02a316`。
 
 **功能回归通过；完整实现签核尚未通过。**
-正式证据在 `build/fpga_validation_20261020_v2/`，入口为[工作流说明](../verification/fpga/README.md)、[PowerShell分阶段执行器](../verification/fpga/run.ps1)。
+正式证据在 `build/fpga_validation_20261020_v2/`，入口为[工作流说明](../verification/fpga/CPU_GDB_HISTORY.md)、[PowerShell分阶段执行器](../verification/fpga/run.ps1)。
 [机器汇总](../verification/fpga/results/2026-10-20/report.json)和[可读汇总](../verification/fpga/results/2026-10-20/report.md)由证据校验器生成，不靠人工修改PASS字段。
 仓库保存此次汇总快照；完整日志、固件、原始读回及源码快照保留在本地上述build目录，不随Git发布。汇总记录的是当时验证的main提交，后续发布提交不改变该验证对象。
 

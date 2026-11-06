@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--static-evidence', required=True, type=Path)
     args = parser.parse_args()
-    root = Path(__file__).resolve().parents[2]
+    root = Path(__file__).resolve().parents[3]
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     rtl = root / 'hardware/soc/rtl/control/npu_jtag_transport.sv'

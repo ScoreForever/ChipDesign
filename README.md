@@ -18,7 +18,7 @@
 - [模型格式、命令协议及主机使用](docs/CPU_LESS_CONTROL.md)
 - [INT4 v2 最终设计报告](docs/INT4_V2_REPORT.md)
 - [分层验证与复现](docs/VALIDATION_FLOW.md)
-- [FPGA 验证](verification/fpga/results/2026-11-04-int4-v2/report.md)
+- [FPGA 验证与人工签核](verification/fpga/README.md)
 - [完整测试集软件整数精度](verification/fpga/results/2026-11-04-int4-v2/full_dataset_accuracy/report.md)
 - [INT4 重构与验证](docs/NPU_INT4_REFACTOR_20261031.md)
 - [后续面积优化分析](docs/NPU_INT4_AREA_OPTIONS_20261031.md)

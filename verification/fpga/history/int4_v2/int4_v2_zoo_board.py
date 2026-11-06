@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 
-ROOT=Path(__file__).resolve().parents[2]
+ROOT=Path(__file__).resolve().parents[4]
 sys.path.insert(0,str(ROOT/'software/host'))
 from nocpu_jtag import Npu, Op, TclRpc, JtagTransport
 from npu_program import Package, decode_tensor

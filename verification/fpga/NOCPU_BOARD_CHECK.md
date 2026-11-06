@@ -44,7 +44,7 @@ python software/host/make_demo.py --output build/nocpu_manual_demo
 ```powershell
 $bit = 'build/nocpu_manual_build/<实际文件名>.bit'
 $hash = (Get-FileHash -Algorithm SHA256 $bit).Hash
-python verification/fpga/nocpu_board_check.py `
+python verification/fpga/board/nocpu_board_check.py `
   --bitstream $bit --bitstream-sha256 $hash `
   --provenance build/nocpu_manual_build/provenance.json `
   --package build/nocpu_manual_demo/package `
@@ -65,7 +65,7 @@ python verification/fpga/nocpu_board_check.py `
 - 在安全条件下安排物理复位、断电重配、TCK 暂停、长时间连续运行及必要的电气测试；不得将协议 RESET 等同于物理按键复位。
 - 汇总各阶段结论与尚未测试项目。通过本 smoke test 不代表这些补充项目、物理时序裕量或完整板级签核通过。
 
-旧 CPU/GDB 流程及其证据见 [2026-10-20 历史验证记录](README.md)。
+旧 CPU/GDB 流程及其证据见 [2026-10-20 历史验证记录](CPU_GDB_HISTORY.md)。
 
 ## 6. 扩展实板自动回归（Windows）
 
@@ -74,7 +74,7 @@ python verification/fpga/nocpu_board_check.py `
 ```powershell
 $bit = 'build/nocpu_manual_build/<实际文件名>.bit'
 $hash = (Get-FileHash -Algorithm SHA256 $bit).Hash
-python verification/fpga/nocpu_board_suite.py `
+python verification/fpga/board/nocpu_board_suite.py `
   --bitstream $bit --sha256 $hash `
   --provenance build/nocpu_manual_build/provenance.json `
   --output build/nocpu_board_suite_01 --repeat 2 --timeout 30
@@ -91,9 +91,22 @@ python verification/fpga/nocpu_board_suite.py `
 完成自动套件后运行：
 
 ```powershell
-python verification/fpga/nocpu_evidence_check.py build/nocpu_board_suite_01
+python verification/fpga/evidence/nocpu_evidence_check.py build/nocpu_board_suite_01
 ```
 
 复核器重新读取结果文件，检查预期算子用例和负向用例清单、每次输入/参考/输出的哈希，以及参考与输出是否相等。退出码 `1` 表示证据损坏、不完整或不匹配；`2` 表示自动证据核对通过，但物理操作和板上镜像身份仍需人工复核。这个复核器不重新运行硬件、不验证参考模型的独立性，也不保证报告不可伪造。保存全部证据目录，避免只转发截图或 `passed` 标志。
 
 实板人工项至少记录执行者、时间、bitstream SHA-256、测试前状态、操作、实际观测、预期结果和原始日志路径。协议 RESET、物理复位与断电重配必须分开记录；未执行一律标记 NOT RUN。报告中的 `manual_pending` 是测试范围提示，不能通过编辑它来声称物理测试通过。
+
+## 8. CDC 与异常恢复
+
+使用 [人工签核表](SIGNOFF_CHECKLIST.md) 的 B、D 项记录。各脚本的输出与本轮 bitstream、TCK 设置和板卡身份一同归档。
+
+| 对应项 | 运行入口 | 复核范围 |
+|---|---|---|
+| B03、B04 | `python verification/fpga/cdc/run_npu_jtag_cdc.py --static-evidence <本轮实现报告目录> --output <新目录>` | 运行 TAP 与突发 CDC 仿真并审查 `route_cdc.rpt`、`route_npu_jtag_cdc.tsv`。复核器按已知的 72/37 位端点与 20 ns 捆绑数据约束核对，配置变化导致不匹配时应逐项审查。 |
+| D01–D03 | `python verification/fpga/board/nocpu_board_cdc.py --output <新目录>` | 脚本会发协议 RESET。确认设备处于专用测试时段，核对停扫描前 BUSY、恢复后输出、重复 START 拒绝和 watchdog 恢复记录。 |
+| D04 空闲复位 | `python verification/fpga/board/nocpu_physical_reset.py arm --output <本轮复位目录>`，按实体复位键后执行同一目录的 `check` | 核对人为操作及哨兵清除。忙时项目另需复位前的 BUSY 采样。 |
+| D05 | 记录断电、上电和重配，再运行 `python verification/fpga/board/nocpu_recovery_smoke.py --output <新目录>` | 验证重配后全局复位状态和首次推理。断电及重配由操作人执行并存证。 |
+
+可在 `build/fpga_signoff/<候选编号>/` 内分别保存签核表、实现报告、下载日志、板测结果、CDC 和人工恢复记录。归档时保留生成工具写出的目录结构，使哈希与相对路径可以复核。

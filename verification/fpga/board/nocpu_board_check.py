@@ -11,7 +11,7 @@ import sys
 import traceback
 from datetime import datetime, timezone
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'software' / 'host'))
 from nocpu_jtag import ABI, JtagTransport, Npu, TclRpc
 from npu_program import Package

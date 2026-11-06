@@ -10,7 +10,7 @@ import sys
 import time
 import struct
 
-sys.path.insert(0,str(Path(__file__).resolve().parents[2]/'software/host'))
+sys.path.insert(0,str(Path(__file__).resolve().parents[3]/'software/host'))
 from nocpu_jtag import Npu, TclRpc, JtagTransport, Op
 from npu_program import compile_model, encode_tensor, Package
 

@@ -4,7 +4,7 @@ import tempfile
 import tkinter
 import unittest
 
-ROOT=Path(__file__).resolve().parents[2]
+ROOT=Path(__file__).resolve().parents[3]
 
 
 class CriticalCdcGate(unittest.TestCase):
