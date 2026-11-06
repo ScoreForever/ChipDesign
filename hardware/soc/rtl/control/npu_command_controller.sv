@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// ABI 4 INT4 transactional program endpoint. Opcodes 1..10:
+// ABI 5.0 INT4 transactional program endpoint. Opcodes 1..10:
 // READ WRITE MODEL_BEGIN MODEL_COMMIT INPUT_BEGIN INPUT_COMMIT START ACK RESET CLEAR.
 module npu_command_controller #(
  parameter ACT_BYTES=16384,MODEL_BYTES=8192,COLS=8,MAX_OPS=128,MAX_K=1024,DEFAULT_TIMEOUT=10000000

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 4.0 INT4 host: reusable model loading and arbitrary input/output tensors over JTAG."""
+"""INT4 NPU host for the ABI defined by npu_program."""
 from __future__ import annotations
 import argparse
 from enum import IntEnum
@@ -140,7 +140,11 @@ def signed32(value):
 class Npu:
     def __init__(self,transport):
         self.transport=transport
-        if self.read(0)!=ABI:raise RuntimeError('requires NPU ABI 4.0 INT4; recompile packages for this hardware')
+        actual_abi = self.read(0)
+        if actual_abi != ABI:
+            raise RuntimeError(
+                f'NPU ABI mismatch: host expects 0x{ABI:08x}, hardware reports 0x{actual_abi:08x}'
+            )
     def command(self,op,addr=0,data=0):return self.transport.exchange(op,addr,data)
     def write_block(self,addr,words):
         """Write consecutive words; bursts after the first when the transport can."""

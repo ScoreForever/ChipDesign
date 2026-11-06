@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// ABI 4: single lane, II=1, four stages. Saturating INT32 left shift, signed
+// Each lane has II=1 and four stages. Saturating INT32 left shift, signed
 // 32 x unsigned 8-bit (Q8) product, one round-half-up shift by 8+max(-shift,0),
 // INT4/u4 clamp. Shift is -31..31.
 module requant_lane #(

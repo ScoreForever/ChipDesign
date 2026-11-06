@@ -1,5 +1,5 @@
 `timescale 1ns/1ps
-// ABI 4 INT4 descriptor sequencer and shared seven-operator backend.
+// ABI 5.0 INT4 descriptor sequencer and shared seven-operator backend.
 // No model geometry, layer index or output class count is hardwired.
 // Model RAM is immutable while validating/running. Descriptors/model use byte addresses; activation ports use nibble addresses.
 module npu_program_core #(

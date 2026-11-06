@@ -1,7 +1,6 @@
 """Hardware-friendly network specs for the INT4 NPU model zoo.
 
-Constraints the specs respect (ABI 4.0, 4x8 array, 8 KiB model and
-activation SRAMs, 16 descriptors): kernels up to 7x7 with stride 1/2,
+The specs use kernels up to 7x7 with stride 1/2,
 depthwise channels a multiple of 8, fused 2x2 or 1x2 max pooling after a
 convolution, global average pooling, residual Add of two INT4 tensors.
 """

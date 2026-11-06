@@ -9,7 +9,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[3]
 sys.path.insert(0,str(ROOT/'hardware/npu/scripts'))
 from run_program_regression import fixtures, Recorder, encoded
-from npu_program import compile_model, reference
+from npu_program import ABI, compile_model, reference
 from nocpu_jtag import Npu
 
 def main(output,cols=8):
@@ -22,6 +22,6 @@ def main(output,cols=8):
     host.load_model(package)
     for _ in range(2):
         assert host.infer(encoded(frame,model['input'].get('dtype','i4')))==expected
-    recorder.rows+=['09 0 0 0 0 0','01 0 0 0 ffffffff 00040000']
+    recorder.rows+=['09 0 0 0 0 0',f'01 0 0 0 ffffffff {ABI:08x}']
     Path(output).write_text('\n'.join(recorder.rows)+'\n')
 if __name__=='__main__':main(sys.argv[1],int(sys.argv[2]) if len(sys.argv)>2 else 8)

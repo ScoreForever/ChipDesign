@@ -70,14 +70,14 @@ module tb_fullchip;
  end
  $fclose(fd);
  if(have_prev)begin op=1;addr=4;data=0;expected_error=0;exchange;end
- // Physical reset must return the host/controller to a usable ABI-4 INT4 state.
+ // Physical reset must restore the ABI 5.0 version register and clear IRQ.
  @(negedge clk);rst_n=0;repeat(6)tick(1,0,dummy);
  @(negedge clk);rst_n=1;repeat(6)tick(1,0,dummy);tick(0,0,dummy);cur_ir=5'h12;
  tick(1,0,dummy);tick(1,0,dummy);tick(0,0,dummy);tick(0,0,dummy);
  for(rc=0;rc<5;rc=rc+1)tick(rc==4,(5'h12>>rc)&1,dummy);
  tick(1,0,dummy);tick(0,0,dummy);
  op=1;addr=0;data=0;expected_error=0;exchange;
- if(value!==32'h40000 || irq!==0)$fatal(1,"Reset recovery failed");
+ if(value!==32'h00050000 || irq!==0)$fatal(1,"Reset recovery failed");
  $display("PNR_OPT_JTAG_PASS commands=%0d bursts=%0d",commands,bursts);$finish;
  end
  initial begin #2000000000;$fatal(1,"SDF global timeout");end

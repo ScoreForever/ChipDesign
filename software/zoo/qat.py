@@ -1,4 +1,4 @@
-"""INT4 quantization-aware training for the ABI 4.0 NPU.
+"""INT4 quantization-aware training for the programmable NPU.
 
 A network is a list of layer specs. The same spec drives three forms:
   * float training with BatchNorm,

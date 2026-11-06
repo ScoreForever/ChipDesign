@@ -1,8 +1,8 @@
-"""Batched integer reference for ABI 4.0 models (PyTorch, CPU or GPU).
+"""Batched integer reference for INT4 models (PyTorch, CPU or GPU).
 
 Bit-exact with npu_program.reference(): MAC/pool sums run in float64, which is
 exact for these ranges (|value| < 2**53), and Requant reproduces the hardware
-double rounding with int64 arithmetic. Used to score whole test sets.
+rounding with int64 arithmetic. Used to score whole test sets.
 """
 from __future__ import annotations
 import torch

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 4.0 INT4 board regression; runs against a manually programmed FPGA."""
+"""INT4 board regression for the current NPU ABI on a manually programmed FPGA."""
 from __future__ import annotations
 import argparse
 import hashlib
@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / 'software/host'))
 sys.path.insert(0, str(ROOT / 'hardware/npu/scripts'))
 from nocpu_jtag import Npu, Op, TclRpc, JtagTransport
-from npu_program import Package, compile_model, reference
+from npu_program import ABI, Package, compile_model, reference
 from run_program_regression import fixtures, encoded
 
 
@@ -47,7 +47,7 @@ def raw_upload(npu, pkg):
 def execute(args):
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    report = {'scope': 'ABI 4.0 INT4 no-CPU board functional suite', 'started_utc': datetime.now(timezone.utc).isoformat(),
+    report = {'scope': f'ABI 0x{ABI:08x} INT4 no-CPU board functional suite', 'started_utc': datetime.now(timezone.utc).isoformat(),
               'passed': False, 'cases': [], 'manual_pending': ['repeat START while confirmed busy', 'watchdog timeout and recovery', 'RESET while confirmed busy', 'pause TCK while confirmed busy', 'physical reset button', 'power cycle/reprogram', 'electrical/timing review'],
               'limitations': ['Board bitstream identity and build provenance require human review', 'Golden is project software reference, not independent for all cases']}
     rpc = None
@@ -90,8 +90,9 @@ def execute(args):
         caps = {f'{x:#x}': npu.read(x) for x in (0, 0x50, 0x54, 0x58, 0x5c, 0x60)}
         report['capabilities'] = caps
         cols = caps['0x58'] & 0xffff
-        if caps['0x58'] >> 16 != 4 or cols not in (4, 8) or caps['0x50'] != 8192 or caps['0x54'] != 8192:
-            raise RuntimeError('expected dual 8 KiB SRAM and 4x4 or 4x8 array')
+        if (caps['0x58'] != ((8 << 16) | 8) or caps['0x50'] != 16384
+                or caps['0x54'] != 8192 or caps['0x60'] != 128):
+            raise RuntimeError('expected an 8x8 array, 16 KiB activation address space, 8 KiB model capacity and 128 descriptors')
         fixture_list = list(fixtures())
         for name, model, frame in fixture_list:
             for fuse in (True, False):
@@ -148,7 +149,7 @@ def execute(args):
         npu.command(Op.RESET)
         mutations = [('illegal_descriptor_opcode', 0, 99, 18), ('reserved_word', 44, 1, 18),
                      ('invalid_stride', 20, 0, 18), ('invalid_shape', 40, 0, 19),
-                     ('invalid_destination', 8, 8188, 20), ('unknown_source', 4, 2048, 21)]
+                     ('invalid_destination', 8, caps['0x50'] - 4, 20), ('unknown_source', 4, 2048, 21)]
         for label, offset, value, error in mutations:
             broken = bytearray(base.image)
             struct.pack_into('<I', broken, offset, value)

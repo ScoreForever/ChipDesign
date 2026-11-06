@@ -13,6 +13,7 @@ REQUIRED_FIXTURES = ('cnn', 'pool_first', 'mlp', 'i32_pool', 'strided', 'edges',
                      'dwconv', 'dw_rect_pool', 'conv1d', 'rect_kernels', 'pool_general', 'gap_head',
                      'residual_add', 'u4_chain', 'add_inplace_src2', 'rowpad_kernels', 'rowpad_4x2',
                      'pool_i32_window')
+ABI5_FIXTURES = ('descriptors_17', 'descriptors_64', 'descriptors_128', 'spill_residual', 'full_activation_12k')
 
 
 def main():
@@ -22,7 +23,10 @@ def main():
     try:
         report = json.loads((args.evidence/'report.json').read_text(encoding='utf-8'))
         cases = {entry['name']: entry for entry in report.get('cases', [])}
-        required = {f'{name}_{mode}' for name in REQUIRED_FIXTURES for mode in ('fused', 'plain')}
+        fixtures = REQUIRED_FIXTURES
+        if report.get('capabilities', {}).get('0x0') == 0x00050000:
+            fixtures += ABI5_FIXTURES
+        required = {f'{name}_{mode}' for name in fixtures for mode in ('fused', 'plain')}
         missing = sorted(required - cases.keys())
         if missing or not report.get('passed'):
             print('INCOMPLETE: missing cases or suite failed: ' + ', '.join(missing))

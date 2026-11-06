@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ABI 4 INT4 end-to-end operator/compiler/controller/JTAG regression (Icarus)."""
+"""INT4 end-to-end operator/compiler/controller/JTAG regression (Icarus)."""
 from pathlib import Path
 import argparse
 import hashlib

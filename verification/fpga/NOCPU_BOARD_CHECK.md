@@ -1,6 +1,6 @@
 # No-CPU FPGA 人工上板与证据复核
 
-本流程针对 ABI 3.0 INT4 和当前无 CPU NPU。`nocpu_board_check.py` 实现的是 **JTAG 能力读取与重复推理 smoke test**，不是完整的板级签核套件，也不自动烧录、改变复位状态或核实 FPGA 当前配置帧。
+本流程针对 ABI 5.0 INT4 无 CPU NPU。`nocpu_board_check.py` 通过 JTAG 读取能力并重复运行推理。FPGA 烧录、复位和配置核对由操作人执行。
 
 ## 1. 构建并复核
 
@@ -33,11 +33,7 @@ openocd -f software/host/lab6_ft232h.cfg -f software/host/nocpu_openocd.cfg
 python software/host/make_demo.py --output build/nocpu_manual_demo
 ```
 
-默认示例按 4×8 编译；若硬件为 4×4，保留同一个示例输入及 expected.bin，重新打包模型：
-
-```powershell
-python software/host/npu_program.py build/nocpu_manual_demo/model.json --cols 4 --output build/nocpu_manual_demo/package4
-```
+示例按 ABI 5.0 的 8×8 阵列编译。
 
 参考输出来自项目的软件参考模型，适合 smoke test；若要提升验证独立性，应另用独立 golden 或已知答案交叉核对。模型、输入和参考输出必须相互对应。
 
@@ -57,7 +53,7 @@ python verification/fpga/nocpu_board_check.py `
   --output build/nocpu_board_check_01 --repeat 3
 ```
 
-使用 4×4 时将 `--package` 改为 `package4`。脚本要求新证据目录，要求 NPU 初始状态空闲且未配置；必要时在人工确认后用 `python software/host/nocpu_jtag.py reset` 恢复。复位会使当前模型和输入失效。初始状态不符合要求时脚本不会自动复位。
+脚本要求新证据目录，且 NPU 初始状态应为空闲且未配置。必要时在人工确认后用 `python software/host/nocpu_jtag.py reset` 恢复。复位会使当前模型和输入失效。
 
 退出码 0 表示脚本范围内全部通过，1 表示失败。`report.json` 包含能力值、输入及输出哈希、逐次比较和错误信息；证据目录还保存模型、输入、参考值、manifest 和每次实际输出。保存并关联 OpenOCD 日志、Vivado 编程日志、bitstream、构建报告与本报告。脚本校验当前源码与 provenance 中列出的源码哈希，也校验传入 bitstream 的哈希，但 **不验证该文件与 provenance 的构建关系或板上镜像身份**，这两项需人工用同次构建、下载日志和配置记录确认。
 
@@ -84,7 +80,7 @@ python verification/fpga/nocpu_board_suite.py `
   --output build/nocpu_board_suite_01 --repeat 2 --timeout 30
 ```
 
-脚本读取 ABI、容量和列数，按实际 4×4 或 4×8 编译既有回归模型。覆盖五类算子、融合/非融合、尾通道、负数、量化边界、padding/stride、长 K、INT32、完整 8 KiB 激活区，以及同一模型重复运行（输入原序/逆序）。TinyCNN 非融合超过 8 KiB 时记录为预期主机拒绝，其他编译跳过使本轮不通过。逐组保存包、输入、参考和实际输出，并保存命令事务日志。脚本检查构建 provenance 中列出的源码哈希与当前源码是否一致。错误用例检查未装载启动、输入未完成、乱序写、模型未完成、非法描述符、结果未 ACK，并在错误恢复后再次执行合法推理。失败立即停止并写 `report.json`，不得将未运行项当作通过。
+脚本读取 ABI 和硬件能力，确认 8×8 阵列、128 条描述符、8 KiB 模型容量和 16 KiB 激活地址空间后，再编译并运行回归用例。模型占用第二颗 SRAM 的高地址端，实际可用激活空间随模型大小变化。用例包含融合与非融合算子、128 条描述符、12 KiB 激活张量和跨 bank 的残差计算。脚本核对构建来源的源码哈希，逐组保存模型包、输入、参考输出、实际输出及命令事务日志。负向用例覆盖未装载启动、输入或模型未完成、乱序写、非法描述符及结果未 ACK，并在错误恢复后再次执行推理。结果写入 `report.json`。
 
 参考值来自仓库软件参考实现；TinyCNN 用例还在生成时与另一套历史整数 golden 交叉比对，其他算子不应宣称全部独立。bitstream SHA 是文件哈希，脚本无法证明当前板上配置帧与其一致；保留下载日志并人工核对版本。按测试数量与 JTAG 速度，完整回归可能耗时较长。保留 OpenOCD 输出，若网络/命令超时，先检查状态，切勿自动重发 START 或 COMMIT。
 
