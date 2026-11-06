@@ -1,4 +1,4 @@
-# 无 CPU 主机控制与模型 ABI 4.0（INT4 / u4）
+# 无 CPU 主机控制与模型 ABI 5.0（INT4 / u4）
 
 本协议用于七算子可配置 NPU，不兼容旧固定 TinyCNN JTAG/MMIO ABI，也不兼容 ABI 3.0 模型包
 （参数字、clamp 编码和描述符 flags 都已改变，须用当前 `npu_program.py` 重新编译）。
@@ -49,12 +49,12 @@ IR=0x12 Capture 报告。主机 `write_block`/`read_block` 用突发传送模型
 
 | 地址 | 含义 |
 |---|---|
-| 0x00 | ABI=0x00040000（4.0） |
+| 0x00 | ABI=0x00050000（4.0） |
 | 0x04 | bit0 busy、1 model_valid、2 input_valid、3 done、4 model_loading、5 input_loading、6 fault |
 | 0x08 | 最近错误码 |
 | 0x0c | 支持算子位图=0x1f |
 | 0x10 | 模型总 byte 数（4-byte 对齐） |
-| 0x14 | 物理描述符数量（1..16） |
+| 0x14 | 物理描述符数量（1..128） |
 | 0x18 / 0x1c | 输入基址 / byte 长度 |
 | 0x20 / 0x24 | 输出基址 / byte 长度 |
 | 0x28 | watchdog 周期数，默认 10000000，不得为零 |
@@ -63,7 +63,7 @@ IR=0x12 Capture 报告。主机 `write_block`/`read_block` 用突发传送模型
 | 0x38 / 0x3c | 执行周期 / MAC 向量发射次数 |
 | 0x40 / 0x44 / 0x48 | 激活逻辑写握手 / 模型读事务 / 激活读事务 |
 | 0x4c | 控制器任务经过周期 |
-| 0x50 / 0x54 | 激活 / 模型 byte 容量，当前默认均为8192 |
+| 0x50 / 0x54 | 激活 / 模型 byte 容量，当前分别为16384（物理总量）、8192；每个程序可用激活容量为16384-model_bytes |
 | 0x58 | 高16位阵列行数、低16位列数 |
 | 0x5c / 0x60 | MAX_K / MAX_OPS |
 | 0x64 | 输入 dtype：0=INT4、1=INT32，模型装载时必须配置 |
@@ -83,13 +83,13 @@ INT4 按 NHWC 元素顺序打包：第一个元素在 byte 的低 nibble，第�
 INT4 张量长度为 `ceil(H*W*C/2)` byte；INT32 为 `H*W*C*4` byte，禁止按每行或每通道另行补齐。
 描述符、CSR 和主机窗口仍使用 byte 地址；计算核与激活存储之间使用 nibble 地址和8位 nibble 写掩码。
 
-性能计数器和trace的寄存器布局、事件bit位置保留既有定义。激活写事件按
+全局性能计数器的布局与事件定义不变；trace 改动见下文。激活写事件按
 `w_valid && w_ready` 接受握手统计，背压期间保持valid不会重复计数。
 `0x40`及性能bank的写次数是计算核逻辑写事务数；多个半字节写合并为一次物理SRAM写后，
 该逻辑计数不会随之减少，不能把它直接当作物理SRAM写命令数。
 
 波形trace是可选调试配置。`0x180`扩展版本始终存在；`0x200`起的逐算子摘要表也是可选配置，
-`0x1a8`为16表示存在，为0表示本硬件未综合（ASIC默认，约0.2 mm²触发器），此时摘要窗口读返回地址错误2，
+`0x1a8`为128表示存在，为0表示本硬件未综合（ASIC默认），此时摘要窗口读返回地址错误2，
 `trace(include_samples=False)`明确报未启用；24个全局性能计数器不受影响。
 `0x184`为实际波形深度：1024表示启用，0表示本硬件未启用波形RAM。
 深度0时采样count、first/last timestamp和captured control/offset为0；
@@ -97,8 +97,14 @@ flags只保留任务完成位bit2，started/full/truncated均为0，波形数据
 `Npu.trace(include_samples=False)`仍可读取算子摘要；波形导出会明确报未启用，而非生成空波形。
 ASIC综合默认关闭波形RAM，仿真/FPGA默认开启，构建时可显式覆盖。
 
+ABI 5 的 trace 扩展版本为 `0x00040080`：摘要窗口为 `0x200..0x11ff`，
+波形窗口迁至 `0x2000..0x5fff`，sample[127:120] 为完整 PC，原 opcode/quantized 位移除；
+算子类型与量化标志从摘要 descriptor 解码。配置 CSR 的 PC 位为 [11:4]，范围 0..127。
+
 ## 64-byte 物理执行描述符
 
+模型物理区为统一 byte 地址 `[16384-model_bytes,16384)`；硬件模型端口自动重定位。
+激活合法范围为 `[0,16384-model_bytes)`，校验器禁止源/目标覆盖模型。
 模型区从 offset=0 开始连续存放描述符，每条 16 个 little-endian uint32。
 描述符后放权重和参数，二者都引用模型区 byte offset；不能引用描述符区。
 
@@ -116,7 +122,7 @@ ASIC综合默认关闭波形RAM，仿真/FPGA默认开启，构建时可显式�
 | 11 | Add：第二操作数 byte offset（4-byte 对齐）；其余算子为0 |
 | 12 | Add：bits7:0 第一操作数权重 wa、bits15:8 第二操作数权重 wb（有符号 8 位）；其余为0 |
 | 13..14 | 保留，必须为0 |
-| 15 | 格式标识 `0x49340f40 \| COLS`，4列为0x49340f44，8列为0x49340f48 |
+| 15 | 格式标识 `0x49340f80 \| COLS`，4列为0x49340f44，8列为0x49340f48 |
 
 保留字段在取指时检查（错误码 18），不进入执行寄存器。
 
@@ -134,14 +140,14 @@ bit17 目标为 u4；其余位必须0。
 
 ## 权重和参数打包
 
-阵列 COLS=4 或 8。权重按 `[输出通道 tile][K 行][lane]` 存放，lane 为连续 nibble，低 nibble 优先。
-K 按每四行补齐，未用输出 lane 和 K 行必须填0，权重区起始 offset 4-byte 对齐。
+阵列固定 8×8，COLS=8。权重按 `[输出通道 tile][K 行][lane]` 存放，lane 为连续 nibble，低 nibble 优先。
+K 按每八行补齐，未用输出 lane 和 K 行必须填0，权重区起始 offset 4-byte 对齐。
 COLS=8 时每个 K 行为4 B；最后一个 tile 的真实输出通道数≤4时每行为2 B，高4个 lane 补0。
-COLS=4 时每行为2 B。模型端口支持2-byte对齐的半字读取并返回到低16位，不增加第二个物理端口。
-8列满 tile 的起址为 `weight_base + tile_index*groups*16`，末尾窄 tile 总长为 `groups*8` B。
-ABI 2.x 的模型包须重新编译；主机按寄存器0拒绝版本不符，硬件还逐描述符检查 word15。
+模型端口支持2-byte对齐的半字读取并返回到低16位，不增加第二个物理端口。
+8列满 tile 的起址为 `weight_base + tile_index*groups*32`，末尾窄 tile 总长为 `groups*16` B。
+ABI 2/3/4 的模型包须重新编译；主机按寄存器0拒绝版本不符，硬件还逐描述符检查 word15。
 一般 Conv 的 K 顺序为 KH→KW→IC，FC 为连续输入特征。
-行填充布局：IC=1、KW≤4、KH>1 时，每个 kernel 行补到一个四行组 `[kx0..kx(KW-1),0..]`，
+行填充布局：IC=1、KW≤8、KH>1 时，每个 kernel 行补到一个八行组 `[kx0..kx(KW-1),0..]`，
 共 KH 组，每组一次连续读激活；由 kernel/IC 字段推导，不需要额外标志。
 深度可分离：每个输出 tile 每个 tap 存一行（COLS 个 lane 的该 tap 权重），tile 长 `taps*COLS/2` B；
 COLS=8 时该 tap 的两个 K 组复用同一行，阵列装载时展开成块对角。

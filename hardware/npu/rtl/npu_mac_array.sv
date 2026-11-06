@@ -11,9 +11,9 @@
 // The array always advances. An issue at edge t is retired with out_valid
 // LATENCY edges later, with all columns aligned to that issue.
 module npu_mac_array #(
-    parameter ARRAY_ROWS = 4,
+    parameter ARRAY_ROWS = 8,
     parameter ARRAY_COLS = 8,
-    parameter ACC_WIDTH = 10,
+    parameter ACC_WIDTH = 11,
     parameter TAG_WIDTH = 1
 ) (
     input  wire                             clk,

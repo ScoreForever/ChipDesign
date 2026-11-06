@@ -1,16 +1,16 @@
 # ChipDesign：可编程无 CPU NPU
 
-`main` 是统一开发基线：**INT4 v2 / ABI 4.0（0x00040000）**。版本来源、分支处置和验证边界见 [baseline 记录](docs/BASELINE_MAIN_20261106.md)。
+`main` 是统一开发基线：**INT4 / ABI 5.0（0x00050000）：8×8 PE、128 条描述符、共享双 SRAM**。版本来源、分支处置和验证边界见 [baseline 记录](docs/BASELINE_MAIN_20261106.md)。
 
 当前默认系统是 **主机 JTAG → 事务控制器 → 描述符调度 → 共享 INT4 NPU 后端**。
 权重为 signed INT4，激活支持 i4/u4，每 byte 打包两个值；原始累加结果为 INT32。
 每通道参数用一个 32-bit 字打包 18-bit bias、Q8 multiplier 和 6-bit shift；JSON 接口仍接收 Q15 multiplier，编译后采用单次舍入。
-旧 INT8 / ABI 3.0 模型包不兼容，必须重新编译。
+旧 ABI 3/4 模型包不兼容，必须重新编译。
 支持 Conv（含 depthwise、矩形核和 1D）、FC、MaxPool、AvgPool/GAP、Add、ReLU、Requant；形状、参数、执行顺序由模型包提供。
 常见 Conv/FC 后处理链通过局部缓冲直接传递，避免完整中间张量写回。
-默认模型与激活分别使用8 KiB存储；ASIC入口将两者映射为独立SRAM硬宏，
-激活端保留64 B读缓存、半字节写合并/转发和小写队列，避免完整张量寄存器阵列。
-物理 SRAM 宏大小不变，8 KiB 激活区可容纳16384个 INT4 元素。
+两颗 8 KiB SRAM 提供统一存储：模型镜像放在第二颗高地址端，激活可用空间为 `16384-model_bytes` B。
+编译器按张量生命周期分配连续地址，大中间张量可以跨越两颗 SRAM；统一缓存、写合并和轮转读仲裁维护一致性。
+本次实现与验证、复现命令及 EDA 交接见 [SoC 扩展记录](docs/SOC_EXPANSION_20261106.md)。
 波形和逐算子 trace 为可选调试配置：ASIC 与生产 FPGA 构建默认关闭，普通仿真默认开启。
 24 项全局性能计数器保留；主机根据能力寄存器判断调试功能是否可用。
 
@@ -52,10 +52,10 @@ python hardware/npu/scripts/run_trace_configuration.py --output build/trace_conf
 python software/host/explore_conv_streaming.py --output build/conv_streaming.json
 ```
 
-回归覆盖 4×8/4×4、七种算子、融合/独立、INT4/u4 MAC、单次舍入、PTQ 包执行、控制事务、JTAG 引脚、
-随机存储响应延迟、存储背压、复位与非法模型。`--quick` 只运行 4×8 原生控制接口。
+回归覆盖 8×8、七种算子、融合/独立、INT4/u4 MAC、单次舍入、PTQ 包执行、控制事务、JTAG 引脚、
+随机存储响应延迟、存储背压、复位与非法模型。`--quick` 只运行 8×8 原生控制接口。
 真实课程宏仿真可以追加 `--macro-model build/private_ip/RA1SHD_2048x32M8.v`；工艺 IP 不提交。
-该模式为模型和激活各实例化一颗同类型宏；未提供宏时使用同步行为存储。
+该模式在统一存储内部实例化两颗同类型宏；未提供宏时使用同步行为存储。
 
 ## 主机推理
 
@@ -66,8 +66,8 @@ python software/host/nocpu_jtag.py status
 python software/host/nocpu_jtag.py infer --package build/npu_demo/package --input build/npu_demo/input.bin --output build/npu_demo/result.bin
 ```
 
-当前 FPGA 证据覆盖 50 MHz 下七个模型的 112 帧 / 224 次实板运行；完整测试集的 67,245 次评分来自软件整数参考。
-FPGA setup WNS 为 0.000 ns，物理按键/断电恢复等项目仍未完成；ASIC 当前签核为 TT corner，未覆盖多角 STA、IR/EM。
+ABI 4 历史 FPGA 证据覆盖 50 MHz 下七个模型的 112 帧 / 224 次实板运行；完整测试集的 67,245 次评分来自软件整数参考。
+FPGA setup WNS 为 0.000 ns，物理按键/断电恢复等项目仍未完成；ABI 4 历史 ASIC 签核为 TT corner，未覆盖多角 STA、IR/EM。
 2026-10-23/24 等历史证据仅适用于当时冻结源码，不能替代当前版本验证。
 新协议不兼容旧 TinyCNN MMIO/JTAG ABI；旧固定模型实现与旧测试入口已移除，历史可从 Git 获取。
 训练/预处理仍由主机承担。仓库保留的 CPU、AXI 和课程资料不属于默认实例树。

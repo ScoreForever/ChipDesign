@@ -60,7 +60,7 @@ def main():
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=True)
     defines = ['-D' + d for d in args.define]
-    images = {cols: build(out, cols, defines) for cols in (8, 4)}
+    images = {cols: build(out, cols, defines) for cols in (8,)}
     models = sorted(p for p in args.runs.iterdir() if (p / 'model.json').exists())
     if args.models:
         models = [p for p in models if p.name in args.models.split(',')]
@@ -71,7 +71,7 @@ def main():
         for i, (frame, label) in enumerate(zip(frames, labels)):
             for fusion in (FUSIONS if i == 0 else ('all', 'none')):
                 jobs.append((run_dir.name, model, frame, label, i, 8, fusion))
-        jobs.append((run_dir.name, model, frames[0], labels[0], 0, 4, 'all'))
+
 
     def one(job):
         name, model, frame, label, index, cols, fusion = job

@@ -1,4 +1,4 @@
-"""Packed INT4 model compiler and independent integer reference, ABI 4.0.
+"""Packed INT4 model compiler and independent integer reference, ABI 5.0.
 
 Pure Python, no framework/runtime dependency. Public input uses seven logical
 operators (Conv incl. depthwise, FC, MaxPool, ReLU, Requant, AvgPool, Add).
@@ -14,12 +14,12 @@ from pathlib import Path
 import struct
 import operator
 
-# ABI 4.0: packed signed INT4 tensors/weights, INT32 raw tensors and bias,
+# ABI 5.0: eight K rows, shared SRAM tail, up to 128 descriptors; packed signed INT4 tensors/weights, INT32 raw tensors and bias,
 # Q15 multiplier + signed shift in one word, byte-addressed descriptors.
 # 4.0 adds depthwise/rectangular convolution, general and average pooling,
 # residual Add, a 1x2 fused pool and fused Requant/ReLU after pooling or Add.
-ABI=0x40000
-FORMAT_MAGIC=0x49340f40  # I4, Q15, four rows; low nibble is array column count.
+ABI=0x50000
+FORMAT_MAGIC=0x49340f80  # I4, Q15, eight rows; low nibble is array column count.
 NUMERIC_FORMAT=0x0f200404
 OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5,'AvgPool':6,'Add':7}
 Q,R,P,S32,D32,DW,P1D=1<<8,1<<9,1<<10,1<<11,1<<12,1<<13,1<<14
@@ -322,11 +322,13 @@ def fuse_policy(fuse):
         if kind not in FUSE_KINDS or (head and head not in FUSE_HEADS):raise ValueError(f'unknown fusion switch {item!r}')
     return lambda head,kind:kind in allowed or f'{head}.{kind}' in allowed
 
-def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_ops=16):
+def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_ops=128):
     """fuse: True, False, or an iterable of switches such as {'requant','relu','conv.maxpool'}.
     A node with "fuse": false is never absorbed into a preceding operator."""
     tensors,nodes=analyze(model)
-    if cols not in (4,8):raise ValueError('array columns must be 4 or 8')
+    if cols!=8:raise ValueError('ABI 5 requires 8 array columns')
+    if not 1<=max_ops<=128:raise ValueError('max_ops must be in 1..128')
+    if act_bytes!=8192 or model_bytes!=8192:raise ValueError('ABI 5 requires two 8192-byte SRAMs')
     allow=fuse_policy(fuse)
     uses={name:0 for name in tensors}
     for n in nodes:
@@ -355,28 +357,7 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
             raise ValueError(f'depthwise channels must be a multiple of {cols} array columns')
     # First-fit, whole-tensor lifetime allocation. A destination is allocated
     # before releasing its sources, so general in-place hazards cannot occur.
-    live={model['input']['name']:(0,tensors[model['input']['name']].size)}
-    allocation=dict(live);peak=align(tensors[model['input']['name']].size)
-    last_use={name:-1 for name in tensors}
-    for idx,g in enumerate(groups):
-        for name in g[0]['inputs']:last_use[name]=idx
-    for idx,g in enumerate(groups):
-        name=g[-1]['output'];size=tensors[name].size;at=0
-        for base,length in sorted(live.values()):
-            if at+size<=base:break
-            at=align(max(at,base+length))
-        # Exact in-place elementwise operations: ReLU, and Add onto an operand
-        # of the same byte size whose last use is this Add.
-        if g[0]['op']=='ReLU' and last_use[g[0]['input']]==idx:
-            at=allocation[g[0]['input']][0]
-        elif g[0]['op']=='Add':
-            for operand in g[0]['inputs']:
-                if last_use[operand]==idx and tensors[operand].size==size and operand!=model['input']['name']:
-                    at=allocation[operand][0];break
-        if at+size>act_bytes:raise ValueError(f'activation capacity exceeded: {name} needs [{at},{at+size}), capacity {act_bytes}; consider fusion/larger build')
-        allocation[name]=(at,size);live[name]=(at,size);peak=max(peak,at+size)
-        for old in list(live):
-            if old!=name and last_use.get(old,-1)<=idx:del live[old]
+    allocation={name:(0,tensor.size) for name,tensor in tensors.items()}
     image=bytearray(len(groups)*64);records=[]
     def append(payload,alignment=4):
         while len(image)%alignment:image.append(0)
@@ -396,7 +377,7 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         if op=='Conv' and n['depthwise']:flags|=DW
         weight_base=param_base=0
         if op in ('Conv','FC') and n['depthwise']:
-            # One row of COLS lane weights per tap; the COLS/4 K groups of the
+            # One row of COLS lane weights per tap; the COLS/8 K groups of the
             # tap reuse it and the array expands it to a block diagonal.
             packed=[];taps=n['kernel_h']*n['kernel_w']
             for o_base in range(0,oc,cols):
@@ -404,16 +385,16 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
             weight_base=append(pack_i4(packed),4)
         elif op in ('Conv','FC'):
             packed=[];k=n['k'];kw=n['kernel_w']
-            # Single-channel kernels up to four taps wide: one padded K group per
+            # Single-channel kernels up to eight taps wide: one padded eight-row K group per
             # kernel row (one contiguous read each); see rowpad in the core.
-            row_pad=n['input_shape'][2]==1 and kw<=4 and n['kernel_h']>1
+            row_pad=n['input_shape'][2]==1 and kw<=8 and n['kernel_h']>1
             for o_base in range(0,oc,cols):
                 width=4 if cols==8 and oc-o_base<=4 else cols
-                for ki in range(n['kernel_h']*4 if row_pad else align(k,4)):
+                for ki in range(n['kernel_h']*8 if row_pad else align(k,8)):
                     for lane in range(width):
                         o=o_base+lane
-                        logical=(ki//4)*kw+ki%4 if row_pad else ki
-                        valid=ki%4<kw if row_pad else ki<k
+                        logical=(ki//8)*kw+ki%8 if row_pad else ki
+                        valid=ki%8<kw if row_pad else ki<k
                         packed.append(n['weights'][o*k+logical] if o<oc and valid else 0)
             weight_base=append(pack_i4(packed),4)
         if op in ('Conv','FC','Requant') or q:
@@ -438,9 +419,36 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         records.append(words)
     while len(image)%4:image.append(0)
     if len(image)>model_bytes:raise ValueError(f'model needs {len(image)} bytes, capacity {model_bytes}')
+    if tensors[model['input']['name']].size>act_bytes+model_bytes-len(image):raise ValueError('input exceeds usable shared SRAM capacity')
+    live={model['input']['name']:(0,tensors[model['input']['name']].size), '__model__':(act_bytes+model_bytes-len(image),len(image))}
+    allocation={k:v for k,v in live.items() if k!='__model__'};peak=align(tensors[model['input']['name']].size)
+    last_use={name:-1 for name in tensors}
+    for idx,g in enumerate(groups):
+        for name in g[0]['inputs']:last_use[name]=idx
+    for idx,g in enumerate(groups):
+        name=g[-1]['output'];size=tensors[name].size;at=0
+        for base,length in sorted(live.values()):
+            if at+size<=base:break
+            at=align(max(at,base+length))
+        # Exact in-place elementwise operations: ReLU, and Add onto an operand
+        # of the same byte size whose last use is this Add.
+        if g[0]['op']=='ReLU' and last_use[g[0]['input']]==idx:
+            at=allocation[g[0]['input']][0]
+        elif g[0]['op']=='Add':
+            for operand in g[0]['inputs']:
+                if last_use[operand]==idx and tensors[operand].size==size and operand!=model['input']['name']:
+                    at=allocation[operand][0];break
+        if at+size>act_bytes+model_bytes-len(image):raise ValueError(f'activation capacity exceeded: {name} needs [{at},{at+size}), usable {act_bytes+model_bytes-len(image)} bytes after model reservation; consider fusion or a smaller live tensor set')
+        allocation[name]=(at,size);live[name]=(at,size);peak=max(peak,at+size)
+        for old in list(live):
+            if old not in (name,'__model__') and last_use.get(old,-1)<=idx:del live[old]
+    for words,g in zip(records,groups):
+        words[1]=allocation[g[0]['input']][0]
+        words[2]=allocation[g[-1]['output']][0]
+        if g[0]['op']=='Add':words[11]=allocation[g[0]['input2']][0]
     for i,words in enumerate(records):struct.pack_into('<16I',image,i*64,*words)
     out_name=groups[-1][-1]['output']
-    manifest=dict(abi=ABI,numeric_format=NUMERIC_FORMAT,packing='low_nibble_first',cols=cols,model_bytes=len(image),op_count=len(groups),
+    manifest=dict(rows=8,activation_bank_bytes=act_bytes,shared_model_tail=True,abi=ABI,numeric_format=NUMERIC_FORMAT,packing='low_nibble_first',cols=cols,model_bytes=len(image),op_count=len(groups),
                   input_elements=math.prod(tensors[model['input']['name']].shape),
                   input_base=0,input_bytes=tensors[model['input']['name']].size,input_dtype=tensors[model['input']['name']].dtype,
                   output_base=allocation[out_name][0],output_bytes=tensors[out_name].size,

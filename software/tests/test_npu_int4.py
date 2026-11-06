@@ -23,8 +23,8 @@ def model():
 class Transport:
     def __init__(self, cols=8, numeric=NUMERIC_FORMAT):
         self.rows=[]
-        self.regs={0:ABI, 4:10, 0x50:8192, 0x54:8192, 0x58:(4<<16)|cols,
-                   0x5c:1024, 0x60:16, 0x6c:numeric}
+        self.regs={0:ABI, 4:10, 0x50:16384, 0x54:8192, 0x58:(8<<16)|cols,
+                   0x5c:1024, 0x60:128, 0x6c:numeric}
 
     def exchange(self, op, addr=0, data=0):
         self.rows.append((op, addr, data))
@@ -49,7 +49,7 @@ class Int4Tests(unittest.TestCase):
         with self.assertRaises(ValueError):encode_tensor([1], 'i8')
 
     def test_packed_model_row_layout_parameters_and_column_marker(self):
-        for cols in (4, 8):
+        for cols in (8,):
             package=compile_model(model(), cols=cols)
             words=struct.unpack_from('<16I', package.image)
             self.assertEqual(words[15], FORMAT_MAGIC|cols)
@@ -61,6 +61,21 @@ class Int4Tests(unittest.TestCase):
             self.assertEqual(package.manifest['output_bytes'], 1)
             self.assertEqual(words[9], 0xf8)  # ABI 4: 5-bit clamp fields, -8 | 7<<5
             self.assertEqual(package.manifest['numeric_format'], NUMERIC_FORMAT)
+
+    def test_descriptor_capacity_and_shared_tail(self):
+        chain=lambda count:dict(input=dict(name='x',shape=[1,1,17]),nodes=[
+            dict(op='ReLU',input='x' if i==0 else f'r{i-1}',output=f'r{i}') for i in range(count)])
+        pkg=compile_model(chain(128))
+        self.assertEqual((pkg.manifest['op_count'],len(pkg.image)),(128,8192))
+        with self.assertRaisesRegex(ValueError,'too many physical operators'):compile_model(chain(129))
+        model=dict(input=dict(name='x',shape=[20,16,1]),nodes=[
+            dict(op='Conv',input='x',output='a',channels=8,kernel=1,weights=[1]*8,bias=[0]*8),
+            dict(op='Requant',input='a',output='y',multiplier=[0x4000]*8,shift=[-3]*8,fuse=False)])
+        pkg=compile_model(model)
+        self.assertGreater(pkg.manifest['activation_peak'],8192)
+        self.assertLessEqual(pkg.manifest['activation_peak']+len(pkg.image),16384)
+        for tensor in pkg.manifest['tensors'].values():
+            self.assertLessEqual(tensor['base']+tensor['bytes'],16384-len(pkg.image))
 
     def test_native_input_and_weights_reject_int8_range(self):
         bad=model();bad['input']['dtype']='i8'

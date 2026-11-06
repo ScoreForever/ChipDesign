@@ -1,12 +1,12 @@
 `timescale 1ns/1ps
 module my_soc_top #(
- parameter ACT_BYTES=8192,MODEL_BYTES=8192,
+ parameter ACT_BYTES=16384,MODEL_BYTES=8192,
 `ifdef NPU_ARRAY_COLS
  parameter COLS=`NPU_ARRAY_COLS,
 `else
  parameter COLS=8,
 `endif
- parameter MAX_OPS=16,MAX_K=1024
+ parameter MAX_OPS=128,MAX_K=1024
 )(input wire clk_i,rst_ni,tck_i,tms_i,td_i,output wire td_o,irq_o);
  wire cv,cr,rv,rr; wire [7:0] op; wire [31:0] addr,data,rd; wire [4:0] err;
  npu_jtag_transport i_host (

@@ -4,7 +4,7 @@
 // counters in flip-flops, about 0.2 mm^2 in TSMC 180); simulation/FPGA keep
 // them. Register 0x1a8 reports 0 entries when summaries are absent.
 // RAM payload is never reset. Only captured words may be read through the ABI.
-module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
+module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=128,
 `ifdef NPU_ENABLE_WAVE_TRACE
  parameter WAVE_ENABLE=`NPU_ENABLE_WAVE_TRACE
 `elsif SYNTHESIS
@@ -39,8 +39,8 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
  localparam AW=$clog2(DEPTH);
  reg active_q;reg [127:0] sample_q;reg [3:0] events_q;reg [31:0] descriptor_q;
  wire [31:0] stamp=sample_q[31:0],signals=sample_q[63:32];
- wire [3:0] pc=sample_q[123:120];
- reg previous_active;reg [3:0] previous_pc;reg [31:0] age;
+ wire [7:0] pc=sample_q[127:120];
+ reg previous_active;reg [7:0] previous_pc;reg [31:0] age;
  wire [31:0] current_age=previous_active && previous_pc==pc ? age : 32'd0;
  reg [31:0] op_start[0:MAX_OPS-1],op_end[0:MAX_OPS-1],op_descriptor[0:MAX_OPS-1],op_flags[0:MAX_OPS-1];
  reg [31:0] wait_activation[0:MAX_OPS-1],wait_weight[0:MAX_OPS-1],wait_slot[0:MAX_OPS-1],mac_issues[0:MAX_OPS-1];
@@ -48,12 +48,12 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
  reg started,finished,truncated,saw_active;
  reg [31:0] first_stamp,last_stamp;
  reg [31:0] captured_control,captured_offset;
- wire eligible=WAVE_ENABLE && active_q && control[0] && pc==control[7:4] && current_age>=offset &&
+ wire eligible=WAVE_ENABLE && active_q && control[0] && pc==control[11:4] && current_age>=offset &&
      (started || !control[1] || signals[10]);
  wire capture=eligible && count<DEPTH && !clear;
- wire buffer_read=WAVE_ENABLE && read_request && read_addr>='h1000 && read_addr<'h1000+DEPTH*16 &&
-     ((read_addr-'h1000)>>4)<count && read_addr[1:0]==0 && !clear;
- wire [AW-1:0] read_index=(read_addr-'h1000)>>4;
+ wire buffer_read=WAVE_ENABLE && read_request && read_addr>='h2000 && read_addr<'h2000+DEPTH*16 &&
+     ((read_addr-'h2000)>>4)<count && read_addr[1:0]==0 && !clear;
+ wire [AW-1:0] read_index=(read_addr-'h2000)>>4;
  wire [31:0] waveform_data;
  reg [1:0] read_word;
  reg buffer_q;
@@ -82,7 +82,7 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
   else read_data=waveform_data;
  end
  integer i;
- wire [3:0] op_index=read_addr[8:5];
+ wire [6:0] op_index=(read_addr-'h200)>>5;
  always @(posedge clk) begin
   if(clear)begin
    active_q<=0;sample_q<=0;events_q<=0;descriptor_q<=0;
@@ -130,10 +130,10 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
       4:register_data<=wait_activation[op_index];5:register_data<=wait_weight[op_index];
       6:register_data<=wait_slot[op_index];7:register_data<=mac_issues[op_index];
      endcase
-    end else if(read_addr>='h1000 && read_addr<'h1000+DEPTH*16)begin
+    end else if(read_addr>='h2000 && read_addr<'h2000+DEPTH*16)begin
      if(!buffer_read)read_error<=2;
     end else case(read_addr)
-     'h180:register_data<=32'h00030080;'h184:register_data<=WAVE_ENABLE ? DEPTH : 0;
+     'h180:register_data<=32'h00040080;'h184:register_data<=WAVE_ENABLE ? DEPTH : 0;
      'h188:register_data<=control;'h18c:register_data<=offset;
      'h190:register_data<={28'd0,truncated,finished,(count==DEPTH),started};
      'h194:register_data<=count;'h198:register_data<=first_stamp;'h19c:register_data<=last_stamp;
@@ -144,6 +144,6 @@ module npu_trace_capture #(parameter DEPTH=1024,MAX_OPS=16,
    end
   end
  end
- initial if(DEPTH!=1024 || MAX_OPS!=16 || (WAVE_ENABLE!=0 && WAVE_ENABLE!=1) || (OPS_ENABLE!=0 && OPS_ENABLE!=1))
+ initial if(DEPTH!=1024 || (MAX_OPS<1 || MAX_OPS>128) || (WAVE_ENABLE!=0 && WAVE_ENABLE!=1) || (OPS_ENABLE!=0 && OPS_ENABLE!=1))
   $fatal(1,"unsupported trace geometry/configuration");
 endmodule

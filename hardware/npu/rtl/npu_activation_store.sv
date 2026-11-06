@@ -136,10 +136,16 @@ module npu_activation_store #(
     wire [31:0] sram_wdata=state==S_RMW ? overlay(sram_q,q_data[head],q_mask[head]) : q_data[head];
     wire [3:0] sram_wmask={|q_mask[head][7:6],|q_mask[head][5:4],|q_mask[head][3:2],|q_mask[head][1:0]};
 `ifdef NPU_USE_RA1SHD_ACTIVATION
-    wire [10:0] macro_address=sram_addr;
-    RA1SHD_2048x32M8 i_sram(
-        .CLK(clk),.CEN(~sram_en),.OEN(1'b0),.WEN(sram_we ? ~sram_wmask : 4'hf),
-        .A(macro_address),.D(sram_wdata),.Q(sram_q));
+    wire [31:0] bank_q[0:BYTES/8192-1];
+    reg bank_select;
+    always @(posedge clk)if(sram_en && !sram_we)bank_select<=sram_addr>>11;
+    genvar bank;
+    generate for(bank=0;bank<BYTES/8192;bank=bank+1)begin:g_bank
+     RA1SHD_2048x32M8 i_sram(
+      .CLK(clk),.CEN(~(sram_en && (sram_addr>>11)==bank)),.OEN(1'b0),
+      .WEN(sram_we ? ~sram_wmask : 4'hf),.A(sram_addr[10:0]),.D(sram_wdata),.Q(bank_q[bank]));
+    end endgenerate
+    assign sram_q=bank_q[BYTES>8192 ? bank_select : 0];
 `else
     reg [31:0] mem[0:BYTES/4-1];
     reg [31:0] memory_q;
@@ -254,7 +260,7 @@ module npu_activation_store #(
            WRITE_DEPTH<2 || WRITE_DEPTH>16 || (WRITE_DEPTH&(WRITE_DEPTH-1))!=0)
             $fatal(1,"unsupported activation SRAM geometry");
 `ifdef NPU_USE_RA1SHD_ACTIVATION
-        if(BYTES>8192)$fatal(1,"activation macro supports at most 8192 bytes");
+        if(BYTES!=8192 && BYTES!=16384)$fatal(1,"activation macro banking supports 8192 or 16384 bytes");
 `endif
     end
 endmodule

@@ -175,21 +175,21 @@ class Npu:
         return dict(job=job,**values)
     def configure_trace(self, pc=0, offset=0, trigger_slot=False, enabled=True):
         """Arm the next job; caller must ACK any completed result first."""
-        if not 0<=pc<16 or not 0<=offset<2**32:
-            raise ValueError('trace PC must be 0..15 and offset must fit uint32')
+        if not 0<=pc<128 or not 0<=offset<2**32:
+            raise ValueError('trace PC must be 0..127 and offset must fit uint32')
         self.write(0x188,(pc<<4)|(int(bool(trigger_slot))<<1)|int(bool(enabled)))
         self.write(0x18c,offset)
     def trace(self, include_samples=True):
         from npu_trace import decode_sample
         status=self.read(4);job=self.read(0x2c)
         if status&1:raise RuntimeError('trace requires an idle/completed NPU')
-        if self.read(0x180)!=0x00030080:raise RuntimeError('requires INT4 trace extension v3, 128-bit samples')
+        if self.read(0x180)!=0x00040080:raise RuntimeError('requires INT4 trace extension v4, 128-bit samples')
         header={name:self.read(addr) for name,addr in (
             ('depth',0x184),('configured_control',0x188),('configured_offset',0x18c),
             ('flags',0x190),('count',0x194),('first_cycle',0x198),('last_cycle',0x19c),
             ('sample_stride',0x1a0),('operator_stride',0x1a4),('max_ops',0x1a8),
             ('captured_control',0x1ac),('captured_offset',0x1b0))}
-        if header['depth'] not in (0,1024) or header['count']>header['depth'] or header['sample_stride']!=16 or header['operator_stride']!=32 or header['max_ops'] not in (0,16):
+        if header['depth'] not in (0,1024) or header['count']>header['depth'] or header['sample_stride']!=16 or header['operator_stride']!=32 or header['max_ops'] not in (0,128):
             raise RuntimeError('unsupported/corrupt trace geometry')
         if include_samples and header['depth']==0:
             raise RuntimeError('waveform trace is not enabled in this hardware build; use trace(include_samples=False) for operator summaries')
@@ -197,7 +197,7 @@ class Npu:
             raise RuntimeError('per-operator summaries are not enabled in this hardware build (ASIC default); the global performance counters remain available')
         # Summaries absent (max_ops 0): waveform-only capture, no operator rows.
         op_count=self.read(0x14) if header['max_ops'] else 0
-        if op_count>16:raise RuntimeError('corrupt trace operator count')
+        if op_count>128:raise RuntimeError('corrupt trace operator count')
         names=('start_cycle','end_cycle','descriptor','flags','wait_activation_cycles','wait_weight_cycles','wait_slot_cycles','mac_issues')
         operators=[]
         for pc in range(op_count):
@@ -208,26 +208,26 @@ class Npu:
         samples=[]
         if include_samples:
             for index in range(header['count']):
-                words=[self.read(0x1000+index*16+i*4) for i in range(4)]
+                words=[self.read(0x2000+index*16+i*4) for i in range(4)]
                 samples.append(dict(words=words,**decode_sample(words)))
             if samples and (samples[0]['cycle']!=header['first_cycle'] or samples[-1]['cycle']!=header['last_cycle']):
                 raise RuntimeError('trace timestamps do not match header')
             if any(((b['cycle']-a['cycle'])&0xffffffff)!=1 for a,b in zip(samples,samples[1:])):
                 raise RuntimeError('trace samples are not consecutive')
-            if any(x['pc']!=((header['captured_control']>>4)&15) for x in samples):
+            if any(x['pc']!=((header['captured_control'] >>4)&255) for x in samples):
                 raise RuntimeError('trace PC does not match capture configuration')
         if self.read(0x2c)!=job or self.read(4)!=status:
             raise RuntimeError('job changed during trace read; discard capture')
-        return dict(version=3,job=job,status=status,header=header,operators=operators,samples=samples)
+        return dict(version=4,job=job,status=status,header=header,operators=operators,samples=samples)
     def load_model(self,package):
         m=package.manifest
         # All host checks happen before MODEL_BEGIN invalidates the old model.
         caps={r:self.read(r) for r in (0x50,0x54,0x58,0x5c,0x60,0x6c)}
         if caps[0x6c]!=NUMERIC_FORMAT or m.get('numeric_format')!=NUMERIC_FORMAT or m.get('packing')!='low_nibble_first':
             raise ValueError('requires packed INT4 / INT32 / Q15 model format')
-        if m['abi']!=ABI or m['cols']!=(caps[0x58]&65535):raise ValueError('ABI/array mismatch; recompile package')
+        if m['abi']!=ABI or m.get('rows')!=(caps[0x58]>>16) or m['cols']!=(caps[0x58]&65535):raise ValueError('ABI/array mismatch; recompile package')
         if len(package.image)!=m['model_bytes'] or len(package.image)%4 or len(package.image)>caps[0x54]:raise ValueError('model capacity/length')
-        if not 0<m['op_count']<=caps[0x60] or m['activation_peak']>caps[0x50]:raise ValueError('program/activation capacity')
+        if not 0<m['op_count']<=caps[0x60] or (m['activation_peak']>caps[0x50] or any(t['base']+t['bytes']>caps[0x50]-len(package.image) for t in m['tensors'].values())):raise ValueError('program/activation capacity')
         self.command(Op.MODEL_BEGIN)
         for reg,key in zip(range(0x10,0x28,4),('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes')):
             self.write(reg,m[key])

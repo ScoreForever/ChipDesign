@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 module npu_control_subsystem #(
- parameter ACT_BYTES=8192,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
+ parameter ACT_BYTES=16384,MODEL_BYTES=8192,COLS=8,MAX_OPS=128,MAX_K=1024,DEFAULT_TIMEOUT=10000000
 )(
  input wire clk_i,rst_ni,cmd_valid_i,output wire cmd_ready_o,
  input wire [7:0] cmd_op_i,input wire [31:0] cmd_addr_i,cmd_data_i,
@@ -11,7 +11,7 @@ module npu_control_subsystem #(
  // Only synchronously changing registers may drive inferred RAM controls.
  reg rst;
  always @(posedge clk_i) rst<=!rst_ni || core_reset;
- wire [4:0] error,error_op,op_count;wire input_i32;
+ wire [4:0] error; wire [7:0] error_op,op_count;wire input_i32;
  wire [15:0] model_bytes,input_base,input_bytes,output_base,output_bytes;
  wire [31:0] cycles,issues,model_reads,act_reads,act_writes;
  wire [24*32-1:0] perf_counters;
@@ -19,7 +19,7 @@ module npu_control_subsystem #(
  wire [127:0] trace_sample;wire [3:0] trace_events;
  wire [31:0] trace_descriptor,trace_control,trace_offset,trace_data;
  wire [4:0] trace_error;wire [15:0] trace_addr;
- npu_trace_capture i_trace(.clk(clk_i),.clear(trace_clear),.active(trace_active),
+ npu_trace_capture #(.MAX_OPS(MAX_OPS)) i_trace(.clk(clk_i),.clear(trace_clear),.active(trace_active),
   .sample(trace_sample),.events(trace_events),.descriptor(trace_descriptor),
   .control(trace_control),.offset(trace_offset),.read_request(trace_read),.read_addr(trace_addr),
   .read_valid(trace_valid),.read_data(trace_data),.read_error(trace_error));
@@ -47,19 +47,16 @@ module npu_control_subsystem #(
   .act_write_ready_i(act_write_ready && !running),.act_idle_i(act_idle),.act_flush_o(host_flush),
   .read_valid_o(host_ar),.read_ready_i(host_arr),.read_addr_o(host_ra),
   .read_rsp_valid_i(arv && !running),.read_rsp_ready_o(host_rsp_ready),.read_data_i(act_data));
- npu_model_store #(.BYTES(MODEL_BYTES)) i_model_store (
-  .clk(clk_i),.rst(rst),.write_valid(mw),.write_ready(mready),.write_addr(mwa),.write_data(mwd),
-  .read_request(mv),.read_ready(mr),.read_addr(ma),.read_valid(mrv),.read_response_ready(1'b1),.read_data(md));
- // Preflight never accesses activations. A registered job owner cuts the
- // descriptor FSM out of the physical RAM address arbitration path.
  assign host_arr=arr && !running;
- npu_activation_store #(.BYTES(ACT_BYTES)) i_activation (
-  .clk(clk_i),.rst(rst),.read_valid(running ? av : host_ar),.read_ready(arr),.read_addr(running ? aa : (host_ra<<1)),
+ npu_shared_store #(.BYTES(ACT_BYTES)) i_activation (
+  .clk(clk_i),.rst(rst),
+  .model_bytes(model_bytes),.model_write(mw),.model_write_ready(mready),.model_write_addr(mwa),.model_write_data(mwd),
+  .model_read(mv),.model_read_ready(mr),.model_read_addr(ma),.model_rsp_valid(mrv),.model_rsp_data(md),.read_valid(running ? av : host_ar),.read_ready(arr),.read_addr(running ? aa : (host_ra<<1)),
   .rsp_valid(arv),.rsp_ready(running ? 1'b1 : host_rsp_ready),.rsp_data(act_data),
   .write_valid(running ? aw : host_aw),.write_addr(running ? wa : (host_wa<<1)),
   .write_data(running ? wd : host_wd),.write_mask(running ? wm : {{2{host_wm[3]}},{2{host_wm[2]}},{2{host_wm[1]}},{2{host_wm[0]}}}),
   .write_ready(act_write_ready),.flush(running ? core_flush : host_flush),.idle(act_idle));
- npu_program_core #(.ACT_BYTES(ACT_BYTES),.MODEL_BYTES(MODEL_BYTES),.COLS(COLS),.MAX_OPS(MAX_OPS),.MAX_K(MAX_K)) i_npu (
+ npu_program_core #(.ACT_BYTES(ACT_BYTES),.MODEL_BYTES(MODEL_BYTES),.COLS(COLS),.MAX_OPS(MAX_OPS),.MAX_K(MAX_K),.SHARED_MODEL(1)) i_npu (
   .clk(clk_i),.rst(rst),.validate(validate),.run(run),.ready(ready),.busy(busy),
   .model_bytes(model_bytes),.input_base(input_base),.input_bytes(input_bytes),
   .output_base(output_base),.output_bytes(output_bytes),.op_count(op_count),.input_i32(input_i32),

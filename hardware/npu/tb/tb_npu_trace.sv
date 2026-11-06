@@ -18,7 +18,7 @@ module tb_npu_trace;
  begin @(negedge clk);clear=1;active=0;repeat(2)@(negedge clk);clear=0;end endtask
  task emit(input integer stamp,input integer pc,input [3:0] ev,input [31:0] sig);
  begin
-  @(negedge clk);active=1;sample={4'h1,pc[3:0],4'h8,4'h1,16'h0123,32'h04560100,sig,stamp[31:0]};
+  @(negedge clk);active=1;sample={pc[7:0],4'h8,4'h1,16'h0123,32'h04560100,sig,stamp[31:0]};
   events=ev;descriptor=32'h00000301;
  end endtask
  task finish_capture;
@@ -34,23 +34,27 @@ module tb_npu_trace;
   read_check('h218,1,0);read_check('h21c,6,0);
   read_check('h220,7,0);read_check('h224,11,0);read_check('h230,4,0);
   for(i=0;i<5;i=i+1)begin
-   read_check('h1000+i*16,i+2,0);
-   read_check('h1008+i*16,'h04560100,0);read_check('h100c+i*16,'h10810123,0);
+   read_check('h2000+i*16,i+2,0);
+   read_check('h2008+i*16,'h04560100,0);read_check('h200c+i*16,'h00810123,0);
   end
-  read_check('h1050,0,2);read_check('h1001,0,3);
+  read_check('h2050,0,2);read_check('h2001,0,3);
   control='h31;offset=99;read_check('h1ac,1,0);read_check('h1b0,2,0);
   reset_capture();control=3;offset=2;
   for(i=0;i<7;i=i+1)emit(i,0,i==0 ? 1 : i==1 ? 4 : i==6 ? 2 : 0,i==4 ? 'h400 : 0);
-  finish_capture();read_check('h194,3,0);read_check('h198,4,0);read_check('h1000,4,0);
+  finish_capture();read_check('h194,3,0);read_check('h198,4,0);read_check('h2000,4,0);
   reset_capture();control='h11;offset=0;
   emit(0,0,1,0);emit(1,0,2,0);
   for(i=2;i<1102;i=i+1)emit(i,1,i==2 ? 1 : i==3 ? 4 : i==1101 ? 2 : 0,'h80);
   finish_capture();read_check('h194,1024,0);read_check('h190,15,0);
-  read_check('h1000,2,0);read_check('h4ff0,1025,0);read_check('h5000,0,2);
+  read_check('h2000,2,0);read_check('h5ff0,1025,0);read_check('h6000,0,2);
   reset_capture();control=0;emit(0,0,1,0);emit(1,0,4,0);emit(2,0,8,0);finish_capture();
   read_check('h194,0,0);read_check('h20c,13,0);read_check('h204,3,0);
   reset_capture();control=1;emit(0,0,1,0);emit(1,0,4,0);
-  reset_capture();finish_capture();read_check('h194,0,0);read_check('h1000,0,2);read_check('h20c,0,0);
+  reset_capture();finish_capture();read_check('h194,0,0);read_check('h2000,0,2);read_check('h20c,0,0);
+  reset_capture();control='h7f1;offset=0;
+  emit(20,127,1,0);emit(21,127,4,0);emit(22,127,2,0);finish_capture();
+  read_check('h11e0,20,0);read_check('h11e4,23,0);read_check('h11ec,11,0);
+  read_check('h200c,'h7f810123,0);
   $display("PASS trace payload, per-operator boundaries, offset, trigger, overflow, failure, disable, reset and unread RAM protection");$finish;
  end
  initial begin #1000000;$fatal(1,"trace unit timeout");end

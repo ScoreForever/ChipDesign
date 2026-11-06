@@ -2,21 +2,21 @@
 // ABI 4 INT4 transactional program endpoint. Opcodes 1..10:
 // READ WRITE MODEL_BEGIN MODEL_COMMIT INPUT_BEGIN INPUT_COMMIT START ACK RESET CLEAR.
 module npu_command_controller #(
- parameter ACT_BYTES=8192,MODEL_BYTES=8192,COLS=8,MAX_OPS=16,MAX_K=1024,DEFAULT_TIMEOUT=10000000
+ parameter ACT_BYTES=16384,MODEL_BYTES=8192,COLS=8,MAX_OPS=128,MAX_K=1024,DEFAULT_TIMEOUT=10000000
 )(
  input wire clk_i,rst_ni,input wire cmd_valid_i,output wire cmd_ready_o,
  input wire [7:0] cmd_op_i,input wire [31:0] cmd_addr_i,cmd_data_i,
  output reg rsp_valid_o,input wire rsp_ready_i,output reg [4:0] rsp_error_o,output reg [31:0] rsp_data_o,
  output wire irq_o,running_o,output reg core_reset_o,output wire validate_o,run_o,
  input wire core_ready_i,core_busy_i,validation_done_i,validation_ok_i,done_i,
- input wire [4:0] core_error_i,core_error_op_i,
+ input wire [4:0] core_error_i,input wire [7:0] core_error_op_i,
  input wire [31:0] cycles_i,issues_i,model_reads_i,act_reads_i,act_writes_i,
  input wire [24*32-1:0] perf_counters_i,
  output reg [31:0] trace_control_o,trace_offset_o,
  output wire trace_read_o,output wire [15:0] trace_addr_o,
  input wire trace_valid_i,input wire [31:0] trace_data_i,input wire [4:0] trace_error_i,
  output reg [15:0] model_bytes_o,input_base_o,input_bytes_o,output_base_o,output_bytes_o,
- output reg [4:0] op_count_o,
+ output reg [7:0] op_count_o,
  output reg input_i32_o,
  output wire model_we_o,output wire [15:0] model_addr_o,output wire [31:0] model_data_o,input wire model_ready_i,
  output wire act_we_o,output wire [15:0] act_addr_o,output wire [31:0] act_data_o,output wire [3:0] act_mask_o,
@@ -27,12 +27,13 @@ module npu_command_controller #(
  localparam IDLE=0,EXEC=1,VWAIT=2,RWAIT=3,TWAIT=4,IFLUSH=5;
  reg [2:0] state; reg [7:0] op; reg [31:0] addr,data;
  reg model_valid,input_valid,model_loading,input_loading,job_active,done,faulted;
- reg [4:0] error_code,error_op;
+ reg [4:0] error_code; reg [7:0] error_op;
  reg [31:0] timeout_limit,elapsed,command_elapsed,job_id,completed_id;
  reg [15:0] model_count,input_count; reg [6:0] config_written;
  wire owned=job_active || core_busy_i || core_reset_o;
  wire locked=owned || done || faulted;
- wire config_ok=&config_written && model_bytes_o>=op_count_o*64 && model_bytes_o<=MODEL_BYTES &&
+ wire config_ok= (input_base_o+input_bytes_o<=ACT_BYTES-model_bytes_o) &&
+  (output_base_o+output_bytes_o<=ACT_BYTES-model_bytes_o) && &config_written && model_bytes_o>=op_count_o*64 && model_bytes_o<=MODEL_BYTES &&
   model_bytes_o[1:0]==0 && op_count_o>0 && op_count_o<=MAX_OPS && input_bytes_o>0 && output_bytes_o>0 &&
   input_base_o[1:0]==0 && output_base_o[1:0]==0 &&
   {1'b0,input_base_o}+{1'b0,input_bytes_o}<=ACT_BYTES && {1'b0,output_base_o}+{1'b0,output_bytes_o}<=ACT_BYTES;
@@ -53,8 +54,8 @@ module npu_command_controller #(
  assign act_mask_o={input_count+3<input_bytes_o,input_count+2<input_bytes_o,input_count+1<input_bytes_o,1'b1};
  assign read_valid_o=state==EXEC && op==1 && inspect && !owned && addr[1:0]==0;
  assign read_addr_o=addr[15:0]; assign read_rsp_ready_o=state==RWAIT;
- wire trace_selected=(addr>='h180 && addr<'h1b4) || (addr>='h200 && addr<'h400) ||
-  (addr>='h1000 && addr<'h5000);
+ wire trace_selected=(addr>='h180 && addr<'h1b4) || (addr>='h200 && addr<'h1200) ||
+  (addr>='h2000 && addr<'h6000);
  assign trace_read_o=state==EXEC && op==1 && trace_selected && !owned && addr[1:0]==0;
  assign trace_addr_o=addr[15:0];
  task automatic reply(input [4:0] code,input [31:0] value);
@@ -94,7 +95,7 @@ module npu_command_controller #(
       end else if(trace_selected)begin
        if(owned)reply(4,0);else state<=TWAIT;
       end else case(addr)
-       'h00:reply(0,32'h00040000);
+       'h00:reply(0,32'h00050000);
        'h04:reply(0,{25'd0,faulted,input_loading,model_loading,done,input_valid,model_valid,owned});
        'h08:reply(0,error_code); 'h0c:reply(0,'h7f); // opcodes 1..7
        'h10:reply(0,model_bytes_o); 'h14:reply(0,op_count_o); 'h18:reply(0,input_base_o);
@@ -102,7 +103,7 @@ module npu_command_controller #(
        'h28:reply(0,timeout_limit); 'h2c:reply(0,job_id); 'h30:reply(0,completed_id); 'h34:reply(0,error_op);
        'h38:reply(0,cycles_i); 'h3c:reply(0,issues_i); 'h40:reply(0,act_writes_i);
        'h44:reply(0,model_reads_i); 'h48:reply(0,act_reads_i); 'h4c:reply(0,elapsed);
-       'h50:reply(0,ACT_BYTES); 'h54:reply(0,MODEL_BYTES); 'h58:reply(0,(4<<16)|COLS);
+       'h50:reply(0,ACT_BYTES); 'h54:reply(0,MODEL_BYTES); 'h58:reply(0,(8<<16)|COLS);
        'h5c:reply(0,MAX_K); 'h60:reply(0,MAX_OPS);'h64:reply(0,input_i32_o);
        'h6c:reply(0,32'h0f200404); // Q15, raw INT32, activation/weight INT4.
        'h68:reply(0,32'h00010018); // Performance extension v1, 24 counters.
@@ -110,7 +111,7 @@ module npu_command_controller #(
       endcase
       2:if(locked) reply(owned ? 4 : done ? 9 : 5,0);
       else if(addr=='h188)begin
-       if((data & 32'hffffff0c)!=0)reply(8,0);else begin trace_control_o<=data;reply(0,0);end
+       if((data & 32'hfffff00c)!=0 || data[11:4]>=MAX_OPS)reply(8,0);else begin trace_control_o<=data;reply(0,0);end
       end else if(addr=='h18c)begin trace_offset_o<=data;reply(0,0);end
       else if(addr=='h28) begin if(data==0) reply(8,0); else begin timeout_limit<=data; reply(0,0); end end
       else if(addr=='h64)begin
@@ -122,7 +123,7 @@ module npu_command_controller #(
        else if(data>65535 || (addr=='h14 && (data==0 || data>MAX_OPS))) reply(8,0);
        else begin
         case(addr)
-         'h10:model_bytes_o<=data[15:0]; 'h14:op_count_o<=data[4:0]; 'h18:input_base_o<=data[15:0];
+         'h10:model_bytes_o<=data[15:0]; 'h14:op_count_o<=data[7:0]; 'h18:input_base_o<=data[15:0];
          'h1c:input_bytes_o<=data[15:0]; 'h20:output_base_o<=data[15:0]; 'h24:output_bytes_o<=data[15:0];
         endcase
         config_written[(addr-'h10)>>2]<=1; reply(0,0);

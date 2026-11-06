@@ -3,21 +3,21 @@
 // No model geometry, layer index or output class count is hardwired.
 // Model RAM is immutable while validating/running. Descriptors/model use byte addresses; activation ports use nibble addresses.
 module npu_program_core #(
-    parameter ACT_BYTES=8192, MODEL_BYTES=8192, COLS=8,
+    parameter ACT_BYTES=8192, MODEL_BYTES=8192, COLS=8, ROWS=8, SHARED_MODEL=0,
 `ifdef NPU_TILE
     parameter TILE=`NPU_TILE,
 `else
     parameter TILE=16,
 `endif
-    parameter MAX_OPS=16, MAX_K=1024, PSUM_BITS=18
+    parameter MAX_OPS=128, MAX_K=1024, PSUM_BITS=18
 ) (
     input wire clk,rst, input wire validate,run,
     input wire [15:0] model_bytes,input_base,input_bytes,output_base,output_bytes,
-    input wire [4:0] op_count,
+    input wire [7:0] op_count,
     input wire input_i32,
     output wire ready, output wire busy,
     output reg validation_done,validation_ok,done,
-    output reg [4:0] error,error_op,
+    output reg [4:0] error, output reg [7:0] error_op,
     output reg [31:0] cycles,issues,model_reads,act_reads,act_writes,
     output wire [24*32-1:0] perf_counters,
     output wire trace_clear,trace_active,
@@ -38,7 +38,7 @@ module npu_program_core #(
     localparam L_IDLE=0,L_REQ=1,L_WAIT=2,L_HAVE=3;
     reg [3:0] state;
     reg checking;
-    reg [4:0] pc;
+    reg [7:0] pc;
     reg [3:0] fetch_word;
     reg [31:0] d[0:15];
     // Full opcode is checked before execution. Cache the hot one-bit modes
@@ -87,9 +87,9 @@ module npu_program_core #(
     // Only checked channel counts (<=256) reach the execution path.
     wire [8:0] channels=mac_op ? oc[8:0] : ic[8:0];
     wire need_params=mac_op || q_enable;
-    // IC=1 kernels up to four taps wide: each kernel row is padded to one
-    // four-tap K group, so every group is a single contiguous activation read.
-    wire rowpad=mac_op && !dwconv && ic==1 && kw<=4 && kh>1;
+    // IC=1 kernels up to eight taps wide: each kernel row is padded to one
+    // eight-tap K group, so every group is a single contiguous activation read.
+    wire rowpad=mac_op && !dwconv && ic==1 && kw<=ROWS && kh>1;
     wire [15:0] chb={7'd0,channels}<<(dst32 ? 3 : 0);
     wire [15:0] icb=ic<<(src32 ? 3 : 0);
     wire last_param=checking ? param_channel==channels-1 :
@@ -139,7 +139,7 @@ module npu_program_core #(
             xoh=(($signed({1'b0,ih})+$signed({1'b0,pt})+$signed({1'b0,pb})-$signed({1'b0,kh})) >>> (sh==2))+1;
             xow=(($signed({1'b0,iw})+$signed({1'b0,pl})+$signed({1'b0,pr})-$signed({1'b0,kw})) >>> (sw==2))+1;
             // Row-padded single-channel kernels use one K group per kernel row.
-            xk=rowpad ? kh[2:0]*4 : kh[2:0]*kw[2:0]*(dwconv ? COLS : ic);
+            xk=rowpad ? kh[2:0]*ROWS : kh[2:0]*kw[2:0]*(dwconv ? COLS : ic);
         end
         // A standalone pool takes its output size from word 10; validate it
         // as the floor size instead of dividing by the stride.
@@ -156,7 +156,9 @@ module npu_program_core #(
             (elem_pool && (ih<pkh || iw<pkw || pool_chk_h+pkh>ih || pool_chk_h+psh+pkh<=ih ||
                            pool_chk_w+pkw>iw || pool_chk_w+psw+pkw<=iw)) ||
             d[10]!={xdw[15:0],xdh[15:0]};
-        range_bad=xsrc<1 || xsrc>ACT_BYTES*2 || xdst<1 || xdst>ACT_BYTES*2 ||
+        range_bad=(SHARED_MODEL && (src+xsrc>(ACT_BYTES-model_bytes)*2 ||
+            dst+xdst>(ACT_BYTES-model_bytes)*2 ||
+            (op==ADD && src2+xsrc>(ACT_BYTES-model_bytes)*2))) || xsrc<1 || xsrc>ACT_BYTES*2 || xdst<1 || xdst>ACT_BYTES*2 ||
             $signed({1'b0,src})+xsrc>ACT_BYTES*2 || $signed({1'b0,dst})+xdst>ACT_BYTES*2 ||
             (mac_op && ($signed({1'b0,weights})+xweight>model_bytes || weights<op_count*64)) ||
             (need_params && ($signed({1'b0,params})+xparam>model_bytes || params<op_count*64)) ||
@@ -180,7 +182,7 @@ module npu_program_core #(
     // Weight prefetch fills the idle array bank while the other bank issues.
     reg [1:0] lstate;
     reg [15:0] load_seq,issue_seq,load_g,issue_g,load_tile,issue_tile;
-    reg [1:0] load_row;
+    reg [$clog2(ROWS)-1:0] load_row;
     reg load_more,issue_more;
     reg [COLS*4-1:0] load_data;
     reg [1:0] bank_ready;
@@ -192,12 +194,16 @@ module npu_program_core #(
     wire narrow=COLS==8 && tile_channels<=4;
     wire [15:0] row_bytes=narrow ? 16'd2 : COLS/2;
     wire load_return=lstate==L_WAIT && m_rsp_valid;
-    wire array_weight_we=state==EXECUTE && mac_op && (lstate==L_HAVE || load_return) && inflight[load_bank]==0;
+    // Padded K rows still program zero into every PE, but consume no model
+    // read bandwidth. This matters for eight-row groups and narrow kernels.
+    wire load_zero=!dwconv && (rowpad ? load_row>=kw : load_g*ROWS+load_row>=k_count);
+    wire next_load_zero=!dwconv && (rowpad ? load_row+1>=kw : load_g*ROWS+load_row+1>=k_count);
+    wire array_weight_we=state==EXECUTE && mac_op && (lstate==L_HAVE || load_return || (lstate==L_REQ && load_zero)) && inflight[load_bank]==0;
     wire [COLS*4-1:0] response_row=narrow ? (m_data & 32'h0000ffff) : m_data;
-    wire [COLS*4-1:0] loaded_row=load_return ? response_row : load_data;
+    wire [COLS*4-1:0] loaded_row=load_zero ? 0 : load_return ? response_row : load_data;
     // Depthwise: one stored row per tap carries every lane's weight; group g
     // of the tap keeps lane (g%(COLS/4))*4+r in row r, a block diagonal.
-    wire [$clog2(COLS)-1:0] dw_lane=COLS==8 ? {load_g[0],load_row} : load_row;
+    wire [$clog2(COLS)-1:0] dw_lane=(load_g*ROWS+load_row)%COLS;
     wire [COLS*4-1:0] array_weights=dwconv ? (loaded_row & ({{(COLS*4-4){1'b0}},4'hf}<<(dw_lane*4))) : loaded_row;
     reg [15:0] weight_tile_base,load_address;
     wire load_start=load_more && lstate==L_IDLE && !bank_ready[load_bank] &&
@@ -266,22 +272,22 @@ module npu_program_core #(
     assign w_data=write_data[write_head];
     assign w_mask=write_mask[write_head];
 
-    // Activation gather. A four-nibble consecutive group uses one synchronous
+    // Activation gather. A eight-nibble consecutive group uses one synchronous
     // read. Boundary/nonconsecutive groups use scalar reads with zero masks.
     reg [4:0] issue_p;
-    reg [1:0] gather_state,gather_row;
-    reg [15:0] gathered;
-    reg [15:0] gather_addr[0:3];
-    reg [3:0] gather_mask;
+    reg [1:0] gather_state; reg [$clog2(ROWS)-1:0] gather_row;
+    reg [ROWS*4-1:0] gathered;
+    reg [15:0] gather_addr[0:ROWS-1];
+    reg [ROWS-1:0] gather_mask;
     reg gather_contiguous;
-    reg [1:0] gather_first;
-    wire gather_return=gather_state==2 && a_rsp_valid && (gather_contiguous || gather_row==3);
+    reg [$clog2(ROWS)-1:0] gather_first;
+    wire gather_return=gather_state==2 && a_rsp_valid && (gather_contiguous || gather_row==ROWS-1);
     wire gather_full=gather_state==3 || gather_return;
-    reg [15:0] returned_vector;
+    reg [ROWS*4-1:0] returned_vector;
     integer gv;
     always @* begin
-        returned_vector={a_data[3:0],gathered[11:0]};
-        if(gather_contiguous) for(gv=0;gv<4;gv=gv+1)
+        returned_vector=gathered; returned_vector[gather_row*4+:4]=a_data[3:0];
+        if(gather_contiguous) for(gv=0;gv<ROWS;gv=gv+1)
             returned_vector[gv*4+:4]=gather_mask[gv] ? (a_data>>((gv-gather_first)*4)) : 0;
     end
     wire [31:0] remaining=positions-issue_tile*TILE;
@@ -299,8 +305,8 @@ module npu_program_core #(
     wire issue_fire=state==EXECUTE && issue_can_fire;
     // First and last flags plus position (six bits total).
     wire [5:0] in_tag={issue_g==0,last_group,tag_pos};
-    wire out_valid,out_bank; wire [5:0] out_tag; wire [COLS*10-1:0] out_sum;
-    npu_mac_array #(.ARRAY_ROWS(4),.ARRAY_COLS(COLS),.ACC_WIDTH(10),.TAG_WIDTH(6)) i_array (
+    wire out_valid,out_bank; wire [5:0] out_tag; wire [COLS*11-1:0] out_sum;
+    npu_mac_array #(.ARRAY_ROWS(ROWS),.ARRAY_COLS(COLS),.ACC_WIDTH(11),.TAG_WIDTH(6)) i_array (
         .clk(clk),.rst(rst),.weight_we(array_weight_we),.weight_bank(load_bank),
         .weight_row(load_row),.weight_data(array_weights),.in_valid(issue_fire),
         .in_bank(issue_seq[0]),.in_act(gather_return ? returned_vector : gathered),.in_unsigned(su),.in_tag(in_tag),
@@ -314,7 +320,7 @@ module npu_program_core #(
     reg signed [PSUM_BITS-1:0] reduced;
     reg signed [31:0] biased;
     integer lane;
-    // Layer setup computes strides; group setup computes four kernel offsets.
+    // Layer setup computes strides; group setup computes eight kernel offsets.
     // The issue path contains only bounded additions/comparisons, no multipliers.
     reg [7:0] cursor_y,cursor_x,tile_y,tile_x;
     // Keep the row-end comparison off the gather/address path. The cursor
@@ -323,12 +329,12 @@ module npu_program_core #(
     reg [7:0] scan_last_x,element_last_x;
     reg [10:0] kernel_c;
     reg [2:0] kernel_y,kernel_x;
-    reg [15:0] kernel_offset,k_offsets[0:3],cursor_base,tile_base;
-    reg [2:0] k_ys[0:3],k_xs[0:3];reg [3:0] k_valid;
+    reg [15:0] kernel_offset,k_offsets[0:ROWS-1],cursor_base,tile_base;
+    reg [2:0] k_ys[0:ROWS-1],k_xs[0:ROWS-1];reg [ROWS-1:0] k_valid;
     // Pairwise nibble contiguity is invariant across a kernel group. Keep six
     // flags instead of putting a first-valid mux and 16-bit offset arithmetic
     // after the spatial boundary mask on every activation request.
-    reg [5:0] k_consecutive;
+    reg [ROWS*ROWS-1:0] k_consecutive;
     reg kernel_prepare;
     reg [15:0] x_step,y_step,origin,scan_jump,pool_scan_jump,kernel_row_jump,kernel_col_jump;
     // Depthwise kernels walk only the COLS channels of the current tile per tap.
@@ -336,15 +342,15 @@ module npu_program_core #(
     reg [31:0] scan_product,pool_scan_product;
     reg [10:0] prep_kc;
     reg [2:0] prep_kx,prep_ky;
-    reg [15:0] prep_offset,prep_offsets[0:3];
-    reg [2:0] prep_ys[0:3],prep_xs[0:3];reg [3:0] prep_valid;
+    reg [15:0] prep_offset,prep_offsets[0:ROWS-1];
+    reg [2:0] prep_ys[0:ROWS-1],prep_xs[0:ROWS-1];reg [ROWS-1:0] prep_valid;
     integer kr;
     always @* begin
         prep_kc=kernel_c;prep_kx=kernel_x;prep_ky=kernel_y;prep_offset=kernel_offset;
         prep_valid=0;
-        for(kr=0;kr<4;kr=kr+1)begin
+        for(kr=0;kr<ROWS;kr=kr+1)begin
             prep_offsets[kr]=prep_offset;prep_ys[kr]=prep_ky;prep_xs[kr]=prep_kx;
-            prep_valid[kr]=issue_g*4+kr<k_count;
+            prep_valid[kr]=issue_g*ROWS+kr<k_count;
             if(prep_kc==kernel_ic-11'd1)begin
                 prep_kc=0;
                 if(prep_kx==kw-8'd1)begin
@@ -362,9 +368,9 @@ module npu_program_core #(
     reg [4:0] calc_p;
     reg [8:0] calc_y,calc_x,next_y,next_x;
     reg [15:0] calc_base,next_base;
-    integer r;
-    reg [15:0] calc_addr[0:3];reg [3:0] calc_mask;reg calc_contiguous;
-    reg [1:0] calc_first;
+    integer r,rr;
+    reg [15:0] calc_addr[0:ROWS-1];reg [ROWS-1:0] calc_mask;reg calc_contiguous;
+    reg [$clog2(ROWS)-1:0] calc_first;
     // Position and tile length change only at group setup or issue_fire.
     // Register the lookahead predicate so issue_p's terminal-count compare
     // does not precede the gather mask/address and activation forwarding path.
@@ -394,7 +400,7 @@ module npu_program_core #(
         if(pool_enable)begin cy=pool1d ? calc_y : calc_y*2+calc_p[1];cx=calc_x*2+calc_p[0];end
         else begin cy=calc_y;cx=calc_x;end
         calc_mask=0;
-        for(r=0;r<4;r=r+1)begin
+        for(r=0;r<ROWS;r=r+1)begin
             y=(sh[1] ? cy<<<1 : cy)+$signed({1'b0,k_ys[r]})-$signed({1'b0,pt[2:0]});
             x=(sw[1] ? cx<<<1 : cx)+$signed({1'b0,k_xs[r]})-$signed({1'b0,pl[2:0]});
             calc_addr[r]=calc_base+k_offsets[r];
@@ -402,16 +408,12 @@ module npu_program_core #(
                 !x[9] && x<$signed({2'b0,iw[7:0]});
         end
         calc_first=0;
-        for(r=3;r>=0;r=r-1)if(calc_mask[r])calc_first=r;
+        for(r=ROWS-1;r>=0;r=r-1)if(calc_mask[r])calc_first=r;
         // All selected pairs must preserve their nibble-lane distance. Empty
         // and singleton masks are contiguous, including masked padding lanes.
-        calc_contiguous=
-            (!(calc_mask[0] && calc_mask[1]) || k_consecutive[0]) &&
-            (!(calc_mask[0] && calc_mask[2]) || k_consecutive[1]) &&
-            (!(calc_mask[0] && calc_mask[3]) || k_consecutive[2]) &&
-            (!(calc_mask[1] && calc_mask[2]) || k_consecutive[3]) &&
-            (!(calc_mask[1] && calc_mask[3]) || k_consecutive[4]) &&
-            (!(calc_mask[2] && calc_mask[3]) || k_consecutive[5]);
+        calc_contiguous=1;
+        for(r=0;r<ROWS;r=r+1)for(rr=0;rr<ROWS;rr=rr+1)
+            if(r<rr && calc_mask[r] && calc_mask[rr] && !k_consecutive[r*ROWS+rr])calc_contiguous=0;
     end
 
     // Standalone operators feed the same four result slots and postprocessor.
@@ -487,10 +489,10 @@ module npu_program_core #(
         else if(state==PWAIT && m_rsp_valid && !last_param && !param_bad) begin
             m_valid=1; m_addr=params+next_param_channel*4;
         end
-        else if(state==EXECUTE && mac_op && lstate==L_REQ) begin
+        else if(state==EXECUTE && mac_op && lstate==L_REQ && !load_zero) begin
             m_valid=1; m_addr=load_address;
 
-        end else if(state==EXECUTE && mac_op && array_weight_we && load_row!=3) begin
+        end else if(state==EXECUTE && mac_op && array_weight_we && load_row!=ROWS-1 && !next_load_zero) begin
             m_valid=1; m_addr=dwconv ? load_address : load_address+row_bytes;
         end
         if(state==EXECUTE) begin
@@ -573,8 +575,7 @@ module npu_program_core #(
     // Samples describe values immediately before the rising execution edge.
     // Opcode is zero while fetching; the descriptor table carries fusion flags.
     assign trace_sample={
-        (state==FREQ || state==FWAIT ? 1'b0 : q_enable),
-        (state==FREQ || state==FWAIT ? 3'b0 : op),pc[3:0],state,
+        pc,state,
         (write_fire ? (w_mask==8'hff ? 4'd8 : w_mask==8'h03 ? 4'd2 : 4'd1) : 4'd0),(write_fire ? w_addr : 16'b0),
         (a_valid ? a_addr : 16'b0),(m_valid ? m_addr : 16'b0),
         lstate,gather_state,perf_inflight,bank_ready,slot_ready,slot_busy,
@@ -706,7 +707,7 @@ module npu_program_core #(
                         11: if(d[0][7:0]==ADD ? (m_data[31:15]!=0 || m_data[1:0]!=0) : m_data!=0) fetch_bad<=1;
                         12: if(d[0][7:0]==ADD ? m_data[31:16]!=0 : m_data!=0) fetch_bad<=1;
                         13,14: if(m_data!=0) fetch_bad<=1;
-                        15: if(m_data!=(32'h49340f40|COLS)) fetch_bad<=1;
+                        15: if(m_data!=(32'h49340f80|COLS)) fetch_bad<=1;
                         default: ;
                     endcase
                     if(fetch_word==15) begin
@@ -724,7 +725,7 @@ module npu_program_core #(
                 end
                 BASIC: if(basic_bad) fail(2); else begin
                     oh<=xoh;ow<=xow;dh<=xdh;dw<=xdw;k_count<=xk;
-                    groups<=(xk+3)/4;octs<=(channels+COLS-1)/COLS;
+                    groups<=(xk+ROWS-1)/ROWS;octs<=(channels+COLS-1)/COLS;
                     astep<=0;state<=DERIVE;
                 end
                 DERIVE:begin
@@ -738,8 +739,8 @@ module npu_program_core #(
                         5:pool_chk_h<=mul_p;
                         6:pool_chk_w<=mul_p;
                         default:begin
-                            weight_span<=dwconv ? mul_p*2 :
-                                mul_p*4*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*8 : 0);
+                            weight_span<=dwconv ? mul_p*(ROWS/2) :
+                                mul_p*ROWS*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*ROWS*2 : 0);
                             param_span<=channels*4;
                             positions<=dst_pixels<<(!pool_enable ? 0 : pool1d ? 1 : 2);
                             state<=CHECK;
@@ -796,8 +797,8 @@ module npu_program_core #(
                         7:origin_x<=mul_p;
                         8:begin
                             // Depthwise tiles hold one COLS-lane row per tap: groups*2 bytes.
-                            weight_tile_base<=weights+mul_p*(dwconv ? 2 : 4*(COLS/2));
-                            load_address<=weights+mul_p*(dwconv ? 2 : 4*(COLS/2));
+                            weight_tile_base<=weights+mul_p*(dwconv ? ROWS/2 : ROWS*(COLS/2));
+                            load_address<=weights+mul_p*(dwconv ? ROWS/2 : ROWS*(COLS/2));
                         end
                         default:begin
                             // Normal kernels step over IC contiguous channels per tap;
@@ -843,30 +844,26 @@ module npu_program_core #(
                     end
                     if(mac_op) begin
                         if(kernel_prepare)begin
-                            for(v=0;v<4;v=v+1)begin
+                            for(v=0;v<ROWS;v=v+1)begin
                                 k_offsets[v]<=prep_offsets[v];k_ys[v]<=prep_ys[v];k_xs[v]<=prep_xs[v];
                             end
-                            k_consecutive[0]<=prep_offsets[1]==prep_offsets[0]+16'd1;
-                            k_consecutive[1]<=prep_offsets[2]==prep_offsets[0]+16'd2;
-                            k_consecutive[2]<=prep_offsets[3]==prep_offsets[0]+16'd3;
-                            k_consecutive[3]<=prep_offsets[2]==prep_offsets[1]+16'd1;
-                            k_consecutive[4]<=prep_offsets[3]==prep_offsets[1]+16'd2;
-                            k_consecutive[5]<=prep_offsets[3]==prep_offsets[2]+16'd1;
+                            for(v=0;v<ROWS;v=v+1)for(integer vv=0;vv<ROWS;vv=vv+1)
+                                k_consecutive[v*ROWS+vv]<=prep_offsets[vv]==prep_offsets[v]+vv-v;
                             k_valid<=prep_valid;kernel_prepare<=0;
                             tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
                             has_next_q<=remaining>1;
                             last_group<=issue_g==groups-16'd1;
                         end
                         if(load_start) lstate<=L_REQ;
-                        if(lstate==L_REQ && m_ready) lstate<=L_WAIT;
+                        if(lstate==L_REQ && m_ready && !load_zero) lstate<=L_WAIT;
                         if(lstate==L_WAIT && m_rsp_valid) begin
                             if(!array_weight_we) begin load_data<=response_row; lstate<=L_HAVE; end
                         end
                         if(array_weight_we) begin
                             // Depthwise: every group of a tap reuses that tap's one stored row.
-                            load_address<=load_row==3 && load_g==groups-1 ? weight_tile_base :
-                                dwconv && (load_row!=3 || (COLS==8 && !load_g[0])) ? load_address : load_address+row_bytes;
-                            if(load_row==3) begin
+                            load_address<=load_row==ROWS-1 && load_g==groups-1 ? weight_tile_base :
+                                dwconv && (load_row!=ROWS-1 || ((load_g+1)%(COLS/ROWS)!=0)) ? load_address : load_address+row_bytes;
+                            if(load_row==ROWS-1) begin
                                 load_row<=0; lstate<=L_IDLE; bank_ready[load_bank]<=1; load_seq<=load_seq+1'b1;
                                 if(load_g!=groups-1) load_g<=load_g+1'b1;
                                 else begin
@@ -874,25 +871,25 @@ module npu_program_core #(
                                     if((load_tile+1)*TILE<positions) load_tile<=load_tile+1'b1;
                                     else load_more<=0;
                                 end
-                            end else begin load_row<=load_row+1'b1; lstate<=m_ready ? L_WAIT : L_REQ; end
+                            end else begin load_row<=load_row+1'b1; lstate<=!next_load_zero && m_ready ? L_WAIT : L_REQ; end
                         end
                         if(issue_more && !kernel_prepare) case(gather_state)
                             0: begin
-                                for(v=0;v<4;v=v+1) gather_addr[v]<=calc_addr[v];
+                                for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
                                 gather_mask<=calc_mask; gather_contiguous<=calc_contiguous;
                                 gather_first<=calc_first;
                                 gathered<=0; gather_row<=0;
                                 gather_state<=calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
                             end
                             1: if(!gather_mask[gather_row]) begin
-                                if(gather_row==3) gather_state<=3;
+                                if(gather_row==ROWS-1) gather_state<=3;
                                 else gather_row<=gather_row+1'b1;
                             end else if(a_ready) gather_state<=2;
                             2: if(a_rsp_valid) begin
                                 if(gather_contiguous) begin gathered<=returned_vector; gather_state<=3; end
                                 else begin
                                     gathered[gather_row*4+:4]<=a_data[3:0];
-                                    if(gather_row==3) gather_state<=3;
+                                    if(gather_row==ROWS-1) gather_state<=3;
                                     else begin gather_row<=gather_row+1'b1; gather_state<=1; end
                                 end
                             end
@@ -900,7 +897,7 @@ module npu_program_core #(
                         endcase
                         if(issue_fire) begin
                             issues<=issues+1;
-                            for(v=0;v<4;v=v+1) gather_addr[v]<=calc_addr[v];
+                            for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
                             gather_mask<=calc_mask; gather_contiguous<=calc_contiguous; gather_first<=calc_first;
                             gathered<=0; gather_row<=0;
                             gather_state<=!has_next ? 0 : calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
@@ -935,7 +932,7 @@ module npu_program_core #(
                         if(out_valid) begin
                             for(lane=0;lane<COLS;lane=lane+1) begin
                                 reduced=$signed(ret_first ? {PSUM_BITS{1'b0}} : psum[psum_index][lane*PSUM_BITS+:PSUM_BITS])+
-                                    $signed(out_sum[lane*10+:10]);
+                                    $signed(out_sum[lane*11+:11]);
                                 biased=$signed(reduced)+$signed(bias_cache[lane]);
                                 if(!ret_last) psum[psum_index][lane*PSUM_BITS+:PSUM_BITS]<=reduced;
                                 else if(!pool_enable || ret_tap_first ||
@@ -1015,8 +1012,8 @@ module npu_program_core #(
         end
     end
     // TILE output positions share one weight load: 16 (psum 16xCOLSx18 FF) or 8.
-    initial if((COLS!=4 && COLS!=8) || (TILE!=16 && TILE!=8) || MAX_K<1 || MAX_K>1024 ||
-        MAX_OPS<1 || MAX_OPS>16 || PSUM_BITS<18 || ACT_BYTES<64 || ACT_BYTES>16384)
+    initial if((COLS!=8) || (TILE!=16 && TILE!=8) || MAX_K<1 || MAX_K>1024 ||
+        (ROWS!=8) || MAX_OPS<1 || MAX_OPS>128 || PSUM_BITS<18 || ACT_BYTES<64 || ACT_BYTES>16384)
         $fatal(1,"unsupported program-core geometry");
 endmodule
 

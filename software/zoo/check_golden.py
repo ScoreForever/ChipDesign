@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check packaged models against the current compiler and integer reference.
 
-For every software/zoo/pretrained/<model>: the compiled c8/c4 images must be
+For every software/zoo/pretrained/<model>: the compiled c8 images must be
 byte-identical to the packaged ones, and the integer reference must reproduce
 each golden frame's output and output bytes. Needs no dataset, GPU or torch.
 
@@ -27,7 +27,7 @@ def main():
     for run in sorted(p for p in args.models.iterdir() if (p / 'model.json').exists()):
         model = json.loads((run / 'model.json').read_text())
         problems = []
-        for cols in (8, 4):
+        for cols in (8,):
             pkg = compile_model(model, cols=cols, fuse=True)
             if pkg.image != (run / f'c{cols}/model.bin').read_bytes():
                 problems.append(f'c{cols} image differs')

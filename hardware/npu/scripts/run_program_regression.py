@@ -91,6 +91,15 @@ def fixtures(seed=7):
         dict(op='Conv',input='x',output='a',channels=8,kernel=1,
              weights=[1,-1,2,-2,3,-3,4,-4],bias=[0]*8),
         q('a','y',8,-2)]),[i%16-8 for i in range(64)]
+    for count in (17,64,128):
+        nodes=[dict(op='ReLU',input='x' if i==0 else f'r{i-1}',output=f'r{i}') for i in range(count)]
+        yield f'descriptors_{count}',dict(input=dict(name='x',shape=[1,1,17]),nodes=nodes),list(range(-8,8))+[-1]
+    yield 'spill_residual',dict(input=dict(name='x',shape=[20,16,8],dtype='u4'),nodes=[
+        dict(op='Conv',input='x',output='a',channels=8,kernel=1,weights=[-8]*64,bias=[1]*8),
+        dict(op='Requant',input='a',output='b',multiplier=[0x4000]*8,shift=[-6]*8,fuse=False),
+        dict(op='Add',input='b',input2='x',output='y',weights=[-3,7])]),[15 if i%3 else 0 for i in range(2560)]
+    yield 'full_activation_12k',dict(input=dict(name='x',shape=[128,192,1]),nodes=[
+        dict(op='ReLU',input='x',output='y')]),[i%16-8 for i in range(24576)]
     yield from fixtures_v4(r,mac,q)
 
 def fixtures_v4(r,mac,q):
@@ -172,7 +181,7 @@ def fixtures_v4(r,mac,q):
 class Recorder:
     """Records the real host API. Expected data comes only from logical oracle."""
     def __init__(self,pkg,output):
-        self.rows=[];self.regs={0:ABI,0x50:8192,0x54:8192,0x58:(4<<16)|pkg.manifest['cols'],0x5c:1024,0x60:16,0x6c:0x0f200404}
+        self.rows=[];self.regs={0:ABI,0x50:16384,0x54:8192,0x58:(8<<16)|pkg.manifest['cols'],0x5c:1024,0x60:128,0x6c:0x0f200404}
         self.output=output;self.started=False;self.completed=False;self.pkg=pkg;self.burst_addr=0
         self.check_live_perf=False
     def exchange(self,op,addr=0,data=0):
@@ -227,7 +236,7 @@ def run(command,log):
 def negative_tests(out,image):
     name,model,frame=next(fixtures());base=compile_model(model)
     mutations=[('opcode',0,99,18),('reserved',44,1,18),('old_abi',60,0,18),('wrong_cols',60,0x49340f44,18),('stride',20,0,18),
-               ('shape',40,0,19),('destination',8,8188,20),('source',4,2048,21),
+               ('shape',40,0,19),('model_overlap',8,16384-len(base.image),20),('destination',8,16380,20),('source',4,2048,21),
                # Parameter word: shift field -32 is reserved.
                ('shift',struct.unpack_from('<I',base.image,32)[0]+4,0x80000000,22)]
     # ABI 4 fields, on fixtures that use them: (name, fixture, op, word, f(old), error).
@@ -246,10 +255,13 @@ def negative_tests(out,image):
         if f is None:w=(struct.unpack_from('<I',pkg.image,op*64+8)[0]+4)  # dst byte offset + 4
         else:w=f(w)
         targets.append((n,pkg,op*64+word*4,w&0xffffffff,error))
+    deep=compile_model(by_name['descriptors_128'])
+    targets.append(('last_descriptor',deep,127*64,99,18))
     for name,base_pkg,offset,value,error in targets:
         data=bytearray(base_pkg.image);struct.pack_into('<I',data,offset,value)
         pkg=Package(bytes(data),base_pkg.manifest);rec=Recorder(pkg,b'');host=Npu(rec);host.load_model(pkg)
         parts=rec.rows[-1].split();parts[3]=f'{error:x}';rec.rows[-1]=' '.join(parts)
+        if name=='last_descriptor':rec.rows.append('01 34 0 0 ffffffff 7f')
         rec.rows.extend(['01 40 0 0 ffffffff 0','07 0 0 5 0 0','09 0 0 0 0 0'])
         trace=out/f'negative_{name}.txt';trace.write_text('\n'.join(rec.rows)+'\n')
         run(['vvp',image,f'+TRACE={trace.relative_to(ROOT).as_posix()}'],out/f'negative_{name}.log')
@@ -361,12 +373,12 @@ def simulate(out,image,name,model,frame,cols,fuse,jtag,wave_disabled=False):
         rec.rows.extend(['01 00000038 0 0 0 0','01 00000040 0 0 0 0'])
         rec.rows.append('01 00000068 0 0 ffffffff 00010018')
         rec.rows.extend(f'01 {0x100+4*i:08x} 0 0 0 0' for i in range(24))
-        rec.rows.extend(['01 00000180 0 0 ffffffff 00030080',
+        rec.rows.extend(['01 00000180 0 0 ffffffff 00040080',
                          f'01 00000184 0 0 ffffffff {0 if wave_disabled else 1024:08x}'])
         rec.rows.extend(f'01 {addr:08x} 0 0 0 0' for addr in range(0x190,0x1a0,4))
         rec.rows.extend(f'01 {0x200+4*i:08x} 0 0 0 0' for i in range(pkg.manifest['op_count']*8))
         # Exercise the synchronous RAM port through both transports.
-        rec.rows.extend(f'01 {0x1000+4*i:08x} 0 {2 if wave_disabled else 0:x} 0 0' for i in range(8))
+        rec.rows.extend(f'01 {0x2000+4*i:08x} 0 {2 if wave_disabled else 0:x} 0 0' for i in range(8))
     trace=case/'commands.txt';trace.write_text('\n'.join(rec.rows)+'\n')
     # Check every materialized tensor write, including values that
     # are subsequently overwritten through lifetime reuse.
@@ -435,6 +447,7 @@ def main():
     ap=argparse.ArgumentParser(description=__doc__);ap.add_argument('--output',type=Path,default=ROOT/'build/program_regression')
     ap.add_argument('--quick',action='store_true');ap.add_argument('--macro-model',type=Path)
     ap.add_argument('--wave-disabled',action='store_true',help='exercise ASIC-style disabled waveform trace, preserving operator summaries')
+    ap.add_argument('--packaged-models',action='store_true',help='replay the first golden frame of each released model')
     ap.add_argument('--trained-model',type=Path,help='optional real trained NPZ; needs NumPy')
     ap.add_argument('--define',action='append',default=[],help='extra Verilog define, e.g. NPU_ENABLE_WAVE_TRACE=0')
     ap.add_argument('--jobs',type=int,default=1,help='parallel simulations per build')
@@ -449,11 +462,15 @@ def main():
         defines.extend(['-DNPU_USE_RA1SHD_MODEL','-DNPU_USE_RA1SHD_ACTIVATION'])
     if not args.skip_unit:unit_tests(out,defines,args.macro_model)
     cases=list(fixtures())
+    if args.packaged_models:
+        for path in sorted((ROOT/'software/zoo/pretrained').glob('*/model.json')):
+            golden=json.loads((path.parent/'golden.json').read_text())
+            cases.append(('packaged_'+path.parent.name,json.loads(path.read_text()),golden['frames'][0]['input']))
     if args.trained_model:
         rng=random.Random(20261023)
         cases.append(('trained',from_tinycnn_npz(args.trained_model),[rng.randrange(-8,8) for _ in range(320)]))
     if args.only:cases=[c for c in cases if c[0] in args.only.split(',')]
-    results=[];variants=[(8,False),(4,False),(8,True)] if not args.quick else [(8,False)]
+    results=[];variants=[(8,False),(8,True)] if not args.quick else [(8,False)]
     negatives=[]
     from concurrent.futures import ThreadPoolExecutor
     for cols,jtag in variants:
@@ -462,7 +479,7 @@ def main():
         run(['iverilog','-g2012','-s','tb_npu_program','-o',image,*ds,*sources,'hardware/soc/sim/tb/tb_npu_program.sv'],out/f'compile_{cols}_{jtag}.log')
         jobs=[(name,model,frame,fuse) for name,model,frame in cases if not jtag or name in ('cnn','residual_add')
               for fuse in (True,False)
-              if not (name in ('tinycnn','trained') and not fuse)] # raw Conv alone needs 10240 B, exceeding 8 KiB
+              if not ((name=='trained' or name.startswith('packaged_')) and not fuse)] # raw Conv alone needs 10240 B, exceeding 8 KiB
         with ThreadPoolExecutor(args.jobs) as pool:
             for row in pool.map(lambda j:simulate(out,image,j[0],j[1],j[2],cols,j[3],jtag,args.wave_disabled),jobs):
                 results.append(row);print('PASS',row['case'],flush=True)

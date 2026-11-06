@@ -12,7 +12,7 @@ test_frames.pt) this writes:
                         test sets are sorted by class): input codes, label, the integer
                         reference output, and the exact input/output bytes the
                         host writes and reads (for RTL replays and board tests)
-  c8/, c4/              compiled NPU images (model.bin + manifest.json, fused)
+  c8/              compiled NPU images (model.bin + manifest.json, fused)
 
 and a top-level MANIFEST.json with SHA-256 of every file and the full-test-set
 INT4 accuracy from docs/validation/int4_v2/zoo_eval.json.
@@ -56,7 +56,7 @@ def main():
                          ('result.json', 'training_result.json'), ('train.log', 'train.log')):
             shutil.copyfile(run / src, out / dst)
         model = json.loads((run / 'model.json').read_text())
-        for cols in (8, 4):
+        for cols in (8,):
             compile_model(model, cols=cols, fuse=True).save(out / f'c{cols}')
         blob = torch.load(run / 'test_frames.pt')
         package = compile_model(model, cols=8, fuse=True)

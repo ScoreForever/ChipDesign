@@ -16,7 +16,7 @@ def decode_sample(words):
                gather_state=(signals>>28)&3,load_state=signals>>30,
                model_byte_address=addresses&65535,activation_nibble_address=addresses>>16,
                write_nibble_address=context&65535,write_nibbles=(context>>16)&15,
-               state=(context>>20)&15,pc=(context>>24)&15,opcode=(context>>28)&7,quantized=context>>31)
+               state=(context>>20)&15,pc=(context>>24)&255)
     return row
 
 
@@ -34,9 +34,9 @@ def export_trace(capture, output, period_ns=20):
         raise ValueError('trace timestamps must be consecutive')
     widths={name:1 for name in ('clock','model_valid','model_ready','model_response','activation_valid',
         'activation_ready','activation_response','write_valid','mac_issue','wait_activation','wait_weight',
-        'wait_slot','kernel_prepare','quantized')}
+        'wait_slot','kernel_prepare')}
     widths.update(cycle=32,slot_busy=4,slot_ready=4,weight_banks=2,inflight=6,gather_state=2,load_state=2,
-                  model_byte_address=16,activation_nibble_address=16,write_nibble_address=16,write_nibbles=4,state=4,pc=4,opcode=3)
+                  model_byte_address=16,activation_nibble_address=16,write_nibble_address=16,write_nibbles=4,state=4,pc=8)
     identifiers={name:f's{i}' for i,name in enumerate(widths)}
     def value(name, val):
         if val is None:return f'x{identifiers[name]}' if widths[name]==1 else f'bx {identifiers[name]}'

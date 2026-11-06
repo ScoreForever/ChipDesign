@@ -2,14 +2,14 @@
 // Independent variable-latency memory harness: no production RAM timing assumptions.
 module tb_npu_stalls;
  reg clk=0,rst=1,validate=0,run=0;always #5 clk=~clk;
- wire ready,busy,vd,vok,done;wire [4:0] error,error_op;
+ wire ready,busy,vd,vok,done;wire [4:0] error;wire [7:0] error_op;
  wire mv,av,wv;wire [15:0] ma,aa,wa;wire [31:0] wd;wire [7:0] wm;
  reg mr=0,ar=0,wr=0,mrv=0,arv=0;reg [31:0] md,ad;
  integer idle_delay=0,wr_clock=0,write_stalls=0,max_write_streak=0,write_streak=0;
  wire memory_flush;wire memory_idle=idle_delay==0;
  reg [31:0] model[0:2047],cfg[0:6];reg [3:0] act[0:16383];reg [7:0] input_data[0:8191],gold[0:8191];
  npu_program_core dut(.clk(clk),.rst(rst),.validate(validate),.run(run),.ready(ready),.busy(busy),
- .model_bytes(cfg[0][15:0]),.op_count(cfg[1][4:0]),.input_i32(cfg[6][0]),.input_base(cfg[2][15:0]),.input_bytes(cfg[3][15:0]),
+ .model_bytes(cfg[0][15:0]),.op_count(cfg[1][7:0]),.input_i32(cfg[6][0]),.input_base(cfg[2][15:0]),.input_bytes(cfg[3][15:0]),
  .output_base(cfg[4][15:0]),.output_bytes(cfg[5][15:0]),.validation_done(vd),.validation_ok(vok),.done(done),
  .error(error),.error_op(error_op),.cycles(),.issues(),.model_reads(),.act_reads(),.act_writes(),
  .m_valid(mv),.m_ready(mr),.m_addr(ma),.m_rsp_valid(mrv),.m_rsp_ready(),.m_data(md),

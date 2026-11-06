@@ -1,5 +1,6 @@
 # 可编程 NPU
 
+当前设计已升级 ABI 5：8×8 PE、128 描述符、双 SRAM 共享激活空间；旧 ABI 4 二进制必须重编译。当前实现与验证以仓库 `docs/SOC_EXPANSION_20261106.md` 为准，下面旧版测量只对应历史源码。
 当前设计为 ABI 4.0 INT4 v2，只使用一套描述符驱动执行核，支持 Conv（含 depthwise）、FC、MaxPool、AvgPool/GAP、Add、ReLU、Requant。
 
 - [架构、数值和融合边界](../../docs/ARCHITECTURE.md)

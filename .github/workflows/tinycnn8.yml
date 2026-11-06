@@ -19,8 +19,10 @@ jobs:
           python-version: '3.12'
       - name: Install simulator
         run: sudo apt-get update && sudo apt-get install -y iverilog
-      - name: Seven operators, fusion, two array widths, controller, JTAG and memory stalls
+      - name: Seven operators, fusion, 8x8 array and 128 descriptors, controller, JTAG and memory stalls
         run: python hardware/npu/scripts/run_program_regression.py --output build/program_ci
+      - name: Two physical SRAM interface models and shared capacity
+        run: python hardware/npu/scripts/run_program_regression.py --quick --skip-unit --macro-model hardware/npu/tb/ra1shd_functional_model.sv --only full_activation_12k,spill_residual,descriptors_128 --output build/banked_ci
       - name: ASIC/FPGA waveform configuration and retained operator summaries
         run: python hardware/npu/scripts/run_trace_configuration.py --output build/trace_configuration_ci
       - name: Explore consecutive convolution row buffering
@@ -31,6 +33,7 @@ jobs:
           name: programmable-npu-evidence
           path: |
             build/program_ci
+            build/banked_ci
             build/trace_configuration_ci
             build/conv_streaming.json
           retention-days: 14

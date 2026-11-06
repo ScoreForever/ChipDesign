@@ -1,5 +1,6 @@
 # 主机软件
 
+当前设计已升级 ABI 5：8×8 PE、128 描述符、双 SRAM 共享激活空间；旧 ABI 4 二进制必须重编译。当前实现与验证以仓库 `docs/SOC_EXPANSION_20261106.md` 为准，下面旧版测量只对应历史源码。
 当前硬件使用 host/ 下的 ABI 4.0 INT4/u4 模型编译器和驱动；七个冻结模型及训练/评估入口位于 zoo/。
 统一版本与证据见 [main baseline](../docs/BASELINE_MAIN_20261106.md) 和 [验证流程](../docs/VALIDATION_FLOW.md)。
 train/、tools/ 中的历史训练及音频预处理工具保留供参考。

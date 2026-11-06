@@ -14,12 +14,12 @@ class TraceRegisters:
     def __init__(self, busy=False, changed=False):
         self.reads=[];self.writes=[];self.changed=changed
         self.registers={0:ABI,4:3 if busy else 10,0x2c:7,0x14:1,
-            0x180:0x30080,0x184:1024,0x188:0x31,0x18c:99,0x190:5,0x194:2,
-            0x198:2,0x19c:3,0x1a0:16,0x1a4:32,0x1a8:16,0x1ac:1,0x1b0:2}
+            0x180:0x40080,0x184:1024,0x188:0x31,0x18c:99,0x190:5,0x194:2,
+            0x198:2,0x19c:3,0x1a0:16,0x1a4:32,0x1a8:128,0x1ac:1,0x1b0:2}
         for i,value in enumerate((0,4,0x301,11,0,0,2,2)):self.registers[0x200+i*4]=value
         for i in range(2):
-            for word,value in enumerate((i+2,0x400,0x04560100,0x10810123)):
-                self.registers[0x1000+i*16+word*4]=value
+            for word,value in enumerate((i+2,0x400,0x04560100,0x00810123)):
+                self.registers[0x2000+i*16+word*4]=value
 
     def exchange(self,op,addr=0,data=0):
         if op==Op.WRITE:self.writes.append((addr,data));return 0
@@ -33,7 +33,7 @@ class TraceTests(unittest.TestCase):
     def test_decode_fields_and_bit_order(self):
         row=decode_sample([42,0xFFFFFFFF,0x04560100,0xBA810123])
         self.assertEqual((row['cycle'],row['model_byte_address'],row['activation_nibble_address']),(42,0x100,0x456))
-        self.assertEqual((row['pc'],row['opcode'],row['quantized'],row['state']),(10,3,1,8))
+        self.assertEqual((row['pc'],row['state']),(186,8))
         self.assertEqual((row['write_nibble_address'],row['write_nibbles']),(0x123,1))
         self.assertEqual((row['slot_busy'],row['slot_ready'],row['weight_banks'],row['inflight']),(15,15,3,63))
         self.assertEqual((row['wait_slot'],row['gather_state'],row['load_state']),(1,3,3))
@@ -60,7 +60,7 @@ class TraceTests(unittest.TestCase):
     def test_configure_requires_bounded_pc_and_offset(self):
         registers=TraceRegisters();npu=Npu(registers);npu.configure_trace(3,5,True)
         self.assertEqual(registers.writes,[(0x188,0x33),(0x18c,5)])
-        for pc,offset in ((16,0),(-1,0),(0,-1),(0,2**32)):
+        for pc,offset in ((128,0),(-1,0),(0,-1),(0,2**32)):
             with self.assertRaises(ValueError):npu.configure_trace(pc,offset)
 
     def test_export_real_rows_csv_json_and_clock(self):
