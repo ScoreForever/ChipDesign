@@ -9,15 +9,23 @@
 //
 // flush commits partial combining words. Owners wait for idle before done or
 // ownership changes. Reset cancels queue/cache/responses, retaining SRAM data.
+//
+// SIDE_PORT adds an uncached word read port for an immutable region (the
+// model image). It bypasses the cache, write queue and forwarding, so callers
+// must guarantee no queued write targets what it reads. It uses a macro bank
+// only in a cycle the main port does not access that bank; after one waiting
+// cycle the main port is limited to cache hits so the side port cannot starve.
 module npu_activation_store #(
-    parameter BYTES=8192, CACHE_BYTES=64, WRITE_DEPTH=8
+    parameter BYTES=8192, CACHE_BYTES=64, WRITE_DEPTH=8, SIDE_PORT=0
 ) (
     input wire clk,rst,
     input wire read_valid, output wire read_ready, input wire [15:0] read_addr,
     output wire rsp_valid, input wire rsp_ready, output wire [31:0] rsp_data,
     input wire write_valid, output wire write_ready, input wire [15:0] write_addr,
     input wire [31:0] write_data, input wire [7:0] write_mask,
-    input wire flush, output wire idle
+    input wire flush, output wire idle,
+    input wire side_valid, output wire side_ready, input wire [15:0] side_addr,
+    output wire side_rsp_valid, output wire [31:0] side_rsp_data
 );
     localparam AW=$clog2(BYTES/4), CW=CACHE_BYTES/4, CI=$clog2(CW);
     localparam CT=AW>CI ? AW-CI : 1, QW=$clog2(WRITE_DEPTH);
@@ -67,10 +75,13 @@ module npu_activation_store #(
     // in the cycle a miss issues, so the cache line it fills cannot go stale.
     // Writes cannot starve: every miss holds the port for its response cycle,
     // and the producer stops reading once its output FIFO fills.
+    // A side read that already waited one cycle claims the macros next.
+    reg side_wait;
+    wire side_claim=SIDE_PORT && side_valid && side_wait;
     wire read_miss=!rst && read_valid && !all_hit && response_slot;
     wire urgent=flush || count>=WRITE_DEPTH-2;
     wire defer=read_miss && !urgent;
-    wire drain=!rst && !memory_locked && flushable && !defer && (!partial_byte || response_slot);
+    wire drain=!rst && !memory_locked && flushable && !defer && !side_claim && (!partial_byte || response_slot);
     wire start_rmw=drain && partial_byte;
     wire pop=(drain && !partial_byte) || (!rst && state==S_RMW);
     wire merge=same_tail && !(pop && count==1) && write_mask0!=0;
@@ -78,7 +89,7 @@ module npu_activation_store #(
     wire [QW+1:0] available=WRITE_DEPTH-count+pop;
     assign write_ready=!rst && !memory_locked && available>=pushes && !defer && !start_rmw;
     wire wf=write_valid && write_ready;
-    assign read_ready=!rst && !start_rmw && response_slot && (all_hit || (!drain && !wf));
+    assign read_ready=!rst && !start_rmw && response_slot && (all_hit || (!drain && !wf && !side_claim));
     wire rf=read_valid && read_ready;
     wire physical_read=rf && !all_hit;
 
@@ -151,17 +162,35 @@ module npu_activation_store #(
     wire [31:0] sram_q;
     wire [31:0] sram_wdata=state==S_RMW ? overlay(sram_q,q_data[head],q_mask[head]) : q_data[head];
     wire [3:0] sram_wmask={|q_mask[head][7:6],|q_mask[head][5:4],|q_mask[head][3:2],|q_mask[head][1:0]};
+    // Side port: one 8 KiB macro per bank; bank exclusivity models the macros
+    // even when the behavioral array below could serve both ports.
+    localparam NB=BYTES>8192 ? BYTES/8192 : 1;
+    wire [AW-1:0] side_word=side_addr[AW+2:3];
+    wire main_bank=NB>1 ? sram_addr[AW-1] : 1'b0;
+    wire side_bank=NB>1 ? side_word[AW-1] : 1'b0;
+    assign side_ready=SIDE_PORT && !rst && !(sram_en && main_bank==side_bank);
+    wire side_fire=side_valid && side_ready;
+    reg side_rsp_q,side_bank_q;
+    always @(posedge clk)begin
+        side_rsp_q<=!rst && side_fire;
+        side_wait<=!rst && SIDE_PORT && side_valid && !side_ready;
+        if(side_fire)side_bank_q<=side_bank;
+    end
+    assign side_rsp_valid=side_rsp_q;
 `ifdef NPU_USE_RA1SHD_ACTIVATION
     wire [31:0] bank_q[0:BYTES/8192-1];
     reg bank_select;
     always @(posedge clk)if(sram_en && !sram_we)bank_select<=sram_addr>>11;
     genvar bank;
     generate for(bank=0;bank<BYTES/8192;bank=bank+1)begin:g_bank
+     wire main_here=sram_en && (sram_addr>>11)==bank;
      RA1SHD_2048x32M8 i_sram(
-      .CLK(clk),.CEN(~(sram_en && (sram_addr>>11)==bank)),.OEN(1'b0),
-      .WEN(sram_we ? ~sram_wmask : 4'hf),.A(sram_addr[10:0]),.D(sram_wdata),.Q(bank_q[bank]));
+      .CLK(clk),.CEN(~(main_here || (side_fire && side_bank==bank))),.OEN(1'b0),
+      .WEN(main_here && sram_we ? ~sram_wmask : 4'hf),.A(main_here ? sram_addr[10:0] : side_word[10:0]),
+      .D(sram_wdata),.Q(bank_q[bank]));
     end endgenerate
     assign sram_q=bank_q[BYTES>8192 ? bank_select : 0];
+    assign side_rsp_data=bank_q[BYTES>8192 ? side_bank_q : 0];
 `else
     reg [31:0] mem[0:BYTES/4-1];
     reg [31:0] memory_q;
@@ -173,6 +202,11 @@ module npu_activation_store #(
         end else memory_q<=mem[sram_addr];
     end
     assign sram_q=memory_q;
+    // Second read port of the same array (true dual-port BRAM on FPGA). The
+    // bank check above keeps it off any bank the main port reads or writes.
+    reg [31:0] side_q;
+    always @(posedge clk)if(SIDE_PORT && side_fire)side_q<=mem[side_word];
+    assign side_rsp_data=side_q;
 `endif
     wire [31:0] memory_word=overlay(sram_q,
         memory_high ? saved_data1 : saved_data0,
