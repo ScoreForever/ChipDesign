@@ -331,6 +331,17 @@ def unit_tests(out,defines,macro_model=None):
          'hardware/npu/rtl/npu_model_store.sv','hardware/npu/rtl/npu_activation_store.sv',
          'hardware/npu/tb/tb_npu_memories.sv',*extra],out/'memories_compile.log')
     run(['vvp',memimage],out/'memories.log')
+    # Constrained-random concurrent soak of the shared store (model side port, cache,
+    # write queue, RMW, held responses) against a nibble scoreboard. Smaller images put
+    # activations in the model's macro, so side-port bank conflicts are exercised.
+    stress_image=out/'shared_stress.vvp'
+    run(['iverilog','-g2012',*defines,'-s','tb_npu_shared_stress','-o',stress_image,
+         'hardware/npu/rtl/npu_model_store.sv','hardware/npu/rtl/npu_activation_store.sv',
+         'hardware/npu/tb/tb_npu_shared_stress.sv',*extra],out/'shared_stress_compile.log')
+    for seed,model_bytes in ((11,8192),(12,4096),(13,64)):
+        log=out/f'shared_stress_{model_bytes}.log'
+        run(['vvp',stress_image,f'+SEED={seed}',f'+MODEL_BYTES={model_bytes}','+N=4000','+PHASES=3'],log)
+        if 'PASS NPU_SHARED_STRESS' not in log.read_text():raise RuntimeError(f'shared store stress incomplete: {log}')
     forward_image=out/'forward_priority.vvp'
     run(['iverilog','-g2012',*defines,'-s','tb_npu_forward_priority','-o',forward_image,
          'hardware/npu/rtl/npu_activation_store.sv','hardware/npu/tb/tb_npu_forward_priority.sv',*extra],
