@@ -331,6 +331,11 @@ def unit_tests(out,defines,macro_model=None):
          'hardware/npu/rtl/npu_model_store.sv','hardware/npu/rtl/npu_activation_store.sv',
          'hardware/npu/tb/tb_npu_memories.sv',*extra],out/'memories_compile.log')
     run(['vvp',memimage],out/'memories.log')
+    forward_image=out/'forward_priority.vvp'
+    run(['iverilog','-g2012',*defines,'-s','tb_npu_forward_priority','-o',forward_image,
+         'hardware/npu/rtl/npu_activation_store.sv','hardware/npu/tb/tb_npu_forward_priority.sv',*extra],
+        out/'forward_priority_compile.log')
+    run(['vvp',forward_image],out/'forward_priority.log')
     pressure_image=out/'activation_pressure.vvp'
     run(['iverilog','-g2012',*defines,'-s','tb_npu_activation_pressure','-o',pressure_image,
          'hardware/npu/rtl/npu_activation_store.sv','hardware/npu/tb/tb_npu_activation_pressure.sv',*extra],

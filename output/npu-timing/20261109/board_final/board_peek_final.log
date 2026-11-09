@@ -1,0 +1,7 @@
+PASS ecg [15854, 15854]
+PASS fashion_cnn [47176, 47176]
+PASS gtsrb_l [95147, 95147]
+PASS har [18836, 18836]
+PASS kws_l [86536, 86536]
+PASS kws_m [88754, 88754]
+PASS mnist_l [37059, 37059]

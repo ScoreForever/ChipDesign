@@ -6,6 +6,21 @@ module tb_npu_program;
  reg [7:0] op; reg [31:0] addr,data,mask,expected,value;
  reg [4:0] expected_error;
  integer fd,rc,commands=0,waits=0,bursts=0;
+`ifdef JTAG_TEST
+`define PROGRAM_CORE dut.i_control.i_npu
+`else
+`define PROGRAM_CORE dut.i_npu
+`endif
+ always @(posedge clk)if(rst_n && !`PROGRAM_CORE.rst && `PROGRAM_CORE.state==`PROGRAM_CORE.EXECUTE &&
+  `PROGRAM_CORE.mac_op && !`PROGRAM_CORE.kernel_prepare && `PROGRAM_CORE.issue_more &&
+  `PROGRAM_CORE.gather_state==0 && `PROGRAM_CORE.issue_p!==0)
+  $fatal(1,"initial activation gather must be position zero");
+ always @(posedge clk)if(rst_n && !`PROGRAM_CORE.rst &&
+  `PROGRAM_CORE.issue_fire && `PROGRAM_CORE.has_next &&
+  `PROGRAM_CORE.peek_p!==(`PROGRAM_CORE.issue_p+5'd1))
+  $fatal(1,"shadow request cursor lost alignment");
+`undef PROGRAM_CORE
+
  string trace_path;
  reg [63:0] events[0:524287];integer event_count=0,event_index=0;
  string event_path;

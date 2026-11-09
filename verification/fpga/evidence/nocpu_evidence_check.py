@@ -24,7 +24,8 @@ def main():
         report = json.loads((args.evidence/'report.json').read_text(encoding='utf-8'))
         cases = {entry['name']: entry for entry in report.get('cases', [])}
         fixtures = REQUIRED_FIXTURES
-        if report.get('capabilities', {}).get('0x0') == 0x00050000:
+        abi5 = report.get('capabilities', {}).get('0x0') == 0x00050000
+        if abi5:
             fixtures += ABI5_FIXTURES
         required = {f'{name}_{mode}' for name in fixtures for mode in ('fused', 'plain')}
         missing = sorted(required - cases.keys())
@@ -35,7 +36,7 @@ def main():
             print('INCOMPLETE: duplicate or unexpected cases')
             return 1
         for name, case in cases.items():
-            if name == 'tinycnn_plain' and case.get('status') == 'EXPECTED_HOST_REJECTION':
+            if not abi5 and name == 'tinycnn_plain' and case.get('status') == 'EXPECTED_HOST_REJECTION':
                 continue
             if case.get('status') != 'PASS' or not case.get('runs'):
                 print(f'INCOMPLETE: invalid case {name}')

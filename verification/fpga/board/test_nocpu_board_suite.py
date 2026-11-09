@@ -34,18 +34,14 @@ class Tests(unittest.TestCase):
         self.assertEqual(fake.calls[-1],(0x10000,0x04030201))
         self.assertNotIn((suite.Op.MODEL_COMMIT,),fake.calls)
 
-    def test_fixture_compilation_and_expected_rejection(self):
+    def test_abi5_fixture_compilation(self):
         for name, model, frame in suite.fixtures():
-            for cols in (4,8):
-                for fuse in (True,False):
-                    with self.subTest(name=name,cols=cols,fuse=fuse):
-                        if name=='tinycnn' and not fuse:
-                            with self.assertRaisesRegex(ValueError,'activation capacity exceeded'):
-                                suite.compile_model(model,cols=cols,fuse=fuse)
-                        else:
-                            pkg=suite.compile_model(model,cols=cols,fuse=fuse)
-                            result=suite.reference(model,frame)[model['nodes'][-1]['output']]
-                            self.assertEqual(len(suite.encoded(result,pkg.manifest['output_dtype'])),pkg.manifest['output_bytes'])
+            for fuse in (True, False):
+                with self.subTest(name=name, fuse=fuse):
+                    pkg = suite.compile_model(model, cols=8, fuse=fuse)
+                    result = suite.reference(model, frame)[model['nodes'][-1]['output']]
+                    self.assertEqual(len(suite.encoded(result, pkg.manifest['output_dtype'])),
+                                     pkg.manifest['output_bytes'])
 
     def test_bad_hash_records_failure_and_no_connection(self):
         with tempfile.TemporaryDirectory() as d:

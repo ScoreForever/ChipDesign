@@ -14,10 +14,13 @@ from npu_program import compile_model, reference, encode_tensor
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--conv-pairs', type=int, choices=range(1, 65), default=56,
+                   metavar='1..64', help='Conv/Requant pairs for the busy window')
     args = p.parse_args()
     out = args.output
     out.mkdir(parents=True, exist_ok=False)
-    report = {'passed': False, 'checks': [], 'physical_reset': 'pending'}
+    report = {'passed': False, 'checks': [], 'physical_reset': 'pending',
+              'conv_pairs': args.conv_pairs}
     rpc = TclRpc(timeout=20)
     tx = JtagTransport(rpc, timeout=20)
     npu = Npu(tx)
@@ -31,7 +34,7 @@ def main():
     try:
         npu.command(Op.RESET)
         nodes=[]; src='x'
-        for i in range(16):
+        for i in range(args.conv_pairs):
             weights=[0]*9; weights[4]=1
             nodes += [dict(op='Conv',input=src,output=f'a{i}',channels=1,
                            kernel=3,pads=[1]*4,weights=weights,bias=[0]),
@@ -48,8 +51,8 @@ def main():
         def prepare():
             npu.command(Op.RESET); npu.load_model(pkg); npu.write(0x28,1_000_000_000)
             npu.command(Op.INPUT_BEGIN)
-            for i in range(0,len(inp),4):
-                npu.write(0x20000+pkg.manifest['input_base']+i,int.from_bytes(inp[i:i+4],'little'))
+            npu.write_block(0x20000+pkg.manifest['input_base'],
+                            [int.from_bytes(inp[i:i+4],'little') for i in range(0,len(inp),4)])
             npu.command(Op.INPUT_COMMIT)
         def start_busy(action=None):
             # Execute scans inside one OpenOCD RPC, avoiding millisecond host
@@ -63,11 +66,14 @@ def main():
                 commands.append(f'set r{i} [drscan npu.tap 32 0 32 0 8 0 -endstate IDLE]')
             commands.append('join [list '+ ' '.join(f'$r{i}' for i in range(len(operations)))+'] |')
             values=[[int(v,16) for v in item.split()] for item in rpc.execute('; '.join(commands)).split('|')]
-            if any(len(v)!=3 or not v[2]&128 or v[2]&64 for v in values):
+            if any(len(v)!=3 or not v[2]&128 or v[2]&96 for v in values):
                 raise RuntimeError(f'burst mailbox did not complete: {values}')
+            if values[0][2]&31 or values[1][2]&31:
+                raise RuntimeError(f'START or status read failed: {values}')
             status=values[1][0]
             if not status&1: raise RuntimeError('job finished before busy could be confirmed')
-            if action==Op.START and values[2][2]&31!=4: raise RuntimeError('duplicate START not rejected busy')
+            if action==Op.START and values[2][2]&31!=4:
+                raise RuntimeError(f'duplicate START did not return busy: {values}')
             if action==Op.RESET and values[2][2]&31: raise RuntimeError('RESET failed')
             return status
         # No JTAG RPC during sleep: idle TAP has no requested clock cycles.
@@ -76,8 +82,8 @@ def main():
         paused=time.monotonic()-before
         status_after=npu.read(4)
         if not status_after&8 or status_after&65: raise RuntimeError('job did not finish independently of TCK')
-        actual=b''.join(npu.read(0x20000+pkg.manifest['output_base']+i).to_bytes(4,'little')
-                        for i in range(0,len(expected),4))[:len(expected)]
+        words=npu.read_block(0x20000+pkg.manifest['output_base'],(len(expected)+3)//4)
+        actual=b''.join(word.to_bytes(4,'little') for word in words)[:len(expected)]
         (out/'actual.bin').write_bytes(actual)
         if actual!=expected: raise RuntimeError('output differs after TCK pause')
         report['checks'].append(dict(name='pause_TCK_while_busy',before=status,after=status_after,

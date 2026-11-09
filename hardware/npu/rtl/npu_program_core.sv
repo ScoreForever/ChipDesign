@@ -33,7 +33,8 @@ module npu_program_core #(
     output wire memory_flush, input wire memory_idle
 );
     localparam IDLE=0,FREQ=1,FWAIT=2,BASIC=3,CHECK=4,PREQ=5,PWAIT=6,
-        SETUP=7,EXECUTE=8,NEXT=9,FAILED=10,INIT_A=11,INIT_B=12,DERIVE=14;
+        SETUP=7,EXECUTE=8,NEXT=9,FAILED=10,INIT_A=11,INIT_B=12,
+        LOOKUP_WAIT=13,DERIVE=14;
     localparam CONV=1,FC=2,POOL=3,RELU=4,REQUANT=5,AVGPOOL=6,ADD=7;
     localparam L_IDLE=0,L_REQ=1,L_WAIT=2,L_HAVE=3;
     reg [3:0] state;
@@ -75,8 +76,11 @@ module npu_program_core #(
     reg [15:0] pool_chk_h,pool_chk_w,origin_y,origin_x;
     reg [15:0] mul_a,mul_b;
     wire [31:0] mul_p=mul_a*mul_b;
-    reg [15:0] known_base[0:MAX_OPS],known_size[0:MAX_OPS];
-    reg [MAX_OPS:0] known_valid,known_i32;
+    reg lookup_done;
+    wire scan_done,source_known,source2_known;
+    wire [15:0] src_end=src+src_span[15:0],src2_end=src2+src_span[15:0];
+    wire [15:0] dst_end=dst+dst_span[15:0];
+    wire [15:0] input_first=input_base<<1,input_end=(input_base+input_bytes)<<1;
     // One 32-bit parameter word per channel: bias[17:0], Q8 multiplier[25:18],
     // shift[31:26]. INT4 accumulations never need wider bias or multiplier.
     reg [15:0] param_channel;
@@ -103,8 +107,19 @@ module npu_program_core #(
 
     // Validation uses bounded dimensions. Derived quantities are latched once
     // per descriptor; execution never recomputes tensor-size multiplications.
-    integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam,j;
-    reg basic_bad,shape_bad,range_bad,source_known,source2_known;
+    integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam;
+    reg basic_bad,shape_bad,range_bad;
+    wire output_bad=pc==op_count-1 && (dst!=(output_base<<1) || dst_span!=(output_bytes<<1));
+    wire lookup_save=state==CHECK && lookup_done && source_known && source2_known && !output_bad;
+    wire lookup_seed=state==IDLE && (validate || run);
+    wire lookup_start=state==CHECK && !lookup_done && !shape_bad && !range_bad;
+    (* keep_hierarchy = "yes" *) npu_tensor_lookup #(.MAX_OPS(MAX_OPS)) i_tensor_lookup (
+        .clk(clk),.rst(rst),.seed(lookup_seed),.start(lookup_start),.save(lookup_save),.pc(pc),
+        .input_i32(input_i32),.input_first(input_first),.input_end(input_end),
+        .src_i32(src32),.src(src),.src_end(src_end),.add_op(op==ADD),.src2(src2),.src2_end(src2_end),
+        .dst_i32(dst32),.dst(dst),.dst_end(dst_end),
+        .done(scan_done),.source_known(source_known),.source2_known(source2_known)
+    );
     always @* begin
         basic_bad=fetch_bad || d[0][7:0]<CONV || d[0][7:0]>ADD ||
             ih==0 || iw==0 || ic==0 || ic>MAX_K || oc==0 || oc>256 ||
@@ -169,13 +184,6 @@ module npu_program_core #(
             (op==ADD && ($signed({1'b0,src2})+xsrc>ACT_BYTES*2 ||
              (($signed({1'b0,src2})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src2})+xsrc) &&
               !(src2==dst && xsrc==xdst))));
-        source_known=0;source2_known=op!=ADD;
-        for(j=0;j<=MAX_OPS;j=j+1) begin
-            if(known_valid[j] && known_i32[j]==src32 && src>=known_base[j] &&
-               $signed({1'b0,src})+xsrc<=$signed({1'b0,known_base[j]})+$signed({1'b0,known_size[j]})) source_known=1;
-            if(known_valid[j] && !known_i32[j] && src2>=known_base[j] &&
-               $signed({1'b0,src2})+xsrc<=$signed({1'b0,known_base[j]})+$signed({1'b0,known_size[j]})) source2_known=1;
-        end
     end
 
     // Current output-channel tile caches are the only live parameter vectors.
@@ -231,7 +239,9 @@ module npu_program_core #(
     reg [2:0] write_head,write_tail;
     reg [3:0] write_count;
     wire write_fire=w_valid && w_ready;
-    wire post_credit=({1'b0,write_count}+rq_pending<WRITE_DEPTH) || write_fire;
+    // Use registered occupancy to reserve space. Same-cycle write_ready
+    // would feed SRAM arbitration back into the postprocessor's FIFO write.
+    wire post_credit={1'b0,write_count}+rq_pending<WRITE_DEPTH;
     wire post_fire=state==EXECUTE && slot_ready[read_slot] && post_credit;
     wire [15:0] post_channel=oct*COLS+read_lane;
     // Nibble outputs drain two lanes per fire through two Requant lanes; the
@@ -272,23 +282,33 @@ module npu_program_core #(
     assign w_data=write_data[write_head];
     assign w_mask=write_mask[write_head];
 
-    // Activation gather. A eight-nibble consecutive group uses one synchronous
-    // read. Boundary/nonconsecutive groups use scalar reads with zero masks.
+    // Gather one address-consecutive subset per read. Irregular channel
+    // groups may cross kernel rows: consume each subset once instead of
+    // reading every lane separately. gather_mask tracks lanes still pending.
     reg [4:0] issue_p;
     reg [1:0] gather_state; reg [$clog2(ROWS)-1:0] gather_row;
     reg [ROWS*4-1:0] gathered;
     reg [15:0] gather_addr[0:ROWS-1];
     reg [ROWS-1:0] gather_mask;
-    reg gather_contiguous;
-    reg [$clog2(ROWS)-1:0] gather_first;
-    wire gather_return=gather_state==2 && a_rsp_valid && (gather_contiguous || gather_row==ROWS-1);
-    wire gather_full=gather_state==3 || gather_return;
+    reg [ROWS*ROWS-1:0] k_consecutive;
+    reg [ROWS-1:0] gather_chunk,gather_remaining;
+    reg [$clog2(ROWS)-1:0] gather_next;
     reg [ROWS*4-1:0] returned_vector;
+    wire gather_return=gather_state==2 && a_rsp_valid && gather_remaining==0;
+    wire gather_full=gather_state==3 || gather_return;
     integer gv;
     always @* begin
-        returned_vector=gathered; returned_vector[gather_row*4+:4]=a_data[3:0];
-        if(gather_contiguous) for(gv=0;gv<ROWS;gv=gv+1)
-            returned_vector[gv*4+:4]=gather_mask[gv] ? (a_data>>((gv-gather_first)*4)) : 0;
+        gather_chunk=0;
+        for(gv=0;gv<ROWS;gv=gv+1)
+            gather_chunk[gv]=gather_mask[gv] && gv>=gather_row &&
+                k_consecutive[gather_row*ROWS+gv];
+        gather_remaining=gather_mask & ~gather_chunk;
+        gather_next=0;
+        for(gv=ROWS-1;gv>=0;gv=gv-1)
+            if(gather_remaining[gv])gather_next=gv;
+        returned_vector=gathered;
+        for(gv=0;gv<ROWS;gv=gv+1)
+            if(gather_chunk[gv])returned_vector[gv*4+:4]=a_data>>((gv-gather_row)*4);
     end
     wire [31:0] remaining=positions-issue_tile*TILE;
     reg [4:0] tile_positions;
@@ -330,47 +350,77 @@ module npu_program_core #(
     reg [10:0] kernel_c;
     reg [2:0] kernel_y,kernel_x;
     reg [15:0] kernel_offset,k_offsets[0:ROWS-1],cursor_base,tile_base;
-    reg [2:0] k_ys[0:ROWS-1],k_xs[0:ROWS-1];reg [ROWS-1:0] k_valid;
-    // Pairwise nibble contiguity is invariant across a kernel group. Keep six
-    // flags instead of putting a first-valid mux and 16-bit offset arithmetic
-    // after the spatial boundary mask on every activation request.
-    reg [ROWS*ROWS-1:0] k_consecutive;
+    reg [8:0] k_y_begin[0:ROWS-1],k_y_end[0:ROWS-1];
+    reg [8:0] k_x_begin[0:ROWS-1],k_x_end[0:ROWS-1];
+    reg [ROWS-1:0] k_valid;
+    // ceil((extent + padding - tap) / stride), clamped at zero. Extent zero
+    // gives the first valid output coordinate; the real extent gives its end.
+    // Compute these bounds at K-group setup instead of subtracting padding
+    // and adding each tap on every activation request.
+    function automatic [8:0] coordinate_bound(
+        input [7:0] extent,input [2:0] padding,tap,input stride_two
+    );
+        reg signed [10:0] delta;
+        begin
+            delta=$signed({3'd0,extent})+$signed({8'd0,padding})-$signed({8'd0,tap});
+            coordinate_bound=delta<=0 ? 9'd0 : (delta+stride_two)>>stride_two;
+        end
+    endfunction
+    // Equal row-normalized offsets are contiguous even when the spatial
+    // boundary masks out some rows. Compare the registered offsets once.
+    reg [15:0] k_normalized[0:ROWS-1];
     reg kernel_prepare;
-    reg [15:0] x_step,y_step,origin,scan_jump,pool_scan_jump,kernel_row_jump,kernel_col_jump;
+    reg [$clog2(ROWS):0] prep_row;
+    reg [15:0] x_step,y_step,origin,kernel_row_jump,kernel_col_jump;
+    // All scan/pool increments are configured once per channel tile. The
+    // activation request path selects a registered delta then adds it once.
+    reg [15:0] cursor_step[0:7];
     // Depthwise kernels walk only the COLS channels of the current tile per tap.
     wire [10:0] kernel_ic=dwconv ? COLS : ic[10:0];
     reg [31:0] scan_product,pool_scan_product;
-    reg [10:0] prep_kc;
-    reg [2:0] prep_kx,prep_ky;
-    reg [15:0] prep_offset,prep_offsets[0:ROWS-1];
-    reg [2:0] prep_ys[0:ROWS-1],prep_xs[0:ROWS-1];reg [ROWS-1:0] prep_valid;
-    integer kr;
-    always @* begin
-        prep_kc=kernel_c;prep_kx=kernel_x;prep_ky=kernel_y;prep_offset=kernel_offset;
-        prep_valid=0;
-        for(kr=0;kr<ROWS;kr=kr+1)begin
-            prep_offsets[kr]=prep_offset;prep_ys[kr]=prep_ky;prep_xs[kr]=prep_kx;
-            prep_valid[kr]=issue_g*ROWS+kr<k_count;
-            if(prep_kc==kernel_ic-11'd1)begin
-                prep_kc=0;
-                if(prep_kx==kw-8'd1)begin
-                    prep_kx=0;prep_ky=prep_ky+3'd1;prep_offset=prep_offset+kernel_row_jump;
-                end else begin prep_kx=prep_kx+3'd1;prep_offset=prep_offset+kernel_col_jump;end
-            end else begin prep_kc=prep_kc+11'd1;prep_offset=prep_offset+16'd1;end
-            if(rowpad)begin
-                prep_offsets[kr]=kernel_offset+kr;prep_ys[kr]=issue_g;prep_xs[kr]=kr;
-                prep_valid[kr]=kr<kw;
-            end
-        end
-        if(rowpad)prep_offset=kernel_offset+row_stride;
-    end
-    reg signed [9:0] cy,cx,y,x;
+    wire [$clog2(ROWS)-1:0] prep_index=prep_row[$clog2(ROWS)-1:0];
+    wire [15:0] prep_row_ext={{(16-$clog2(ROWS)){1'b0}},prep_index};
+    wire prep_end_channels=kernel_c==kernel_ic-11'd1;
+    wire prep_end_column=kernel_x==kw[2:0]-3'd1;
+    wire [15:0] prep_step=prep_end_channels ?
+        (prep_end_column ? kernel_row_jump : kernel_col_jump) : 16'd1;
+    // These groups stay within one kernel tap, so all row addresses are a
+    // constant offset apart. Irregular channel counts retain the serial walk.
+    wire prep_contiguous=rowpad || op==FC || (kernel_ic%ROWS)==0;
+    wire prep_group_end=kernel_c==kernel_ic-ROWS;
+    reg [9:0] cy,cx;
     reg [4:0] calc_p;
     reg [8:0] calc_y,calc_x,next_y,next_x;
     reg [15:0] calc_base,next_base;
     integer r,rr;
     reg [15:0] calc_addr[0:ROWS-1];reg [ROWS-1:0] calc_mask;reg calc_contiguous;
     reg [$clog2(ROWS)-1:0] calc_first;
+    // A shadow cursor stays one position ahead and advances only when the
+    // current vector issues. Its geometry update ends at registers, outside
+    // the request -> cache/forwarding path. Initial-position metadata is
+    // captured at group preparation; subsequent requests use registered
+    // shadow metadata. Advance and prepare the following request at issue,
+    // so even back-to-back issues never pay an extra read-buffer cycle.
+    reg [8:0] request_y[0:1],request_x[0:1];
+    reg [4:0] request_p[0:1];
+    reg [15:0] request_base[0:1],request_addr[0:1][0:ROWS-1];
+    reg [ROWS-1:0] request_mask[0:1];
+    reg [$clog2(ROWS)-1:0] request_first[0:1];
+    reg [15:0] prepared_first_addr;
+    reg [15:0] peek_request_addr[0:ROWS-1];
+    reg [ROWS-1:0] peek_request_mask;
+    reg [$clog2(ROWS)-1:0] peek_first;
+    reg [15:0] peek_first_addr;
+    reg peek_any;
+    reg [1:0] request_any;
+    reg [4:0] peek_p;
+    reg [8:0] peek_y,peek_x,peek_next_y,peek_next_x;
+    reg [15:0] peek_base,peek_next_base;
+    wire peek_at_last_x=peek_x==scan_last_x;
+    wire peek_tap_last=pool1d ? peek_p[0] : peek_p[1:0]==3;
+    reg [15:0] calc_request_addr;
+    reg calc_any;
+    integer rq;
     // Position and tile length change only at group setup or issue_fire.
     // Register the lookahead predicate so issue_p's terminal-count compare
     // does not precede the gather mask/address and activation forwarding path.
@@ -382,33 +432,39 @@ module npu_program_core #(
             if(cursor_at_last_x)begin next_x=0;next_y=cursor_y+1;end
             else next_x=cursor_x+1;
         end
-        if(!pool_enable) next_base=cursor_base+(cursor_at_last_x ? scan_jump : x_step);
-        else if(pool1d) next_base=cursor_base+(issue_p[0] && cursor_at_last_x ? pool_scan_jump : x_step);
-        else case(issue_p[1:0])
-            0,2:next_base=cursor_base+x_step;
-            1:next_base=cursor_base+y_step-x_step;
-            3:next_base=cursor_base+(cursor_at_last_x ? pool_scan_jump : x_step-y_step);
-        endcase
-        calc_p=issue_p;calc_y=cursor_y;calc_x=cursor_x;calc_base=cursor_base;
-        // Once a gather has started, its metadata lives in gather_* until
-        // issue_fire. Prepare the next position throughout that interval,
-        // rather than selecting it from the returning activation response.
-        // Only issue_fire consumes this lookahead. This keeps SRAM response
-        // valid -> issue_fire out of the address/mask/contiguity arithmetic,
-        // while retaining same-cycle response/issue/next-request throughput.
-        if(gather_state!=0 && has_next)begin calc_p=issue_p+1;calc_y=next_y;calc_x=next_x;calc_base=next_base;end
-        if(pool_enable)begin cy=pool1d ? calc_y : calc_y*2+calc_p[1];cx=calc_x*2+calc_p[0];end
-        else begin cy=calc_y;cx=calc_x;end
-        calc_mask=0;
-        for(r=0;r<ROWS;r=r+1)begin
-            y=(sh[1] ? cy<<<1 : cy)+$signed({1'b0,k_ys[r]})-$signed({1'b0,pt[2:0]});
-            x=(sw[1] ? cx<<<1 : cx)+$signed({1'b0,k_xs[r]})-$signed({1'b0,pl[2:0]});
-            calc_addr[r]=calc_base+k_offsets[r];
-            calc_mask[r]=k_valid[r] && !y[9] && y<$signed({2'b0,ih[7:0]}) &&
-                !x[9] && x<$signed({2'b0,iw[7:0]});
+        next_base=cursor_base+cursor_step[{cursor_at_last_x,issue_p[1:0]}];
+        peek_next_y=peek_y;peek_next_x=peek_x;
+        if(!pool_enable || peek_tap_last)begin
+            if(peek_at_last_x)begin peek_next_x=0;peek_next_y=peek_y+9'd1;end
+            else peek_next_x=peek_x+9'd1;
         end
-        calc_first=0;
-        for(r=ROWS-1;r>=0;r=r-1)if(calc_mask[r])calc_first=r;
+        peek_next_base=peek_base+cursor_step[{peek_at_last_x,peek_p[1:0]}];
+        for(rq=0;rq<2;rq=rq+1)begin
+            // gather_state==0 is only the initial position of a K group.
+            request_p[rq]=rq==0 ? 5'd0 : (kernel_prepare ? 5'd1 : peek_p+5'd1);
+            request_y[rq]=rq==0 ? {1'b0,cursor_y} : (kernel_prepare ? next_y : peek_next_y);
+            request_x[rq]=rq==0 ? {1'b0,cursor_x} : (kernel_prepare ? next_x : peek_next_x);
+            request_base[rq]=rq==0 ? cursor_base : (kernel_prepare ? next_base : peek_next_base);
+            if(pool_enable)begin
+                cy=pool1d ? request_y[rq] : request_y[rq]*2+request_p[rq][1];
+                cx=request_x[rq]*2+request_p[rq][0];
+            end else begin cy=request_y[rq];cx=request_x[rq];end
+            request_mask[rq]=0;
+            for(r=0;r<ROWS;r=r+1)begin
+                request_addr[rq][r]=request_base[rq]+k_offsets[r];
+                request_mask[rq][r]=k_valid[r] && cy>=k_y_begin[r] && cy<k_y_end[r] &&
+                    cx>=k_x_begin[r] && cx<k_x_end[r];
+            end
+            request_first[rq]=0;
+            for(r=ROWS-1;r>=0;r=r-1)if(request_mask[rq][r])request_first[rq]=r;
+            request_any[rq]=|request_mask[rq];
+        end
+        prepared_first_addr=request_addr[1][request_first[1]];
+        calc_p=peek_p;calc_y=peek_y;calc_x=peek_x;calc_base=peek_base;
+        calc_mask=gather_state==0 ? gather_mask : peek_request_mask;
+        calc_first=peek_first;calc_request_addr=peek_first_addr;
+        calc_any=peek_any;
+        for(r=0;r<ROWS;r=r+1)calc_addr[r]=peek_request_addr[r];
         // All selected pairs must preserve their nibble-lane distance. Empty
         // and singleton masks are contiguous, including masked padding lanes.
         calc_contiguous=1;
@@ -473,12 +529,10 @@ module npu_program_core #(
         m_valid=0; m_addr=0; a_valid=0;
         // The address is meaningful only on a request handshake. Do not add
         // state/valid gating to the data path merely to drive idle addresses 0.
-        // A noncontiguous initial request is issued only when mask[0] is set,
-        // in which case calc_first is already zero. Otherwise no request uses
-        // this address. Select the first valid nibble directly so the expensive
-        // contiguous test does not feed the activation BRAM address mux.
-        a_addr=mac_op ? (gather_state==1 ? gather_addr[gather_row] :
-            calc_addr[calc_first]) : eaddr;
+        // Start each subset at its first valid lane. Subset membership is
+        // derived from registered group offsets, not the returning data.
+        a_addr=mac_op ? ((gather_state==0 || gather_state==1) ? gather_addr[gather_row] :
+            calc_request_addr) : eaddr;
         if(state==FREQ) begin m_valid=1; m_addr=pc*64+fetch_word*4; end
         // The model store accepts one read per cycle: request the next
         // descriptor/parameter word in the cycle the previous one returns.
@@ -496,10 +550,12 @@ module npu_program_core #(
             m_valid=1; m_addr=dwconv ? load_address : load_address+row_bytes;
         end
         if(state==EXECUTE) begin
-            if(mac_op && !kernel_prepare && issue_more && (gather_state==0 || (issue_fire && has_next))) begin
-                a_valid=calc_contiguous ? |calc_mask : calc_mask[0];
+            if(mac_op && !kernel_prepare && issue_more && gather_state==0)begin
+                a_valid=|gather_mask;
+            end else if(mac_op && !kernel_prepare && issue_more && issue_fire && has_next)begin
+                a_valid=calc_any;
             end else if(mac_op && !kernel_prepare && gather_state==1) begin
-                a_valid=gather_mask[gather_row];
+                a_valid=|gather_mask;
             end else if(!mac_op && estate==1) begin a_valid=1; end
         end
     end
@@ -544,7 +600,8 @@ module npu_program_core #(
             ret_pos_addr<=dst; element_addr<=dst;
             cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;cursor_at_last_x<=0;
             tile_positions<=TILE;last_group<=0;has_next_q<=TILE>1;
-            kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1; element_y<=0; element_x<=0;
+            kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1;prep_row<=0;
+            element_y<=0; element_x<=0;
         end
     endtask
     task automatic fail(input [4:0] code);
@@ -669,7 +726,8 @@ module npu_program_core #(
             astep<=0;fetch_bad<=0;
             validation_done<=0; validation_ok<=0; done<=0; error<=0; error_op<=0;
             cycles<=0; issues<=0; model_reads<=0; act_reads<=0; act_writes<=0;
-            known_valid<=0; known_i32<=0; oct<=0; param_channel<=0;
+            lookup_done<=0;
+            oct<=0; param_channel<=0;
             oh<=1; ow<=1; dh<=1; dw<=1; k_count<=1; groups<=1; octs<=1; positions<=1; row_stride<=1;
             src_span<=0; dst_span<=0; weight_span<=0; param_span<=0;src_pixels<=0;dst_pixels<=0;
             begin_tile;
@@ -684,8 +742,6 @@ module npu_program_core #(
                     checking<=validate; pc<=0; fetch_word<=0; error<=0; error_op<=0;
                     validation_ok<=0; state<=FREQ; cycles<=0; issues<=0;
                     model_reads<=0; act_reads<=0; act_writes<=0;
-                    known_valid<=1; known_i32<=input_i32;
-                    known_base[0]<=input_base<<1; known_size[0]<=input_bytes<<1;
                     if(op_count==0 || op_count>MAX_OPS || model_bytes>MODEL_BYTES ||
                        model_bytes<op_count*64 || input_bytes==0 || output_bytes==0 ||
                        input_base[1:0]!=0 || output_base[1:0]!=0 ||
@@ -743,27 +799,27 @@ module npu_program_core #(
                                 mul_p*ROWS*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*ROWS*2 : 0);
                             param_span<=channels*4;
                             positions<=dst_pixels<<(!pool_enable ? 0 : pool1d ? 1 : 2);
+                            lookup_done<=0;
                             state<=CHECK;
                         end
                     endcase
                 end
                 CHECK: begin
-                    if(shape_bad) fail(3);
-                    else if(range_bad) fail(4);
+                    if(!lookup_done) begin
+                        if(shape_bad) fail(3);
+                        else if(range_bad) fail(4);
+                        else state<=LOOKUP_WAIT;
+                    end
                     else if(!source_known || !source2_known) fail(5);
-                    else if(pc==op_count-1 && (dst!=(output_base<<1) || xdst!=(output_bytes<<1))) fail(3);
+                    else if(output_bad) fail(3);
                     else begin
-                        for(v=0;v<=MAX_OPS;v=v+1)
-                            if(known_valid[v] && $signed({1'b0,dst})<$signed({1'b0,known_base[v]})+$signed({1'b0,known_size[v]}) &&
-                               $signed({1'b0,known_base[v]})<$signed({1'b0,dst})+xdst) known_valid[v]<=0;
-                        known_base[pc+1]<=dst; known_size[pc+1]<=xdst;
-                        known_valid[pc+1]<=1; known_i32[pc+1]<=dst32;
                         oct<=0; param_channel<=0;
                         astep<=0;
                         if(need_params) state<=PREQ;
                         else state<=checking ? NEXT : SETUP;
                     end
                 end
+                LOOKUP_WAIT: if(scan_done) begin lookup_done<=1; state<=CHECK; end
                 PREQ: if(m_ready) state<=PWAIT;
                 PWAIT: if(m_rsp_valid) begin
                     if(param_bad) fail(6);
@@ -815,8 +871,16 @@ module npu_program_core #(
                     state<=INIT_B;
                 end
                 INIT_B:begin
-                    cursor_base<=origin;tile_base<=origin;scan_jump<=y_step-scan_product;
-                    pool_scan_jump<=y_step-pool_scan_product;
+                    cursor_base<=origin;tile_base<=origin;
+                    for(v=0;v<8;v=v+1)begin
+                        if(!pool_enable)cursor_step[v]<=v>=4 ? y_step-scan_product : x_step;
+                        else if(pool1d)cursor_step[v]<=(v>=4 && (v%2)==1) ? y_step-pool_scan_product : x_step;
+                        else case(v%4)
+                            0,2:cursor_step[v]<=x_step;
+                            1:cursor_step[v]<=y_step-x_step;
+                            3:cursor_step[v]<=v>=4 ? y_step-pool_scan_product : x_step-y_step;
+                        endcase
+                    end
                     kernel_col_jump<=dwconv ? ic-COLS+1 : 16'd1;
                     element_base<=src+((oct*COLS)<<(src32 ? 3 : 0));
                     element_base2<=src2+oct*COLS;
@@ -843,16 +907,67 @@ module npu_program_core #(
                         end else read_lane<=read_lane+(pair ? 2'd2 : 2'd1);
                     end
                     if(mac_op) begin
-                        if(kernel_prepare)begin
-                            for(v=0;v<ROWS;v=v+1)begin
-                                k_offsets[v]<=prep_offsets[v];k_ys[v]<=prep_ys[v];k_xs[v]<=prep_xs[v];
+                        if(kernel_prepare && issue_more)begin
+                            if(prep_row<ROWS && prep_contiguous) begin
+                                for(v=0;v<ROWS;v=v+1)begin
+                                    k_offsets[v]<=kernel_offset+v;
+                                    k_normalized[v]<=kernel_offset;
+                                    k_y_begin[v]<=coordinate_bound(0,pt[2:0],rowpad ? issue_g[2:0] : kernel_y,sh[1]);
+                                    k_y_end[v]<=coordinate_bound(ih[7:0],pt[2:0],rowpad ? issue_g[2:0] : kernel_y,sh[1]);
+                                    k_x_begin[v]<=coordinate_bound(0,pl[2:0],rowpad ? v : kernel_x,sw[1]);
+                                    k_x_end[v]<=coordinate_bound(iw[7:0],pl[2:0],rowpad ? v : kernel_x,sw[1]);
+                                    k_valid[v]<=rowpad ? v<kw : issue_g*ROWS+v<k_count;
+                                end
+                                prep_row<=ROWS;
+                                if(rowpad)kernel_offset<=kernel_offset+row_stride;
+                                else if(op==FC)kernel_offset<=kernel_offset+ROWS;
+                                else begin
+                                    kernel_offset<=kernel_offset+ROWS-1+
+                                        (prep_group_end ? (prep_end_column ? kernel_row_jump : kernel_col_jump) : 16'd1);
+                                    kernel_c<=prep_group_end ? 11'd0 : kernel_c+ROWS;
+                                    if(prep_group_end)begin
+                                        kernel_x<=prep_end_column ? 3'd0 : kernel_x+3'd1;
+                                        if(prep_end_column)kernel_y<=kernel_y+3'd1;
+                                    end
+                                end
+                            end else if(prep_row<ROWS) begin
+                                for(v=0;v<ROWS;v=v+1) if(prep_index==v) begin
+                                    k_offsets[v]<=rowpad ? kernel_offset+prep_row_ext : kernel_offset;
+                                    k_normalized[v]<=rowpad ? kernel_offset : kernel_offset-prep_row_ext;
+                                    k_y_begin[v]<=coordinate_bound(0,pt[2:0],kernel_y,sh[1]);
+                                    k_y_end[v]<=coordinate_bound(ih[7:0],pt[2:0],kernel_y,sh[1]);
+                                    k_x_begin[v]<=coordinate_bound(0,pl[2:0],kernel_x,sw[1]);
+                                    k_x_end[v]<=coordinate_bound(iw[7:0],pl[2:0],kernel_x,sw[1]);
+                                    k_valid[v]<=rowpad ? prep_row<kw : issue_g*ROWS+prep_row<k_count;
+                                end
+                                prep_row<=prep_row+1'b1;
+                                if(rowpad) begin
+                                    if(prep_row==ROWS-1) kernel_offset<=kernel_offset+row_stride;
+                                end else begin
+                                    kernel_offset<=kernel_offset+prep_step;
+                                    kernel_c<=prep_end_channels ? 11'd0 : kernel_c+11'd1;
+                                    if(prep_end_channels) begin
+                                        kernel_x<=prep_end_column ? 3'd0 : kernel_x+3'd1;
+                                        if(prep_end_column) kernel_y<=kernel_y+3'd1;
+                                    end
+                                end
+                            end else begin
+                                for(v=0;v<ROWS;v=v+1)for(integer vv=0;vv<ROWS;vv=vv+1)
+                                    k_consecutive[v*ROWS+vv]<=(v>=vv) || k_normalized[vv]==k_normalized[v];
+                                // Bounds/offsets were written before this closing
+                                // preparation edge. Prime the first request without
+                                // adding a state or cycle to the existing schedule.
+                                for(v=0;v<ROWS;v=v+1)gather_addr[v]<=request_addr[0][v];
+                                gather_mask<=request_mask[0];gather_row<=request_first[0];gathered<=0;
+                                peek_p<=5'd1;peek_y<=next_y;peek_x<=next_x;peek_base<=next_base;
+                                for(v=0;v<ROWS;v=v+1)peek_request_addr[v]<=request_addr[1][v];
+                                peek_request_mask<=request_mask[1];peek_first<=request_first[1];
+                                peek_first_addr<=prepared_first_addr;peek_any<=request_any[1];
+                                kernel_prepare<=0;
+                                tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
+                                has_next_q<=remaining>1;
+                                last_group<=issue_g==groups-16'd1;
                             end
-                            for(v=0;v<ROWS;v=v+1)for(integer vv=0;vv<ROWS;vv=vv+1)
-                                k_consecutive[v*ROWS+vv]<=prep_offsets[vv]==prep_offsets[v]+vv-v;
-                            k_valid<=prep_valid;kernel_prepare<=0;
-                            tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
-                            has_next_q<=remaining>1;
-                            last_group<=issue_g==groups-16'd1;
                         end
                         if(load_start) lstate<=L_REQ;
                         if(lstate==L_REQ && m_ready && !load_zero) lstate<=L_WAIT;
@@ -874,40 +989,36 @@ module npu_program_core #(
                             end else begin load_row<=load_row+1'b1; lstate<=!next_load_zero && m_ready ? L_WAIT : L_REQ; end
                         end
                         if(issue_more && !kernel_prepare) case(gather_state)
-                            0: begin
-                                for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
-                                gather_mask<=calc_mask; gather_contiguous<=calc_contiguous;
-                                gather_first<=calc_first;
-                                gathered<=0; gather_row<=0;
-                                gather_state<=calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
-                            end
-                            1: if(!gather_mask[gather_row]) begin
-                                if(gather_row==ROWS-1) gather_state<=3;
-                                else gather_row<=gather_row+1'b1;
-                            end else if(a_ready) gather_state<=2;
+                            0: gather_state<=gather_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
+                            1: if(a_ready) gather_state<=2;
                             2: if(a_rsp_valid) begin
-                                if(gather_contiguous) begin gathered<=returned_vector; gather_state<=3; end
-                                else begin
-                                    gathered[gather_row*4+:4]<=a_data[3:0];
-                                    if(gather_row==ROWS-1) gather_state<=3;
-                                    else begin gather_row<=gather_row+1'b1; gather_state<=1; end
-                                end
+                                gathered<=returned_vector;
+                                gather_mask<=gather_remaining;
+                                if(gather_remaining==0)gather_state<=3;
+                                else begin gather_row<=gather_next; gather_state<=1; end
                             end
                             default: ;
                         endcase
                         if(issue_fire) begin
+                            if(has_next)begin
+                                peek_p<=peek_p+5'd1;
+                                peek_y<=peek_next_y;peek_x<=peek_next_x;peek_base<=peek_next_base;
+                                for(v=0;v<ROWS;v=v+1)peek_request_addr[v]<=request_addr[1][v];
+                                peek_request_mask<=request_mask[1];peek_first<=request_first[1];
+                                peek_first_addr<=prepared_first_addr;peek_any<=request_any[1];
+                            end
                             issues<=issues+1;
                             for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
-                            gather_mask<=calc_mask; gather_contiguous<=calc_contiguous; gather_first<=calc_first;
-                            gathered<=0; gather_row<=0;
+                            gather_mask<=calc_mask;
+                            gathered<=0; gather_row<=calc_first;
                             gather_state<=!has_next ? 0 : calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
                             if(last_group && reserve_slot) slot_busy[issue_slot]<=1;
                             if(!has_next) begin
                                 issue_p<=0;has_next_q<=tile_positions>1;
+                                prep_row<=0;
                                 bank_ready[issue_seq[0]]<=0; issue_seq<=issue_seq+1'b1;
                                 if(!last_group) begin
                                     issue_g<=issue_g+1'b1;
-                                    kernel_c<=prep_kc;kernel_x<=prep_kx;kernel_y<=prep_ky;kernel_offset<=prep_offset;
                                     kernel_prepare<=1;cursor_base<=tile_base;
                                     cursor_y<=tile_y; cursor_x<=tile_x;
                                     cursor_at_last_x<=tile_x==scan_last_x;
@@ -915,18 +1026,18 @@ module npu_program_core #(
                                 else begin
                                     issue_g<=0;
                                     kernel_c<=0;kernel_x<=0;kernel_y<=0;kernel_offset<=0;kernel_prepare<=1;
-                                    cursor_base<=next_base;tile_base<=next_base;
-                                    cursor_y<=next_y; cursor_x<=next_x;
-                                    cursor_at_last_x<=next_x==scan_last_x;
-                                    tile_y<=next_y; tile_x<=next_x;
+                                    cursor_base<=peek_base;tile_base<=peek_base;
+                                    cursor_y<=peek_y; cursor_x<=peek_x;
+                                    cursor_at_last_x<=peek_x==scan_last_x;
+                                    tile_y<=peek_y; tile_x<=peek_x;
                                     if((issue_tile+1)*TILE<positions) issue_tile<=issue_tile+1'b1;
                                     else issue_more<=0;
                                 end
                             end else begin
-                                issue_p<=issue_p+1'b1;cursor_base<=next_base;
+                                issue_p<=issue_p+1'b1;cursor_base<=peek_base;
                                 has_next_q<=(issue_p+5'd1)!=(tile_positions-5'd1);
-                                cursor_y<=next_y;cursor_x<=next_x;
-                                cursor_at_last_x<=next_x==scan_last_x;
+                                cursor_y<=peek_y;cursor_x<=peek_x;
+                                cursor_at_last_x<=peek_x==scan_last_x;
                             end
                         end
                         if(out_valid) begin
@@ -1015,5 +1126,54 @@ module npu_program_core #(
     initial if((COLS!=8) || (TILE!=16 && TILE!=8) || MAX_K<1 || MAX_K>1024 ||
         (ROWS!=8) || MAX_OPS<1 || MAX_OPS>128 || PSUM_BITS<18 || ACT_BYTES<64 || ACT_BYTES>16384)
         $fatal(1,"unsupported program-core geometry");
+endmodule
+
+// Sequential tensor provenance check. Entry zero is the input and each
+// accepted descriptor writes pc+1, so a scan only visits initialized entries.
+module npu_tensor_lookup #(parameter MAX_OPS=128) (
+    input wire clk,rst,seed,start,save,
+    input wire [7:0] pc,
+    input wire input_i32,src_i32,dst_i32,add_op,
+    input wire [15:0] input_first,input_end,src,src_end,src2,src2_end,dst,dst_end,
+    output reg done,source_known,source2_known
+);
+    localparam ADDR_BITS=$clog2(MAX_OPS+1);
+    (* ram_style = "distributed" *) reg [33:0] records[0:(1<<ADDR_BITS)-1];
+    reg [33:0] record;
+    reg [7:0] index;
+    reg active,have_record;
+    wire [15:0] record_base=record[15:0],record_end=record[31:16];
+    wire record_valid=record[33],record_i32=record[32];
+    wire overlap=record_valid && dst<record_end && record_base<dst_end;
+    wire write_enable=seed || save || (active && have_record && overlap);
+    wire [ADDR_BITS-1:0] address=seed ? 8'd0 : save ? pc+8'd1 : index;
+    wire [33:0] write_record=seed ? {1'b1,input_i32,input_end,input_first} :
+        save ? {1'b1,dst_i32,dst_end,dst} : {1'b0,record[32:0]};
+    always @(posedge clk) begin
+        if(!rst && write_enable) records[address]<=write_record;
+        if(active && !have_record) record<=records[address];
+    end
+    always @(posedge clk) begin
+        if(rst) begin
+            active<=0; have_record<=0; done<=0; index<=0;
+            source_known<=0; source2_known<=0;
+        end else begin
+            done<=0;
+            if(start) begin
+                active<=1; have_record<=0; index<=0;
+                source_known<=0; source2_known<=!add_op;
+            end else if(active) begin
+                have_record<=!have_record;
+                if(have_record) begin
+                    if(record_valid && record_i32==src_i32 && src>=record_base && src_end<=record_end)
+                        source_known<=1;
+                    if(record_valid && !record_i32 && src2>=record_base && src2_end<=record_end)
+                        source2_known<=1;
+                    if(index==pc) begin active<=0; done<=1; end
+                    else index<=index+1'b1;
+                end
+            end
+        end
+    end
 endmodule
 

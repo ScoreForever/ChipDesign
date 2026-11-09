@@ -92,30 +92,46 @@ module npu_activation_store #(
                 if(mask[b])overlay[b*4+:4]=forwarded[b*4+:4];
         end
     endfunction
-    // Keep queue references in the combinational block itself. Function calls
-    // with implicit global array inputs can miss same-address queue updates in
-    // Verilog simulators; explicit reads also make forwarding dependencies clear.
-    reg [7:0] forward_mask0,forward_mask1;
-    reg [31:0] forward_data0,forward_data1;
-    integer fn;
-    reg [QW-1:0] forward_at;
-    always @* begin
-        forward_mask0=0;forward_mask1=0;forward_data0=0;forward_data1=0;
-        forward_at=0;
-        for(fn=0;fn<WRITE_DEPTH;fn=fn+1)begin
-            forward_at=head+fn;
-            if(fn<count)begin
-                if(q_addr[forward_at]==read_word0)begin
-                    forward_mask0=forward_mask0|q_mask[forward_at];
-                    forward_data0=overlay(forward_data0,q_data[forward_at],q_mask[forward_at]);
+    // Compare physical queue slots in parallel. Logical age wraps at head:
+    // entries below head are newer than entries at/above it. Select the last
+    // matching nibble in that order without rotating every data word or
+    // cascading WRITE_DEPTH overlays on the late read-address path.
+    wire [7:0] forward_mask0,forward_mask1;
+    wire [31:0] forward_data0,forward_data1;
+    wire [WRITE_DEPTH-1:0] before_head,match0,match1;
+    genvar fs,fl,fb;
+    generate
+        for(fs=0;fs<WRITE_DEPTH;fs=fs+1)begin:g_forward_match
+            wire [QW-1:0] age=fs-head;
+            assign before_head[fs]=fs<head;
+            assign match0[fs]=(age<count) && q_addr[fs]==read_word0;
+            assign match1[fs]=(age<count) && q_addr[fs]==read_word1;
+        end
+        for(fl=0;fl<8;fl=fl+1)begin:g_forward_lane
+            wire [WRITE_DEPTH-1:0] hits0,hits1,low0,low1,winner0,winner1;
+            assign low0=hits0 & before_head;
+            assign low1=hits1 & before_head;
+            assign forward_mask0[fl]=|hits0;
+            assign forward_mask1[fl]=|hits1;
+            for(fs=0;fs<WRITE_DEPTH;fs=fs+1)begin:g_priority
+                assign hits0[fs]=match0[fs] && q_mask[fs][fl];
+                assign hits1[fs]=match1[fs] && q_mask[fs][fl];
+                assign winner0[fs]=hits0[fs] && (before_head[fs] ?
+                    !(|(low0>>(fs+1))) : (!(|low0) && !(|(hits0>>(fs+1)))));
+                assign winner1[fs]=hits1[fs] && (before_head[fs] ?
+                    !(|(low1>>(fs+1))) : (!(|low1) && !(|(hits1>>(fs+1)))));
+            end
+            for(fb=0;fb<4;fb=fb+1)begin:g_bit
+                wire [WRITE_DEPTH-1:0] terms0,terms1;
+                for(fs=0;fs<WRITE_DEPTH;fs=fs+1)begin:g_data
+                    assign terms0[fs]=winner0[fs] && q_data[fs][fl*4+fb];
+                    assign terms1[fs]=winner1[fs] && q_data[fs][fl*4+fb];
                 end
-                if(q_addr[forward_at]==read_word1)begin
-                    forward_mask1=forward_mask1|q_mask[forward_at];
-                    forward_data1=overlay(forward_data1,q_data[forward_at],q_mask[forward_at]);
-                end
+                assign forward_data0[fl*4+fb]=|terms0;
+                assign forward_data1[fl*4+fb]=|terms1;
             end
         end
-    end
+    endgenerate
     wire [31:0] cached_word0=overlay(cache_data[read_word0[CI-1:0]],forward_data0,forward_mask0);
     wire [31:0] cached_word1=overlay(cache_data[read_word1[CI-1:0]],forward_data1,forward_mask1);
     wire [63:0] cached_pair={cached_word1,cached_word0};

@@ -1,0 +1,186 @@
+--- baseline/npu_program_core.sv
++++ selected/npu_program_core.sv
+@@ -395,6 +395,32 @@
+     integer r,rr;
+     reg [15:0] calc_addr[0:ROWS-1];reg [ROWS-1:0] calc_mask;reg calc_contiguous;
+     reg [$clog2(ROWS)-1:0] calc_first;
++    // A shadow cursor stays one position ahead and advances only when the
++    // current vector issues. Its geometry update ends at registers, outside
++    // the request -> cache/forwarding path. Initial-position metadata is
++    // captured at group preparation; subsequent requests use registered
++    // shadow metadata. Advance and prepare the following request at issue,
++    // so even back-to-back issues never pay an extra read-buffer cycle.
++    reg [8:0] request_y[0:1],request_x[0:1];
++    reg [4:0] request_p[0:1];
++    reg [15:0] request_base[0:1],request_addr[0:1][0:ROWS-1];
++    reg [ROWS-1:0] request_mask[0:1];
++    reg [$clog2(ROWS)-1:0] request_first[0:1];
++    reg [15:0] prepared_first_addr;
++    reg [15:0] peek_request_addr[0:ROWS-1];
++    reg [ROWS-1:0] peek_request_mask;
++    reg [$clog2(ROWS)-1:0] peek_first;
++    reg [15:0] peek_first_addr;
++    reg peek_any;
++    reg [1:0] request_any;
++    reg [4:0] peek_p;
++    reg [8:0] peek_y,peek_x,peek_next_y,peek_next_x;
++    reg [15:0] peek_base,peek_next_base;
++    wire peek_at_last_x=peek_x==scan_last_x;
++    wire peek_tap_last=pool1d ? peek_p[0] : peek_p[1:0]==3;
++    reg [15:0] calc_request_addr;
++    reg calc_any;
++    integer rq;
+     // Position and tile length change only at group setup or issue_fire.
+     // Register the lookahead predicate so issue_p's terminal-count compare
+     // does not precede the gather mask/address and activation forwarding path.
+@@ -407,24 +433,38 @@
+             else next_x=cursor_x+1;
+         end
+         next_base=cursor_base+cursor_step[{cursor_at_last_x,issue_p[1:0]}];
+-        calc_p=issue_p;calc_y=cursor_y;calc_x=cursor_x;calc_base=cursor_base;
+-        // Once a gather has started, its metadata lives in gather_* until
+-        // issue_fire. Prepare the next position throughout that interval,
+-        // rather than selecting it from the returning activation response.
+-        // Only issue_fire consumes this lookahead. This keeps SRAM response
+-        // valid -> issue_fire out of the address/mask/contiguity arithmetic,
+-        // while retaining same-cycle response/issue/next-request throughput.
+-        if(gather_state!=0 && has_next)begin calc_p=issue_p+1;calc_y=next_y;calc_x=next_x;calc_base=next_base;end
+-        if(pool_enable)begin cy=pool1d ? calc_y : calc_y*2+calc_p[1];cx=calc_x*2+calc_p[0];end
+-        else begin cy=calc_y;cx=calc_x;end
+-        calc_mask=0;
+-        for(r=0;r<ROWS;r=r+1)begin
+-            calc_addr[r]=calc_base+k_offsets[r];
+-            calc_mask[r]=k_valid[r] && cy>=k_y_begin[r] && cy<k_y_end[r] &&
+-                cx>=k_x_begin[r] && cx<k_x_end[r];
+-        end
+-        calc_first=0;
+-        for(r=ROWS-1;r>=0;r=r-1)if(calc_mask[r])calc_first=r;
++        peek_next_y=peek_y;peek_next_x=peek_x;
++        if(!pool_enable || peek_tap_last)begin
++            if(peek_at_last_x)begin peek_next_x=0;peek_next_y=peek_y+9'd1;end
++            else peek_next_x=peek_x+9'd1;
++        end
++        peek_next_base=peek_base+cursor_step[{peek_at_last_x,peek_p[1:0]}];
++        for(rq=0;rq<2;rq=rq+1)begin
++            // gather_state==0 is only the initial position of a K group.
++            request_p[rq]=rq==0 ? 5'd0 : (kernel_prepare ? 5'd1 : peek_p+5'd1);
++            request_y[rq]=rq==0 ? {1'b0,cursor_y} : (kernel_prepare ? next_y : peek_next_y);
++            request_x[rq]=rq==0 ? {1'b0,cursor_x} : (kernel_prepare ? next_x : peek_next_x);
++            request_base[rq]=rq==0 ? cursor_base : (kernel_prepare ? next_base : peek_next_base);
++            if(pool_enable)begin
++                cy=pool1d ? request_y[rq] : request_y[rq]*2+request_p[rq][1];
++                cx=request_x[rq]*2+request_p[rq][0];
++            end else begin cy=request_y[rq];cx=request_x[rq];end
++            request_mask[rq]=0;
++            for(r=0;r<ROWS;r=r+1)begin
++                request_addr[rq][r]=request_base[rq]+k_offsets[r];
++                request_mask[rq][r]=k_valid[r] && cy>=k_y_begin[r] && cy<k_y_end[r] &&
++                    cx>=k_x_begin[r] && cx<k_x_end[r];
++            end
++            request_first[rq]=0;
++            for(r=ROWS-1;r>=0;r=r-1)if(request_mask[rq][r])request_first[rq]=r;
++            request_any[rq]=|request_mask[rq];
++        end
++        prepared_first_addr=request_addr[1][request_first[1]];
++        calc_p=peek_p;calc_y=peek_y;calc_x=peek_x;calc_base=peek_base;
++        calc_mask=gather_state==0 ? gather_mask : peek_request_mask;
++        calc_first=peek_first;calc_request_addr=peek_first_addr;
++        calc_any=peek_any;
++        for(r=0;r<ROWS;r=r+1)calc_addr[r]=peek_request_addr[r];
+         // All selected pairs must preserve their nibble-lane distance. Empty
+         // and singleton masks are contiguous, including masked padding lanes.
+         calc_contiguous=1;
+@@ -491,8 +531,8 @@
+         // state/valid gating to the data path merely to drive idle addresses 0.
+         // Start each subset at its first valid lane. Subset membership is
+         // derived from registered group offsets, not the returning data.
+-        a_addr=mac_op ? (gather_state==1 ? gather_addr[gather_row] :
+-            calc_addr[calc_first]) : eaddr;
++        a_addr=mac_op ? ((gather_state==0 || gather_state==1) ? gather_addr[gather_row] :
++            calc_request_addr) : eaddr;
+         if(state==FREQ) begin m_valid=1; m_addr=pc*64+fetch_word*4; end
+         // The model store accepts one read per cycle: request the next
+         // descriptor/parameter word in the cycle the previous one returns.
+@@ -510,8 +550,10 @@
+             m_valid=1; m_addr=dwconv ? load_address : load_address+row_bytes;
+         end
+         if(state==EXECUTE) begin
+-            if(mac_op && !kernel_prepare && issue_more && (gather_state==0 || (issue_fire && has_next))) begin
+-                a_valid=|calc_mask;
++            if(mac_op && !kernel_prepare && issue_more && gather_state==0)begin
++                a_valid=|gather_mask;
++            end else if(mac_op && !kernel_prepare && issue_more && issue_fire && has_next)begin
++                a_valid=calc_any;
+             end else if(mac_op && !kernel_prepare && gather_state==1) begin
+                 a_valid=|gather_mask;
+             end else if(!mac_op && estate==1) begin a_valid=1; end
+@@ -912,6 +954,15 @@
+                             end else begin
+                                 for(v=0;v<ROWS;v=v+1)for(integer vv=0;vv<ROWS;vv=vv+1)
+                                     k_consecutive[v*ROWS+vv]<=(v>=vv) || k_normalized[vv]==k_normalized[v];
++                                // Bounds/offsets were written before this closing
++                                // preparation edge. Prime the first request without
++                                // adding a state or cycle to the existing schedule.
++                                for(v=0;v<ROWS;v=v+1)gather_addr[v]<=request_addr[0][v];
++                                gather_mask<=request_mask[0];gather_row<=request_first[0];gathered<=0;
++                                peek_p<=5'd1;peek_y<=next_y;peek_x<=next_x;peek_base<=next_base;
++                                for(v=0;v<ROWS;v=v+1)peek_request_addr[v]<=request_addr[1][v];
++                                peek_request_mask<=request_mask[1];peek_first<=request_first[1];
++                                peek_first_addr<=prepared_first_addr;peek_any<=request_any[1];
+                                 kernel_prepare<=0;
+                                 tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
+                                 has_next_q<=remaining>1;
+@@ -938,12 +989,7 @@
+                             end else begin load_row<=load_row+1'b1; lstate<=!next_load_zero && m_ready ? L_WAIT : L_REQ; end
+                         end
+                         if(issue_more && !kernel_prepare) case(gather_state)
+-                            0: begin
+-                                for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
+-                                gather_mask<=calc_mask;
+-                                gathered<=0; gather_row<=calc_first;
+-                                gather_state<=calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
+-                            end
++                            0: gather_state<=gather_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
+                             1: if(a_ready) gather_state<=2;
+                             2: if(a_rsp_valid) begin
+                                 gathered<=returned_vector;
+@@ -954,6 +1000,13 @@
+                             default: ;
+                         endcase
+                         if(issue_fire) begin
++                            if(has_next)begin
++                                peek_p<=peek_p+5'd1;
++                                peek_y<=peek_next_y;peek_x<=peek_next_x;peek_base<=peek_next_base;
++                                for(v=0;v<ROWS;v=v+1)peek_request_addr[v]<=request_addr[1][v];
++                                peek_request_mask<=request_mask[1];peek_first<=request_first[1];
++                                peek_first_addr<=prepared_first_addr;peek_any<=request_any[1];
++                            end
+                             issues<=issues+1;
+                             for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
+                             gather_mask<=calc_mask;
+@@ -973,18 +1026,18 @@
+                                 else begin
+                                     issue_g<=0;
+                                     kernel_c<=0;kernel_x<=0;kernel_y<=0;kernel_offset<=0;kernel_prepare<=1;
+-                                    cursor_base<=next_base;tile_base<=next_base;
+-                                    cursor_y<=next_y; cursor_x<=next_x;
+-                                    cursor_at_last_x<=next_x==scan_last_x;
+-                                    tile_y<=next_y; tile_x<=next_x;
++                                    cursor_base<=peek_base;tile_base<=peek_base;
++                                    cursor_y<=peek_y; cursor_x<=peek_x;
++                                    cursor_at_last_x<=peek_x==scan_last_x;
++                                    tile_y<=peek_y; tile_x<=peek_x;
+                                     if((issue_tile+1)*TILE<positions) issue_tile<=issue_tile+1'b1;
+                                     else issue_more<=0;
+                                 end
+                             end else begin
+-                                issue_p<=issue_p+1'b1;cursor_base<=next_base;
++                                issue_p<=issue_p+1'b1;cursor_base<=peek_base;
+                                 has_next_q<=(issue_p+5'd1)!=(tile_positions-5'd1);
+-                                cursor_y<=next_y;cursor_x<=next_x;
+-                                cursor_at_last_x<=next_x==scan_last_x;
++                                cursor_y<=peek_y;cursor_x<=peek_x;
++                                cursor_at_last_x<=peek_x==scan_last_x;
+                             end
+                         end
+                         if(out_valid) begin

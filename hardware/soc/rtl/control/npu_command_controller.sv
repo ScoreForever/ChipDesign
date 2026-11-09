@@ -32,11 +32,19 @@ module npu_command_controller #(
  reg [15:0] model_count,input_count; reg [6:0] config_written;
  wire owned=job_active || core_busy_i || core_reset_o;
  wire locked=owned || done || faulted;
- wire config_ok= (input_base_o+input_bytes_o<=ACT_BYTES-model_bytes_o) &&
+ wire config_fields_ok= (input_base_o+input_bytes_o<=ACT_BYTES-model_bytes_o) &&
   (output_base_o+output_bytes_o<=ACT_BYTES-model_bytes_o) && &config_written && model_bytes_o>=op_count_o*64 && model_bytes_o<=MODEL_BYTES &&
   model_bytes_o[1:0]==0 && op_count_o>0 && op_count_o<=MAX_OPS && input_bytes_o>0 && output_bytes_o>0 &&
   input_base_o[1:0]==0 && output_base_o[1:0]==0 &&
   {1'b0,input_base_o}+{1'b0,input_bytes_o}<=ACT_BYTES && {1'b0,output_base_o}+{1'b0,output_bytes_o}<=ACT_BYTES;
+ // Configuration changes in EXEC. The next command reaches EXEC only after
+ // its reply and IDLE handshake, so this check is current before any access.
+ // Register it to keep bounds arithmetic out of the SRAM queue controls.
+ reg config_ok;
+ always @(posedge clk_i)begin
+  if(!rst_ni)config_ok<=0;
+  else config_ok<=config_fields_ok;
+ end
  wire model_write=state==EXEC && op==2 && !locked && model_loading && config_ok &&
   addr==32'h10000+model_count && model_count<model_bytes_o;
  wire input_write=state==EXEC && op==2 && !locked && input_loading &&

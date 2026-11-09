@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "bitstream_sha256": "9859c10155bb19638164b7b50b46b1751dd19821a00744fa8634c494d8df0c7e",
+  "wns_ns": 0.533,
+  "whs_ns": 0.028,
+  "scope": "same-build source, routed timing and CDC gate; explicit FT232H release confirmed"
+}

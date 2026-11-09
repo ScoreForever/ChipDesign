@@ -1,7 +1,9 @@
 `timescale 1ns/1ps
-// ABI 3 packed nibble memory contract, independent 16K-nibble scoreboard.
+// Packed nibble memory contract, independent 16K-nibble scoreboard.
 module tb_npu_memories;
  reg clk=0,rst=1;always #5 clk=~clk;
+ wire shared_done;
+ tb_npu_shared_config shared_config(.clk(clk),.rst(rst),.done(shared_done));
  reg mw=0,mv=0,mrr=0;reg [15:0] ma=0,mwa=0;reg [31:0] mwd=0;
  wire mwr,mready,mvalid;wire [31:0] md;
  npu_model_store model(.clk(clk),.rst(rst),.write_valid(mw),.write_ready(mwr),
@@ -93,8 +95,70 @@ module tb_npu_memories;
   if(writes!=before_writes || idle)$fatal(1,"reset stimulus not queued");
   rst=1;@(negedge clk);rst=0;gold[1024]=4'he;load(1024,2);
   if(rmw==0)$fatal(1,"no physical nibble RMW observed");
+  wait(shared_done);
   $display("PASS packed INT4 memories, byte-neighbour RMW, halfword model reads, held snapshots, masks/wrap/full scan/reset rmw=%0d",rmw);
   $finish;
  end
  initial begin #5000000;$fatal(1,"packed memory timeout");end
+endmodule
+
+// Changing the model reservation and submitting an access on the same edge
+// must use the new base, including the FPGA's registered-base settling cycle.
+module tb_npu_shared_config(input wire clk,rst,output reg done=0);
+ reg [15:0] model_bytes=8192;
+ reg write_request=0,read_request=0,activation_request=0;
+ reg [31:0] write_data=0;
+ wire write_ready,read_ready,response_valid,idle;
+ wire [31:0] response_data;
+ wire activation_ready,activation_valid;
+ wire [31:0] activation_data;
+ integer cycles,model_responses,activation_responses;
+ npu_shared_store dut(.clk(clk),.rst(rst),.model_bytes(model_bytes),
+  .model_write(write_request),.model_write_ready(write_ready),
+  .model_write_addr(16'd0),.model_write_data(write_data),
+  .model_read(read_request),.model_read_ready(read_ready),.model_read_addr(16'd0),
+  .model_rsp_valid(response_valid),.model_rsp_data(response_data),
+  .read_valid(activation_request),.read_addr(16'd16384),.read_ready(activation_ready),
+  .rsp_valid(activation_valid),.rsp_ready(1'b1),.rsp_data(activation_data),
+  .write_valid(1'b0),.write_addr(16'd0),.write_data(32'd0),.write_mask(8'd0),
+  .write_ready(),.flush(1'b0),.idle(idle));
+ task store(input [15:0] size,input [31:0] value);
+ begin
+  @(negedge clk);model_bytes=size;write_request=1;write_data=value;
+  @(posedge clk);while(!write_ready)@(posedge clk);
+  @(negedge clk);write_request=0;
+  while(!idle)@(negedge clk);
+ end endtask
+ task load(input [15:0] size,input [31:0] expected);
+ begin
+  @(negedge clk);model_bytes=size;read_request=1;
+  @(posedge clk);while(!read_ready)@(posedge clk);
+  @(negedge clk);read_request=0;
+  while(!response_valid)@(negedge clk);
+  if(response_data!==expected)$fatal(1,"shared model base: size=%0d got=%h expected=%h",size,response_data,expected);
+ end endtask
+ initial begin
+  wait(!rst);
+  store(8192,32'h12345678);
+  store(4096,32'hfedcba98);
+  load(8192,32'h12345678);
+  load(4096,32'hfedcba98);
+  repeat(3)@(negedge clk);
+  model_bytes=8192;read_request=1;activation_request=1;
+  model_responses=0;activation_responses=0;
+  for(cycles=0;cycles<200;cycles=cycles+1)begin
+   @(negedge clk);
+   if(response_valid)begin
+    if(response_data!==32'h12345678)$fatal(1,"contended model response");
+    model_responses=model_responses+1;
+   end
+   if(activation_valid)begin
+    if(activation_data!==32'h12345678)$fatal(1,"contended activation response");
+    activation_responses=activation_responses+1;
+   end
+  end
+  read_request=0;activation_request=0;
+  if(model_responses<20 || activation_responses<20)$fatal(1,"shared read arbitration starvation");
+  done=1;
+ end
 endmodule

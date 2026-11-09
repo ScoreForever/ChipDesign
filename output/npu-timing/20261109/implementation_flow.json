@@ -1,0 +1,13 @@
+{
+  "commands": [
+    "Command: phys_opt_design",
+    "Command: route_design"
+  ],
+  "route_calls": 1,
+  "negative_slack_retry": false,
+  "estimated_timing_lines": [
+    "INFO: [Physopt 32-619] Estimated Timing Summary | WNS=-0.367 | TNS=-6.495 |",
+    "INFO: [Vivado_Tcl 4-2279] Estimated Timing Summary | WNS= 0.523 | TNS= 0.000 | ",
+    "INFO: [Route 35-57] Estimated Timing Summary | WNS=0.527  | TNS=0.000  | WHS=0.027  | THS=0.000  |"
+  ]
+}

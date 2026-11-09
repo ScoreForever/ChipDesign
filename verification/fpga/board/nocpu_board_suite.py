@@ -100,8 +100,7 @@ def execute(args):
                 try:
                     pkg = compile_model(model, fuse=fuse, cols=cols)
                 except ValueError as exc:
-                    expected_rejection = name == 'tinycnn' and not fuse and 'activation capacity exceeded' in str(exc)
-                    report['cases'].append({'name': case, 'status': 'EXPECTED_HOST_REJECTION' if expected_rejection else 'SKIP', 'reason': str(exc)})
+                    report['cases'].append({'name': case, 'status': 'SKIP', 'reason': str(exc)})
                     continue
                 case_dir = out / case
                 case_dir.mkdir()

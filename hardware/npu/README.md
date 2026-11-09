@@ -11,7 +11,10 @@
 - [改造前2026-10-23验证证据](../../docs/NPU_PROGRAMMABLE_VALIDATION_20261023.md)
 
 运行 `python hardware/npu/scripts/run_program_regression.py --output build/program_regression`。
+非对齐激活 gather 专项：`python hardware/npu/scripts/run_gather_regression.py --output build/gather_regression`。
+该测试覆盖 2/3/4/5/7/9 通道、有符号/无符号、padding、步长和尾通道，并检查 4 通道 3×3 用例的周期与读请求预算。
 默认 RTL 在 `rtl/`，旧固定网络与重复算子实现已删除；`tools/tinycnn8_golden.py` 仅作为
 独立旧模型数值参考，不能代表生产硬件或主机协议。
+完整程序回归还包含环形写队列转发优先级检查，覆盖 18,432 组队列头、占用与地址匹配组合。
 模型/激活默认各8 KiB；激活端为单端口SRAM加64 B读缓存、写合并/转发和小队列。
 宏仿真定义 `NPU_USE_RA1SHD_MODEL` 与 `NPU_USE_RA1SHD_ACTIVATION`，并提供课程宏模型。

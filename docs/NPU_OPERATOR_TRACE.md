@@ -75,7 +75,7 @@ MAC 三类等待沿用整次计数的“结果槽 → 权重 → 激活”互斥
 | word3 bits23:20 / 27:24 | 核心 state / 描述符 PC |
 | word3 bits30:28 / 31 | opcode / quantized；fetch 期间记为 0 |
 
-核心 state：0 IDLE、1 FREQ、2 FWAIT、3 BASIC、4 CHECK、5 PREQ、6 PWAIT、7 SETUP、8 EXECUTE、9 NEXT、10 FAILED、11 INIT_A、12 INIT_B、14 DERIVE。
+核心 state：0 IDLE、1 FREQ、2 FWAIT、3 BASIC、4 CHECK、5 PREQ、6 PWAIT、7 SETUP、8 EXECUTE、9 NEXT、10 FAILED、11 INIT_A、12 INIT_B、13 LOOKUP_WAIT、14 DERIVE。LOOKUP_WAIT 等待张量地址表的逐条核对。
 
 VCD 的 clock 是根据声明的采样周期重建的显示时钟，默认 20 ns；它不是示波器测量。数据来自 FPGA 上逐周期采集，两个采样沿之间的毛刺不可见。VCD 在窗口结束时将数据标为未知，避免把采集结束后的状态误看成实际保持不变。本版不记录 MAC/量化内部数据或 write payload。
 
