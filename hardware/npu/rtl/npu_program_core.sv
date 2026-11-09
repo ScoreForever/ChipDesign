@@ -201,14 +201,32 @@ module npu_program_core #(
     wire [15:0] tile_channels=channels-oct*COLS;
     wire narrow=COLS==8 && tile_channels<=4;
     wire [15:0] row_bytes=narrow ? 16'd2 : COLS/2;
-    wire load_return=lstate==L_WAIT && m_rsp_valid;
     // Padded K rows still program zero into every PE, but consume no model
     // read bandwidth. This matters for eight-row groups and narrow kernels.
+    // Zero rows are always a suffix of a bank load.
     wire load_zero=!dwconv && (rowpad ? load_row>=kw : load_g*ROWS+load_row>=k_count);
-    wire next_load_zero=!dwconv && (rowpad ? load_row+1>=kw : load_g*ROWS+load_row+1>=k_count);
-    wire array_weight_we=state==EXECUTE && mac_op && (lstate==L_HAVE || load_return || (lstate==L_REQ && load_zero)) && inflight[load_bank]==0;
+    // Weight-row reads are pipelined: up to LQ reads are outstanding or queued
+    // per bank load, so one row per cycle streams in despite a multi-cycle
+    // model-read latency. Responses return in order; every issued read is
+    // consumed by the same bank load, so nothing is outstanding at its end.
+    // Depthwise rows of one bank share a single stored word: read it once.
+    localparam LQ=3;
+    reg [COLS*4-1:0] lq_data[0:LQ-1];
+    reg [1:0] lq_head,lq_tail,lq_count,l_out;
+    reg [$clog2(ROWS):0] req_row;
+    reg [15:0] req_addr;
+    wire req_zero=!dwconv && (rowpad ? req_row>=kw : load_g*ROWS+req_row>=k_count);
+    wire load_req=state==EXECUTE && mac_op && lstate==L_REQ && req_row<ROWS && !req_zero &&
+        {1'b0,l_out}+{1'b0,lq_count}<LQ;
+    wire load_rsp=m_rsp_valid && l_out!=0;
     wire [COLS*4-1:0] response_row=narrow ? (m_data & 32'h0000ffff) : m_data;
-    wire [COLS*4-1:0] loaded_row=load_zero ? 0 : load_return ? response_row : load_data;
+    wire dw_hold=dwconv && load_row!=0;
+    wire row_avail=load_zero || dw_hold || lq_count!=0 || load_rsp;
+    wire array_weight_we=state==EXECUTE && mac_op && lstate==L_REQ && row_avail && inflight[load_bank]==0;
+    wire [COLS*4-1:0] queued_row=lq_count!=0 ? lq_data[lq_head] : response_row;
+    wire lq_pop=array_weight_we && !load_zero && !dw_hold && lq_count!=0;
+    wire lq_push=load_rsp && !(array_weight_we && !load_zero && !dw_hold && lq_count==0);
+    wire [COLS*4-1:0] loaded_row=load_zero ? 0 : dw_hold ? load_data : queued_row;
     // Depthwise: one stored row per tap carries every lane's weight; group g
     // of the tap keeps lane (g%(COLS/4))*4+r in row r, a block diagonal.
     wire [$clog2(COLS)-1:0] dw_lane=(load_g*ROWS+load_row)%COLS;
@@ -543,12 +561,7 @@ module npu_program_core #(
         else if(state==PWAIT && m_rsp_valid && !last_param && !param_bad) begin
             m_valid=1; m_addr=params+next_param_channel*4;
         end
-        else if(state==EXECUTE && mac_op && lstate==L_REQ && !load_zero) begin
-            m_valid=1; m_addr=load_address;
-
-        end else if(state==EXECUTE && mac_op && array_weight_we && load_row!=ROWS-1 && !next_load_zero) begin
-            m_valid=1; m_addr=dwconv ? load_address : load_address+row_bytes;
-        end
+        else if(load_req) begin m_valid=1; m_addr=req_addr; end
         if(state==EXECUTE) begin
             if(mac_op && !kernel_prepare && issue_more && gather_state==0)begin
                 a_valid=|gather_mask;
@@ -591,6 +604,7 @@ module npu_program_core #(
         begin
             load_seq<=0; issue_seq<=0; load_g<=0; issue_g<=0; load_tile<=0; issue_tile<=0;
             load_row<=0; lstate<=L_IDLE; load_more<=1; issue_more<=1;
+            req_row<=0; l_out<=0; lq_head<=0; lq_tail<=0; lq_count<=0;
             bank_ready<=0; inflight[0]<=0; inflight[1]<=0; issue_p<=0;
             gather_state<=0; gather_row<=0; slot_busy<=0; slot_ready<=0;
             read_slot<=0; read_lane<=0; rq_pending<=0;
@@ -608,7 +622,7 @@ module npu_program_core #(
         begin error<=code; error_op<=pc; state<=FAILED; end
     endtask
     wire compute_drained=write_count==0 && (mac_op ? (!issue_more && inflight[0]==0 && inflight[1]==0 &&
-        slot_busy==0 && rq_pending==0 && !rq_valid && lstate==L_IDLE && !load_more) :
+        slot_busy==0 && rq_pending==0 && !rq_valid && lstate==L_IDLE && !load_more && l_out==0 && lq_count==0) :
         (element_pos==dst_pixels && estate==0 && slot_busy==0 && rq_pending==0 && !rq_valid));
     // A partial write-combining word must reach physical SRAM before the next
     // channel tile/layer can reuse its address, or before done is published.
@@ -721,7 +735,7 @@ module npu_program_core #(
     integer v;
     always @(posedge clk) begin
         if(rst) begin
-            state<=IDLE; checking<=0; pc<=0; fetch_word<=0;
+            state<=IDLE; checking<=0; pc<=0; fetch_word<=0; l_out<=0; lq_count<=0; lq_head<=0; lq_tail<=0;
             q_enable<=0;relu_enable<=0;pool_enable<=0;mac_op<=0;dwconv<=0;pool1d<=0;elem_pool<=0;
             astep<=0;fetch_bad<=0;
             validation_done<=0; validation_ok<=0; done<=0; error<=0; error_op<=0;
@@ -969,11 +983,15 @@ module npu_program_core #(
                                 last_group<=issue_g==groups-16'd1;
                             end
                         end
-                        if(load_start) lstate<=L_REQ;
-                        if(lstate==L_REQ && m_ready && !load_zero) lstate<=L_WAIT;
-                        if(lstate==L_WAIT && m_rsp_valid) begin
-                            if(!array_weight_we) begin load_data<=response_row; lstate<=L_HAVE; end
+                        if(load_start) begin lstate<=L_REQ; req_row<=0; req_addr<=load_address; end
+                        if(load_req && m_ready) begin
+                            req_row<=dwconv ? ROWS : req_row+1'b1; req_addr<=req_addr+row_bytes;
                         end
+                        l_out<=l_out+(load_req && m_ready)-load_rsp;
+                        if(lq_push) begin lq_data[lq_tail]<=response_row; lq_tail<=lq_tail==LQ-1 ? 2'd0 : lq_tail+1'b1; end
+                        if(lq_pop) lq_head<=lq_head==LQ-1 ? 2'd0 : lq_head+1'b1;
+                        lq_count<=lq_count+lq_push-lq_pop;
+                        if(array_weight_we && dwconv && load_row==0) load_data<=queued_row;
                         if(array_weight_we) begin
                             // Depthwise: every group of a tap reuses that tap's one stored row.
                             load_address<=load_row==ROWS-1 && load_g==groups-1 ? weight_tile_base :
@@ -986,7 +1004,7 @@ module npu_program_core #(
                                     if((load_tile+1)*TILE<positions) load_tile<=load_tile+1'b1;
                                     else load_more<=0;
                                 end
-                            end else begin load_row<=load_row+1'b1; lstate<=!next_load_zero && m_ready ? L_WAIT : L_REQ; end
+                            end else load_row<=load_row+1'b1;
                         end
                         if(issue_more && !kernel_prepare) case(gather_state)
                             0: gather_state<=gather_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
