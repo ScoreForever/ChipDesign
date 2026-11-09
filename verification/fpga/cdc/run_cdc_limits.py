@@ -4,7 +4,8 @@
 Grid: system clock x TCK rate (both directions far past the 50 MHz board
 point), then stress points per system clock (per-edge TCK jitter + duty
 extremes, 50 % late-resolving synchronizers, random sub-cycle asynchronous
-resets, long destination backpressure), several seeds each.
+resets, long destination backpressure) and overrun points (host issues a
+second command without polling), several seeds each.
 
 Any functional failure (assertion) makes the run fail. Bundled-data margins
 are measured, not asserted: the result lists, per system clock, the largest
@@ -45,6 +46,9 @@ def points(quick):
                        BP=40, N=200, SEED=100 + seed)
             yield dict(kind='meta_only', SYS_NS=s, TCK_LO=2, TCK_HI=max(60, 4 * s), JITTER=1, META=50,
                        N=200, SEED=200 + seed)
+            # Host protocol violation: a second command without polling. Slow destination +
+            # fast TCK makes the first still pending, so the overrun guard must hold.
+            yield dict(kind='overrun', SYS_NS=s, TCK_LO=2.5, TCK_HI=2.5, BP=60, OVR=40, N=150, SEED=300 + seed)
 
 
 def run_point(image, p, bound):
@@ -108,7 +112,8 @@ def main():
     fails = [r for r in rows if r['status'] != 'PASS']
     summary = dict(bound_ns=args.bound_ns, points=len(rows), failures=len(fails), envelope=env,
                    resets=sum(int(r.get('resets', 0)) for r in rows),
-                   metastability_injections=sum(int(r.get(k, 0)) for r in rows for k in ('meta_req', 'meta_ack', 'meta_rst')))
+                   metastability_injections=sum(int(r.get(k, 0)) for r in rows for k in ('meta_req', 'meta_ack', 'meta_rst')),
+                   overruns_dropped=sum(int(r.get('ovr_hit', 0)) for r in rows))
     (out / 'summary.json').write_text(json.dumps(summary, indent=1) + '\n')
     print(json.dumps({k: v for k, v in summary.items() if k != 'envelope'}))
     for e in env:
@@ -117,6 +122,9 @@ def main():
               f"fastest TCK half-period meeting the response bound: {e['fastest_tck_half_ns_with_response_margin']} ns")
     if fails:
         print(f'CDC LIMITS FAILED: {len(fails)} operating points')
+        sys.exit(1)
+    if summary['overruns_dropped'] == 0:
+        print('CDC LIMITS FAILED: coverage hole, no overrun was ever dropped (overrun guard unexercised)')
         sys.exit(1)
     print(f'ALL {len(rows)} CDC LIMIT POINTS PASSED')
 

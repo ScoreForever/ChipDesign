@@ -39,9 +39,11 @@ UDR_NEW = "                UDR: if (ir == 'h12 && dr[71:64] != 0) begin\n       
 #             L_IDLE only after its last row is written, so lstate==L_IDLE already implies
 #             l_out==0 && lq_count==0. The invariant itself is asserted by the protocol
 #             checker (tb_npu_program.sv, "weight reads left over after a bank load").
+#   c04       equivalent: with no command in flight ack_toggle == req_seen (asserted by the
+#             CDC limits bench), so at reply time !ack_toggle == req_seen.
 #   m13       equivalent: side_fire excludes a main-port access to the same macro, so the
 #             mux priority never matters; the guard itself is mutant m09 (killed).
-EXPECTED_SURVIVORS = {'c01', 'c02', 'm08', 'm13'}
+EXPECTED_SURVIVORS = {'c01', 'c02', 'c04', 'm08', 'm13'}
 SUBSET = ('cnn,mlp,strided,edges,long_k,dwconv,dw_rect_pool,conv1d,rect_kernels,rowpad_kernels,'
           'residual_add,slot_pressure,u4_chain,pool_general,tiny_padded')
 
@@ -99,7 +101,7 @@ MUTANTS = [
      'CDC reply captured after one synchronizer flop (static-CDC class)'),
     ('c03', JTAG, UDR_OLD, UDR_NEW, CDC, 'CDC new request overwrites a payload still owned by the system domain'),
     ('c04', JTAG, 'ack_toggle <= req_seen; waiting_reply <= 0;', 'ack_toggle <= !ack_toggle; waiting_reply <= 0;', CDC,
-     'CDC acknowledge toggles instead of echoing the request phase'),
+     'CDC acknowledge toggles instead of echoing the request phase (equivalent, invariant asserted)'),
     ('c05', JTAG, 'rsp_mailbox_data <= rsp_data_i; rsp_mailbox_error <= rsp_error_i;',
      'rsp_mailbox_data <= rsp_data_i;', CDC, 'CDC error code not bundled with the reply'),
 ]
@@ -163,8 +165,15 @@ def main():
         apply(dst, file, old, new)
         out = dst / 'build/out'
         if config == CDC:
-            cmd = [sys.executable, str(ROOT / 'verification/fpga/cdc/run_cdc_limits.py'), '--quick',
-                   '--jobs', str(args.jobs), '--rtl', str(dst / JTAG), '--output', str(out)]
+            # Directed TAP/mailbox and burst benches first, then the quick limit sweep.
+            out.mkdir(parents=True, exist_ok=True)
+            benches = ' && '.join(
+                f"iverilog -g2012 -s {tb} -o {out}/{tb}.vvp {dst / JTAG} {ROOT}/verification/fpga/cdc/{tb}.sv && "
+                f"vvp -n {out}/{tb}.vvp | tee {out}/{tb}.log | tail -3 && grep -q 'PASS {tag}:' {out}/{tb}.log"
+                for tb, tag in (('tb_npu_jtag_cdc', 'NPU_JTAG_CDC'), ('tb_npu_jtag_burst_cdc', 'NPU_JTAG_BURST_CDC')))
+            cmd = ['bash', '-c', f"set -o pipefail; {benches} && {sys.executable} "
+                   f"{ROOT}/verification/fpga/cdc/run_cdc_limits.py --quick --jobs {args.jobs} "
+                   f"--rtl {dst / JTAG} --output {out}"]
         else:
             cmd = [sys.executable, 'hardware/npu/scripts/run_program_regression.py', '--quick', '--only', SUBSET,
                    '--jobs', str(args.jobs), *config, '--output', str(out)]

@@ -12,6 +12,11 @@
 //                       at a random instant with a random (possibly sub-cycle) width
 //   +BP=<cycles>        max random destination backpressure / reply latency
 //   +BOUND_NS=<real>    bundled-data skew bound the constraints promise (default 20)
+//   +OVR=<pct>          per transaction, probability that the host violates the
+//                       protocol: a second command right after the first, without
+//                       polling. If the first is still pending at that Update-DR the
+//                       transport must drop it intact and report the sticky overrun
+//                       bit; otherwise it is a legal new transaction.
 //   +N=<count> +SEED=<n>
 //
 // Always-on checks (fail with $fatal): bundled payload stable while owned,
@@ -23,7 +28,7 @@
 // A margin below BOUND_NS is an operating-envelope violation, not a logic bug.
 module tb_npu_jtag_cdc_limits;
   real sys_ns=20, tck_lo=37, tck_hi=37, bound_ns=20, half;
-  integer n_tx=200, seed=1, meta_pct=0, reset_pct=0, bp=8, jitter=0;
+  integer n_tx=200, seed=1, meta_pct=0, reset_pct=0, bp=8, jitter=0, ovr_pct=0, ovr_hit=0, ovr_legal=0;
   reg clk=0, rst_n=0, tck=0, tms=1, tdi=0;
   always begin #(sys_ns/2.0) clk=~clk; end
 
@@ -83,6 +88,10 @@ module tb_npu_jtag_cdc_limits;
   // Response: TCK domain captures the mailbox into reply_* on this edge.
   always @(posedge tck) if(rst_n && dut.tck_rst_n && dut.pending && dut.ack_sync[1]==dut.req_toggle) begin
     m=$realtime-t_rsp_change; if(m<min_rsp_margin) min_rsp_margin=m; end
+  // Handshake phase invariant: with no command in flight the acknowledge phase equals
+  // the last request phase seen (why "ack <= !ack" is an equivalent mutant, c04).
+  always @(negedge clk) if(rst_n && dut.sys_rst_n && !dut.cmd_valid_o && !dut.waiting_reply &&
+                          dut.ack_toggle!==dut.req_seen) $fatal(1,"CDC acknowledge phase differs from request phase while idle");
   // Ownership: the request payload is frozen while pending; the response mailbox
   // is frozen from publication until the next accepted command.
   reg req_owned=0, rsp_owned=0;
@@ -135,11 +144,12 @@ module tb_npu_jtag_cdc_limits;
       tick(1,0); tick(0,0);
     end
   endtask
+  reg pend_at_udr;   // mailbox still owned by the system domain when the scan updated
   task scan(input reg [71:0] tx, output reg [71:0] rx);
     begin
       tick(1,0); tick(0,0); tick(0,0);
       for(i=0;i<72;i=i+1) begin rx[i]=tdo; tick(i==71,tx[i]); end
-      tick(1,0); tick(0,0);
+      tick(1,0); pend_at_udr=dut.pending; tick(0,0);   // Update-DR acts on this edge
     end
   endtask
   // Asynchronous reset at a random instant with a random width (may be shorter
@@ -153,7 +163,8 @@ module tb_npu_jtag_cdc_limits;
 
   reg [71:0] packet, resp;
   reg [31:0] want_data;
-  reg hit_reset;
+  reg hit_reset, expect_ovr;
+  reg [71:0] rogue;
   integer before_n;
   initial begin
     if($value$plusargs("SYS_NS=%f",sys_ns)) ;
@@ -166,6 +177,7 @@ module tb_npu_jtag_cdc_limits;
     if($value$plusargs("BOUND_NS=%f",bound_ns)) ;
     if($value$plusargs("N=%d",n_tx)) ;
     if($value$plusargs("SEED=%d",seed)) ;
+    if($value$plusargs("OVR=%d",ovr_pct)) ;
     i=$urandom(seed);
     half=tck_lo;
     #1; rst_n=1; #1; rst_n=0; #(3*sys_ns+3*tck_hi); rst_n=1; #(4*sys_ns);
@@ -173,7 +185,7 @@ module tb_npu_jtag_cdc_limits;
     for(n=0;n<n_tx;n=n+1) begin
       if(!jitter) half=draw(tck_lo,tck_hi);
       packet[71:64]=8'h20|($urandom%16); packet[63:32]=$urandom; packet[31:0]=$urandom;
-      before_n=accepted; hit_reset=0;
+      before_n=accepted; hit_reset=0; expect_ovr=0;
       fork
         begin
           if(reset_pct && ($urandom%100)<reset_pct) begin
@@ -183,6 +195,12 @@ module tb_npu_jtag_cdc_limits;
         end
         begin
           scan(packet,resp);
+          if(ovr_pct && ($urandom%100)<ovr_pct && !hit_reset) begin
+            rogue[71:64]=8'h20|($urandom%16); rogue[63:32]=$urandom; rogue[31:0]=$urandom;
+            scan(rogue,resp);
+            if(pend_at_udr) begin expect_ovr=1; ovr_hit=ovr_hit+1; end    // must be dropped
+            else begin packet=rogue; before_n=before_n+1; ovr_legal=ovr_legal+1; end  // legal new tx
+          end
           polls=0;
           // Poll the status capture until the reply is visible (have_reply).
           do begin scan(72'd0,resp); polls=polls+1; end
@@ -206,13 +224,15 @@ module tb_npu_jtag_cdc_limits;
       want_data=packet[31:0]^packet[63:32]^32'h5a5a0f0f;
       if(resp[31:0]!==want_data || resp[68:64]!==packet[68:64] || resp[63:32]!==packet[63:32])
         $fatal(1,"CDC wrong reply tx %0d resp=%h",n,resp);
+      if(resp[69]!==expect_ovr)
+        $fatal(1,"CDC overrun status %b, expected %b (tx %0d)",resp[69],expect_ovr,n);
       if(polls>max_polls) max_polls=polls;
       total_polls=total_polls+polls;
       end
     end
-    $display("RESULT sys_ns=%0.2f tck_lo=%0.2f tck_hi=%0.2f jitter=%0d meta=%0d reset=%0d n=%0d resets=%0d meta_req=%0d meta_ack=%0d meta_rst=%0d min_req_margin_ns=%0.3f min_rsp_margin_ns=%0.3f max_polls=%0d mean_polls=%0.2f bound_ns=%0.1f envelope=%s",
+    $display("RESULT sys_ns=%0.2f tck_lo=%0.2f tck_hi=%0.2f jitter=%0d meta=%0d reset=%0d n=%0d resets=%0d meta_req=%0d meta_ack=%0d meta_rst=%0d min_req_margin_ns=%0.3f min_rsp_margin_ns=%0.3f max_polls=%0d mean_polls=%0.2f ovr_hit=%0d ovr_legal=%0d bound_ns=%0.1f envelope=%s",
       sys_ns,tck_lo,tck_hi,jitter,meta_pct,reset_pct,n_tx,resets,meta_req,meta_ack,meta_rst,
-      min_req_margin,min_rsp_margin,max_polls,1.0*total_polls/(n_tx-resets>0?n_tx-resets:1),bound_ns,
+      min_req_margin,min_rsp_margin,max_polls,1.0*total_polls/(n_tx-resets>0?n_tx-resets:1),ovr_hit,ovr_legal,bound_ns,
       (min_req_margin>=bound_ns && min_rsp_margin>=bound_ns) ? "inside" : "OUTSIDE");
     $display("PASS NPU_JTAG_CDC_LIMITS");
     $finish;

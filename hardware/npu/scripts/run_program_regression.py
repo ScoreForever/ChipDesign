@@ -339,8 +339,10 @@ def unit_tests(out,defines,macro_model=None):
          'hardware/npu/rtl/npu_model_store.sv','hardware/npu/rtl/npu_activation_store.sv',
          'hardware/npu/tb/tb_npu_shared_stress.sv',*extra],out/'shared_stress_compile.log')
     # hot1024 aims every write at the image macro (side-read blocking bound, SIDE_MAX=2).
+    # Load chosen below saturation: AW=20/MR=50 passes 40/40 seeds in every memory config and
+    # kills mutant m12 on 20/20; AW=40/MR=60 oversubscribes the macro (12/20 seeds starve).
     for seed,model_bytes,tag,more in ((11,8192,'8192',()),(12,4096,'4096',()),(13,64,'64',()),
-                                      (21,1024,'hot1024',('+WLO=16384','+AW=40','+MR=60')),
+                                      (21,1024,'hot1024',('+WLO=16384','+AW=20','+MR=50')),
                                       # model image rewritten under live traffic (dirty window, data check)
                                       (32,64,'overlap64',('+OVERLAP=1',)),(31,4096,'overlap4096',('+OVERLAP=1',))):
         log=out/f'shared_stress_{tag}.log'
