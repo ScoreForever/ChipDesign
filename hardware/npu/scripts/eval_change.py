@@ -253,9 +253,12 @@ def cmd_export(args):
     reg_pass = reg_total = ''
     if reg.exists():
         text = reg.read_text()
+        # Count individual checks (program runs + reject/lifecycle checks) so pass/total share a unit;
+        # total is INCOMPLETE unless the runner printed its final all-passed line.
         reg_pass = len(re.findall(r'^PASS', text, re.M))
-        reg_total = re.search(r'ALL (\d+) PROGRAM TESTS PASSED', text)
-        reg_total = int(reg_total.group(1)) if reg_total else 'INCOMPLETE'
+        reg_fail = len(re.findall(r'^FAIL', text, re.M))
+        done = re.search(r'ALL \d+ PROGRAM TESTS PASSED', text)
+        reg_total = reg_pass + reg_fail if done or reg_fail else 'INCOMPLETE'
     count = lambda name: len(tables[name])
     run = dict(label=label, role=meta.get('role', ''), description=meta.get('description', ''),
                git_head=meta.get('git_head', 'UNKNOWN')[:12], sources_sha256=meta.get('sources_sha256', 'UNKNOWN')[:16],
