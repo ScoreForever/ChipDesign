@@ -2,7 +2,9 @@
 
 当前设计为 **ABI 5.0（0x00050000）、8×8 PE、128 条描述符、两颗 8 KiB SRAM**。
 [ABI 5.0 扩展报告](../../docs/SOC_EXPANSION_20261106.md)记录了 RTL 仿真和软件参考结果。
-当前仓库归档的实板结果对应早期镜像，ABI 5.0 的 Vivado 实现和实板证据需随本轮候选镜像提交。
+ABI 5.0 的首个 Vivado 实现和实板证据见 [2026-11-09 时序恢复验收](../../output/npu-timing/20261109/README.md)：50 MHz、8×8、trace-off，
+routed WNS +0.533 ns、WHS +0.028 ns；七个模型各取第一个 golden 帧冷/热运行 14 次正确，五项板上 CDC/恢复检查通过。
+该轮未覆盖物理复位按键、电气波形和完整数据集板测；`results/` 下其余实板结果均对应 ABI 3/4 早期镜像。
 
 ## 从哪里开始
 
@@ -28,4 +30,5 @@
 | ABI 3.0 FPGA 实现及实板自动回归 | [11 月 1 日基线](results/2026-11-01-no-cpu-int4/report.md) |
 | 11 月 1 日镜像的追加验证 | [CDC 仿真与结构复核](results/2026-11-02-cdc-review/report.md)、[停 TCK 与复位](results/2026-11-02-cdc-board/report.md)、[忙时按键与断电重配](results/2026-11-02-physical-followup/report.md) |
 | ABI 4.0 FPGA | [实现与实板自动回归](results/2026-11-04-int4-v2/report.md)、[七模型 112 帧实板结果](results/2026-11-04-int4-v2/zoo_supplement/report.md) |
+| ABI 5.0 FPGA（2026-11-09） | [实现、CDC 与七模型上板](../../output/npu-timing/20261109/README.md) |
 | ABI 4.0 完整测试集软件评分 | [67,245 次软件整数评分](results/2026-11-04-int4-v2/full_dataset_accuracy/report.md) |

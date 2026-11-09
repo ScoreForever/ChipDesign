@@ -1,6 +1,6 @@
 # NPU 架构（INT4 / ABI 5.0）
 
-版本来源与验证范围见 [main baseline](BASELINE_MAIN_20261106.md)，完整编码与形状限制以
+ABI 4 冻结基线见 [main baseline](BASELINE_MAIN_20261106.md)，ABI 5 改动与验证见 [SoC 扩展记录](SOC_EXPANSION_20261106.md)，完整编码与形状限制以
 [ABI 5.0 协议](CPU_LESS_CONTROL.md)为准，ABI 4 历史物理实现见 [INT4 v2 报告](INT4_V2_REPORT.md)。
 
 ## 默认实例树

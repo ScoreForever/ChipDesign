@@ -1,6 +1,6 @@
 # ChipDesign：可编程无 CPU NPU
 
-`main` 是统一开发基线：**INT4 / ABI 5.0（0x00050000）：8×8 PE、128 条描述符、共享双 SRAM**。版本来源、分支处置和验证边界见 [baseline 记录](docs/BASELINE_MAIN_20261106.md)。
+`main` 是统一开发基线：**INT4 / ABI 5.0（0x00050000）：8×8 PE、128 条描述符、共享双 SRAM**。ABI 4 冻结时的版本来源、分支处置和验证边界见 [baseline 记录](docs/BASELINE_MAIN_20261106.md)；升级到 ABI 5 的改动见 [SoC 扩展记录](docs/SOC_EXPANSION_20261106.md)。
 
 当前默认系统是 **主机 JTAG → 事务控制器 → 描述符调度 → 共享 INT4 NPU 后端**。
 权重为 signed INT4，激活支持 i4/u4，每 byte 打包两个值；原始累加结果为 INT32。
@@ -67,7 +67,9 @@ python software/host/nocpu_jtag.py infer --package build/npu_demo/package --inpu
 ```
 
 ABI 4 历史 FPGA 证据覆盖 50 MHz 下七个模型的 112 帧 / 224 次实板运行；完整测试集的 67,245 次评分来自软件整数参考。
-FPGA setup WNS 为 0.000 ns，物理按键/断电恢复等项目仍未完成；ABI 4 历史 ASIC 签核为 TT corner，未覆盖多角 STA、IR/EM。
+该 ABI 4 镜像 FPGA setup WNS 为 0.000 ns；ABI 4 历史 ASIC 签核为 TT corner，未覆盖多角 STA、IR/EM。
+ABI 5 的 FPGA 实现与上板结果见 [2026-11-09 时序恢复验收](output/npu-timing/20261109/README.md)（50 MHz、routed WNS +0.533 ns，七模型首帧冷/热 14 次正确）；
+ABI 5 尚无综合/PnR/ASIC 签核数据（UNKNOWN），物理按键、电气波形检查仍未完成。
 2026-10-23/24 等历史证据仅适用于当时冻结源码，不能替代当前版本验证。
 新协议不兼容旧 TinyCNN MMIO/JTAG ABI；旧固定模型实现与旧测试入口已移除，历史可从 Git 获取。
 训练和预处理由主机承担。早期 CPU/AXI 实现可从 [Git 历史快照](https://github.com/ScoreForever/ChipDesign/tree/8d475b26306ec9b6103fbcf622a5dde6504d6db2) 获取。

@@ -49,7 +49,7 @@ IR=0x12 Capture 报告。主机 `write_block`/`read_block` 用突发传送模型
 
 | 地址 | 含义 |
 |---|---|
-| 0x00 | ABI=0x00050000（4.0） |
+| 0x00 | ABI=0x00050000（5.0） |
 | 0x04 | bit0 busy、1 model_valid、2 input_valid、3 done、4 model_loading、5 input_loading、6 fault |
 | 0x08 | 最近错误码 |
 | 0x0c | 支持算子位图=0x1f |
@@ -196,5 +196,6 @@ python software/host/nocpu_jtag.py infer --package build/program --input build/n
 `Npu.load_model(Package)` 先查询容量和阵列宽度；`Npu.infer(bytes)` 返回准确长度的输出 bytes。
 `Npu.infer_values(values)` 按 manifest 检查逻辑元素数，自动打包输入并解码输出；也可直接使用 `pack_i4/unpack_i4`。
 输出 dtype/shape 在 manifest 中，INT32 按小端有符号解码。预处理和分类由主机负责。
-编译器默认按8 KiB激活容量分配；`--act-bytes` 可明确选择较小硬件配置。
-模型包仍由描述符/权重/参数组成；JTAG 命令格式保留并新增突发 IR，数值与描述符 ABI 已升级为4.0。
+编译器固定按两颗 8 KiB SRAM 编译：`--act-bytes` 只接受默认值 8192（第一颗 SRAM 字节数），其他值直接报错；
+实际可用激活容量为 `16384-model_bytes` B，超出时编译失败，不会自动换用较小配置。
+模型包仍由描述符/权重/参数组成；JTAG 命令格式保留（突发 IR 自 ABI 4 起提供），数值与描述符 ABI 为 5.0。
