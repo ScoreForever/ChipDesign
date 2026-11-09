@@ -88,7 +88,9 @@ jobs:
           retention-days: 30
 
   mutation:
-    needs: tooling
+    # A mutant only counts as killed if the unmutated design passes the same gate,
+    # so mutants start after the regression and CDC jobs succeed.
+    needs: [tooling, regression, cdc]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:

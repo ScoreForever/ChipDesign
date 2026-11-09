@@ -44,7 +44,7 @@ module tb_npu_shared_stress;
   integer j; begin for(j=0;j<8;j=j+1)gold_word[j*4+:4]=gold[(nib+j)&32767]; end endfunction
 
  // Expected model responses, in order (the port has no response backpressure).
- reg [31:0] mexp[0:63];integer mh=0,mt=0,mcount=0;
+ reg [31:0] mexp[0:63],mnew;integer mh=0,mt=0,mcount=0;
  // One activation read in flight; expected value snapshotted at acceptance.
  reg [31:0] aexp;reg apend=0;reg [15:0] aaddr;
  reg rewriting=0;   // image rewrite in progress: reads may stall (host never runs while loading)
@@ -55,6 +55,9 @@ module tb_npu_shared_stress;
   // Contract: a read accepted on the same edge as a write sees the pre-write
   // data (read-before-write), so snapshot reads before applying writes.
   if(arq && arr)begin aexp=gold_word(ara);aaddr=ara;end
+  // Model reads follow the same contract against image writes on the same edge.
+  if(mrq && mrr)mnew=mra[1] ? {16'd0,gold_word(model_base+((mra&16'hfffc)<<1))>>16}
+                            : gold_word(model_base+((mra&16'hfffc)<<1));
   if(awq && awr)for(k=0;k<8;k=k+1)if(awm[k])gold[(awa+k)&32767]=awd[k*4+:4];
   if(mw && mwr)for(k=0;k<8;k=k+1)gold[(model_base+(mwa<<1)+k)&32767]=mwd[k*4+:4];
   if(mrv)begin
@@ -68,8 +71,7 @@ module tb_npu_shared_stress;
    apend=0;
   end
   if(mrq && mrr)begin
-   mexp[mt]=mra[1] ? {16'd0,gold_word(model_base+((mra&16'hfffc)<<1))>>16}
-                   : gold_word(model_base+((mra&16'hfffc)<<1));
+   mexp[mt]=mnew;
    mt=(mt+1)%64;mcount=mcount+1;cov_model=cov_model+1;mdone=1;
   end
   if(arq && arr)begin apend=1;cov_act=cov_act+1;adone=1;end
@@ -100,6 +102,7 @@ module tb_npu_shared_stress;
   if(!mrq || mdone) begin mdone=0;
    mrq=traffic && ($urandom%100)<mr_pct;
    mra=($urandom%model_bytes)&16'hfffe;       // halfword aligned, both halves
+   if(rewriting && ($urandom%2))mra=mwa+(($urandom%2)<<1);  // read-after-write of the image word just written
   end
   if(!arq || adone) begin adone=0;
    arq=traffic && !apend && ($urandom%100)<ar_pct;
