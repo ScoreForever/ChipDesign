@@ -203,6 +203,7 @@ module npu_protocol_checker;
  wire clk=`CHK_CORE.clk, rst=`CHK_CORE.rst;
  wire running=`CHK_SUB.running;
  integer mo=0, max_mo=0;
+ integer run_cycles=0, array_active=0, array_issue=0, pe_clocks=0;
  reg [3:0] prev_state=0;
  wire [16:0] model_base={1'b0,16'd16384-`CHK_CORE.model_bytes}<<1;   // nibble address
  // Coverage bins: name -> hit count.
@@ -284,6 +285,14 @@ module npu_protocol_checker;
    if(`CHK_CORE.mac_op && `CHK_CORE.narrow)hit(30);
   end
   if(`CHK_CORE.state==`CHK_CORE.FAILED && prev_state!=`CHK_CORE.FAILED)hit(31);
+  // --- power proxy (R1): array register clock-enable duty while the NPU runs ---
+  if(running)begin
+   run_cycles=run_cycles+1;
+   if(`CHK_CORE.i_array.active)array_active=array_active+1;
+   // PE register clocks this cycle: diagonal d of the 8x8 array holds min(d,14-d)+1 PEs.
+   for(k=0;k<15;k=k+1)if(`CHK_CORE.i_array.wave[k])pe_clocks=pe_clocks+((k<7?k:14-k)+1);
+   if(`CHK_CORE.i_array.in_valid)array_issue=array_issue+1;
+  end
   prev_state<=`CHK_CORE.state;
  end else mo=0;
  function [8*24-1:0] bin_name(input integer i);
@@ -326,6 +335,8 @@ module npu_protocol_checker;
  task report;
   begin
    $display("COVER max_model_outstanding %0d",max_mo);
+   $display("POWER run_cycles=%0d array_active=%0d array_issue=%0d pe_clocks=%0d pe_clocks_ungated=%0d",
+    run_cycles,array_active,array_issue,pe_clocks,64*run_cycles);
    for(k=0;k<NB;k=k+1)$display("COVER %0s %0d",bin_name(k),cov[k]);
   end
  endtask

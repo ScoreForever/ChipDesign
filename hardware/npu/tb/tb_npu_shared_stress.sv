@@ -8,9 +8,19 @@
 // acceptance; every requester must make progress within MAX_WAIT cycles.
 //   +N=<cycles per phase> +PHASES=<n> +SEED=<n> +MODEL_BYTES=<64..8192, pow2>
 //   +MR=<pct> +AR=<pct> +AW=<pct> +RR=<pct rsp_ready>   request probabilities
+//   +OVERLAP=1  keep traffic running while the model image is rewritten (dirty window)
+//   +WLO=<nibble>   lowest write address (WLO=16384 aims every write at the image macro)
+//   +SIDE_MAX=<cycles>  bound on a side (model) read blocked by the main port; the
+//     store promises a side read that waited one cycle claims the macros next.
 // Build with the same defines as the product (CHIPDESIGN_FPGA_MEM, or
 // NPU_USE_RA1SHD_MODEL + NPU_USE_RA1SHD_ACTIVATION + the macro model).
 module tb_npu_shared_stress;
+ // Liveness assumption (system level, not guaranteed by the store alone): an activation
+ // read miss loses the port to write drains while the write queue is urgent (>= depth-2).
+ // In the NPU the writer is the core, which stops producing once its reads stall, so the
+ // queue drains and the read proceeds. An independent producer that keeps the queue
+ // urgent while side reads take the same macro (e.g. +WLO=16384 +AW=50 +MR=70) starves
+ // reads by construction; such oversubscribed points are characterisation, not gates.
  localparam MAX_WAIT=96;
  reg clk=0,rst=1; always #5 clk=~clk;
  integer n_cycles=20000,phases=4,seed=1,mr_pct=60,ar_pct=50,aw_pct=40,rr_pct=70,mb_arg=8192;
@@ -37,6 +47,8 @@ module tb_npu_shared_stress;
  reg [31:0] mexp[0:63];integer mh=0,mt=0,mcount=0;
  // One activation read in flight; expected value snapshotted at acceptance.
  reg [31:0] aexp;reg apend=0;reg [15:0] aaddr;
+ reg rewriting=0;   // image rewrite in progress: reads may stall (host never runs while loading)
+ integer overlap=0,side_max=2,wlo=0,sblk=0,sblk_max=0;
  integer mwait=0,await_=0,wwait=0,cov_model=0,cov_act=0,cov_write=0,cov_held=0,cov_both=0,cov_blocked=0;
  always @(posedge clk) if(!rst) begin
   // ---- scoreboard updates on accepted handshakes (pre-edge values) ----
@@ -66,12 +78,17 @@ module tb_npu_shared_stress;
 `ifndef STRESS_NO_SIDE_PORT
   if(dut.i_store.side_fire && dut.i_store.sram_en)cov_both=cov_both+1;
   if(dut.i_store.side_valid && !dut.i_store.side_ready)cov_blocked=cov_blocked+1;
+  sblk=dut.i_store.side_valid && !dut.i_store.side_ready ? sblk+1 : 0;
+  if(sblk>sblk_max)sblk_max=sblk;
+  if(sblk>side_max)$fatal(1,"STRESS side read blocked %0d cycles (bound %0d)",sblk,side_max);
 `endif
   if(awq && awr)cov_write=cov_write+1;
   // ---- liveness: no requester waits unboundedly ----
-  mwait=mrq && !mrr ? mwait+1 : 0; await_=arq && !arr ? await_+1 : 0; wwait=awq && !awr ? wwait+1 : 0;
+  mwait=mrq && !mrr && !rewriting ? mwait+1 : 0; await_=arq && !arr && !rewriting ? await_+1 : 0;
+  wwait=awq && !awr && !rewriting ? wwait+1 : 0;
   if(mwait>MAX_WAIT || await_>MAX_WAIT || wwait>MAX_WAIT)
-   $fatal(1,"STRESS starvation model=%0d act=%0d write=%0d",mwait,await_,wwait);
+   $fatal(1,"STRESS starvation model=%0d act=%0d write=%0d (store count=%0d urgent=%0d drain=%0d read_miss=%0d)",
+    mwait,await_,wwait,dut.i_store.count,dut.i_store.urgent,dut.i_store.drain,dut.i_store.read_miss);
  end
 
  // ---- traffic generators: change requests only on negedge, hold until accepted ----
@@ -92,7 +109,7 @@ module tb_npu_shared_stress;
   rr=($urandom%100)<rr_pct;
   if(!awq || wdone) begin wdone=0;
    awq=traffic && ($urandom%100)<aw_pct;
-   awa=$urandom%(act_nibbles-8);
+   awa=wlo+$urandom%(act_nibbles-8-wlo);
    if(($urandom%8)==0)awa=(hot-4+($urandom%8))%(act_nibbles-8);
    awd=$urandom;awm=$urandom;if(awm==0)awm=8'h01;
   end
@@ -129,6 +146,9 @@ module tb_npu_shared_stress;
   if($value$plusargs("AW=%d",aw_pct));
   if($value$plusargs("RR=%d",rr_pct));
   if($value$plusargs("HOT=%d",hot));
+  if($value$plusargs("WLO=%d",wlo));
+  if($value$plusargs("OVERLAP=%d",overlap));
+  if($value$plusargs("SIDE_MAX=%d",side_max));
   i=$urandom(seed);model_bytes=mb_arg;
   for(i=0;i<32768;i=i+1)gold[i]=4'h0;
   repeat(4)@(negedge clk);rst=0;repeat(4)@(negedge clk);
@@ -143,12 +163,17 @@ module tb_npu_shared_stress;
   for(ph=0;ph<phases;ph=ph+1)begin
    @(negedge clk);traffic=1;
    for(cyc=0;cyc<n_cycles;cyc=cyc+1)@(negedge clk);
-   quiesce();
-   write_model_image(16);                      // image rewrite between runs (dirty path)
-   quiesce();
+   if(overlap)begin                           // rewrite under live model/activation traffic
+    @(negedge clk);traffic=1;rewriting=1;write_model_image(16);
+    repeat(64)@(negedge clk);rewriting=0;quiesce();
+   end else begin
+    quiesce();
+    write_model_image(16);                     // image rewrite between runs (dirty path)
+    quiesce();
+   end
   end
-  $display("COVER stress model_reads=%0d act_reads=%0d act_writes=%0d held_rsp=%0d both_macros=%0d side_blocked=%0d",
-   cov_model,cov_act,cov_write,cov_held,cov_both,cov_blocked);
+  $display("COVER stress model_reads=%0d act_reads=%0d act_writes=%0d held_rsp=%0d both_macros=%0d side_blocked=%0d side_block_max=%0d",
+   cov_model,cov_act,cov_write,cov_held,cov_both,cov_blocked,sblk_max);
   $display("PASS NPU_SHARED_STRESS model_bytes=%0d phases=%0d cycles=%0d",model_bytes,phases,n_cycles);
   $finish;
  end

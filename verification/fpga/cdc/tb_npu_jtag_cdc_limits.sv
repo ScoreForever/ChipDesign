@@ -43,22 +43,32 @@ module tb_npu_jtag_cdc_limits;
   endfunction
 
   // ---------------- metastability model: late resolution of first flops -------------
+  // A first synchronizer flop can go metastable only on the first edge after its
+  // asynchronous input changed. Model that event resolving to the old value
+  // (one extra cycle of latency); once the input has been stable for a full
+  // cycle the next edge captures it cleanly, so each event costs at most 1 cycle.
   integer meta_req=0, meta_ack=0, meta_rst=0;
   reg prev_req0, prev_ack0, prev_srst0, prev_trst0;
+  reg req_d_q=0, ack_d_q=0, srst_d_q=0, trst_d_q=0;   // input value at the previous edge
+  reg req_fresh, ack_fresh, srst_fresh, trst_fresh;
   always @(posedge clk) begin
+    req_fresh = dut.req_toggle!==req_d_q; srst_fresh = rst_n!==srst_d_q;
+    req_d_q = dut.req_toggle; srst_d_q = rst_n;
     prev_req0 = dut.req_sync[0]; prev_srst0 = dut.sys_reset_sync[0];
     #0.001;
-    if(meta_pct && dut.req_sync[0]!==prev_req0 && ($urandom%100)<meta_pct) begin
+    if(meta_pct && req_fresh && dut.req_sync[0]!==prev_req0 && ($urandom%100)<meta_pct) begin
       dut.req_sync[0] = prev_req0; meta_req=meta_req+1; end
-    if(meta_pct && dut.sys_reset_sync[0]!==prev_srst0 && ($urandom%100)<meta_pct) begin
+    if(meta_pct && srst_fresh && dut.sys_reset_sync[0]!==prev_srst0 && ($urandom%100)<meta_pct) begin
       dut.sys_reset_sync[0] = prev_srst0; meta_rst=meta_rst+1; end
   end
   always @(posedge tck) begin
+    ack_fresh = dut.ack_toggle!==ack_d_q; trst_fresh = rst_n!==trst_d_q;
+    ack_d_q = dut.ack_toggle; trst_d_q = rst_n;
     prev_ack0 = dut.ack_sync[0]; prev_trst0 = dut.tck_reset_sync[0];
     #0.001;
-    if(meta_pct && dut.ack_sync[0]!==prev_ack0 && ($urandom%100)<meta_pct) begin
+    if(meta_pct && ack_fresh && dut.ack_sync[0]!==prev_ack0 && ($urandom%100)<meta_pct) begin
       dut.ack_sync[0] = prev_ack0; meta_ack=meta_ack+1; end
-    if(meta_pct && dut.tck_reset_sync[0]!==prev_trst0 && ($urandom%100)<meta_pct) begin
+    if(meta_pct && trst_fresh && dut.tck_reset_sync[0]!==prev_trst0 && ($urandom%100)<meta_pct) begin
       dut.tck_reset_sync[0] = prev_trst0; meta_rst=meta_rst+1; end
   end
 
@@ -190,7 +200,7 @@ module tb_npu_jtag_cdc_limits;
         end
         select_ir();
       end else begin
-      if(polls>=2000) $fatal(1,"CDC reply never became visible (tx %0d)",n);
+      if(polls>=2000) $fatal(1,"CDC reply never became visible (tx %0d) pending=%b have_reply=%b req_toggle=%b ack_sync=%b ack_toggle=%b req_seen=%b req_sync=%b waiting=%b cmd_valid=%b tap=%0d ir=%h accepted=%0d/%0d sys_rst_n=%b tck_rst_n=%b",n,dut.pending,dut.have_reply,dut.req_toggle,dut.ack_sync,dut.ack_toggle,dut.req_seen,dut.req_sync,dut.waiting_reply,valid,dut.tap,dut.ir,accepted,before_n,dut.sys_rst_n,dut.tck_rst_n);
       if(accepted!=before_n+1) $fatal(1,"CDC lost or duplicated command (tx %0d: %0d)",n,accepted-before_n);
       if(got!==packet) $fatal(1,"CDC torn/incorrect request got=%h want=%h",got,packet);
       want_data=packet[31:0]^packet[63:32]^32'h5a5a0f0f;

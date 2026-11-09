@@ -28,12 +28,20 @@ SHARED = 'hardware/npu/rtl/npu_model_store.sv'
 RA1SHD = ['--macro-model', 'hardware/npu/tb/ra1shd_functional_model.sv']
 FPGA = ['--define', 'CHIPDESIGN_FPGA_MEM']
 JTAG = 'hardware/soc/rtl/control/npu_jtag_transport.sv'
+ARRAY = 'hardware/npu/rtl/npu_mac_array.sv'
 CDC = ['CDC']   # run verification/fpga/cdc/run_cdc_limits.py --quick on the mutated transport
 UDR_OLD = "                UDR: if (ir == 'h12 && dr[71:64] != 0) begin\n                    if (pending) overrun <= 1;\n                    else begin"
 UDR_NEW = "                UDR: if (ir == 'h12 && dr[71:64] != 0) begin\n                    begin"
-# Survivors that are understood: shortened synchronizers are only detectable by the
-# static CDC audit (Vivado route_cdc / Cadence mailbox audit), not by RTL simulation.
-EXPECTED_SURVIVORS = {'c01', 'c02'}
+# Survivors that are understood (each one justified; any other survivor is a verification gap):
+#   c01, c02  shortened synchronizers: only detectable by the static CDC audit (Vivado
+#             route_cdc / Cadence mailbox audit), not by zero-delay RTL simulation.
+#   m08       equivalent: weight reads are issued only in L_REQ and a bank load returns to
+#             L_IDLE only after its last row is written, so lstate==L_IDLE already implies
+#             l_out==0 && lq_count==0. The invariant itself is asserted by the protocol
+#             checker (tb_npu_program.sv, "weight reads left over after a bank load").
+#   m13       equivalent: side_fire excludes a main-port access to the same macro, so the
+#             mux priority never matters; the guard itself is mutant m09 (killed).
+EXPECTED_SURVIVORS = {'c01', 'c02', 'm08', 'm13'}
 SUBSET = ('cnn,mlp,strided,edges,long_k,dwconv,dw_rect_pool,conv1d,rect_kernels,rowpad_kernels,'
           'residual_add,slot_pressure,u4_chain,pool_general,tiny_padded')
 
@@ -54,7 +62,7 @@ MUTANTS = [
     ('m07', CORE, 'wire dw_hold=dwconv && load_row!=0;', 'wire dw_hold=1\'b0;', [],
      'A2 depthwise rows wait for reads that are never issued (deadlock)'),
     ('m08', CORE, '!load_more && l_out==0 && lq_count==0) :', '!load_more) :', FPGA,
-     'A2 drain condition ignores the weight queue (equivalent if bank loads always finish first)'),
+     'A2 drain condition ignores the weight queue (equivalent: implied by lstate==L_IDLE)'),
     ('m09', STORE, 'assign side_ready=SIDE_PORT && !rst && !(sram_en && main_bank==side_bank);',
      'assign side_ready=SIDE_PORT && !rst;', RA1SHD, 'A side port may hit the macro the main port is using'),
     ('m10', SHARED, "wire [31:0] side_word=side_halfword ? {16'd0,side_rsp_data[31:16]} : side_rsp_data;",
@@ -72,6 +80,15 @@ MUTANTS = [
      'assign match0[fs]=(age<=count) && q_addr[fs]==read_word0;', [], 'write-queue forwarding matches a retired entry'),
     ('m15', SHARED, 'else if(store_idle)model_dirty<=0;', 'else model_dirty<=0;', [],
      'A model image dirty flag clears before queued image writes land'),
+    # R1 wavefront clock enables: each register must load exactly on its own issue's edge.
+    ('r01', ARRAY, '                        if (wave[r+c]) begin', '                        if (wave[r]) begin', [],
+     'R1 PE enable ignores the column skew (loads on the row edge only)'),
+    ('r02', ARRAY, 'if (wave[ARRAY_ROWS+c+d]) delay[d] <= delay[d-1];', 'if (wave[ARRAY_ROWS+c]) delay[d] <= delay[d-1];', [],
+     'R1 deskew stages all enabled on the first stage edge'),
+    ('r03', ARRAY, 'for (d = 1; d < r; d = d + 1) if (wave[d]) begin', 'for (d = 1; d < r; d = d + 1) if (wave[d-1]) begin', [],
+     'R1 row-skew stage enabled one edge early'),
+    ('r04', ARRAY, 'wire active = in_valid || (|valid_pipe);', 'wire active = |valid_pipe;', [],
+     'R1 pipeline control gated off on the first issue of a burst'),
     # CDC mailbox. c01/c02 shorten a synchronizer: invisible to zero-delay functional
     # simulation by construction; they document that the static CDC audit is mandatory.
     ('c01', JTAG, 'if (req_sync[1] != req_seen && !cmd_valid_o && !waiting_reply) begin',
