@@ -5,7 +5,12 @@
   export  normalise a run directory into CSVs (models, layers, limits, fuzz, deploy, runs)
 
 Suites (all check every tensor write against the software reference):
-  regression  run_program_regression.py (correctness gate)
+  regression  run_program_regression.py (correctness gate, behavioral memories, native + JTAG)
+  regression_fpga    same programs + packaged models with CHIPDESIGN_FPGA_MEM (FPGA BRAM timing)
+  regression_ra1shd  same programs + packaged models on the RA1SHD macro functional model (ASIC path)
+  Every program simulation also runs the testbench protocol checker (npu_protocol_checker:
+  X-propagation, model-read ordering/bounds/drain, memory-map protection, side-port bank
+  exclusivity, queue bounds) and prints functional-coverage bins, exported as coverage.csv.
   limits      profile_bottlenecks.py --limits-only (K, reuse, OC, post, descriptors, capacity)
   ext         profile_limits.py (gather IC, kernel/stride, depthwise, elementwise, fusion, spatial)
   fuzz        profile_fuzz.py (seeded random models across the ABI envelope)
@@ -30,6 +35,7 @@ ROOT = Path(__file__).resolve().parents[3]
 SCRIPTS = ROOT / 'hardware/npu/scripts'
 sys.path.insert(0, str(SCRIPTS))
 sys.path.insert(0, str(ROOT / 'software/host'))
+import sim_build
 
 FUZZ_SEED, FUZZ_COUNT = 20261109, 80
 OP_FIELDS = ('start', 'end', 'descriptor', 'flags', 'wait_activation', 'wait_weight', 'wait_slot', 'mac_issues')
@@ -57,17 +63,13 @@ def sh(cmd, log):
     return p.returncode
 
 
-def run_models(out, defines, jobs):
+def run_models(out, memory, jobs):
     import profile_bottlenecks as pb
     import run_program_regression as rg
     out.mkdir(parents=True)
     cases = [c for c in pb.workloads() if c[0].startswith('packaged_')]
-    srcs = (ROOT / 'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().split()
     img = out / 'program.vvp'
-    rg.run(['iverilog', '-g2012', '-s', 'tb_npu_program', '-o', img,
-            *['-D' + d for d in ['SYNTHESIS', 'NPU_ARRAY_COLS=8', 'NPU_ENABLE_WAVE_TRACE=0',
-                                  'NPU_ENABLE_OP_TRACE=1', 'NPU_TILE=16', *defines]],
-            *srcs, 'hardware/soc/sim/tb/tb_npu_program.sv'], out / 'compile.log')
+    sim_build.compile_program_tb(img, out / 'compile.log', memory=memory, tile=16)
 
     def one(c):
         n, model, frame, fused = c
@@ -94,6 +96,11 @@ def cmd_run(args):
     if 'regression' in suites:
         status['regression'] = sh([py, 'hardware/npu/scripts/run_program_regression.py', '--jobs', str(args.jobs),
                                    '--output', str(rel / 'regression')], out / 'regression.log')
+    for name, extra in (('regression_fpga', ['--define', 'CHIPDESIGN_FPGA_MEM']),
+                        ('regression_ra1shd', ['--macro-model', 'hardware/npu/tb/ra1shd_functional_model.sv'])):
+        if name in suites:
+            status[name] = sh([py, 'hardware/npu/scripts/run_program_regression.py', '--quick', '--packaged-models',
+                               '--jobs', str(args.jobs), *extra, '--output', str(rel / name)], out / f'{name}.log')
     if 'limits' in suites:
         status['limits'] = sh([py, 'hardware/npu/scripts/profile_bottlenecks.py', '--limits-only', '--tiles', '16',
                                '--jobs', str(args.jobs), '--output', str(rel / 'limits')], out / 'limits.log')
@@ -104,7 +111,8 @@ def cmd_run(args):
         status['fuzz'] = sh([py, 'hardware/npu/scripts/profile_fuzz.py', '--count', str(FUZZ_COUNT), '--seed', str(FUZZ_SEED),
                              '--jobs', str(args.jobs), '--output', str(rel / 'fuzz')], out / 'fuzz.log')
     if 'models' in suites:
-        for mode, defs in (('fpga', ['CHIPDESIGN_FPGA_MEM']), ('asic', [])):
+        # 'asic' keeps its historical meaning (behavioral memories, no FPGA response register).
+        for mode, defs in (('fpga', 'fpga_mem'), ('asic', 'behavioral')):
             try:
                 run_models(out / f'models_{mode}', defs, args.jobs)
                 status[f'models_{mode}'] = 0
@@ -194,13 +202,48 @@ def ext_bounds(case, fused):
     return {}
 
 
+def regression_counts(log):
+    """(passed, total) checks in a run_program_regression log.
+
+    Counts individual checks (program runs plus reject/lifecycle checks) so both
+    numbers share a unit. total is 'INCOMPLETE' unless the runner printed its
+    final all-passed line or reported a failure; ('', '') when the suite did not run.
+    """
+    log = Path(log)
+    if not log.exists():
+        return '', ''
+    text = log.read_text(errors='replace')
+    passed = len(re.findall(r'^PASS', text, re.M))
+    failed = len(re.findall(r'^FAIL', text, re.M))
+    done = re.search(r'ALL \d+ PROGRAM TESTS PASSED', text)
+    return passed, (passed + failed if done or failed else 'INCOMPLETE')
+
+
+def coverage_rows(label, src):
+    """Aggregate testbench COVER bins per suite directory over every program run (rtl.log)."""
+    rows = []
+    for suite_dir in sorted(p for p in Path(src).iterdir() if p.is_dir()):
+        bins, runs = {}, 0
+        for log in suite_dir.glob('*/rtl.log'):
+            found = re.findall(r'^COVER (\S+) (\d+)$', log.read_text(errors='replace'), re.M)
+            if not found:
+                continue
+            runs += 1
+            for name, n in found:
+                hits, tests = bins.get(name, (0, 0))
+                bins[name] = (hits + int(n), tests + (int(n) > 0))
+        rows += [dict(label=label, suite=suite_dir.name, bin=name, hits=hits, tests_hit=tests, tests_total=runs)
+                 for name, (hits, tests) in bins.items()]
+    return rows
+
+
 def cmd_export(args):
     src = (ROOT / 'build/eval' / args.label) if not args.run_dir else Path(args.run_dir).resolve()
     out = Path(args.output).resolve() if args.output else src / 'export'
     out.mkdir(parents=True, exist_ok=True)
     meta = json.loads((src / 'meta.json').read_text()) if (src / 'meta.json').exists() else dict(label=args.label)
     label = args.label
-    tables = {k: [] for k in ('models', 'layers', 'limits', 'fuzz', 'deploy')}
+    tables = {k: [] for k in ('models', 'layers', 'limits', 'fuzz', 'deploy', 'coverage')}
     for mode in ('fpga', 'asic'):
         s = src / f'models_{mode}' / 'summary.json'
         if not s.exists():
@@ -249,21 +292,18 @@ def cmd_export(args):
                                          activation_peak=r.get('activation_peak', ''),
                                          constraint='' if r['fits'] else r['constraint'],
                                          reason='' if r['fits'] else r['reason']))
-    reg = src / 'regression.log'
-    reg_pass = reg_total = ''
-    if reg.exists():
-        text = reg.read_text()
-        # Count individual checks (program runs + reject/lifecycle checks) so pass/total share a unit;
-        # total is INCOMPLETE unless the runner printed its final all-passed line.
-        reg_pass = len(re.findall(r'^PASS', text, re.M))
-        reg_fail = len(re.findall(r'^FAIL', text, re.M))
-        done = re.search(r'ALL \d+ PROGRAM TESTS PASSED', text)
-        reg_total = reg_pass + reg_fail if done or reg_fail else 'INCOMPLETE'
+    reg_pass, reg_total = regression_counts(src / 'regression.log')
+    extra_reg = {}
+    for name in ('regression_fpga', 'regression_ra1shd'):
+        extra_reg[f'{name}_pass'], extra_reg[f'{name}_total'] = regression_counts(src / f'{name}.log')
+    tables['coverage'] = coverage_rows(label, src)
     count = lambda name: len(tables[name])
     run = dict(label=label, role=meta.get('role', ''), description=meta.get('description', ''),
                git_head=meta.get('git_head', 'UNKNOWN')[:12], sources_sha256=meta.get('sources_sha256', 'UNKNOWN')[:16],
                dirty=meta.get('dirty', ''), finished=meta.get('finished', ''),
-               regression_pass=reg_pass, regression_total=reg_total,
+               regression_pass=reg_pass, regression_total=reg_total, **extra_reg,
+               coverage_bins_hit=len({r['bin'] for r in tables['coverage'] if r['hits'] > 0 and r['bin'] != 'max_model_outstanding'}),
+               coverage_bins_total=len({r['bin'] for r in tables['coverage'] if r['bin'] != 'max_model_outstanding'}),
                suite_exit=' '.join(f'{k}={v}' for k, v in meta.get('status', {}).items()),
                limit_cases=sum(1 for r in tables['limits'] if r['suite'] == 'limits'),
                ext_cases=sum(1 for r in tables['limits'] if r['suite'] == 'ext'),
@@ -287,7 +327,7 @@ def cmd_merge(args):
     """Concatenate the same table across several exported runs (baseline first)."""
     out = Path(args.output).resolve()
     out.mkdir(parents=True, exist_ok=True)
-    for name in ('runs', 'models', 'layers', 'limits', 'fuzz', 'deploy'):
+    for name in ('runs', 'models', 'layers', 'limits', 'fuzz', 'deploy', 'coverage'):
         rows = []
         for d in args.exports:
             p = Path(d) / f'{name}.csv'
@@ -310,7 +350,8 @@ def main():
     r.add_argument('--role', choices=['baseline', 'candidate'], default='candidate')
     r.add_argument('--description', default='')
     r.add_argument('--jobs', type=int, default=2)
-    r.add_argument('--suites', nargs='+', default=['regression', 'limits', 'ext', 'fuzz', 'models', 'deploy'])
+    r.add_argument('--suites', nargs='+', default=['regression', 'regression_fpga', 'regression_ra1shd',
+                                                       'limits', 'ext', 'fuzz', 'models', 'deploy'])
     e = sub.add_parser('export')
     e.add_argument('--label', required=True)
     e.add_argument('--run-dir')

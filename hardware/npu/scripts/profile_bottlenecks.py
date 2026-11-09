@@ -16,6 +16,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'hardware/npu/scripts'))
 import run_program_regression as regression
+import sim_build
 
 COUNTERS = ('active_cycles model_requests model_stall_cycles model_max_stall '
             'model_responses model_wait_response_cycles activation_requests '
@@ -103,11 +104,13 @@ def main():
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--tiles', type=int, nargs='+', choices=[8, 16], default=[16, 8])
     ap.add_argument('--jobs', type=int, default=4)
+    ap.add_argument('--memory', choices=sorted(sim_build.MEMORY), default='fpga_mem',
+                    help='memory configuration (see sim_build.py)')
     ap.add_argument('--limits-only', action='store_true', help='saturate K, reuse, OC, postprocessing and descriptors')
     args = ap.parse_args()
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    sources = (ROOT / 'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
+    sources = sim_build.watched_sources(args.memory)
     before = {s: hashlib.sha256((ROOT / s).read_bytes()).hexdigest() for s in sources}
     cases = list(limit_workloads() if args.limits_only else workloads())
     for name, model, frame, fused in cases:
@@ -117,11 +120,7 @@ def main():
         folder = out / f'tile{tile}'
         folder.mkdir()
         image = folder / 'program.vvp'
-        defines = ['SYNTHESIS', 'CHIPDESIGN_FPGA_MEM', 'NPU_ARRAY_COLS=8',
-                   'NPU_ENABLE_WAVE_TRACE=0', 'NPU_ENABLE_OP_TRACE=1', f'NPU_TILE={tile}']
-        regression.run(['iverilog', '-g2012', '-s', 'tb_npu_program', '-o', image,
-                        *['-D' + d for d in defines], *sources,
-                        'hardware/soc/sim/tb/tb_npu_program.sv'], folder / 'compile.log')
+        sim_build.compile_program_tb(image, folder / 'compile.log', memory=args.memory, tile=tile)
         def measure(case):
             name, model, frame, fused = case
             row = regression.simulate(folder, image, name, model, frame, 8, fused, False, True)

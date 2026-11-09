@@ -25,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'hardware/npu/scripts'))
 import profile_bottlenecks as pb
 import run_program_regression as regression
+import sim_build
 
 
 class Builder:
@@ -201,11 +202,13 @@ def main():
     ap.add_argument('--count', type=int, default=60)
     ap.add_argument('--seed', type=int, default=20261109)
     ap.add_argument('--jobs', type=int, default=2)
+    ap.add_argument('--memory', choices=sorted(sim_build.MEMORY), default='fpga_mem',
+                    help='memory configuration (see sim_build.py)')
     ap.add_argument('--max-pixels', type=int, default=6000, help='skip cases whose largest tensor exceeds this many elements')
     args = ap.parse_args()
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    sources = (ROOT / 'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
+    sources = sim_build.watched_sources(args.memory)
     before = {s: hashlib.sha256((ROOT / s).read_bytes()).hexdigest() for s in sources}
     cases, rejected, seed = [], [], args.seed
     while len(cases) < args.count:
@@ -220,11 +223,7 @@ def main():
             rejected.append(dict(seed=seed, family=family, reason=str(e)[:120]))
         seed += 1
     image = out / 'program.vvp'
-    defines = ['SYNTHESIS', 'CHIPDESIGN_FPGA_MEM', 'NPU_ARRAY_COLS=8',
-               'NPU_ENABLE_WAVE_TRACE=0', 'NPU_ENABLE_OP_TRACE=1', 'NPU_TILE=16']
-    regression.run(['iverilog', '-g2012', '-s', 'tb_npu_program', '-o', image,
-                    *['-D' + d for d in defines], *sources, 'hardware/soc/sim/tb/tb_npu_program.sv'],
-                   out / 'compile.log')
+    sim_build.compile_program_tb(image, out / 'compile.log', memory=args.memory, tile=16)
 
     def measure(case):
         name, family, tags, model, frame, fused, ops = case

@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / 'hardware/npu/scripts'))
 import profile_bottlenecks as pb
 import run_program_regression as regression
+import sim_build
 
 R = random.Random(11)
 
@@ -149,11 +150,13 @@ def main():
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--tile', type=int, choices=[8, 16], default=16)
     ap.add_argument('--jobs', type=int, default=2)
+    ap.add_argument('--memory', choices=sorted(sim_build.MEMORY), default='fpga_mem',
+                    help='memory configuration (see sim_build.py)')
     ap.add_argument('--only', nargs='*', help='case-name prefixes')
     args = ap.parse_args()
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
-    sources = (ROOT / 'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
+    sources = sim_build.watched_sources(args.memory)
     before = {s: hashlib.sha256((ROOT / s).read_bytes()).hexdigest() for s in sources}
     cases = [c for c in workloads() if not args.only or any(c[0].startswith(p) for p in args.only)]
     for name, model, data, fused in cases:
@@ -161,11 +164,7 @@ def main():
     folder = out / f'tile{args.tile}'
     folder.mkdir()
     image = folder / 'program.vvp'
-    defines = ['SYNTHESIS', 'CHIPDESIGN_FPGA_MEM', 'NPU_ARRAY_COLS=8',
-               'NPU_ENABLE_WAVE_TRACE=0', 'NPU_ENABLE_OP_TRACE=1', f'NPU_TILE={args.tile}']
-    regression.run(['iverilog', '-g2012', '-s', 'tb_npu_program', '-o', image,
-                    *['-D' + d for d in defines], *sources,
-                    'hardware/soc/sim/tb/tb_npu_program.sv'], folder / 'compile.log')
+    sim_build.compile_program_tb(image, folder / 'compile.log', memory=args.memory, tile=args.tile)
 
     def measure(case):
         name, model, data, fused = case
@@ -181,7 +180,7 @@ def main():
         results = list(pool.map(measure, cases))
     assert before == {s: hashlib.sha256((ROOT / s).read_bytes()).hexdigest() for s in sources}, 'RTL changed'
     (out / 'summary.json').write_text(json.dumps(dict(sources_sha256=before, tests=results,
-        scope='RTL limit experiment, CHIPDESIGN_FPGA_MEM, two repeats, every tensor write checked'), indent=2) + '\n')
+        scope=f'RTL limit experiment, memory={args.memory}, two repeats, every tensor write checked'), indent=2) + '\n')
     with (out / 'metrics.csv').open('w', newline='') as f:
         wr = csv.DictWriter(f, fieldnames=['case', 'fused', *results[0]['metrics']])
         wr.writeheader()
