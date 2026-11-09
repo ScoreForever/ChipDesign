@@ -27,6 +27,13 @@ STORE = 'hardware/npu/rtl/npu_activation_store.sv'
 SHARED = 'hardware/npu/rtl/npu_model_store.sv'
 RA1SHD = ['--macro-model', 'hardware/npu/tb/ra1shd_functional_model.sv']
 FPGA = ['--define', 'CHIPDESIGN_FPGA_MEM']
+JTAG = 'hardware/soc/rtl/control/npu_jtag_transport.sv'
+CDC = ['CDC']   # run verification/fpga/cdc/run_cdc_limits.py --quick on the mutated transport
+UDR_OLD = "                UDR: if (ir == 'h12 && dr[71:64] != 0) begin\n                    if (pending) overrun <= 1;\n                    else begin"
+UDR_NEW = "                UDR: if (ir == 'h12 && dr[71:64] != 0) begin\n                    begin"
+# Survivors that are understood: shortened synchronizers are only detectable by the
+# static CDC audit (Vivado route_cdc / Cadence mailbox audit), not by RTL simulation.
+EXPECTED_SURVIVORS = {'c01', 'c02'}
 SUBSET = ('cnn,mlp,strided,edges,long_k,dwconv,dw_rect_pool,conv1d,rect_kernels,rowpad_kernels,'
           'residual_add,slot_pressure,u4_chain,pool_general,tiny_padded')
 
@@ -65,6 +72,19 @@ MUTANTS = [
      'assign match0[fs]=(age<=count) && q_addr[fs]==read_word0;', [], 'write-queue forwarding matches a retired entry'),
     ('m15', SHARED, 'else if(store_idle)model_dirty<=0;', 'else model_dirty<=0;', [],
      'A model image dirty flag clears before queued image writes land'),
+    # CDC mailbox. c01/c02 shorten a synchronizer: invisible to zero-delay functional
+    # simulation by construction; they document that the static CDC audit is mandatory.
+    ('c01', JTAG, 'if (req_sync[1] != req_seen && !cmd_valid_o && !waiting_reply) begin',
+     'if (req_sync[0] != req_seen && !cmd_valid_o && !waiting_reply) begin', CDC,
+     'CDC request consumed after one synchronizer flop (static-CDC class)'),
+    ('c02', JTAG, 'if (pending && ack_sync[1] == req_toggle) begin',
+     'if (pending && ack_sync[0] == req_toggle) begin', CDC,
+     'CDC reply captured after one synchronizer flop (static-CDC class)'),
+    ('c03', JTAG, UDR_OLD, UDR_NEW, CDC, 'CDC new request overwrites a payload still owned by the system domain'),
+    ('c04', JTAG, 'ack_toggle <= req_seen; waiting_reply <= 0;', 'ack_toggle <= !ack_toggle; waiting_reply <= 0;', CDC,
+     'CDC acknowledge toggles instead of echoing the request phase'),
+    ('c05', JTAG, 'rsp_mailbox_data <= rsp_data_i; rsp_mailbox_error <= rsp_error_i;',
+     'rsp_mailbox_data <= rsp_data_i;', CDC, 'CDC error code not bundled with the reply'),
 ]
 
 
@@ -77,9 +97,14 @@ def apply(dst, file, old, new):
 
 
 def classify(log_text):
-    if 'CHK ' in log_text:
-        m = re.search(r'CHK [^\n]*', log_text)
-        return 'protocol_checker', m.group(0)[:120]
+    for key, tag in (('protocol_checker', 'CHK '), ('store_stress', 'STRESS '), ('cdc_bench', 'CDC ')):
+        m = re.search(tag + r'[^\n]*', log_text)
+        if m:
+            return key, m.group(0)[:120]
+    m = re.search(r'FATAL: (\S+?):\d+: ([^\n]*)', log_text)
+    if m:
+        bench = Path(m.group(1)).stem
+        return ('output_mismatch' if bench == 'tb_npu_program' else 'unit_bench'), f'{bench}: {m.group(2)}'[:120]
     for key, pat in (('timeout', r'timeout|TimeoutExpired'), ('output_mismatch', r'got=|mismatch|expected'),
                      ('unit_bench', r'FATAL|fatal|Error|error')):
         m = re.search(pat, log_text)
@@ -93,9 +118,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--run', required=True)
     ap.add_argument('--only')
+    ap.add_argument('--strict', action='store_true', help='exit 1 if a mutant outside EXPECTED_SURVIVORS survives')
+    ap.add_argument('--list', action='store_true', help='print mutant ids (for CI sharding) and exit')
     ap.add_argument('--jobs', type=int, default=2)
     ap.add_argument('--timeout', type=int, default=1500)
     args = ap.parse_args()
+    if args.list:
+        print(' '.join(m[0] for m in MUTANTS))
+        return
     base = ROOT / 'build/mutants' / args.run
     base.mkdir(parents=True, exist_ok=True)
     # Snapshot sources once, so edits to the checkout during a long run cannot leak into later mutants.
@@ -115,8 +145,12 @@ def main():
             shutil.copytree(pristine / d, dst / d)
         apply(dst, file, old, new)
         out = dst / 'build/out'
-        cmd = [sys.executable, 'hardware/npu/scripts/run_program_regression.py', '--quick', '--only', SUBSET,
-               '--jobs', str(args.jobs), *config, '--output', str(out)]
+        if config == CDC:
+            cmd = [sys.executable, str(ROOT / 'verification/fpga/cdc/run_cdc_limits.py'), '--quick',
+                   '--jobs', str(args.jobs), '--rtl', str(dst / JTAG), '--output', str(out)]
+        else:
+            cmd = [sys.executable, 'hardware/npu/scripts/run_program_regression.py', '--quick', '--only', SUBSET,
+                   '--jobs', str(args.jobs), *config, '--output', str(out)]
         t0 = time.time()
         try:
             p = subprocess.run(cmd, cwd=dst, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -138,6 +172,10 @@ def main():
     (base / 'summary.json').write_text(json.dumps(results, indent=1) + '\n')
     k = sum(r['status'] == 'KILLED' for r in results)
     print(f'MUTATION SCORE {k}/{len(results)} killed')
+    unexpected = [r['id'] for r in results if r['status'] == 'SURVIVED' and r['id'] not in EXPECTED_SURVIVORS]
+    if args.strict and unexpected:
+        print('UNEXPECTED SURVIVORS (verification gap): ' + ' '.join(unexpected))
+        sys.exit(1)
 
 
 if __name__ == '__main__':
