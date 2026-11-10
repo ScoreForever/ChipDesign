@@ -1,0 +1,26 @@
+
+                                 Formality (R)
+
+                 Version R-2020.09 for linux64 - Aug 26, 2020 
+
+                    Copyright (c) 1988 - 2020 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+            or distribution of this software is strictly prohibited.
+
+Build: 6553251
+Hostname: tc-01a0e839fa89
+Current time: Tue Nov 10 02:57:26 2026
+
+Loading db file '/opt/eda/Synopsys/fm/R-2020.09/libraries/syn/gtech.db'
+puts "fm_ENV_PROBE_PASS"
+fm_ENV_PROBE_PASS
+exit
+
+Maximum memory usage for this session: 770 MB
+CPU usage for this session: 1.44 seconds ( 0.00 hours )
+Current time: Tue Nov 10 02:57:26 2026
+Elapsed time: 3 seconds ( 0.00 hours )
+
+Thank you for using Formality (R)!

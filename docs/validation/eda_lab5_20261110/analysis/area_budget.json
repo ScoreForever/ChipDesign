@@ -1,0 +1,44 @@
+{
+  "baseline_source": "7fd9789",
+  "equivalent_production_source": "8c16462",
+  "synthesis_complete": true,
+  "corner": "TT 1.8V 25C",
+  "routed": false,
+  "die_cap_um": 1950,
+  "core_max_requested_um": 1640,
+  "standard_cell_area_um2": 1799016.88348,
+  "macro_area_um2": 802887.1875,
+  "total_cell_area_um2": 2601904.07098,
+  "maximum_standard_cell_area_um2_at_75pct": 1415034.609375,
+  "minimum_standard_cell_reduction_um2": 383982.2741050001,
+  "minimum_standard_cell_reduction_percent": 21.34400614196731,
+  "lookup_area_um2": 548799.991,
+  "lookup_record_flops": {
+    "count": 8704,
+    "area_um2": 458568.5
+  },
+  "cdc_payload_paths": 109,
+  "cdc_synchronizer_setup_paths": 2,
+  "min_payload_slack_ns": 19.5817,
+  "setup_slack_ns": 7.049,
+  "pnr_started": false,
+  "lab5_final_gds_checks_complete": false,
+  "geometry_estimates": [
+    {
+      "target_utilization": 0.6,
+      "estimated_die_side_um": 2260
+    },
+    {
+      "target_utilization": 0.65,
+      "estimated_die_side_um": 2200
+    },
+    {
+      "target_utilization": 0.7,
+      "estimated_die_side_um": 2140
+    },
+    {
+      "target_utilization": 0.75,
+      "estimated_die_side_um": 2100
+    }
+  ]
+}

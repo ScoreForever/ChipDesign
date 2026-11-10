@@ -1,0 +1,24 @@
+Error: Library Compiler executable path is not set. (PT-063)
+
+                                 PrimeTime (R)
+
+               Version R-2020.09-SP4 for linux64 - Feb 24, 2021 
+
+                    Copyright (c) 1988 - 2021 Synopsys, Inc.
+   This software and the associated documentation are proprietary to Synopsys,
+ Inc. This software may only be used in accordance with the terms and conditions
+ of a written license agreement with Synopsys, Inc. All other use, reproduction,
+            or distribution of this software is strictly prohibited.
+puts "pt_ENV_PROBE_PASS"
+pt_ENV_PROBE_PASS
+exit
+
+Timing updates: 0 (0 implicit, 0 explicit) (0 incremental, 0 full, 0 logical)
+Noise updates: 0 (0 implicit, 0 explicit) (0 incremental, 0 full)
+Maximum memory usage for this session: 1419.15 MB
+CPU usage for this session: 3 seconds 
+Elapsed time for this session: 5 seconds
+Elapsed time spent in memory sampling: 0 seconds
+Diagnostics summary: 1 error
+
+Thank you for using pt_shell!

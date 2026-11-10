@@ -1,0 +1,3 @@
+synthesis/** -text -whitespace
+analysis/** -text -whitespace
+environment/** -text -whitespace

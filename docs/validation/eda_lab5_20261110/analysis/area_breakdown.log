@@ -1,0 +1,37 @@
+macros 0.803 mm2, flops 1.058 mm2, comb 0.741 mm2
+     458.6k um2   8704 FF  npu_tensor_lookup_MAX_OPS128:records
+     121.4k um2   2304 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:psum
+      42.7k um2   1024 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:results
+      40.2k um2    683 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_count
+      21.4k um2    512 FF  npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_cache_data
+      14.2k um2    265 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:d
+      13.5k um2    256 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_data
+      11.1k um2    256 FF  npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_q_data
+       7.6k um2    144 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:bias_cache
+       7.1k um2    128 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_normalized
+       6.3k um2    120 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_request_addr
+       6.3k um2    120 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_addr
+       5.3k um2    128 FF  npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_cache_tag
+       5.3k um2     90 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_tag_pipe
+       5.0k um2    120 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:gather_addr
+       5.0k um2    120 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_offsets
+       4.6k um2     77 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[0].delayed.delay
+       4.5k um2     96 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:lq_data
+       4.1k um2     90 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:cursor_step
+       4.1k um2     96 FF  npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_q_addr
+       3.9k um2     66 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[1].delayed.delay
+       3.8k um2     72 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_y_end
+       3.8k um2     64 FF  npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_saved_data
+       3.5k um2     72 FF  npu_jtag_transport:dr
+       3.5k um2     72 FF  npu_jtag_transport:req_payload
+       3.4k um2     64 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:mult_cache
+       3.4k um2     64 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:result_addr
+       3.3k um2     55 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[2].delayed.delay
+       3.1k um2     72 FF  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_x_end
+       2.8k um2     64 FF  npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_q_mask
+  comb    454.7k um2  npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024
+  comb    150.7k um2  npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024
+  comb     88.2k um2  npu_tensor_lookup_MAX_OPS128
+  comb     20.8k um2  requant_lane_TAG_WIDTH17
+  comb     20.7k um2  requant_lane_TAG_WIDTH1
+  comb      6.0k um2  npu_jtag_transport

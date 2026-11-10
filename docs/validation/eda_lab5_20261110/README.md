@@ -24,20 +24,25 @@ Genus 综合在先前的 `ChipDesign_abi5_20261110_7fd9789` 冻结目录执行�
 | 环境检查 | 结果 |
 |---|---|
 | 18 份工艺／SRAM 视图与源路径 | PASS |
-| Genus 19.17 实际许可证与综合启动 | PASS；综合仍在运行，非综合完成结论 |
+| Genus 19.17 实际许可证与综合启动 | PASS；基线映射综合已完成，见下方面积分析 |
 | Innovus 21.16 批处理启动 | PASS |
 | Xcelium 21.09 编译及仿真 | PASS |
 | Virtuoso IC618 批处理、工艺库与 Seal Ring 读取 | PASS |
 | V2LVS 小模块转换 | PASS |
 | Calibre 2022.3 DRC 引擎／许可证 | PASS；只执行环境专用的 1 条规则，不是芯片 DRC |
+| PrimeTime / Formality 实际许可证与启动 | PASS；只做环境探测，非设计时序／等价性结论 |
 | 项目 OA 映射／规则工作副本 | 已准备，规则引用 `/lec`，无错误的 `/home/almalinux` 项目路径 |
 
 原始数据见 [环境清单](environment/environment_manifest.json)、[输入预检](environment/preflight.json)、[Seal Ring 只读检查](environment/seal_source_inspection.log)。工艺规则和库文件仅保存在服务器私有工程中，未加入仓库。
 
+## 综合与面积分析
+
+[已完成的综合面积与分析报告](SYNTHESIS_AREA_ANALYSIS.md)：标准单元 1.799017 mm²，SRAM 0.802887 mm²；当前 75% 目标利用率估算需 2.10 mm die，超出 1.95 mm 上限。用户已选择保持上限并继续优化 RTL 面积。
+
 ## 进行中的实施与验证
 
-- 综合：正在执行，尚无完成验收结论。
-- PnR：等候同源综合交付物；将按实际标准单元面积选择 60%/65%/70%/75% 中能满足 1950 µm die 上限的最低目标密度。两宏采用相向布局、26 µm halo；不能满足面积上限时停止并保留失败原因。0.12 ns hold 修复目标不代表最终 hold 签核余量。
+- 综合：基线映射综合、综合时序及综合 CDC 已完成，原始报告已归档；面积优化候选另行测试。
+- PnR：基线在 60%/65%/70%/75% 四个目标利用率下均超出 1950 µm die 上限，已在启动前停止。后续使用满足面积预算的新候选交付物。两宏采用相向布局、26 µm halo；不能满足面积上限时停止并保留失败原因。0.12 ns hold 修复目标不代表最终 hold 签核余量。
 - 当前共享 SRAM bank 0/1 使用明确的物理角色映射，不再按两个独立 store 的旧名称匹配；39 项本地流程测试通过，仍须真实工具确认。
 - SDF、独立 STA、几何 DRC、LVS/ERC、最终 GDS 天线和 Wire Bond PAD：待匹配版图及网表生成后执行。
 

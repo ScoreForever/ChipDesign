@@ -1,0 +1,5 @@
+{
+  "stage": "failed",
+  "updated_utc": "2026-11-10T02:58:50Z",
+  "error": "die area exceeds 1950 um cap at all permitted densities: [(0.6, 2260), (0.65, 2200), (0.7, 2140), (0.75, 2100)]"
+}
