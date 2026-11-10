@@ -1,0 +1,65 @@
+{
+  "started_utc": "2026-11-07T03:17:31.606061+00:00",
+  "passed": true,
+  "scope": "ABI 0x00050000 INT4 JTAG capability and repeated model inference smoke test",
+  "programming": "manual; bitstream identity on board is not verified by this script",
+  "runs": [
+    {
+      "index": 1,
+      "output": "output_001.bin",
+      "sha256": "d702cdedbaceaf1d1c0083f74f44d23099c89f9bb85badcaab932518830cc8bc",
+      "matches_expected": true
+    },
+    {
+      "index": 2,
+      "output": "output_002.bin",
+      "sha256": "d702cdedbaceaf1d1c0083f74f44d23099c89f9bb85badcaab932518830cc8bc",
+      "matches_expected": true
+    },
+    {
+      "index": 3,
+      "output": "output_003.bin",
+      "sha256": "d702cdedbaceaf1d1c0083f74f44d23099c89f9bb85badcaab932518830cc8bc",
+      "matches_expected": true
+    }
+  ],
+  "bitstream": {
+    "path": "/mnt/d/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_fit_serial_20261107_090631/checkout_req_pipeline/build/impl_req_50mhz/fpga_top.bit",
+    "sha256": "067420299385c5be2094d4a3c25df3fc5a051f3c858bcc149d21647748eeb034"
+  },
+  "source_mismatches": [],
+  "provenance": {
+    "path": "/mnt/d/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_fit_serial_20261107_090631/checkout_req_pipeline/build/impl_req_50mhz/provenance.json",
+    "sha256": "877875736eff2b866e2941a7af6ed37aec71b03162817b312e79222e452aec62"
+  },
+  "git_commit": "38fdd73e02082cbb00d9cb6e27800af837479e76",
+  "inputs_sha256": {
+    "model.bin": "81dc5758f02d404b67edcccbb4cca7b9cb0e704696027e561e1458d175893a55",
+    "manifest.json": "cfe5408e86a857706d155ac33cc5304f10198301f95ef6f0b390479f15b0a5b9",
+    "input.bin": "a9ad5f892bb449fd8f8ff1476024df3ee5183dd49f6532f3e8a43bc284a6fc2d",
+    "expected.bin": "d702cdedbaceaf1d1c0083f74f44d23099c89f9bb85badcaab932518830cc8bc"
+  },
+  "capabilities": {
+    "0x00": 327680,
+    "0x04": 0,
+    "0x08": 0,
+    "0x50": 16384,
+    "0x54": 8192,
+    "0x58": 524296,
+    "0x5c": 1024,
+    "0x60": 128
+  },
+  "final_status": {
+    "busy": false,
+    "model_ready": true,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 985,
+    "issues": 200,
+    "writes": 35
+  },
+  "finished_utc": "2026-11-07T03:17:37.136639+00:00"
+}

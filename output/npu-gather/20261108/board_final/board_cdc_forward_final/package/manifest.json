@@ -1,0 +1,824 @@
+{
+  "rows": 8,
+  "activation_bank_bytes": 8192,
+  "shared_model_tail": true,
+  "abi": 327680,
+  "numeric_format": 253756420,
+  "packing": "low_nibble_first",
+  "cols": 8,
+  "model_bytes": 6496,
+  "op_count": 56,
+  "input_elements": 4096,
+  "input_base": 0,
+  "input_bytes": 2048,
+  "input_dtype": "i4",
+  "output_base": 0,
+  "output_bytes": 2048,
+  "output_elements": 4096,
+  "output_dtype": "i4",
+  "output_shape": [
+    64,
+    64,
+    1
+  ],
+  "activation_peak": 4096,
+  "groups": [
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ],
+    [
+      "Conv",
+      "Requant"
+    ]
+  ],
+  "tensors": {
+    "x": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q0": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q1": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q2": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q3": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q4": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q5": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q6": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q7": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q8": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q9": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q10": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q11": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q12": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q13": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q14": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q15": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q16": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q17": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q18": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q19": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q20": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q21": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q22": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q23": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q24": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q25": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q26": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q27": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q28": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q29": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q30": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q31": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q32": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q33": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q34": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q35": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q36": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q37": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q38": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q39": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q40": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q41": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q42": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q43": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q44": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q45": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q46": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q47": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q48": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q49": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q50": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q51": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q52": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q53": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q54": {
+      "base": 2048,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    },
+    "q55": {
+      "base": 0,
+      "bytes": 2048,
+      "shape": [
+        64,
+        64,
+        1
+      ],
+      "dtype": "i4"
+    }
+  },
+  "metadata": {}
+}

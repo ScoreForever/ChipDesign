@@ -1,0 +1,5 @@
+Source: user attachment codex-clipboard-9073ffc4-abc0-4001-94af-3587bd912aff.png
+Method: built-in imagegen edit, full square architecture preserved.
+Corrections: weights A/B feed MUX; selected weight and INT8 activation enter multiplier; INT16 product and 18-bit incoming partial sum enter adder; result is registered then output. No self-feedback accumulator.
+Array correction: exactly 4 rows x 8 columns = 32 PEs. Activation flows right; local partial sums flow down.
+Preserve original overall English architecture layout, blocks, palette and labels outside targeted regions.

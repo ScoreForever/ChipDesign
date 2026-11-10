@@ -1,0 +1,9 @@
+Open On-Chip Debugger 0.12.0+dev-04406-g10b7a647d-dirty (2026-10-20-02:33)
+Licensed under GNU GPL v2
+For bug reports, read
+	http://openocd.org/doc/doxygen/bugs.html
+adapter speed: 10 kHz
+Warn : Transport "jtag" was already selected
+DEPRECATED! use 'tcl port' not 'tcl_port'
+Error: unable to open ftdi device with description '*', serial '210512180081' at bus location '*'
+

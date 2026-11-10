@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Mon Nov  9 01:05:10 2026
+# Process ID         : 49744
+# Current directory  : D:/IWS/Advanced_SoC/ChipDesign/build/fpga_signoff/npu_gather_20261108/checkout_forward
+# Command line       : vivado.exe -mode batch -source scripts/lab6/program_board.tcl -log ../program_forward.log -journal ../program_forward.jou -tclargs build/gather_forward_50mhz/fpga_top.bit 1234-tulA build/gather_forward_50mhz
+# Log file           : D:/IWS/Advanced_SoC/ChipDesign/build/fpga_signoff/npu_gather_20261108/checkout_forward/../program_forward.log
+# Journal file       : D:/IWS/Advanced_SoC/ChipDesign/build/fpga_signoff/npu_gather_20261108/checkout_forward\../program_forward.jou
+# Running On         : LAPTOP-6R1URLIR
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) i9-14900HX
+# CPU Frequency      : 2419 MHz
+# CPU Physical cores : 24
+# CPU Logical cores  : 32
+# Host memory        : 34070 MB
+# Swap memory        : 28991 MB
+# Total Virtual      : 63061 MB
+# Available Virtual  : 31705 MB
+#-----------------------------------------------------------
+source scripts/lab6/program_board.tcl

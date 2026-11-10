@@ -1,0 +1,18 @@
+{
+  "dynamic_simulation": "PASS",
+  "raw_cdc15_warnings": 109,
+  "reviewed_request_bits": 72,
+  "reviewed_response_bits": 37,
+  "unexpected_warning_rows": 0,
+  "waivers_created": false,
+  "legacy_phase_rate_cases": 100,
+  "burst_phase_rate_cases": 32,
+  "limitation": "Digital simulation does not model metastability; physical checks apply to supplied routed build only.",
+  "sha256": {
+    "D:\\IWS\\Advanced_SoC\\ChipDesign\\build\\fpga_signoff\\npu_perf_20261107\\checkout_bounds\\hardware\\soc\\rtl\\control\\npu_jtag_transport.sv": "1a5502bc780fae1dc07e97e068046af244e925c697d7f6fd4cde83d6dc74017a",
+    "D:\\IWS\\advanced_soc\\ChipDesign\\build\\fpga_signoff\\npu_perf_20261107\\checkout_bounds\\verification\\fpga\\cdc\\tb_npu_jtag_cdc.sv": "59c437d8e08503aadc078fda153cc85bf853c476d4a26aadf5c8d08636bede05",
+    "D:\\IWS\\advanced_soc\\ChipDesign\\build\\fpga_signoff\\npu_perf_20261107\\checkout_bounds\\verification\\fpga\\cdc\\tb_npu_jtag_burst_cdc.sv": "f1bd427f17ddd505075bbb1c75cdfb773e05d5b03a4acaddf734a9562a5b8e63",
+    "D:\\IWS\\advanced_soc\\ChipDesign\\build\\fpga_signoff\\npu_perf_20261107\\checkout_bounds\\build\\bounds_margin_50mhz\\route_cdc.rpt": "12d32cdf4d94ba30f6fd70e8462e3f77377adbd68b8f80b3758a5fdfd9c05d7c",
+    "D:\\IWS\\advanced_soc\\ChipDesign\\build\\fpga_signoff\\npu_perf_20261107\\checkout_bounds\\build\\bounds_margin_50mhz\\route_npu_jtag_cdc.tsv": "96a442231511f5788ba01571d5586082f2bdcdc96d7011e4c1e4cb02488d9cd4"
+  }
+}

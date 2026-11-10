@@ -1,0 +1,8 @@
+case,baseline_cycles,candidate_cycles,change_pct
+packaged_ecg_c8_f1_j0,14478,16428,13.47
+packaged_fashion_cnn_c8_f1_j0,42363,54718,29.16
+packaged_gtsrb_l_c8_f1_j0,118009,134978,14.38
+packaged_har_c8_f1_j0,16366,19506,19.19
+packaged_kws_l_c8_f1_j0,81307,99535,22.42
+packaged_kws_m_c8_f1_j0,83201,101471,21.96
+packaged_mnist_l_c8_f1_j0,34137,40560,18.82

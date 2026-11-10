@@ -1,0 +1,139 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Sat Nov  7 20:13:59 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_timing -delay_type max -max_paths 1 -file D:/IWS/Advanced_SoC/ChipDesign/build/fpga_signoff/npu_perf_20261107/checkout_bounds/build/bounds_margin_50mhz/original_worst.rpt
+| Design       : fpga_top
+| Device       : 7a35t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.000ns  (required time - arrival time)
+  Source:                 u_soc/i_control/i_npu/pool_enable_reg_rep/C
+                            (rising edge-triggered cell FDRE clocked by clk_out1_clk_wiz_0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Destination:            u_soc/i_control/i_activation/i_store/held_data_reg[0]/D
+                            (rising edge-triggered cell FDRE clocked by clk_out1_clk_wiz_0  {rise@0.000ns fall@10.000ns period=20.000ns})
+  Path Group:             clk_out1_clk_wiz_0
+  Path Type:              Setup (Max at Slow Process Corner)
+  Requirement:            20.000ns  (clk_out1_clk_wiz_0 rise@20.000ns - clk_out1_clk_wiz_0 rise@0.000ns)
+  Data Path Delay:        19.977ns  (logic 5.453ns (27.296%)  route 14.524ns (72.704%))
+  Logic Levels:           26  (CARRY4=6 LUT2=1 LUT3=1 LUT4=1 LUT5=6 LUT6=11)
+  Clock Path Skew:        0.032ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    -1.055ns = ( 18.945 - 20.000 ) 
+    Source Clock Delay      (SCD):    -0.505ns
+    Clock Pessimism Removal (CPR):    0.582ns
+  Clock Uncertainty:      0.084ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.152ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_out1_clk_wiz_0 rise edge)
+                                                      0.000     0.000 r  
+    P17                                               0.000     0.000 r  fpga_clk_i (IN)
+                         net (fo=0)                   0.000     0.000    u_clk_wiz/inst/clk_in1
+    P17                  IBUF (Prop_ibuf_I_O)         1.478     1.478 r  u_clk_wiz/inst/clkin1_ibufg/O
+                         net (fo=1, routed)           1.233     2.711    u_clk_wiz/inst/clk_in1_clk_wiz_0
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -6.965    -4.253 r  u_clk_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.666    -2.587    u_clk_wiz/inst/clk_out1_clk_wiz_0
+    BUFGCTRL_X0Y15       BUFG (Prop_bufg_I_O)         0.096    -2.491 r  u_clk_wiz/inst/clkout1_buf_replica/O
+                         net (fo=2, routed)           0.154    -2.337    u_clk_wiz/inst/clk_out1_repN
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.096    -2.241 r  u_clk_wiz/inst/clkout1_buf/O
+                         net (fo=8772, routed)        1.736    -0.505    u_soc/i_control/i_npu/clk_out1
+    SLICE_X31Y104        FDRE                                         r  u_soc/i_control/i_npu/pool_enable_reg_rep/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X31Y104        FDRE (Prop_fdre_C_Q)         0.456    -0.049 r  u_soc/i_control/i_npu/pool_enable_reg_rep/Q
+                         net (fo=188, routed)         0.739     0.691    u_soc/i_control/i_npu/pool_enable_reg_rep_n_0
+    SLICE_X31Y105        LUT2 (Prop_lut2_I0_O)        0.124     0.815 r  u_soc/i_control/i_npu/dh[15]_i_6/O
+                         net (fo=31, routed)          0.905     1.720    u_soc/i_control/i_npu/dh[15]_i_6_n_0
+    SLICE_X33Y102        LUT6 (Prop_lut6_I0_O)        0.124     1.844 r  u_soc/i_control/i_npu/tile_base[11]_i_24/O
+                         net (fo=1, routed)           0.443     2.287    u_soc/i_control/i_npu/tile_base[11]_i_24_n_0
+    SLICE_X28Y102        LUT6 (Prop_lut6_I0_O)        0.124     2.411 r  u_soc/i_control/i_npu/tile_base[11]_i_20/O
+                         net (fo=1, routed)           0.651     3.062    u_soc/i_control/i_npu/tile_base[11]_i_20_n_0
+    SLICE_X27Y108        LUT6 (Prop_lut6_I5_O)        0.124     3.186 r  u_soc/i_control/i_npu/tile_base[11]_i_16/O
+                         net (fo=1, routed)           0.000     3.186    u_soc/i_control/i_npu/tile_base[11]_i_16_n_0
+    SLICE_X27Y108        CARRY4 (Prop_carry4_S[3]_CO[3])
+                                                      0.401     3.587 r  u_soc/i_control/i_npu/tile_base_reg[11]_i_11/CO[3]
+                         net (fo=1, routed)           0.000     3.587    u_soc/i_control/i_npu/tile_base_reg[11]_i_11_n_0
+    SLICE_X27Y109        CARRY4 (Prop_carry4_CI_CO[3])
+                                                      0.114     3.701 r  u_soc/i_control/i_npu/tile_base_reg[15]_i_13/CO[3]
+                         net (fo=1, routed)           0.000     3.701    u_soc/i_control/i_npu/tile_base_reg[15]_i_13_n_0
+    SLICE_X27Y110        CARRY4 (Prop_carry4_CI_O[1])
+                                                      0.334     4.035 r  u_soc/i_control/i_npu/tile_base_reg[15]_i_12/O[1]
+                         net (fo=2, routed)           0.636     4.671    u_soc/i_control/i_npu/tile_base_reg[15]_i_12_n_6
+    SLICE_X25Y111        LUT4 (Prop_lut4_I2_O)        0.331     5.002 r  u_soc/i_control/i_npu/tile_base[15]_i_4/O
+                         net (fo=2, routed)           0.860     5.862    u_soc/i_control/i_npu/tile_base[15]_i_4_n_0
+    SLICE_X25Y111        LUT5 (Prop_lut5_I0_O)        0.332     6.194 r  u_soc/i_control/i_npu/tile_base[15]_i_8/O
+                         net (fo=1, routed)           0.000     6.194    u_soc/i_control/i_npu/tile_base[15]_i_8_n_0
+    SLICE_X25Y111        CARRY4 (Prop_carry4_S[2]_O[2])
+                                                      0.248     6.442 r  u_soc/i_control/i_npu/tile_base_reg[15]_i_3/O[2]
+                         net (fo=10, routed)          0.798     7.240    u_soc/i_control/i_npu/next_base[14]
+    SLICE_X25Y115        LUT6 (Prop_lut6_I4_O)        0.302     7.542 r  u_soc/i_control/i_npu/gather_addr[0][14]_i_3/O
+                         net (fo=1, routed)           0.000     7.542    u_soc/i_control/i_npu/gather_addr[0][14]_i_3_n_0
+    SLICE_X25Y115        CARRY4 (Prop_carry4_S[2]_O[2])
+                                                      0.248     7.790 r  u_soc/i_control/i_npu/gather_addr_reg[0][14]_i_1/O[2]
+                         net (fo=2, routed)           0.928     8.717    u_soc/i_control/i_npu/gather_addr_reg[0][14]_i_1_n_5
+    SLICE_X32Y113        LUT5 (Prop_lut5_I4_O)        0.302     9.019 r  u_soc/i_control/i_npu/saved_word0[11]_i_19/O
+                         net (fo=1, routed)           0.965     9.984    u_soc/i_control/i_npu/saved_word0[11]_i_19_n_0
+    SLICE_X29Y113        LUT6 (Prop_lut6_I5_O)        0.124    10.108 r  u_soc/i_control/i_npu/saved_word0[11]_i_10/O
+                         net (fo=1, routed)           0.263    10.371    u_soc/i_control/i_npu/saved_word0[11]_i_10_n_0
+    SLICE_X29Y113        LUT6 (Prop_lut6_I0_O)        0.124    10.495 r  u_soc/i_control/i_npu/saved_word0[11]_i_7/O
+                         net (fo=2, routed)           0.592    11.087    u_soc/i_control/i_npu/saved_word0[11]_i_7_n_0
+    SLICE_X21Y113        LUT5 (Prop_lut5_I2_O)        0.124    11.211 r  u_soc/i_control/i_npu/saved_word0[11]_i_2/O
+                         net (fo=13, routed)          0.799    12.011    u_soc/i_control/i_activation/i_store/store_addr[14]
+    SLICE_X13Y113        LUT6 (Prop_lut6_I1_O)        0.124    12.135 r  u_soc/i_control/i_activation/i_store/i___114_i_2/O
+                         net (fo=1, routed)           0.000    12.135    u_soc/i_control/i_activation/i_store/i___114_i_2_n_0
+    SLICE_X13Y113        CARRY4 (Prop_carry4_S[3]_CO[3])
+                                                      0.401    12.536 r  u_soc/i_control/i_activation/i_store/i___114_i_1/CO[3]
+                         net (fo=9, routed)           1.694    14.230    u_soc/i_control/i_activation/i_store/forward_mask0114_out
+    SLICE_X3Y97          LUT5 (Prop_lut5_I4_O)        0.124    14.354 r  u_soc/i_control/i_activation/i_store/i___120/O
+                         net (fo=5, routed)           0.601    14.955    u_soc/i_control/i_activation/i_store/i___120_n_0
+    SLICE_X1Y100         LUT6 (Prop_lut6_I5_O)        0.124    15.079 f  u_soc/i_control/i_activation/i_store/i___946/O
+                         net (fo=1, routed)           0.432    15.511    u_soc/i_control/i_activation/i_store/i___946_n_0
+    SLICE_X1Y101         LUT6 (Prop_lut6_I2_O)        0.124    15.635 r  u_soc/i_control/i_activation/i_store/saved_data0[4]_i_7/O
+                         net (fo=1, routed)           0.428    16.063    u_soc/i_control/i_activation/i_store/saved_data0[4]_i_7_n_0
+    SLICE_X1Y102         LUT6 (Prop_lut6_I1_O)        0.124    16.187 r  u_soc/i_control/i_activation/i_store/saved_data0[4]_i_3/O
+                         net (fo=1, routed)           0.810    16.997    u_soc/i_control/i_activation/i_store/saved_data0[4]_i_3_n_0
+    SLICE_X3Y103         LUT3 (Prop_lut3_I2_O)        0.124    17.121 r  u_soc/i_control/i_activation/i_store/saved_data0[4]_i_1/O
+                         net (fo=2, routed)           0.801    17.922    u_soc/i_control/i_activation/i_store/saved_data0[4]_i_1_n_0
+    SLICE_X5Y113         LUT5 (Prop_lut5_I0_O)        0.124    18.046 f  u_soc/i_control/i_activation/i_store/low_word[4]_i_2/O
+                         net (fo=2, routed)           0.557    18.603    u_soc/i_control/i_activation/i_store/low_word[4]_i_2_n_0
+    SLICE_X5Y109         LUT6 (Prop_lut6_I5_O)        0.124    18.727 r  u_soc/i_control/i_activation/i_store/held_data[4]_i_2/O
+                         net (fo=2, routed)           0.622    19.349    u_soc/i_control/i_activation/i_store/held_data[4]_i_2_n_0
+    SLICE_X5Y108         LUT5 (Prop_lut5_I2_O)        0.124    19.473 r  u_soc/i_control/i_activation/i_store/held_data[0]_i_1/O
+                         net (fo=1, routed)           0.000    19.473    u_soc/i_control/i_activation/i_store/held_data[0]_i_1_n_0
+    SLICE_X5Y108         FDRE                                         r  u_soc/i_control/i_activation/i_store/held_data_reg[0]/D
+  -------------------------------------------------------------------    -------------------
+
+                         (clock clk_out1_clk_wiz_0 rise edge)
+                                                     20.000    20.000 r  
+    P17                                               0.000    20.000 r  fpga_clk_i (IN)
+                         net (fo=0)                   0.000    20.000    u_clk_wiz/inst/clk_in1
+    P17                  IBUF (Prop_ibuf_I_O)         1.408    21.408 r  u_clk_wiz/inst/clkin1_ibufg/O
+                         net (fo=1, routed)           1.162    22.570    u_clk_wiz/inst/clk_in1_clk_wiz_0
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.221    15.348 r  u_clk_wiz/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.587    16.935    u_clk_wiz/inst/clk_out1_clk_wiz_0
+    BUFGCTRL_X0Y15       BUFG (Prop_bufg_I_O)         0.091    17.026 r  u_clk_wiz/inst/clkout1_buf_replica/O
+                         net (fo=2, routed)           0.147    17.173    u_clk_wiz/inst/clk_out1_repN
+    BUFGCTRL_X0Y0        BUFG (Prop_bufg_I_O)         0.091    17.264 r  u_clk_wiz/inst/clkout1_buf/O
+                         net (fo=8772, routed)        1.681    18.945    u_soc/i_control/i_activation/i_store/clk_out1
+    SLICE_X5Y108         FDRE                                         r  u_soc/i_control/i_activation/i_store/held_data_reg[0]/C
+                         clock pessimism              0.582    19.527    
+                         clock uncertainty           -0.084    19.444    
+    SLICE_X5Y108         FDRE (Setup_fdre_C_D)        0.029    19.473    u_soc/i_control/i_activation/i_store/held_data_reg[0]
+  -------------------------------------------------------------------
+                         required time                         19.473    
+                         arrival time                         -19.473    
+  -------------------------------------------------------------------
+                         slack                                  0.000    
+
+
+
+

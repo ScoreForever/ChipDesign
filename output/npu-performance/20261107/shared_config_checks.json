@@ -1,0 +1,29 @@
+{
+  "bench": "hardware/npu/tb/tb_npu_memories.sv",
+  "checks": [
+    {
+      "defines": [
+        "CHIPDESIGN_FPGA_MEM"
+      ],
+      "exit_code": 0
+    },
+    {
+      "defines": [],
+      "exit_code": 0
+    },
+    {
+      "defines": [
+        "NPU_USE_RA1SHD_MODEL",
+        "NPU_USE_RA1SHD_ACTIVATION"
+      ],
+      "macro_model": "hardware/npu/tb/ra1shd_functional_model.sv",
+      "exit_code": 0
+    }
+  ],
+  "fault_injection": {
+    "mutation": "omit model_bytes_q==model_bytes from base_ready",
+    "exit_code": 1,
+    "detected": "shared model base: size=8192 got=xxxxxxxx expected=12345678",
+    "mutated_file_removed": true
+  }
+}

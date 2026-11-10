@@ -1,0 +1,8 @@
+PASS production packaged_ecg_c8_f1_j0 [15857, 15857]
+PASS production packaged_har_c8_f1_j0 [18836, 18836]
+PASS production packaged_fashion_cnn_c8_f1_j0 [47204, 47204]
+PASS production packaged_mnist_l_c8_f1_j0 [37086, 37086]
+PASS production packaged_kws_l_c8_f1_j0 [86626, 86626]
+PASS production packaged_kws_m_c8_f1_j0 [88821, 88821]
+PASS production packaged_gtsrb_l_c8_f1_j0 [128283, 128283]
+ALL 7 STAGED PRODUCTION MODELS PASSED

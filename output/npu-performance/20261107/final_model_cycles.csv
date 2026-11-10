@@ -1,0 +1,8 @@
+model,original_rtl_cycles,previous_image_rtl_cycles,final_board_cycles,vs_previous_pct,vs_original_pct
+ecg,14478,23645,15857,-32.94,9.52
+fashion_cnn,42363,90872,47204,-48.05,11.43
+gtsrb_l,118009,205597,128283,-37.6,8.71
+har,16366,28841,18836,-34.69,15.09
+kws_l,81307,147308,86626,-41.19,6.54
+kws_m,83201,149233,88821,-40.48,6.75
+mnist_l,34137,62946,37086,-41.08,8.64

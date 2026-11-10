@@ -1,0 +1,8 @@
+case,original_cycles,serial_setup_cycles,model_response_pipeline_cycles,previous_board_cycles,candidate_cycles,vs_previous_pct,vs_original_pct
+packaged_ecg_c8_f1_j0,14478,16428,17238,23645,15860,-32.92,9.55
+packaged_fashion_cnn_c8_f1_j0,42363,54718,56214,90872,47273,-47.98,11.59
+packaged_gtsrb_l_c8_f1_j0,118009,134978,136224,205597,128278,-37.61,8.7
+packaged_har_c8_f1_j0,16366,19506,20193,28841,18835,-34.69,15.09
+packaged_kws_l_c8_f1_j0,81307,99535,100540,147308,86714,-41.13,6.65
+packaged_kws_m_c8_f1_j0,83201,101471,102542,149233,88930,-40.41,6.89
+packaged_mnist_l_c8_f1_j0,34137,40560,42092,62946,37150,-40.98,8.83

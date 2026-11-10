@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "bitstream_sha256": "535c93afe24ab10f02b424a4a8a9d6918e01d9c56165572fb84e6b82336d6350",
+  "wns_ns": 0.031,
+  "whs_ns": 0.034,
+  "scope": "same-build source, routed timing and CDC gate; board lease released by sweep chat"
+}

@@ -1,0 +1,98 @@
+--- a/hardware/npu/rtl/npu_program_core.sv
++++ b/hardware/npu/rtl/npu_program_core.sv
+@@ -395,6 +395,20 @@
+     integer r,rr;
+     reg [15:0] calc_addr[0:ROWS-1];reg [ROWS-1:0] calc_mask;reg calc_contiguous;
+     reg [$clog2(ROWS)-1:0] calc_first;
++    // Speculate the current position plus both row-end outcomes. Keep the
++    // first-address cones before the final row-end mux: no priority encoder
++    // or coordinate comparison should follow cursor_at_last_x on a request.
++    reg [8:0] request_y[0:2],request_x[0:2];
++    reg [4:0] request_p[0:2];
++    reg [15:0] request_base[0:2],request_addr[0:2][0:ROWS-1];
++    reg [ROWS-1:0] request_mask[0:2];
++    reg [$clog2(ROWS)-1:0] request_first[0:2];
++    (* keep = "true" *) reg [15:0] request_first_addr[0:2];
++    reg [2:0] request_any;
++    reg [1:0] request_select;
++    reg [15:0] calc_request_addr;
++    reg calc_any;
++    integer rq;
+     // Position and tile length change only at group setup or issue_fire.
+     // Register the lookahead predicate so issue_p's terminal-count compare
+     // does not precede the gather mask/address and activation forwarding path.
+@@ -407,24 +421,38 @@
+             else next_x=cursor_x+1;
+         end
+         next_base=cursor_base+cursor_step[{cursor_at_last_x,issue_p[1:0]}];
+-        calc_p=issue_p;calc_y=cursor_y;calc_x=cursor_x;calc_base=cursor_base;
+-        // Once a gather has started, its metadata lives in gather_* until
+-        // issue_fire. Prepare the next position throughout that interval,
+-        // rather than selecting it from the returning activation response.
+-        // Only issue_fire consumes this lookahead. This keeps SRAM response
+-        // valid -> issue_fire out of the address/mask/contiguity arithmetic,
+-        // while retaining same-cycle response/issue/next-request throughput.
+-        if(gather_state!=0 && has_next)begin calc_p=issue_p+1;calc_y=next_y;calc_x=next_x;calc_base=next_base;end
+-        if(pool_enable)begin cy=pool1d ? calc_y : calc_y*2+calc_p[1];cx=calc_x*2+calc_p[0];end
+-        else begin cy=calc_y;cx=calc_x;end
+-        calc_mask=0;
+-        for(r=0;r<ROWS;r=r+1)begin
+-            calc_addr[r]=calc_base+k_offsets[r];
+-            calc_mask[r]=k_valid[r] && cy>=k_y_begin[r] && cy<k_y_end[r] &&
+-                cx>=k_x_begin[r] && cx<k_x_end[r];
+-        end
+-        calc_first=0;
+-        for(r=ROWS-1;r>=0;r=r-1)if(calc_mask[r])calc_first=r;
++        for(rq=0;rq<3;rq=rq+1)begin
++            request_p[rq]=rq==0 ? issue_p : issue_p+5'd1;
++            request_y[rq]=cursor_y;request_x[rq]=cursor_x;
++            request_base[rq]=cursor_base;
++            if(rq!=0)begin
++                if(!pool_enable || pool_tap_last)begin
++                    request_y[rq]=cursor_y+(rq==2);
++                    request_x[rq]=rq==2 ? 9'd0 : {1'b0,cursor_x}+9'd1;
++                end
++                request_base[rq]=cursor_base+cursor_step[{rq==2,issue_p[1:0]}];
++            end
++            if(pool_enable)begin
++                cy=pool1d ? request_y[rq] : request_y[rq]*2+request_p[rq][1];
++                cx=request_x[rq]*2+request_p[rq][0];
++            end else begin cy=request_y[rq];cx=request_x[rq];end
++            request_mask[rq]=0;
++            for(r=0;r<ROWS;r=r+1)begin
++                request_addr[rq][r]=request_base[rq]+k_offsets[r];
++                request_mask[rq][r]=k_valid[r] && cy>=k_y_begin[r] && cy<k_y_end[r] &&
++                    cx>=k_x_begin[r] && cx<k_x_end[r];
++            end
++            request_first[rq]=0;
++            for(r=ROWS-1;r>=0;r=r-1)if(request_mask[rq][r])request_first[rq]=r;
++            request_first_addr[rq]=request_addr[rq][request_first[rq]];
++            request_any[rq]=|request_mask[rq];
++        end
++        request_select=(gather_state!=0 && has_next) ? (cursor_at_last_x ? 2'd2 : 2'd1) : 2'd0;
++        calc_p=request_p[request_select];calc_y=request_y[request_select];calc_x=request_x[request_select];
++        calc_base=request_base[request_select];calc_mask=request_mask[request_select];
++        calc_first=request_first[request_select];calc_request_addr=request_first_addr[request_select];
++        calc_any=request_any[request_select];
++        for(r=0;r<ROWS;r=r+1)calc_addr[r]=request_addr[request_select][r];
+         // All selected pairs must preserve their nibble-lane distance. Empty
+         // and singleton masks are contiguous, including masked padding lanes.
+         calc_contiguous=1;
+@@ -492,7 +520,7 @@
+         // Start each subset at its first valid lane. Subset membership is
+         // derived from registered group offsets, not the returning data.
+         a_addr=mac_op ? (gather_state==1 ? gather_addr[gather_row] :
+-            calc_addr[calc_first]) : eaddr;
++            calc_request_addr) : eaddr;
+         if(state==FREQ) begin m_valid=1; m_addr=pc*64+fetch_word*4; end
+         // The model store accepts one read per cycle: request the next
+         // descriptor/parameter word in the cycle the previous one returns.
+@@ -511,7 +539,7 @@
+         end
+         if(state==EXECUTE) begin
+             if(mac_op && !kernel_prepare && issue_more && (gather_state==0 || (issue_fire && has_next))) begin
+-                a_valid=|calc_mask;
++                a_valid=calc_any;
+             end else if(mac_op && !kernel_prepare && gather_state==1) begin
+                 a_valid=|gather_mask;
+             end else if(!mac_op && estate==1) begin a_valid=1; end

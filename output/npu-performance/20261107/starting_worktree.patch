@@ -1,0 +1,536 @@
+diff --git a/docs/NPU_OPERATOR_TRACE.md b/docs/NPU_OPERATOR_TRACE.md
+index 6ba9972..64ba897 100644
+--- a/docs/NPU_OPERATOR_TRACE.md
++++ b/docs/NPU_OPERATOR_TRACE.md
+@@ -75,7 +75,7 @@ MAC 三类等待沿用整次计数的“结果槽 → 权重 → 激活”互斥
+ | word3 bits23:20 / 27:24 | 核心 state / 描述符 PC |
+ | word3 bits30:28 / 31 | opcode / quantized；fetch 期间记为 0 |
+ 
+-核心 state：0 IDLE、1 FREQ、2 FWAIT、3 BASIC、4 CHECK、5 PREQ、6 PWAIT、7 SETUP、8 EXECUTE、9 NEXT、10 FAILED、11 INIT_A、12 INIT_B、14 DERIVE。
++核心 state：0 IDLE、1 FREQ、2 FWAIT、3 BASIC、4 CHECK、5 PREQ、6 PWAIT、7 SETUP、8 EXECUTE、9 NEXT、10 FAILED、11 INIT_A、12 INIT_B、13 LOOKUP_WAIT、14 DERIVE。LOOKUP_WAIT 等待张量地址表的逐条核对。
+ 
+ VCD 的 clock 是根据声明的采样周期重建的显示时钟，默认 20 ns；它不是示波器测量。数据来自 FPGA 上逐周期采集，两个采样沿之间的毛刺不可见。VCD 在窗口结束时将数据标为未知，避免把采集结束后的状态误看成实际保持不变。本版不记录 MAC/量化内部数据或 write payload。
+ 
+diff --git a/hardware/npu/rtl/npu_model_store.sv b/hardware/npu/rtl/npu_model_store.sv
+index 19407aa..778a990 100644
+--- a/hardware/npu/rtl/npu_model_store.sv
++++ b/hardware/npu/rtl/npu_model_store.sv
+@@ -52,32 +52,75 @@ module npu_shared_store #(parameter BYTES=16384)(
+  input wire [31:0] write_data,input wire [7:0] write_mask,
+  input wire flush,output wire idle
+ );
+- wire rr,rv,wr;wire [31:0] rd;
++ wire rr,rv,wr,store_idle;wire [31:0] rd;
+  reg owner,halfword,prefer_model;
+  wire select_model=model_read && (!read_valid || prefer_model);
+- assign model_read_ready=rr && select_model;
+- assign read_ready=rr && !select_model;
+- assign model_rsp_valid=rv && owner;
++ wire request_valid=model_read || read_valid;
++ wire [15:0] request_addr=select_model ? ((16'd16384-model_bytes+model_read_addr)<<1) : read_addr;
++ wire store_valid,store_model,store_halfword,request_ready;
++ wire [15:0] store_addr;
+  assign rsp_valid=rv && !owner;
+- assign model_rsp_data=halfword ? {16'd0,rd[15:0]} : rd;
++ wire [31:0] model_word=halfword ? {16'd0,rd[15:0]} : rd;
++`ifdef CHIPDESIGN_FPGA_MEM
++ // Isolate the BRAM output from the next model request and store arbitration.
++ // The model response interface consumes each word without backpressure.
++ reg model_valid_q;
++ reg [31:0] model_word_q;
++ // Buffer the selected address and its routing metadata before the SRAM's
++ // cache/queue arbitration. A pending request is held until rr accepts it.
++ reg request_pending,request_model_q,request_halfword_q;
++ reg [15:0] request_addr_q;
++ assign request_ready=!rst && !request_pending;
++ assign store_valid=request_pending;
++ assign store_addr=request_addr_q;
++ assign store_model=request_model_q;
++ assign store_halfword=request_halfword_q;
++ assign idle=store_idle && !request_pending && !model_valid_q;
++ always @(posedge clk) begin
++  if(rst) begin model_valid_q<=0; request_pending<=0; end
++  else begin
++   model_valid_q<=rv && owner;
++   if(rv && owner) model_word_q<=model_word;
++   if(request_ready && request_valid)begin
++    request_pending<=1;
++    request_addr_q<=request_addr;
++    request_model_q<=select_model;
++    request_halfword_q<=model_read_addr[1];
++   end else if(request_pending && rr) request_pending<=0;
++  end
++ end
++ assign model_rsp_valid=model_valid_q;
++ assign model_rsp_data=model_word_q;
++`else
++ assign model_rsp_valid=rv && owner;
++ assign model_rsp_data=model_word;
++ assign request_ready=rr;
++ assign store_valid=request_valid;
++ assign store_addr=request_addr;
++ assign store_model=select_model;
++ assign store_halfword=model_read_addr[1];
++ assign idle=store_idle;
++`endif
++ assign model_read_ready=request_ready && select_model;
++ assign read_ready=request_ready && !select_model;
+  assign rsp_data=rd;
+  assign model_write_ready=wr;
+  assign write_ready=wr && !model_write;
+  always @(posedge clk)begin
+   if(rst)begin owner<=0;halfword<=0;prefer_model<=1;end
+-  else if(rr && (model_read || read_valid))begin
+-   owner<=select_model;halfword<=model_read_addr[1];prefer_model<=!select_model;
++  else begin
++   if(request_ready && request_valid)prefer_model<=!select_model;
++   if(rr && store_valid)begin owner<=store_model;halfword<=store_halfword;end
+   end
+  end
+  npu_activation_store #(.BYTES(BYTES)) i_store(
+   .clk(clk),.rst(rst),
+-  .read_valid(model_read || read_valid),.read_ready(rr),
+-  .read_addr(select_model ? ((16'd16384-model_bytes+model_read_addr)<<1) : read_addr),
++  .read_valid(store_valid),.read_ready(rr),.read_addr(store_addr),
+   .rsp_valid(rv),.rsp_ready(owner || rsp_ready),.rsp_data(rd),
+   .write_valid(model_write || write_valid),.write_ready(wr),
+   .write_addr(model_write ? ((16'd16384-model_bytes+model_write_addr)<<1) : write_addr),
+   .write_data(model_write ? model_write_data : write_data),
+   .write_mask(model_write ? 8'hff : write_mask),
+-  .flush(flush || model_write),.idle(idle));
++  .flush(flush || model_write),.idle(store_idle));
+  initial if(BYTES!=16384)$fatal(1,"shared SRAM requires two 8KiB banks");
+ endmodule
+diff --git a/hardware/npu/rtl/npu_program_core.sv b/hardware/npu/rtl/npu_program_core.sv
+index 56b66c9..51ff5c2 100644
+--- a/hardware/npu/rtl/npu_program_core.sv
++++ b/hardware/npu/rtl/npu_program_core.sv
+@@ -33,7 +33,8 @@ module npu_program_core #(
+     output wire memory_flush, input wire memory_idle
+ );
+     localparam IDLE=0,FREQ=1,FWAIT=2,BASIC=3,CHECK=4,PREQ=5,PWAIT=6,
+-        SETUP=7,EXECUTE=8,NEXT=9,FAILED=10,INIT_A=11,INIT_B=12,DERIVE=14;
++        SETUP=7,EXECUTE=8,NEXT=9,FAILED=10,INIT_A=11,INIT_B=12,
++        LOOKUP_WAIT=13,DERIVE=14;
+     localparam CONV=1,FC=2,POOL=3,RELU=4,REQUANT=5,AVGPOOL=6,ADD=7;
+     localparam L_IDLE=0,L_REQ=1,L_WAIT=2,L_HAVE=3;
+     reg [3:0] state;
+@@ -75,8 +76,11 @@ module npu_program_core #(
+     reg [15:0] pool_chk_h,pool_chk_w,origin_y,origin_x;
+     reg [15:0] mul_a,mul_b;
+     wire [31:0] mul_p=mul_a*mul_b;
+-    reg [15:0] known_base[0:MAX_OPS],known_size[0:MAX_OPS];
+-    reg [MAX_OPS:0] known_valid,known_i32;
++    reg lookup_done;
++    wire scan_done,source_known,source2_known;
++    wire [15:0] src_end=src+src_span[15:0],src2_end=src2+src_span[15:0];
++    wire [15:0] dst_end=dst+dst_span[15:0];
++    wire [15:0] input_first=input_base<<1,input_end=(input_base+input_bytes)<<1;
+     // One 32-bit parameter word per channel: bias[17:0], Q8 multiplier[25:18],
+     // shift[31:26]. INT4 accumulations never need wider bias or multiplier.
+     reg [15:0] param_channel;
+@@ -103,8 +107,19 @@ module npu_program_core #(
+ 
+     // Validation uses bounded dimensions. Derived quantities are latched once
+     // per descriptor; execution never recomputes tensor-size multiplications.
+-    integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam,j;
+-    reg basic_bad,shape_bad,range_bad,source_known,source2_known;
++    integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam;
++    reg basic_bad,shape_bad,range_bad;
++    wire output_bad=pc==op_count-1 && (dst!=(output_base<<1) || dst_span!=(output_bytes<<1));
++    wire lookup_save=state==CHECK && lookup_done && source_known && source2_known && !output_bad;
++    wire lookup_seed=state==IDLE && (validate || run);
++    wire lookup_start=state==CHECK && !lookup_done && !shape_bad && !range_bad;
++    (* keep_hierarchy = "yes" *) npu_tensor_lookup #(.MAX_OPS(MAX_OPS)) i_tensor_lookup (
++        .clk(clk),.rst(rst),.seed(lookup_seed),.start(lookup_start),.save(lookup_save),.pc(pc),
++        .input_i32(input_i32),.input_first(input_first),.input_end(input_end),
++        .src_i32(src32),.src(src),.src_end(src_end),.add_op(op==ADD),.src2(src2),.src2_end(src2_end),
++        .dst_i32(dst32),.dst(dst),.dst_end(dst_end),
++        .done(scan_done),.source_known(source_known),.source2_known(source2_known)
++    );
+     always @* begin
+         basic_bad=fetch_bad || d[0][7:0]<CONV || d[0][7:0]>ADD ||
+             ih==0 || iw==0 || ic==0 || ic>MAX_K || oc==0 || oc>256 ||
+@@ -169,13 +184,6 @@ module npu_program_core #(
+             (op==ADD && ($signed({1'b0,src2})+xsrc>ACT_BYTES*2 ||
+              (($signed({1'b0,src2})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src2})+xsrc) &&
+               !(src2==dst && xsrc==xdst))));
+-        source_known=0;source2_known=op!=ADD;
+-        for(j=0;j<=MAX_OPS;j=j+1) begin
+-            if(known_valid[j] && known_i32[j]==src32 && src>=known_base[j] &&
+-               $signed({1'b0,src})+xsrc<=$signed({1'b0,known_base[j]})+$signed({1'b0,known_size[j]})) source_known=1;
+-            if(known_valid[j] && !known_i32[j] && src2>=known_base[j] &&
+-               $signed({1'b0,src2})+xsrc<=$signed({1'b0,known_base[j]})+$signed({1'b0,known_size[j]})) source2_known=1;
+-        end
+     end
+ 
+     // Current output-channel tile caches are the only live parameter vectors.
+@@ -231,7 +239,9 @@ module npu_program_core #(
+     reg [2:0] write_head,write_tail;
+     reg [3:0] write_count;
+     wire write_fire=w_valid && w_ready;
+-    wire post_credit=({1'b0,write_count}+rq_pending<WRITE_DEPTH) || write_fire;
++    // Use registered occupancy to reserve space. Same-cycle write_ready
++    // would feed SRAM arbitration back into the postprocessor's FIFO write.
++    wire post_credit={1'b0,write_count}+rq_pending<WRITE_DEPTH;
+     wire post_fire=state==EXECUTE && slot_ready[read_slot] && post_credit;
+     wire [15:0] post_channel=oct*COLS+read_lane;
+     // Nibble outputs drain two lanes per fire through two Requant lanes; the
+@@ -331,39 +341,22 @@ module npu_program_core #(
+     reg [2:0] kernel_y,kernel_x;
+     reg [15:0] kernel_offset,k_offsets[0:ROWS-1],cursor_base,tile_base;
+     reg [2:0] k_ys[0:ROWS-1],k_xs[0:ROWS-1];reg [ROWS-1:0] k_valid;
+-    // Pairwise nibble contiguity is invariant across a kernel group. Keep six
+-    // flags instead of putting a first-valid mux and 16-bit offset arithmetic
+-    // after the spatial boundary mask on every activation request.
++    // Equal row-normalized offsets are contiguous even when the spatial
++    // boundary masks out some rows. Compare the registered offsets once.
++    reg [15:0] k_normalized[0:ROWS-1];
+     reg [ROWS*ROWS-1:0] k_consecutive;
+     reg kernel_prepare;
++    reg [$clog2(ROWS):0] prep_row;
+     reg [15:0] x_step,y_step,origin,scan_jump,pool_scan_jump,kernel_row_jump,kernel_col_jump;
+     // Depthwise kernels walk only the COLS channels of the current tile per tap.
+     wire [10:0] kernel_ic=dwconv ? COLS : ic[10:0];
+     reg [31:0] scan_product,pool_scan_product;
+-    reg [10:0] prep_kc;
+-    reg [2:0] prep_kx,prep_ky;
+-    reg [15:0] prep_offset,prep_offsets[0:ROWS-1];
+-    reg [2:0] prep_ys[0:ROWS-1],prep_xs[0:ROWS-1];reg [ROWS-1:0] prep_valid;
+-    integer kr;
+-    always @* begin
+-        prep_kc=kernel_c;prep_kx=kernel_x;prep_ky=kernel_y;prep_offset=kernel_offset;
+-        prep_valid=0;
+-        for(kr=0;kr<ROWS;kr=kr+1)begin
+-            prep_offsets[kr]=prep_offset;prep_ys[kr]=prep_ky;prep_xs[kr]=prep_kx;
+-            prep_valid[kr]=issue_g*ROWS+kr<k_count;
+-            if(prep_kc==kernel_ic-11'd1)begin
+-                prep_kc=0;
+-                if(prep_kx==kw-8'd1)begin
+-                    prep_kx=0;prep_ky=prep_ky+3'd1;prep_offset=prep_offset+kernel_row_jump;
+-                end else begin prep_kx=prep_kx+3'd1;prep_offset=prep_offset+kernel_col_jump;end
+-            end else begin prep_kc=prep_kc+11'd1;prep_offset=prep_offset+16'd1;end
+-            if(rowpad)begin
+-                prep_offsets[kr]=kernel_offset+kr;prep_ys[kr]=issue_g;prep_xs[kr]=kr;
+-                prep_valid[kr]=kr<kw;
+-            end
+-        end
+-        if(rowpad)prep_offset=kernel_offset+row_stride;
+-    end
++    wire [$clog2(ROWS)-1:0] prep_index=prep_row[$clog2(ROWS)-1:0];
++    wire [15:0] prep_row_ext={{(16-$clog2(ROWS)){1'b0}},prep_index};
++    wire prep_end_channels=kernel_c==kernel_ic-11'd1;
++    wire prep_end_column=kernel_x==kw[2:0]-3'd1;
++    wire [15:0] prep_step=prep_end_channels ?
++        (prep_end_column ? kernel_row_jump : kernel_col_jump) : 16'd1;
+     reg signed [9:0] cy,cx,y,x;
+     reg [4:0] calc_p;
+     reg [8:0] calc_y,calc_x,next_y,next_x;
+@@ -544,7 +537,8 @@ module npu_program_core #(
+             ret_pos_addr<=dst; element_addr<=dst;
+             cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;cursor_at_last_x<=0;
+             tile_positions<=TILE;last_group<=0;has_next_q<=TILE>1;
+-            kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1; element_y<=0; element_x<=0;
++            kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1;prep_row<=0;
++            element_y<=0; element_x<=0;
+         end
+     endtask
+     task automatic fail(input [4:0] code);
+@@ -669,7 +663,8 @@ module npu_program_core #(
+             astep<=0;fetch_bad<=0;
+             validation_done<=0; validation_ok<=0; done<=0; error<=0; error_op<=0;
+             cycles<=0; issues<=0; model_reads<=0; act_reads<=0; act_writes<=0;
+-            known_valid<=0; known_i32<=0; oct<=0; param_channel<=0;
++            lookup_done<=0;
++            oct<=0; param_channel<=0;
+             oh<=1; ow<=1; dh<=1; dw<=1; k_count<=1; groups<=1; octs<=1; positions<=1; row_stride<=1;
+             src_span<=0; dst_span<=0; weight_span<=0; param_span<=0;src_pixels<=0;dst_pixels<=0;
+             begin_tile;
+@@ -684,8 +679,6 @@ module npu_program_core #(
+                     checking<=validate; pc<=0; fetch_word<=0; error<=0; error_op<=0;
+                     validation_ok<=0; state<=FREQ; cycles<=0; issues<=0;
+                     model_reads<=0; act_reads<=0; act_writes<=0;
+-                    known_valid<=1; known_i32<=input_i32;
+-                    known_base[0]<=input_base<<1; known_size[0]<=input_bytes<<1;
+                     if(op_count==0 || op_count>MAX_OPS || model_bytes>MODEL_BYTES ||
+                        model_bytes<op_count*64 || input_bytes==0 || output_bytes==0 ||
+                        input_base[1:0]!=0 || output_base[1:0]!=0 ||
+@@ -743,27 +736,27 @@ module npu_program_core #(
+                                 mul_p*ROWS*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*ROWS*2 : 0);
+                             param_span<=channels*4;
+                             positions<=dst_pixels<<(!pool_enable ? 0 : pool1d ? 1 : 2);
++                            lookup_done<=0;
+                             state<=CHECK;
+                         end
+                     endcase
+                 end
+                 CHECK: begin
+-                    if(shape_bad) fail(3);
+-                    else if(range_bad) fail(4);
++                    if(!lookup_done) begin
++                        if(shape_bad) fail(3);
++                        else if(range_bad) fail(4);
++                        else state<=LOOKUP_WAIT;
++                    end
+                     else if(!source_known || !source2_known) fail(5);
+-                    else if(pc==op_count-1 && (dst!=(output_base<<1) || xdst!=(output_bytes<<1))) fail(3);
++                    else if(output_bad) fail(3);
+                     else begin
+-                        for(v=0;v<=MAX_OPS;v=v+1)
+-                            if(known_valid[v] && $signed({1'b0,dst})<$signed({1'b0,known_base[v]})+$signed({1'b0,known_size[v]}) &&
+-                               $signed({1'b0,known_base[v]})<$signed({1'b0,dst})+xdst) known_valid[v]<=0;
+-                        known_base[pc+1]<=dst; known_size[pc+1]<=xdst;
+-                        known_valid[pc+1]<=1; known_i32[pc+1]<=dst32;
+                         oct<=0; param_channel<=0;
+                         astep<=0;
+                         if(need_params) state<=PREQ;
+                         else state<=checking ? NEXT : SETUP;
+                     end
+                 end
++                LOOKUP_WAIT: if(scan_done) begin lookup_done<=1; state<=CHECK; end
+                 PREQ: if(m_ready) state<=PWAIT;
+                 PWAIT: if(m_rsp_valid) begin
+                     if(param_bad) fail(6);
+@@ -843,16 +836,34 @@ module npu_program_core #(
+                         end else read_lane<=read_lane+(pair ? 2'd2 : 2'd1);
+                     end
+                     if(mac_op) begin
+-                        if(kernel_prepare)begin
+-                            for(v=0;v<ROWS;v=v+1)begin
+-                                k_offsets[v]<=prep_offsets[v];k_ys[v]<=prep_ys[v];k_xs[v]<=prep_xs[v];
++                        if(kernel_prepare && issue_more)begin
++                            if(prep_row<ROWS) begin
++                                for(v=0;v<ROWS;v=v+1) if(prep_index==v) begin
++                                    k_offsets[v]<=rowpad ? kernel_offset+prep_row_ext : kernel_offset;
++                                    k_normalized[v]<=rowpad ? kernel_offset : kernel_offset-prep_row_ext;
++                                    k_ys[v]<=rowpad ? issue_g[2:0] : kernel_y;
++                                    k_xs[v]<=rowpad ? prep_index : kernel_x;
++                                    k_valid[v]<=rowpad ? prep_row<kw : issue_g*ROWS+prep_row<k_count;
++                                end
++                                prep_row<=prep_row+1'b1;
++                                if(rowpad) begin
++                                    if(prep_row==ROWS-1) kernel_offset<=kernel_offset+row_stride;
++                                end else begin
++                                    kernel_offset<=kernel_offset+prep_step;
++                                    kernel_c<=prep_end_channels ? 11'd0 : kernel_c+11'd1;
++                                    if(prep_end_channels) begin
++                                        kernel_x<=prep_end_column ? 3'd0 : kernel_x+3'd1;
++                                        if(prep_end_column) kernel_y<=kernel_y+3'd1;
++                                    end
++                                end
++                            end else begin
++                                for(v=0;v<ROWS;v=v+1)for(integer vv=0;vv<ROWS;vv=vv+1)
++                                    k_consecutive[v*ROWS+vv]<=(v>=vv) || k_normalized[vv]==k_normalized[v];
++                                kernel_prepare<=0;
++                                tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
++                                has_next_q<=remaining>1;
++                                last_group<=issue_g==groups-16'd1;
+                             end
+-                            for(v=0;v<ROWS;v=v+1)for(integer vv=0;vv<ROWS;vv=vv+1)
+-                                k_consecutive[v*ROWS+vv]<=prep_offsets[vv]==prep_offsets[v]+vv-v;
+-                            k_valid<=prep_valid;kernel_prepare<=0;
+-                            tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
+-                            has_next_q<=remaining>1;
+-                            last_group<=issue_g==groups-16'd1;
+                         end
+                         if(load_start) lstate<=L_REQ;
+                         if(lstate==L_REQ && m_ready && !load_zero) lstate<=L_WAIT;
+@@ -904,10 +915,10 @@ module npu_program_core #(
+                             if(last_group && reserve_slot) slot_busy[issue_slot]<=1;
+                             if(!has_next) begin
+                                 issue_p<=0;has_next_q<=tile_positions>1;
++                                prep_row<=0;
+                                 bank_ready[issue_seq[0]]<=0; issue_seq<=issue_seq+1'b1;
+                                 if(!last_group) begin
+                                     issue_g<=issue_g+1'b1;
+-                                    kernel_c<=prep_kc;kernel_x<=prep_kx;kernel_y<=prep_ky;kernel_offset<=prep_offset;
+                                     kernel_prepare<=1;cursor_base<=tile_base;
+                                     cursor_y<=tile_y; cursor_x<=tile_x;
+                                     cursor_at_last_x<=tile_x==scan_last_x;
+@@ -1017,3 +1028,52 @@ module npu_program_core #(
+         $fatal(1,"unsupported program-core geometry");
+ endmodule
+ 
++// Sequential tensor provenance check. Entry zero is the input and each
++// accepted descriptor writes pc+1, so a scan only visits initialized entries.
++module npu_tensor_lookup #(parameter MAX_OPS=128) (
++    input wire clk,rst,seed,start,save,
++    input wire [7:0] pc,
++    input wire input_i32,src_i32,dst_i32,add_op,
++    input wire [15:0] input_first,input_end,src,src_end,src2,src2_end,dst,dst_end,
++    output reg done,source_known,source2_known
++);
++    localparam ADDR_BITS=$clog2(MAX_OPS+1);
++    (* ram_style = "distributed" *) reg [33:0] records[0:(1<<ADDR_BITS)-1];
++    reg [33:0] record;
++    reg [7:0] index;
++    reg active,have_record;
++    wire [15:0] record_base=record[15:0],record_end=record[31:16];
++    wire record_valid=record[33],record_i32=record[32];
++    wire overlap=record_valid && dst<record_end && record_base<dst_end;
++    wire write_enable=seed || save || (active && have_record && overlap);
++    wire [ADDR_BITS-1:0] address=seed ? 8'd0 : save ? pc+8'd1 : index;
++    wire [33:0] write_record=seed ? {1'b1,input_i32,input_end,input_first} :
++        save ? {1'b1,dst_i32,dst_end,dst} : {1'b0,record[32:0]};
++    always @(posedge clk) begin
++        if(!rst && write_enable) records[address]<=write_record;
++        if(active && !have_record) record<=records[address];
++    end
++    always @(posedge clk) begin
++        if(rst) begin
++            active<=0; have_record<=0; done<=0; index<=0;
++            source_known<=0; source2_known<=0;
++        end else begin
++            done<=0;
++            if(start) begin
++                active<=1; have_record<=0; index<=0;
++                source_known<=0; source2_known<=!add_op;
++            end else if(active) begin
++                have_record<=!have_record;
++                if(have_record) begin
++                    if(record_valid && record_i32==src_i32 && src>=record_base && src_end<=record_end)
++                        source_known<=1;
++                    if(record_valid && !record_i32 && src2>=record_base && src2_end<=record_end)
++                        source2_known<=1;
++                    if(index==pc) begin active<=0; done<=1; end
++                    else index<=index+1'b1;
++                end
++            end
++        end
++    end
++endmodule
++
+diff --git a/verification/fpga/board/nocpu_board_cdc.py b/verification/fpga/board/nocpu_board_cdc.py
+index 3efc596..e0ef9f4 100644
+--- a/verification/fpga/board/nocpu_board_cdc.py
++++ b/verification/fpga/board/nocpu_board_cdc.py
+@@ -14,10 +14,13 @@ from npu_program import compile_model, reference, encode_tensor
+ def main():
+     p = argparse.ArgumentParser(description=__doc__)
+     p.add_argument('--output', type=Path, required=True)
++    p.add_argument('--conv-pairs', type=int, choices=range(1, 65), default=56,
++                   metavar='1..64', help='Conv/Requant pairs for the busy window')
+     args = p.parse_args()
+     out = args.output
+     out.mkdir(parents=True, exist_ok=False)
+-    report = {'passed': False, 'checks': [], 'physical_reset': 'pending'}
++    report = {'passed': False, 'checks': [], 'physical_reset': 'pending',
++              'conv_pairs': args.conv_pairs}
+     rpc = TclRpc(timeout=20)
+     tx = JtagTransport(rpc, timeout=20)
+     npu = Npu(tx)
+@@ -31,7 +34,7 @@ def main():
+     try:
+         npu.command(Op.RESET)
+         nodes=[]; src='x'
+-        for i in range(16):
++        for i in range(args.conv_pairs):
+             weights=[0]*9; weights[4]=1
+             nodes += [dict(op='Conv',input=src,output=f'a{i}',channels=1,
+                            kernel=3,pads=[1]*4,weights=weights,bias=[0]),
+@@ -48,8 +51,8 @@ def main():
+         def prepare():
+             npu.command(Op.RESET); npu.load_model(pkg); npu.write(0x28,1_000_000_000)
+             npu.command(Op.INPUT_BEGIN)
+-            for i in range(0,len(inp),4):
+-                npu.write(0x20000+pkg.manifest['input_base']+i,int.from_bytes(inp[i:i+4],'little'))
++            npu.write_block(0x20000+pkg.manifest['input_base'],
++                            [int.from_bytes(inp[i:i+4],'little') for i in range(0,len(inp),4)])
+             npu.command(Op.INPUT_COMMIT)
+         def start_busy(action=None):
+             # Execute scans inside one OpenOCD RPC, avoiding millisecond host
+@@ -63,11 +66,14 @@ def main():
+                 commands.append(f'set r{i} [drscan npu.tap 32 0 32 0 8 0 -endstate IDLE]')
+             commands.append('join [list '+ ' '.join(f'$r{i}' for i in range(len(operations)))+'] |')
+             values=[[int(v,16) for v in item.split()] for item in rpc.execute('; '.join(commands)).split('|')]
+-            if any(len(v)!=3 or not v[2]&128 or v[2]&64 for v in values):
++            if any(len(v)!=3 or not v[2]&128 or v[2]&96 for v in values):
+                 raise RuntimeError(f'burst mailbox did not complete: {values}')
++            if values[0][2]&31 or values[1][2]&31:
++                raise RuntimeError(f'START or status read failed: {values}')
+             status=values[1][0]
+             if not status&1: raise RuntimeError('job finished before busy could be confirmed')
+-            if action==Op.START and values[2][2]&31!=4: raise RuntimeError('duplicate START not rejected busy')
++            if action==Op.START and values[2][2]&31!=4:
++                raise RuntimeError(f'duplicate START did not return busy: {values}')
+             if action==Op.RESET and values[2][2]&31: raise RuntimeError('RESET failed')
+             return status
+         # No JTAG RPC during sleep: idle TAP has no requested clock cycles.
+@@ -76,8 +82,8 @@ def main():
+         paused=time.monotonic()-before
+         status_after=npu.read(4)
+         if not status_after&8 or status_after&65: raise RuntimeError('job did not finish independently of TCK')
+-        actual=b''.join(npu.read(0x20000+pkg.manifest['output_base']+i).to_bytes(4,'little')
+-                        for i in range(0,len(expected),4))[:len(expected)]
++        words=npu.read_block(0x20000+pkg.manifest['output_base'],(len(expected)+3)//4)
++        actual=b''.join(word.to_bytes(4,'little') for word in words)[:len(expected)]
+         (out/'actual.bin').write_bytes(actual)
+         if actual!=expected: raise RuntimeError('output differs after TCK pause')
+         report['checks'].append(dict(name='pause_TCK_while_busy',before=status,after=status_after,
+diff --git a/verification/fpga/board/nocpu_board_suite.py b/verification/fpga/board/nocpu_board_suite.py
+index 9549fcf..d59ab14 100644
+--- a/verification/fpga/board/nocpu_board_suite.py
++++ b/verification/fpga/board/nocpu_board_suite.py
+@@ -100,8 +100,7 @@ def execute(args):
+                 try:
+                     pkg = compile_model(model, fuse=fuse, cols=cols)
+                 except ValueError as exc:
+-                    expected_rejection = name == 'tinycnn' and not fuse and 'activation capacity exceeded' in str(exc)
+-                    report['cases'].append({'name': case, 'status': 'EXPECTED_HOST_REJECTION' if expected_rejection else 'SKIP', 'reason': str(exc)})
++                    report['cases'].append({'name': case, 'status': 'SKIP', 'reason': str(exc)})
+                     continue
+                 case_dir = out / case
+                 case_dir.mkdir()
+diff --git a/verification/fpga/board/test_nocpu_board_suite.py b/verification/fpga/board/test_nocpu_board_suite.py
+index f6b39bc..4ea7584 100644
+--- a/verification/fpga/board/test_nocpu_board_suite.py
++++ b/verification/fpga/board/test_nocpu_board_suite.py
+@@ -34,18 +34,14 @@ class Tests(unittest.TestCase):
+         self.assertEqual(fake.calls[-1],(0x10000,0x04030201))
+         self.assertNotIn((suite.Op.MODEL_COMMIT,),fake.calls)
+ 
+-    def test_fixture_compilation_and_expected_rejection(self):
++    def test_abi5_fixture_compilation(self):
+         for name, model, frame in suite.fixtures():
+-            for cols in (4,8):
+-                for fuse in (True,False):
+-                    with self.subTest(name=name,cols=cols,fuse=fuse):
+-                        if name=='tinycnn' and not fuse:
+-                            with self.assertRaisesRegex(ValueError,'activation capacity exceeded'):
+-                                suite.compile_model(model,cols=cols,fuse=fuse)
+-                        else:
+-                            pkg=suite.compile_model(model,cols=cols,fuse=fuse)
+-                            result=suite.reference(model,frame)[model['nodes'][-1]['output']]
+-                            self.assertEqual(len(suite.encoded(result,pkg.manifest['output_dtype'])),pkg.manifest['output_bytes'])
++            for fuse in (True, False):
++                with self.subTest(name=name, fuse=fuse):
++                    pkg = suite.compile_model(model, cols=8, fuse=fuse)
++                    result = suite.reference(model, frame)[model['nodes'][-1]['output']]
++                    self.assertEqual(len(suite.encoded(result, pkg.manifest['output_dtype'])),
++                                     pkg.manifest['output_bytes'])
+ 
+     def test_bad_hash_records_failure_and_no_connection(self):
+         with tempfile.TemporaryDirectory() as d:
+diff --git a/verification/fpga/evidence/nocpu_evidence_check.py b/verification/fpga/evidence/nocpu_evidence_check.py
+index 9c0e519..c993421 100644
+--- a/verification/fpga/evidence/nocpu_evidence_check.py
++++ b/verification/fpga/evidence/nocpu_evidence_check.py
+@@ -24,7 +24,8 @@ def main():
+         report = json.loads((args.evidence/'report.json').read_text(encoding='utf-8'))
+         cases = {entry['name']: entry for entry in report.get('cases', [])}
+         fixtures = REQUIRED_FIXTURES
+-        if report.get('capabilities', {}).get('0x0') == 0x00050000:
++        abi5 = report.get('capabilities', {}).get('0x0') == 0x00050000
++        if abi5:
+             fixtures += ABI5_FIXTURES
+         required = {f'{name}_{mode}' for name in fixtures for mode in ('fused', 'plain')}
+         missing = sorted(required - cases.keys())
+@@ -35,7 +36,7 @@ def main():
+             print('INCOMPLETE: duplicate or unexpected cases')
+             return 1
+         for name, case in cases.items():
+-            if name == 'tinycnn_plain' and case.get('status') == 'EXPECTED_HOST_REJECTION':
++            if not abi5 and name == 'tinycnn_plain' and case.get('status') == 'EXPECTED_HOST_REJECTION':
+                 continue
+             if case.get('status') != 'PASS' or not case.get('runs'):
+                 print(f'INCOMPLETE: invalid case {name}')

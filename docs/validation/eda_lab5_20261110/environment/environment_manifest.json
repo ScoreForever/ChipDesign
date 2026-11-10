@@ -1,0 +1,40 @@
+{
+  "stage": "environment_ready_synthesis_running",
+  "design_source": "7fd9789 (same production RTL as 8c16462)",
+  "pnr_driver_source": "8c16462",
+  "server_alias": "soc",
+  "checks": {
+    "innovus": {
+      "exit_code": 0,
+      "marker_present": true
+    },
+    "xrun": {
+      "exit_code": 0,
+      "marker_present": true
+    },
+    "virtuoso": {
+      "exit_code": 0,
+      "marker_present": true
+    },
+    "v2lvs": {
+      "exit_code": 0,
+      "cdl_nonempty": true
+    },
+    "calibre_drc_engine": {
+      "exit_code": 0,
+      "environment_rulechecks": 1,
+      "not_chip_signoff": true,
+      "completed": true
+    }
+  },
+  "library_files": 18,
+  "source_and_library_preflight": true,
+  "synthesis_license_observed": true,
+  "synthesis_complete": false,
+  "sha256": {
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_20261110_7fd9789/work/environment_probe/innovus/console.log": "ff895b1a51686935e8b3c68e6988e657cb08f36dc35ca47f95bbc14d08d37477",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_20261110_7fd9789/work/environment_probe/xrun/console.log": "0c5bdca9ccb88c773f4e4b0bca7e3a38e8cee2f942d233600d26e91bcbe607a7",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_20261110_7fd9789/work/environment_probe/virtuoso/console.log": "a3ffc68b404a0fe9b451e3646df66d6fefa417181eb6191f4e5f1486580f8267"
+  },
+  "final_lab5_verification_complete": false
+}

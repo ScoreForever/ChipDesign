@@ -1,0 +1,18 @@
+{
+  "dynamic_simulation": "PASS",
+  "raw_cdc15_warnings": 109,
+  "reviewed_request_bits": 72,
+  "reviewed_response_bits": 37,
+  "unexpected_warning_rows": 0,
+  "waivers_created": false,
+  "legacy_phase_rate_cases": 100,
+  "burst_phase_rate_cases": 32,
+  "limitation": "Digital simulation does not model metastability; physical checks apply to supplied routed build only.",
+  "sha256": {
+    "/Users/mac/Documents/demos/ChipDesign/hardware/soc/rtl/control/npu_jtag_transport.sv": "5736742a2272ef7b0a1fa98e4c47562fe98267232bf109addf19304c18510ae7",
+    "/Users/mac/Documents/demos/ChipDesign/verification/fpga/cdc/tb_npu_jtag_cdc.sv": "6ed60bb3890adc6753fc58c7f9b4b98c4cbf5a4eae0e17e143e9a8808649fc00",
+    "/Users/mac/Documents/demos/ChipDesign/verification/fpga/cdc/tb_npu_jtag_burst_cdc.sv": "473e2be009f77cd96d18b2c0d6fcd5d34fba720ef908189e21fef8bf4b6d654a",
+    "output/fpga-fit/fpga_fit_serial_20261107_090631/vivado/route_cdc.rpt": "11e1cab50484f061248dd2bf370e5db7994fbf85de164042136e58b0010400af",
+    "output/fpga-fit/fpga_fit_serial_20261107_090631/vivado/route_npu_jtag_cdc.tsv": "8cbafdb82fbdf9a5d10ab747d9fb0262d0df4120e5892f79167ee55b48060269"
+  }
+}

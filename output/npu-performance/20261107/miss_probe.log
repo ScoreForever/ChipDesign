@@ -1,0 +1,29 @@
+PASS cnn_c8_f1_j0
+PASS cnn_c8_f0_j0
+PASS packaged_ecg_c8_f1_j0
+PASS packaged_fashion_cnn_c8_f1_j0
+PASS packaged_gtsrb_l_c8_f1_j0
+PASS packaged_har_c8_f1_j0
+PASS packaged_kws_l_c8_f1_j0
+PASS packaged_kws_m_c8_f1_j0
+PASS packaged_mnist_l_c8_f1_j0
+PASS reject opcode
+PASS reject reserved
+PASS reject old_abi
+PASS reject wrong_cols
+PASS reject stride
+PASS reject shape
+PASS reject model_overlap
+PASS reject destination
+PASS reject source
+PASS reject shift
+PASS reject dw_channels
+PASS reject pool_window
+PASS reject add_src2_overlap
+PASS reject add_fused_pool
+PASS reject u4_int32
+PASS reject dw_on_fc
+PASS reject pool1d_unfused
+PASS reject last_descriptor
+PASS lifecycle/abort/timeout/incomplete
+ALL 9 PROGRAM TESTS PASSED

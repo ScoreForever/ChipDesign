@@ -1,0 +1,2 @@
+PASS forwarding priority: 18432 head/count/match cases, word wrap and all nibble lanes
+hardware/npu/tb/tb_npu_forward_priority.sv:44: $finish called at 18432000 (1ps)

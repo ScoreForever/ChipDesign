@@ -1,0 +1,6 @@
+requested_mhz	50
+period_ns	20.000
+wns_ns	0.344
+whs_ns	0.058
+optimization_extra_setup_uncertainty_ns	0.350
+signoff_extra_setup_uncertainty_ns	0.000

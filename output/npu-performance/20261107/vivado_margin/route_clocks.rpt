@@ -1,0 +1,65 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2025.2 (win64) Build 6299465 Fri Nov 14 19:35:11 GMT 2025
+| Date         : Sat Nov  7 20:38:56 2026
+| Host         : LAPTOP-6R1URLIR running 64-bit major release  (build 9200)
+| Command      : report_clocks -file D:/IWS/Advanced_SoC/ChipDesign/build/fpga_signoff/npu_perf_20261107/checkout_bounds/build/bounds_margin_50mhz/route_clocks.rpt
+| Design       : fpga_top
+| Device       : 7a35t-csg324
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Clock Report
+
+
+Attributes
+  P: Propagated
+  G: Generated
+  A: Auto-derived
+  R: Renamed
+  V: Virtual
+  I: Inverted
+  S: Pin phase-shifted with Latency mode
+
+Clock               Period(ns)  Waveform(ns)     Attributes  Sources
+fpga_clk_i          10.000      {0.000 5.000}    P           {fpga_clk_i}
+tck_i               1000.000    {0.000 500.000}  P           {tck_i}
+clk_out1_clk_wiz_0  20.000      {0.000 10.000}   P,G,A       {u_clk_wiz/inst/mmcm_adv_inst/CLKOUT0}
+clkfbout_clk_wiz_0  10.000      {0.000 5.000}    P,G,A       {u_clk_wiz/inst/mmcm_adv_inst/CLKFBOUT}
+
+
+====================================================
+Generated Clocks
+====================================================
+
+Generated Clock     : clk_out1_clk_wiz_0
+Master Source       : u_clk_wiz/inst/mmcm_adv_inst/CLKIN1
+Master Clock        : fpga_clk_i
+Edges               : {1 2 3}
+Edge Shifts(ns)     : {0.000 5.000 10.000}
+Generated Sources   : {u_clk_wiz/inst/mmcm_adv_inst/CLKOUT0}
+
+Generated Clock     : clkfbout_clk_wiz_0
+Master Source       : u_clk_wiz/inst/mmcm_adv_inst/CLKIN1
+Master Clock        : fpga_clk_i
+Multiply By         : 1
+Generated Sources   : {u_clk_wiz/inst/mmcm_adv_inst/CLKFBOUT}
+
+
+
+====================================================
+User Uncertainty
+====================================================
+
+From Clock          To Clock            Setup(ns)  Hold(ns)  Edges
+clk_out1_clk_wiz_0  clk_out1_clk_wiz_0  0.000                rf -> rf
+
+
+====================================================
+User Jitter
+====================================================
+
+Clock       Jitter(ns)
+fpga_clk_i  0.100
+

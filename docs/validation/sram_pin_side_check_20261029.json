@@ -1,0 +1,14 @@
+{
+  "checked_date": "2026-10-29",
+  "source_host": "soc",
+  "source_path": "/lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8.vclef",
+  "source_sha256": "2b6436167ea851273ff52a7484038a27c3533756817f410d1f891007051339c1",
+  "macro_size_um": [554.595, 723.85],
+  "signal_and_clock_pin_count": 82,
+  "groups": {"A": 11, "D": 32, "Q": 32, "WEN": 4, "CEN": 1, "OEN": 1, "CLK": 1},
+  "signal_pin_rect_y_range_um": [5.2, 5.64],
+  "signal_pin_nearest_side_counts": {"south": 82, "north": 0, "east": 0, "west": 0},
+  "placement_orientation": "R0 in hardware/asic/optimize/fullchip.tcl",
+  "conclusion": "All 82 signal/clock logical pins have their LEF RECT geometries in the south-edge band. Power/ground pins are excluded; this is pin geometry, not inference from routed wire density.",
+  "power_pin_bounds_um": {"VDD": [0.0, 0.0, 554.595, 723.85], "VSS": [2.6, 2.6, 551.995, 721.25]}
+}

@@ -1,0 +1,8 @@
+model,previous_board_cycles,new_board_cycles,change_pct
+ecg,15857,15854,-0.019
+fashion_cnn,47204,47176,-0.059
+gtsrb_l,128283,95147,-25.83
+har,18836,18836,0.0
+kws_l,86626,86536,-0.104
+kws_m,88821,88754,-0.075
+mnist_l,37086,37059,-0.073

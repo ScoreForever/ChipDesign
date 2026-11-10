@@ -51,11 +51,41 @@ class TclRpc:
         self.socket.close()
 
 
+# Execute the existing mailbox handshake inside OpenOCD, without removing
+# any scan or replaying a command after an uncertain outcome. Keep 32/32/8
+# fields separate: OpenOCD Jim Tcl need not support 72-bit integers.
+_EXCHANGE_TCL = r"""
+proc chipdesign_scan_v5 {tap data addr op} {
+    drscan $tap 32 $data 32 $addr 8 $op -endstate IDLE
+}
+proc chipdesign_exchange_v5 {tap op addr data timeout_ms} {
+    set previous [chipdesign_scan_v5 $tap 0x0 0x0 0x0]
+    set status [expr "0x[lindex $previous 2]"]
+    if {$status & 0x40} { return BUSY }
+    chipdesign_scan_v5 $tap $data $addr $op
+    set deadline [expr {[clock milliseconds] + $timeout_ms}]
+    while {[clock milliseconds] < $deadline} {
+        set reply [chipdesign_scan_v5 $tap 0x0 0x0 0x0]
+        set status [expr "0x[lindex $reply 2]"]
+        if {$status & 0x20} { return OVERRUN }
+        if {($status & 0xc0) == 0x80} { return "OK $reply" }
+    }
+    return TIMEOUT
+}
+"""
+
+
 class JtagTransport:
-    def __init__(self, rpc, tap='npu.tap', timeout=5):
+    def __init__(self, rpc, tap='npu.tap', timeout=5, batch_rpc=True):
         if not tap or any(c not in 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._-' for c in tap):
             raise ValueError('invalid TAP name')
         self.rpc,self.tap,self.timeout=rpc,tap,timeout
+        self.batch_rpc=batch_rpc
+        if batch_rpc:
+            reply=self.rpc.execute(_EXCHANGE_TCL)
+            # Jim Tcl returns the procedure name; Tcl commonly returns empty.
+            if reply not in ('', 'chipdesign_exchange_v5'):
+                raise RuntimeError(f'OpenOCD mailbox helper failed: {reply}')
         self.rpc.execute(f'irscan {tap} 0x12 -endstate IDLE')
 
     def scan(self, packet):
@@ -65,6 +95,10 @@ class JtagTransport:
             f'drscan {self.tap} 32 0x{packet & 0xffffffff:08x} '
             f'32 0x{(packet >> 32) & 0xffffffff:08x} '
             f'8 0x{(packet >> 64) & 0xff:02x} -endstate IDLE')
+        return self._decode_scan(reply)
+
+    @staticmethod
+    def _decode_scan(reply):
         try:
             words=reply.split()
             if len(words)!=3:
@@ -80,6 +114,36 @@ class JtagTransport:
     def exchange(self, op, addr=0, data=0):
         if not 0<int(op)<256 or not 0<=addr<2**32 or not -(2**31)<=data<2**32:
             raise ValueError('command field outside packet range')
+        if self.batch_rpc:
+            command=(f'chipdesign_exchange_v5 {self.tap} 0x{int(op):02x} '
+                     f'0x{addr:08x} 0x{int(data)&0xffffffff:08x} '
+                     f'{max(1,int(self.timeout*1000))}')
+            try:
+                reply=self.rpc.execute(command)
+            except TimeoutError as exc:
+                raise TimeoutError('JTAG RPC timed out; operation may have executed; '
+                                   'inspect status before retrying') from exc
+            except ConnectionError as exc:
+                raise ConnectionError('JTAG RPC connection lost; operation may have executed; '
+                                      'inspect status before retrying') from exc
+            if reply=='BUSY':
+                raise RuntimeError('JTAG mailbox is occupied; poll/recover the previous operation first')
+            if reply=='OVERRUN':
+                raise RuntimeError('JTAG mailbox overrun; the original operation may have executed')
+            if reply=='TIMEOUT':
+                raise TimeoutError('JTAG response timed out; operation may have executed; '
+                                   'inspect status before retrying')
+            if not reply.startswith('OK '):
+                raise RuntimeError(f'OpenOCD mailbox transaction failed; operation may have executed: {reply}')
+            response=self._decode_scan(reply[3:]);status=response>>64
+            if status&0x20 or status&0xc0!=0x80:
+                raise RuntimeError('Invalid completed JTAG response; inspect status before retrying')
+            if (response>>32)&0xffffffff != addr:
+                raise RuntimeError('JTAG response address mismatch')
+            code=status&31
+            if code:
+                raise RuntimeError(f'NPU error {code}: {ERRORS.get(code,"unknown")} (op={int(op)}, address=0x{addr:x})')
+            return response&0xffffffff
         # Poll before submission: never overwrite somebody else's pending command.
         previous=self.scan(0)
         if (previous>>70)&1:
@@ -267,15 +331,17 @@ class Npu:
 
 def main():
     from npu_program import Package
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['status','perf','trace','trace-config','reset','infer'])
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('command',choices=['status','perf','trace','trace-config','reset','infer','infer-many'])
     p.add_argument('--package',type=Path);p.add_argument('--input',type=Path);p.add_argument('--output',type=Path)
+    p.add_argument('--inputs',type=Path,nargs='+',help='ordered input files for infer-many')
+    p.add_argument('--legacy-rpc',action='store_true',help='use separate RPC calls for the mailbox handshake; bursts remain enabled')
     p.add_argument('--host',default='127.0.0.1');p.add_argument('--port',type=int,default=6666)
     p.add_argument('--pc',type=int,default=0);p.add_argument('--offset',type=int,default=0)
     p.add_argument('--trigger-slot',action='store_true');p.add_argument('--disable',action='store_true')
     p.add_argument('--period-ns',type=int,default=20)
     args=p.parse_args();rpc=TclRpc(args.host,args.port)
     try:
-        npu=Npu(JtagTransport(rpc))
+        npu=Npu(JtagTransport(rpc,batch_rpc=not args.legacy_rpc))
         if args.command=='status':print(json.dumps(npu.status(),indent=2))
         elif args.command=='perf':print(json.dumps(npu.performance(),indent=2))
         elif args.command=='trace-config':npu.configure_trace(args.pc,args.offset,args.trigger_slot,not args.disable)
@@ -293,6 +359,27 @@ def main():
                     if row['pc']<len(package.manifest['groups']):row['logical_ops']=package.manifest['groups'][row['pc']]
             print(json.dumps(export_trace(capture,args.output,args.period_ns),indent=2))
         elif args.command=='reset':npu.command(Op.RESET)
+        elif args.command=='infer-many':
+            if not args.package or not args.inputs or not args.output:
+                p.error('infer-many requires --package, --inputs and a new --output directory')
+            package=Package.load(args.package)
+            frames=[path.read_bytes() for path in args.inputs]
+            if any(len(frame)!=package.manifest['input_bytes'] for frame in frames):
+                raise ValueError('input length differs from package')
+            args.output.mkdir(parents=True,exist_ok=False)
+            report={'passed':False,'model_loads':0,'runs':[]}
+            try:
+                started=time.perf_counter_ns();npu.load_model(package)
+                report['model_load_ms']=(time.perf_counter_ns()-started)/1e6
+                report['model_loads']=1
+                for index,(path,frame) in enumerate(zip(args.inputs,frames)):
+                    started=time.perf_counter_ns();result=npu.infer(frame)
+                    elapsed=(time.perf_counter_ns()-started)/1e6
+                    target=args.output/f'{index:04d}.bin';target.write_bytes(result)
+                    report['runs'].append({'input':str(path),'output':target.name,'host_ms':elapsed})
+                report['passed']=True
+            finally:
+                (args.output/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         else:
             if not args.package or not args.input or not args.output:p.error('infer requires --package --input --output')
             npu.load_model(Package.load(args.package));args.output.write_bytes(npu.infer(args.input.read_bytes()))

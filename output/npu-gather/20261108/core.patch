@@ -1,0 +1,159 @@
+--- a/hardware/npu/rtl/npu_program_core.sv
++++ b/hardware/npu/rtl/npu_program_core.sv
+@@ -282,23 +282,33 @@
+     assign w_data=write_data[write_head];
+     assign w_mask=write_mask[write_head];
+ 
+-    // Activation gather. A eight-nibble consecutive group uses one synchronous
+-    // read. Boundary/nonconsecutive groups use scalar reads with zero masks.
++    // Gather one address-consecutive subset per read. Irregular channel
++    // groups may cross kernel rows: consume each subset once instead of
++    // reading every lane separately. gather_mask tracks lanes still pending.
+     reg [4:0] issue_p;
+     reg [1:0] gather_state; reg [$clog2(ROWS)-1:0] gather_row;
+     reg [ROWS*4-1:0] gathered;
+     reg [15:0] gather_addr[0:ROWS-1];
+     reg [ROWS-1:0] gather_mask;
+-    reg gather_contiguous;
+-    reg [$clog2(ROWS)-1:0] gather_first;
+-    wire gather_return=gather_state==2 && a_rsp_valid && (gather_contiguous || gather_row==ROWS-1);
++    reg [ROWS*ROWS-1:0] k_consecutive;
++    reg [ROWS-1:0] gather_chunk,gather_remaining;
++    reg [$clog2(ROWS)-1:0] gather_next;
++    reg [ROWS*4-1:0] returned_vector;
++    wire gather_return=gather_state==2 && a_rsp_valid && gather_remaining==0;
+     wire gather_full=gather_state==3 || gather_return;
+-    reg [ROWS*4-1:0] returned_vector;
+     integer gv;
+     always @* begin
+-        returned_vector=gathered; returned_vector[gather_row*4+:4]=a_data[3:0];
+-        if(gather_contiguous) for(gv=0;gv<ROWS;gv=gv+1)
+-            returned_vector[gv*4+:4]=gather_mask[gv] ? (a_data>>((gv-gather_first)*4)) : 0;
++        gather_chunk=0;
++        for(gv=0;gv<ROWS;gv=gv+1)
++            gather_chunk[gv]=gather_mask[gv] && gv>=gather_row &&
++                k_consecutive[gather_row*ROWS+gv];
++        gather_remaining=gather_mask & ~gather_chunk;
++        gather_next=0;
++        for(gv=ROWS-1;gv>=0;gv=gv-1)
++            if(gather_remaining[gv])gather_next=gv;
++        returned_vector=gathered;
++        for(gv=0;gv<ROWS;gv=gv+1)
++            if(gather_chunk[gv])returned_vector[gv*4+:4]=a_data>>((gv-gather_row)*4);
+     end
+     wire [31:0] remaining=positions-issue_tile*TILE;
+     reg [4:0] tile_positions;
+@@ -359,10 +369,12 @@
+     // Equal row-normalized offsets are contiguous even when the spatial
+     // boundary masks out some rows. Compare the registered offsets once.
+     reg [15:0] k_normalized[0:ROWS-1];
+-    reg [ROWS*ROWS-1:0] k_consecutive;
+     reg kernel_prepare;
+     reg [$clog2(ROWS):0] prep_row;
+-    reg [15:0] x_step,y_step,origin,scan_jump,pool_scan_jump,kernel_row_jump,kernel_col_jump;
++    reg [15:0] x_step,y_step,origin,kernel_row_jump,kernel_col_jump;
++    // All scan/pool increments are configured once per channel tile. The
++    // activation request path selects a registered delta then adds it once.
++    reg [15:0] cursor_step[0:7];
+     // Depthwise kernels walk only the COLS channels of the current tile per tap.
+     wire [10:0] kernel_ic=dwconv ? COLS : ic[10:0];
+     reg [31:0] scan_product,pool_scan_product;
+@@ -394,13 +406,7 @@
+             if(cursor_at_last_x)begin next_x=0;next_y=cursor_y+1;end
+             else next_x=cursor_x+1;
+         end
+-        if(!pool_enable) next_base=cursor_base+(cursor_at_last_x ? scan_jump : x_step);
+-        else if(pool1d) next_base=cursor_base+(issue_p[0] && cursor_at_last_x ? pool_scan_jump : x_step);
+-        else case(issue_p[1:0])
+-            0,2:next_base=cursor_base+x_step;
+-            1:next_base=cursor_base+y_step-x_step;
+-            3:next_base=cursor_base+(cursor_at_last_x ? pool_scan_jump : x_step-y_step);
+-        endcase
++        next_base=cursor_base+cursor_step[{cursor_at_last_x,issue_p[1:0]}];
+         calc_p=issue_p;calc_y=cursor_y;calc_x=cursor_x;calc_base=cursor_base;
+         // Once a gather has started, its metadata lives in gather_* until
+         // issue_fire. Prepare the next position throughout that interval,
+@@ -483,10 +489,8 @@
+         m_valid=0; m_addr=0; a_valid=0;
+         // The address is meaningful only on a request handshake. Do not add
+         // state/valid gating to the data path merely to drive idle addresses 0.
+-        // A noncontiguous initial request is issued only when mask[0] is set,
+-        // in which case calc_first is already zero. Otherwise no request uses
+-        // this address. Select the first valid nibble directly so the expensive
+-        // contiguous test does not feed the activation BRAM address mux.
++        // Start each subset at its first valid lane. Subset membership is
++        // derived from registered group offsets, not the returning data.
+         a_addr=mac_op ? (gather_state==1 ? gather_addr[gather_row] :
+             calc_addr[calc_first]) : eaddr;
+         if(state==FREQ) begin m_valid=1; m_addr=pc*64+fetch_word*4; end
+@@ -507,9 +511,9 @@
+         end
+         if(state==EXECUTE) begin
+             if(mac_op && !kernel_prepare && issue_more && (gather_state==0 || (issue_fire && has_next))) begin
+-                a_valid=calc_contiguous ? |calc_mask : calc_mask[0];
++                a_valid=|calc_mask;
+             end else if(mac_op && !kernel_prepare && gather_state==1) begin
+-                a_valid=gather_mask[gather_row];
++                a_valid=|gather_mask;
+             end else if(!mac_op && estate==1) begin a_valid=1; end
+         end
+     end
+@@ -825,8 +829,16 @@
+                     state<=INIT_B;
+                 end
+                 INIT_B:begin
+-                    cursor_base<=origin;tile_base<=origin;scan_jump<=y_step-scan_product;
+-                    pool_scan_jump<=y_step-pool_scan_product;
++                    cursor_base<=origin;tile_base<=origin;
++                    for(v=0;v<8;v=v+1)begin
++                        if(!pool_enable)cursor_step[v]<=v>=4 ? y_step-scan_product : x_step;
++                        else if(pool1d)cursor_step[v]<=(v>=4 && (v%2)==1) ? y_step-pool_scan_product : x_step;
++                        else case(v%4)
++                            0,2:cursor_step[v]<=x_step;
++                            1:cursor_step[v]<=y_step-x_step;
++                            3:cursor_step[v]<=v>=4 ? y_step-pool_scan_product : x_step-y_step;
++                        endcase
++                    end
+                     kernel_col_jump<=dwconv ? ic-COLS+1 : 16'd1;
+                     element_base<=src+((oct*COLS)<<(src32 ? 3 : 0));
+                     element_base2<=src2+oct*COLS;
+@@ -928,30 +940,24 @@
+                         if(issue_more && !kernel_prepare) case(gather_state)
+                             0: begin
+                                 for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
+-                                gather_mask<=calc_mask; gather_contiguous<=calc_contiguous;
+-                                gather_first<=calc_first;
+-                                gathered<=0; gather_row<=0;
++                                gather_mask<=calc_mask;
++                                gathered<=0; gather_row<=calc_first;
+                                 gather_state<=calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
+                             end
+-                            1: if(!gather_mask[gather_row]) begin
+-                                if(gather_row==ROWS-1) gather_state<=3;
+-                                else gather_row<=gather_row+1'b1;
+-                            end else if(a_ready) gather_state<=2;
++                            1: if(a_ready) gather_state<=2;
+                             2: if(a_rsp_valid) begin
+-                                if(gather_contiguous) begin gathered<=returned_vector; gather_state<=3; end
+-                                else begin
+-                                    gathered[gather_row*4+:4]<=a_data[3:0];
+-                                    if(gather_row==ROWS-1) gather_state<=3;
+-                                    else begin gather_row<=gather_row+1'b1; gather_state<=1; end
+-                                end
++                                gathered<=returned_vector;
++                                gather_mask<=gather_remaining;
++                                if(gather_remaining==0)gather_state<=3;
++                                else begin gather_row<=gather_next; gather_state<=1; end
+                             end
+                             default: ;
+                         endcase
+                         if(issue_fire) begin
+                             issues<=issues+1;
+                             for(v=0;v<ROWS;v=v+1) gather_addr[v]<=calc_addr[v];
+-                            gather_mask<=calc_mask; gather_contiguous<=calc_contiguous; gather_first<=calc_first;
+-                            gathered<=0; gather_row<=0;
++                            gather_mask<=calc_mask;
++                            gathered<=0; gather_row<=calc_first;
+                             gather_state<=!has_next ? 0 : calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
+                             if(last_group && reserve_slot) slot_busy[issue_slot]<=1;
+                             if(!has_next) begin

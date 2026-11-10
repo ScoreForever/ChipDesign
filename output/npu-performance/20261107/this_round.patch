@@ -1,0 +1,307 @@
+--- a/hardware/npu/rtl/npu_model_store.sv
++++ b/hardware/npu/rtl/npu_model_store.sv
+@@ -53,10 +53,38 @@
+  input wire flush,output wire idle
+ );
+  wire rr,rv,wr,store_idle;wire [31:0] rd;
++`ifdef CHIPDESIGN_FPGA_MEM
++ // Configuration settles before accesses. Hold new requests for the one
++ // cycle needed to update the registered model base when its size changes.
++ reg [15:0] model_bytes_q,model_base_q;
++ reg base_valid;
++ wire base_ready=base_valid && model_bytes_q==model_bytes;
++ wire [15:0] model_base=model_base_q;
++ always @(posedge clk)begin
++  if(rst)base_valid<=0;
++  else begin
++   base_valid<=1;
++   model_bytes_q<=model_bytes;
++   model_base_q<=(16'd16384-model_bytes)<<1;
++  end
++ end
++`else
++ wire base_ready=1'b1;
++ wire [15:0] model_base=(16'd16384-model_bytes)<<1;
++`endif
+  reg owner,halfword,prefer_model;
++`ifdef CHIPDESIGN_FPGA_MEM
++ // Reserve the activation turn after a model read. If no activation arrives,
++ // release it on the next edge, before the registered model response returns.
++ // The grant then depends only on registered arbitration state, keeping the
++ // gather's mask/valid calculation out of the shared address selection.
++ wire select_model=model_read && prefer_model;
++ wire request_valid=(select_model || read_valid) && base_ready;
++`else
+  wire select_model=model_read && (!read_valid || prefer_model);
+- wire request_valid=model_read || read_valid;
+- wire [15:0] request_addr=select_model ? ((16'd16384-model_bytes+model_read_addr)<<1) : read_addr;
++ wire request_valid=(model_read || read_valid) && base_ready;
++`endif
++ wire [15:0] request_addr=select_model ? model_base+(model_read_addr<<1) : read_addr;
+  wire store_valid,store_model,store_halfword,request_ready;
+  wire [15:0] store_addr;
+  assign rsp_valid=rv && !owner;
+@@ -66,27 +94,17 @@
+  // The model response interface consumes each word without backpressure.
+  reg model_valid_q;
+  reg [31:0] model_word_q;
+- // Buffer the selected address and its routing metadata before the SRAM's
+- // cache/queue arbitration. A pending request is held until rr accepts it.
+- reg request_pending,request_model_q,request_halfword_q;
+- reg [15:0] request_addr_q;
+- assign request_ready=!rst && !request_pending;
+- assign store_valid=request_pending;
+- assign store_addr=request_addr_q;
+- assign store_model=request_model_q;
+- assign store_halfword=request_halfword_q;
+- assign idle=store_idle && !request_pending && !model_valid_q;
++ assign request_ready=rr && base_ready;
++ assign store_valid=request_valid;
++ assign store_addr=request_addr;
++ assign store_model=select_model;
++ assign store_halfword=model_read_addr[1];
++ assign idle=store_idle && !model_valid_q && base_ready;
+  always @(posedge clk) begin
+-  if(rst) begin model_valid_q<=0; request_pending<=0; end
++  if(rst) model_valid_q<=0;
+   else begin
+    model_valid_q<=rv && owner;
+    if(rv && owner) model_word_q<=model_word;
+-   if(request_ready && request_valid)begin
+-    request_pending<=1;
+-    request_addr_q<=request_addr;
+-    request_model_q<=select_model;
+-    request_halfword_q<=model_read_addr[1];
+-   end else if(request_pending && rr) request_pending<=0;
+   end
+  end
+  assign model_rsp_valid=model_valid_q;
+@@ -104,12 +122,15 @@
+  assign model_read_ready=request_ready && select_model;
+  assign read_ready=request_ready && !select_model;
+  assign rsp_data=rd;
+- assign model_write_ready=wr;
+- assign write_ready=wr && !model_write;
++ assign model_write_ready=wr && base_ready;
++ assign write_ready=wr && !model_write && base_ready;
+  always @(posedge clk)begin
+   if(rst)begin owner<=0;halfword<=0;prefer_model<=1;end
+   else begin
+    if(request_ready && request_valid)prefer_model<=!select_model;
++`ifdef CHIPDESIGN_FPGA_MEM
++   else if(!prefer_model && !read_valid)prefer_model<=1;
++`endif
+    if(rr && store_valid)begin owner<=store_model;halfword<=store_halfword;end
+   end
+  end
+@@ -117,8 +138,8 @@
+   .clk(clk),.rst(rst),
+   .read_valid(store_valid),.read_ready(rr),.read_addr(store_addr),
+   .rsp_valid(rv),.rsp_ready(owner || rsp_ready),.rsp_data(rd),
+-  .write_valid(model_write || write_valid),.write_ready(wr),
+-  .write_addr(model_write ? ((16'd16384-model_bytes+model_write_addr)<<1) : write_addr),
++  .write_valid((model_write || write_valid) && base_ready),.write_ready(wr),
++  .write_addr(model_write ? model_base+(model_write_addr<<1) : write_addr),
+   .write_data(model_write ? model_write_data : write_data),
+   .write_mask(model_write ? 8'hff : write_mask),
+   .flush(flush || model_write),.idle(store_idle));
+--- a/hardware/npu/rtl/npu_program_core.sv
++++ b/hardware/npu/rtl/npu_program_core.sv
+@@ -340,7 +340,22 @@
+     reg [10:0] kernel_c;
+     reg [2:0] kernel_y,kernel_x;
+     reg [15:0] kernel_offset,k_offsets[0:ROWS-1],cursor_base,tile_base;
+-    reg [2:0] k_ys[0:ROWS-1],k_xs[0:ROWS-1];reg [ROWS-1:0] k_valid;
++    reg [8:0] k_y_begin[0:ROWS-1],k_y_end[0:ROWS-1];
++    reg [8:0] k_x_begin[0:ROWS-1],k_x_end[0:ROWS-1];
++    reg [ROWS-1:0] k_valid;
++    // ceil((extent + padding - tap) / stride), clamped at zero. Extent zero
++    // gives the first valid output coordinate; the real extent gives its end.
++    // Compute these bounds at K-group setup instead of subtracting padding
++    // and adding each tap on every activation request.
++    function automatic [8:0] coordinate_bound(
++        input [7:0] extent,input [2:0] padding,tap,input stride_two
++    );
++        reg signed [10:0] delta;
++        begin
++            delta=$signed({3'd0,extent})+$signed({8'd0,padding})-$signed({8'd0,tap});
++            coordinate_bound=delta<=0 ? 9'd0 : (delta+stride_two)>>stride_two;
++        end
++    endfunction
+     // Equal row-normalized offsets are contiguous even when the spatial
+     // boundary masks out some rows. Compare the registered offsets once.
+     reg [15:0] k_normalized[0:ROWS-1];
+@@ -357,7 +372,11 @@
+     wire prep_end_column=kernel_x==kw[2:0]-3'd1;
+     wire [15:0] prep_step=prep_end_channels ?
+         (prep_end_column ? kernel_row_jump : kernel_col_jump) : 16'd1;
+-    reg signed [9:0] cy,cx,y,x;
++    // These groups stay within one kernel tap, so all row addresses are a
++    // constant offset apart. Irregular channel counts retain the serial walk.
++    wire prep_contiguous=rowpad || op==FC || (kernel_ic%ROWS)==0;
++    wire prep_group_end=kernel_c==kernel_ic-ROWS;
++    reg [9:0] cy,cx;
+     reg [4:0] calc_p;
+     reg [8:0] calc_y,calc_x,next_y,next_x;
+     reg [15:0] calc_base,next_base;
+@@ -394,11 +413,9 @@
+         else begin cy=calc_y;cx=calc_x;end
+         calc_mask=0;
+         for(r=0;r<ROWS;r=r+1)begin
+-            y=(sh[1] ? cy<<<1 : cy)+$signed({1'b0,k_ys[r]})-$signed({1'b0,pt[2:0]});
+-            x=(sw[1] ? cx<<<1 : cx)+$signed({1'b0,k_xs[r]})-$signed({1'b0,pl[2:0]});
+             calc_addr[r]=calc_base+k_offsets[r];
+-            calc_mask[r]=k_valid[r] && !y[9] && y<$signed({2'b0,ih[7:0]}) &&
+-                !x[9] && x<$signed({2'b0,iw[7:0]});
++            calc_mask[r]=k_valid[r] && cy>=k_y_begin[r] && cy<k_y_end[r] &&
++                cx>=k_x_begin[r] && cx<k_x_end[r];
+         end
+         calc_first=0;
+         for(r=ROWS-1;r>=0;r=r-1)if(calc_mask[r])calc_first=r;
+@@ -837,12 +854,36 @@
+                     end
+                     if(mac_op) begin
+                         if(kernel_prepare && issue_more)begin
+-                            if(prep_row<ROWS) begin
++                            if(prep_row<ROWS && prep_contiguous) begin
++                                for(v=0;v<ROWS;v=v+1)begin
++                                    k_offsets[v]<=kernel_offset+v;
++                                    k_normalized[v]<=kernel_offset;
++                                    k_y_begin[v]<=coordinate_bound(0,pt[2:0],rowpad ? issue_g[2:0] : kernel_y,sh[1]);
++                                    k_y_end[v]<=coordinate_bound(ih[7:0],pt[2:0],rowpad ? issue_g[2:0] : kernel_y,sh[1]);
++                                    k_x_begin[v]<=coordinate_bound(0,pl[2:0],rowpad ? v : kernel_x,sw[1]);
++                                    k_x_end[v]<=coordinate_bound(iw[7:0],pl[2:0],rowpad ? v : kernel_x,sw[1]);
++                                    k_valid[v]<=rowpad ? v<kw : issue_g*ROWS+v<k_count;
++                                end
++                                prep_row<=ROWS;
++                                if(rowpad)kernel_offset<=kernel_offset+row_stride;
++                                else if(op==FC)kernel_offset<=kernel_offset+ROWS;
++                                else begin
++                                    kernel_offset<=kernel_offset+ROWS-1+
++                                        (prep_group_end ? (prep_end_column ? kernel_row_jump : kernel_col_jump) : 16'd1);
++                                    kernel_c<=prep_group_end ? 11'd0 : kernel_c+ROWS;
++                                    if(prep_group_end)begin
++                                        kernel_x<=prep_end_column ? 3'd0 : kernel_x+3'd1;
++                                        if(prep_end_column)kernel_y<=kernel_y+3'd1;
++                                    end
++                                end
++                            end else if(prep_row<ROWS) begin
+                                 for(v=0;v<ROWS;v=v+1) if(prep_index==v) begin
+                                     k_offsets[v]<=rowpad ? kernel_offset+prep_row_ext : kernel_offset;
+                                     k_normalized[v]<=rowpad ? kernel_offset : kernel_offset-prep_row_ext;
+-                                    k_ys[v]<=rowpad ? issue_g[2:0] : kernel_y;
+-                                    k_xs[v]<=rowpad ? prep_index : kernel_x;
++                                    k_y_begin[v]<=coordinate_bound(0,pt[2:0],kernel_y,sh[1]);
++                                    k_y_end[v]<=coordinate_bound(ih[7:0],pt[2:0],kernel_y,sh[1]);
++                                    k_x_begin[v]<=coordinate_bound(0,pl[2:0],kernel_x,sw[1]);
++                                    k_x_end[v]<=coordinate_bound(iw[7:0],pl[2:0],kernel_x,sw[1]);
+                                     k_valid[v]<=rowpad ? prep_row<kw : issue_g*ROWS+prep_row<k_count;
+                                 end
+                                 prep_row<=prep_row+1'b1;
+--- a/hardware/soc/rtl/control/npu_command_controller.sv
++++ b/hardware/soc/rtl/control/npu_command_controller.sv
+@@ -32,11 +32,19 @@
+  reg [15:0] model_count,input_count; reg [6:0] config_written;
+  wire owned=job_active || core_busy_i || core_reset_o;
+  wire locked=owned || done || faulted;
+- wire config_ok= (input_base_o+input_bytes_o<=ACT_BYTES-model_bytes_o) &&
++ wire config_fields_ok= (input_base_o+input_bytes_o<=ACT_BYTES-model_bytes_o) &&
+   (output_base_o+output_bytes_o<=ACT_BYTES-model_bytes_o) && &config_written && model_bytes_o>=op_count_o*64 && model_bytes_o<=MODEL_BYTES &&
+   model_bytes_o[1:0]==0 && op_count_o>0 && op_count_o<=MAX_OPS && input_bytes_o>0 && output_bytes_o>0 &&
+   input_base_o[1:0]==0 && output_base_o[1:0]==0 &&
+   {1'b0,input_base_o}+{1'b0,input_bytes_o}<=ACT_BYTES && {1'b0,output_base_o}+{1'b0,output_bytes_o}<=ACT_BYTES;
++ // Configuration changes in EXEC. The next command reaches EXEC only after
++ // its reply and IDLE handshake, so this check is current before any access.
++ // Register it to keep bounds arithmetic out of the SRAM queue controls.
++ reg config_ok;
++ always @(posedge clk_i)begin
++  if(!rst_ni)config_ok<=0;
++  else config_ok<=config_fields_ok;
++ end
+  wire model_write=state==EXEC && op==2 && !locked && model_loading && config_ok &&
+   addr==32'h10000+model_count && model_count<model_bytes_o;
+  wire input_write=state==EXEC && op==2 && !locked && input_loading &&
+--- a/hardware/npu/tb/tb_npu_memories.sv
++++ b/hardware/npu/tb/tb_npu_memories.sv
+@@ -1,7 +1,9 @@
+ `timescale 1ns/1ps
+-// ABI 3 packed nibble memory contract, independent 16K-nibble scoreboard.
++// Packed nibble memory contract, independent 16K-nibble scoreboard.
+ module tb_npu_memories;
+  reg clk=0,rst=1;always #5 clk=~clk;
++ wire shared_done;
++ tb_npu_shared_config shared_config(.clk(clk),.rst(rst),.done(shared_done));
+  reg mw=0,mv=0,mrr=0;reg [15:0] ma=0,mwa=0;reg [31:0] mwd=0;
+  wire mwr,mready,mvalid;wire [31:0] md;
+  npu_model_store model(.clk(clk),.rst(rst),.write_valid(mw),.write_ready(mwr),
+@@ -93,8 +95,70 @@
+   if(writes!=before_writes || idle)$fatal(1,"reset stimulus not queued");
+   rst=1;@(negedge clk);rst=0;gold[1024]=4'he;load(1024,2);
+   if(rmw==0)$fatal(1,"no physical nibble RMW observed");
++  wait(shared_done);
+   $display("PASS packed INT4 memories, byte-neighbour RMW, halfword model reads, held snapshots, masks/wrap/full scan/reset rmw=%0d",rmw);
+   $finish;
+  end
+  initial begin #5000000;$fatal(1,"packed memory timeout");end
+ endmodule
++
++// Changing the model reservation and submitting an access on the same edge
++// must use the new base, including the FPGA's registered-base settling cycle.
++module tb_npu_shared_config(input wire clk,rst,output reg done=0);
++ reg [15:0] model_bytes=8192;
++ reg write_request=0,read_request=0,activation_request=0;
++ reg [31:0] write_data=0;
++ wire write_ready,read_ready,response_valid,idle;
++ wire [31:0] response_data;
++ wire activation_ready,activation_valid;
++ wire [31:0] activation_data;
++ integer cycles,model_responses,activation_responses;
++ npu_shared_store dut(.clk(clk),.rst(rst),.model_bytes(model_bytes),
++  .model_write(write_request),.model_write_ready(write_ready),
++  .model_write_addr(16'd0),.model_write_data(write_data),
++  .model_read(read_request),.model_read_ready(read_ready),.model_read_addr(16'd0),
++  .model_rsp_valid(response_valid),.model_rsp_data(response_data),
++  .read_valid(activation_request),.read_addr(16'd16384),.read_ready(activation_ready),
++  .rsp_valid(activation_valid),.rsp_ready(1'b1),.rsp_data(activation_data),
++  .write_valid(1'b0),.write_addr(16'd0),.write_data(32'd0),.write_mask(8'd0),
++  .write_ready(),.flush(1'b0),.idle(idle));
++ task store(input [15:0] size,input [31:0] value);
++ begin
++  @(negedge clk);model_bytes=size;write_request=1;write_data=value;
++  @(posedge clk);while(!write_ready)@(posedge clk);
++  @(negedge clk);write_request=0;
++  while(!idle)@(negedge clk);
++ end endtask
++ task load(input [15:0] size,input [31:0] expected);
++ begin
++  @(negedge clk);model_bytes=size;read_request=1;
++  @(posedge clk);while(!read_ready)@(posedge clk);
++  @(negedge clk);read_request=0;
++  while(!response_valid)@(negedge clk);
++  if(response_data!==expected)$fatal(1,"shared model base: size=%0d got=%h expected=%h",size,response_data,expected);
++ end endtask
++ initial begin
++  wait(!rst);
++  store(8192,32'h12345678);
++  store(4096,32'hfedcba98);
++  load(8192,32'h12345678);
++  load(4096,32'hfedcba98);
++  repeat(3)@(negedge clk);
++  model_bytes=8192;read_request=1;activation_request=1;
++  model_responses=0;activation_responses=0;
++  for(cycles=0;cycles<200;cycles=cycles+1)begin
++   @(negedge clk);
++   if(response_valid)begin
++    if(response_data!==32'h12345678)$fatal(1,"contended model response");
++    model_responses=model_responses+1;
++   end
++   if(activation_valid)begin
++    if(activation_data!==32'h12345678)$fatal(1,"contended activation response");
++    activation_responses=activation_responses+1;
++   end
++  end
++  read_request=0;activation_request=0;
++  if(model_responses<20 || activation_responses<20)$fatal(1,"shared read arbitration starvation");
++  done=1;
++ end
++endmodule

@@ -1,0 +1,100 @@
+COPYRIGHT (C) 1992-2023  CADENCE DESIGN SYSTEMS INC.  ALL RIGHTS RESERVED.
+          (C) 1992-2023  UNIX SYSTEMS Laboratories INC.,
+                         Reproduced with permission.
+
+This Cadence Design Systems program and online documentation are
+proprietary/confidential information and may be disclosed/used only
+as authorized in a license agreement controlling such use and disclosure.
+
+          RESTRICTED RIGHTS NOTICE (SHORT FORM)
+Use/reproduction/disclosure is subject to restriction
+set forth at FAR 1252.227-19 or its equivalent.
+Loading geView.cxt 
+Loading menuBuilder.cxt 
+Loading schView.cxt 
+Loading selectSv.cxt 
+Loading wireEdit.cxt 
+Loading pte2.cxt 
+Loading xlUI.cxt 
+Loading auCore.cxt 
+Loading vhdl.cxt 
+Loading seismic.cxt 
+Loading ci.cxt 
+Loading ams.cxt 
+Loading adexlDM.cxt 
+Loading cpf.cxt 
+Loading cli.cxt 
+Loading lp.cxt 
+Virtuoso Framework License (111) was checked out successfully. Total checkout time was 0.07s.
+//
+//  Calibre Skill Interface * (v2022.3_17.8) *
+//
+//                         Copyright Siemens 1996-2020     
+//                             All Rights Reserved.
+//         THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY INFORMATION
+//            WHICH IS THE PROPERTY OF MENTOR GRAPHICS CORPORATION
+//              OR ITS LICENSORS AND IS SUBJECT TO LICENSE TERMS.
+//
+//
+An error occured while initializing the libInit.il file.
+The library, tpb018v, specified in this file, could
+not be found. If you have:
+    o   moved/copied the library to a new name.
+    o   edited this file and made a typographical error.
+    o   copied this file from another library.
+you must edit the libInit.il file and correct the
+library name.
+Initializing from libInit.il for library tsmc18...
+*WARNING* (loadContext): context /grid/cic/ciccm_t1nb_0010/IC6.1.8/ISR/lnx86/64/builds/231011-034/tools/dfII/etc/context/64bit/pCellGen.cxt already loaded
+   --  pcellCode2.cdn
+   --  pcellCode1.cdn
+   --  pcellCode.cdn
+   --  mom.cdn
+   --  tsmc18.cxt
+Loading Working place Display File '/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_20261110_7fd9789/work/lab5/layout/workspace/display.drf'
+Loading oasis.cxt 
+Loading analog.cxt 
+Loading asimenv.cxt 
+Loading spectrei.cxt 
+Loading dal.cxt 
+Loading awv.cxt 
+Loading socket.cxt 
+Loading par.cxt 
+Loading alvs.cxt 
+Loading caa.cxt 
+Loading amps.cxt 
+Loading adexlCore.cxt 
+Loading adexl.cxt 
+Loading vdsil.cxt 
+Loading lx.cxt 
+Loading lce.cxt 
+Loading le.cxt 
+*WARNING* could not load font "-*-courier-medium-r-*-*-12-*", using font "fixed"
+*WARNING* could not load font "-*-helvetica-medium-r-*-*-12-*", using font "fixed"
+*WARNING* Font name -*-helvetica-medium-r-*-*-12-* is invalid 
+*WARNING* Font name -*-helvetica-medium-r-*-*-12-* is invalid 
+*WARNING* Font name -*-helvetica-medium-r-*-*-12-* is invalid 
+*WARNING* Font name -*-helvetica-medium-r-*-*-12-* is invalid 
+*WARNING* Font name -*-helvetica-medium-r-*-*-12-* is invalid 
+*WARNING* Font name -*-helvetica-medium-r-*-*-12-* is invalid 
+Loading drdEdit.cxt 
+Loading rte.cxt 
+Loading te.cxt 
+Loading schHDL.cxt 
+Loading devCheck.cxt 
+Loading relXpert.cxt 
+Loading hspiceD.cxt 
+Loading spectreinl.cxt 
+Loading msgHandler.cxt 
+Loading UltraSim.cxt 
+Loading AMSOSS.cxt 
+Loading AMS.cxt 
+SEAL_SOURCE_BBOX=((-15.0 -15.0) (1875.0 2005.0))
+SEAL_SOURCE_BOUNDARY=nil
+SEAL_SOURCE_INSTANCES=7744
+SEAL_CORNER xy=(1875.0 2005.0) orient="MYR90" lib=to_iohelpers cell=tsmc_c018_sealring_corner_1p6m
+SEAL_CORNER xy=(1875.0 -15.0) orient="R90" lib=to_iohelpers cell=tsmc_c018_sealring_corner_1p6m
+SEAL_CORNER xy=(-15.0 2005.0) orient="MX" lib=to_iohelpers cell=tsmc_c018_sealring_corner_1p6m
+SEAL_CORNER xy=(-15.0 -15.0) orient="R0" lib=to_iohelpers cell=tsmc_c018_sealring_corner_1p6m
+SEAL_SOURCE_INSPECTION_PASS
+

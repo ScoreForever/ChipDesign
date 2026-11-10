@@ -1,0 +1,67 @@
+diff --git a/verification/fpga/board/nocpu_board_suite.py b/verification/fpga/board/nocpu_board_suite.py
+index 9549fcf..d59ab14 100644
+--- a/verification/fpga/board/nocpu_board_suite.py
++++ b/verification/fpga/board/nocpu_board_suite.py
+@@ -100,8 +100,7 @@ def execute(args):
+                 try:
+                     pkg = compile_model(model, fuse=fuse, cols=cols)
+                 except ValueError as exc:
+-                    expected_rejection = name == 'tinycnn' and not fuse and 'activation capacity exceeded' in str(exc)
+-                    report['cases'].append({'name': case, 'status': 'EXPECTED_HOST_REJECTION' if expected_rejection else 'SKIP', 'reason': str(exc)})
++                    report['cases'].append({'name': case, 'status': 'SKIP', 'reason': str(exc)})
+                     continue
+                 case_dir = out / case
+                 case_dir.mkdir()
+diff --git a/verification/fpga/board/test_nocpu_board_suite.py b/verification/fpga/board/test_nocpu_board_suite.py
+index f6b39bc..4ea7584 100644
+--- a/verification/fpga/board/test_nocpu_board_suite.py
++++ b/verification/fpga/board/test_nocpu_board_suite.py
+@@ -34,18 +34,14 @@ class Tests(unittest.TestCase):
+         self.assertEqual(fake.calls[-1],(0x10000,0x04030201))
+         self.assertNotIn((suite.Op.MODEL_COMMIT,),fake.calls)
+ 
+-    def test_fixture_compilation_and_expected_rejection(self):
++    def test_abi5_fixture_compilation(self):
+         for name, model, frame in suite.fixtures():
+-            for cols in (4,8):
+-                for fuse in (True,False):
+-                    with self.subTest(name=name,cols=cols,fuse=fuse):
+-                        if name=='tinycnn' and not fuse:
+-                            with self.assertRaisesRegex(ValueError,'activation capacity exceeded'):
+-                                suite.compile_model(model,cols=cols,fuse=fuse)
+-                        else:
+-                            pkg=suite.compile_model(model,cols=cols,fuse=fuse)
+-                            result=suite.reference(model,frame)[model['nodes'][-1]['output']]
+-                            self.assertEqual(len(suite.encoded(result,pkg.manifest['output_dtype'])),pkg.manifest['output_bytes'])
++            for fuse in (True, False):
++                with self.subTest(name=name, fuse=fuse):
++                    pkg = suite.compile_model(model, cols=8, fuse=fuse)
++                    result = suite.reference(model, frame)[model['nodes'][-1]['output']]
++                    self.assertEqual(len(suite.encoded(result, pkg.manifest['output_dtype'])),
++                                     pkg.manifest['output_bytes'])
+ 
+     def test_bad_hash_records_failure_and_no_connection(self):
+         with tempfile.TemporaryDirectory() as d:
+diff --git a/verification/fpga/evidence/nocpu_evidence_check.py b/verification/fpga/evidence/nocpu_evidence_check.py
+index 9c0e519..c993421 100644
+--- a/verification/fpga/evidence/nocpu_evidence_check.py
++++ b/verification/fpga/evidence/nocpu_evidence_check.py
+@@ -24,7 +24,8 @@ def main():
+         report = json.loads((args.evidence/'report.json').read_text(encoding='utf-8'))
+         cases = {entry['name']: entry for entry in report.get('cases', [])}
+         fixtures = REQUIRED_FIXTURES
+-        if report.get('capabilities', {}).get('0x0') == 0x00050000:
++        abi5 = report.get('capabilities', {}).get('0x0') == 0x00050000
++        if abi5:
+             fixtures += ABI5_FIXTURES
+         required = {f'{name}_{mode}' for name in fixtures for mode in ('fused', 'plain')}
+         missing = sorted(required - cases.keys())
+@@ -35,7 +36,7 @@ def main():
+             print('INCOMPLETE: duplicate or unexpected cases')
+             return 1
+         for name, case in cases.items():
+-            if name == 'tinycnn_plain' and case.get('status') == 'EXPECTED_HOST_REJECTION':
++            if not abi5 and name == 'tinycnn_plain' and case.get('status') == 'EXPECTED_HOST_REJECTION':
+                 continue
+             if case.get('status') != 'PASS' or not case.get('runs'):
+                 print(f'INCOMPLETE: invalid case {name}')

@@ -1,0 +1,18 @@
+{
+  "dynamic_simulation": "PASS",
+  "raw_cdc15_warnings": 109,
+  "reviewed_request_bits": 72,
+  "reviewed_response_bits": 37,
+  "unexpected_warning_rows": 0,
+  "waivers_created": false,
+  "legacy_phase_rate_cases": 100,
+  "burst_phase_rate_cases": 32,
+  "limitation": "Digital simulation does not model metastability; physical checks apply to supplied routed build only.",
+  "sha256": {
+    "/mnt/d/IWS/advanced_soc/ChipDesign/build/fpga_signoff/npu_gather_20261108/checkout_forward/hardware/soc/rtl/control/npu_jtag_transport.sv": "5736742a2272ef7b0a1fa98e4c47562fe98267232bf109addf19304c18510ae7",
+    "/mnt/d/IWS/advanced_soc/ChipDesign/build/fpga_signoff/npu_gather_20261108/checkout_forward/verification/fpga/cdc/tb_npu_jtag_cdc.sv": "59c437d8e08503aadc078fda153cc85bf853c476d4a26aadf5c8d08636bede05",
+    "/mnt/d/IWS/advanced_soc/ChipDesign/build/fpga_signoff/npu_gather_20261108/checkout_forward/verification/fpga/cdc/tb_npu_jtag_burst_cdc.sv": "f1bd427f17ddd505075bbb1c75cdfb773e05d5b03a4acaddf734a9562a5b8e63",
+    "build/gather_forward_50mhz/route_cdc.rpt": "36a59c3fe1f05063e208d9c6f055024f25fccbcde7d134b5d5374705f8f450e8",
+    "build/gather_forward_50mhz/route_npu_jtag_cdc.tsv": "150979c6204f86ecebcdff569d91ada09044424cdd647bfda9a8a3c7e0238fcc"
+  }
+}

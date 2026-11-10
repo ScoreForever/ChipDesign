@@ -1,0 +1,10147 @@
+{
+  "sources_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "d4e82a2a402bb0a472083759ebb649414d9782f0bac7e46f9b78550211abd727",
+    "hardware/npu/rtl/requant_lane.sv": "edb58a4e3c187682bf94c591477bb49de5db283062f30d06ce131178e0af391f",
+    "hardware/npu/rtl/npu_model_store.sv": "20a4701abf575a65487d3562db6412d986c36f96444134322022fb3be88b10f9",
+    "hardware/npu/rtl/npu_activation_store.sv": "7c1649d45030a4421214b4312ca0ac7238e251e9c642b529d021c4ae5754decd",
+    "hardware/npu/rtl/npu_program_core.sv": "a0363d949cc7e1bee6f4de13d384819a22e01167b5788d4dde09f37c78c2431b",
+    "hardware/npu/rtl/npu_trace_capture.sv": "7ca692c198917144fc75f13c207a7f3635d541fdb2e7d798bbd7e1f884b32b67",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "5ae242bcfc2693bd4d4390330fd106a029370d996fbf7697fe676c726253a17c",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "e04425898a7dc8a771589a0a8e47d596a3a51fd8e082719c993236471a469554",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "5736742a2272ef7b0a1fa98e4c47562fe98267232bf109addf19304c18510ae7",
+    "hardware/soc/rtl/my_soc_top.sv": "c78ea83c14cb7b537f63ef13d1752c312cbbb25c0c766822c801651abf13cfce"
+  },
+  "tests": [
+    {
+      "case": "limit_k1_c8_f1_j0",
+      "commands": 176,
+      "bytes": 128,
+      "peak": 8,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        115,
+        115
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          115,
+          25,
+          0,
+          0,
+          25,
+          25,
+          1,
+          0,
+          0,
+          1,
+          0,
+          4,
+          1,
+          0,
+          2,
+          0,
+          9,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ],
+        [
+          115,
+          25,
+          0,
+          0,
+          25,
+          25,
+          1,
+          0,
+          0,
+          1,
+          0,
+          4,
+          1,
+          0,
+          2,
+          0,
+          9,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            115,
+            257,
+            11,
+            0,
+            2,
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            115,
+            257,
+            11,
+            0,
+            2,
+            0,
+            1
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k1_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 115,
+        "model_requests": 25,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 25,
+        "model_wait_response_cycles": 25,
+        "activation_requests": 1,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 1,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 1,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 2,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 9,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 1,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 8,
+        "issue_duty_pct": 0.8695652173913043,
+        "useful_array_util_pct": 0.10869565217391304,
+        "logical_work_per_issued_capacity_pct": 12.5
+      }
+    },
+    {
+      "case": "limit_k7_c8_f1_j0",
+      "commands": 176,
+      "bytes": 128,
+      "peak": 8,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        121,
+        121
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          121,
+          31,
+          0,
+          0,
+          31,
+          31,
+          1,
+          1,
+          1,
+          1,
+          0,
+          4,
+          1,
+          0,
+          8,
+          0,
+          9,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ],
+        [
+          121,
+          31,
+          0,
+          0,
+          31,
+          31,
+          1,
+          1,
+          1,
+          1,
+          0,
+          4,
+          1,
+          0,
+          8,
+          0,
+          9,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            121,
+            257,
+            11,
+            0,
+            8,
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            121,
+            257,
+            11,
+            0,
+            8,
+            0,
+            1
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k7_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 121,
+        "model_requests": 31,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 31,
+        "model_wait_response_cycles": 31,
+        "activation_requests": 1,
+        "activation_stall_cycles": 1,
+        "activation_max_stall": 1,
+        "activation_responses": 1,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 1,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 8,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 9,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 1,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 56,
+        "issue_duty_pct": 0.8264462809917356,
+        "useful_array_util_pct": 0.7231404958677686,
+        "logical_work_per_issued_capacity_pct": 87.5
+      }
+    },
+    {
+      "case": "limit_k8_c8_f1_j0",
+      "commands": 176,
+      "bytes": 128,
+      "peak": 8,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        122,
+        122
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          122,
+          32,
+          0,
+          0,
+          32,
+          32,
+          1,
+          0,
+          0,
+          1,
+          0,
+          4,
+          1,
+          0,
+          16,
+          0,
+          2,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ],
+        [
+          122,
+          32,
+          0,
+          0,
+          32,
+          32,
+          1,
+          0,
+          0,
+          1,
+          0,
+          4,
+          1,
+          0,
+          16,
+          0,
+          2,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            122,
+            257,
+            11,
+            0,
+            16,
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            122,
+            257,
+            11,
+            0,
+            16,
+            0,
+            1
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k8_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 122,
+        "model_requests": 32,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 32,
+        "model_wait_response_cycles": 32,
+        "activation_requests": 1,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 1,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 1,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 2,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 1,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 64,
+        "issue_duty_pct": 0.819672131147541,
+        "useful_array_util_pct": 0.819672131147541,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_k9_c8_f1_j0",
+      "commands": 186,
+      "bytes": 160,
+      "peak": 12,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        133,
+        133
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          133,
+          33,
+          0,
+          0,
+          33,
+          33,
+          2,
+          1,
+          1,
+          2,
+          0,
+          4,
+          2,
+          0,
+          10,
+          0,
+          18,
+          1,
+          1,
+          2,
+          4,
+          2,
+          0,
+          0
+        ],
+        [
+          133,
+          33,
+          0,
+          0,
+          33,
+          33,
+          2,
+          1,
+          1,
+          2,
+          0,
+          4,
+          2,
+          0,
+          10,
+          0,
+          18,
+          1,
+          1,
+          2,
+          4,
+          2,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            133,
+            257,
+            11,
+            0,
+            10,
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            133,
+            257,
+            11,
+            0,
+            10,
+            0,
+            2
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k9_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 133,
+        "model_requests": 33,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 33,
+        "model_wait_response_cycles": 33,
+        "activation_requests": 2,
+        "activation_stall_cycles": 1,
+        "activation_max_stall": 1,
+        "activation_responses": 2,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 2,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 10,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 18,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 2,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 2,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 72,
+        "issue_duty_pct": 1.5037593984962405,
+        "useful_array_util_pct": 0.8458646616541353,
+        "logical_work_per_issued_capacity_pct": 56.25
+      }
+    },
+    {
+      "case": "limit_k16_c8_f1_j0",
+      "commands": 186,
+      "bytes": 160,
+      "peak": 12,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        140,
+        140
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          140,
+          40,
+          0,
+          0,
+          40,
+          40,
+          2,
+          1,
+          1,
+          2,
+          0,
+          4,
+          2,
+          0,
+          31,
+          0,
+          4,
+          1,
+          1,
+          1,
+          4,
+          2,
+          0,
+          0
+        ],
+        [
+          140,
+          40,
+          0,
+          0,
+          40,
+          40,
+          2,
+          1,
+          1,
+          2,
+          0,
+          4,
+          2,
+          0,
+          31,
+          0,
+          4,
+          1,
+          1,
+          1,
+          4,
+          2,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            140,
+            257,
+            11,
+            0,
+            31,
+            0,
+            2
+          ]
+        ],
+        [
+          [
+            0,
+            140,
+            257,
+            11,
+            0,
+            31,
+            0,
+            2
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k16_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 140,
+        "model_requests": 40,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 40,
+        "model_wait_response_cycles": 40,
+        "activation_requests": 2,
+        "activation_stall_cycles": 1,
+        "activation_max_stall": 1,
+        "activation_responses": 2,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 2,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 31,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 4,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 2,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 128,
+        "issue_duty_pct": 1.4285714285714286,
+        "useful_array_util_pct": 1.4285714285714286,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_k64_c8_f1_j0",
+      "commands": 246,
+      "bytes": 352,
+      "peak": 36,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        248,
+        248
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          248,
+          88,
+          0,
+          0,
+          88,
+          88,
+          8,
+          7,
+          1,
+          8,
+          0,
+          4,
+          8,
+          0,
+          121,
+          0,
+          16,
+          1,
+          1,
+          1,
+          4,
+          8,
+          0,
+          0
+        ],
+        [
+          248,
+          88,
+          0,
+          0,
+          88,
+          88,
+          8,
+          7,
+          1,
+          8,
+          0,
+          4,
+          8,
+          0,
+          121,
+          0,
+          16,
+          1,
+          1,
+          1,
+          4,
+          8,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            248,
+            257,
+            11,
+            0,
+            121,
+            0,
+            8
+          ]
+        ],
+        [
+          [
+            0,
+            248,
+            257,
+            11,
+            0,
+            121,
+            0,
+            8
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k64_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 248,
+        "model_requests": 88,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 88,
+        "model_wait_response_cycles": 88,
+        "activation_requests": 8,
+        "activation_stall_cycles": 7,
+        "activation_max_stall": 1,
+        "activation_responses": 8,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 8,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 121,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 16,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 8,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 512,
+        "issue_duty_pct": 3.225806451612903,
+        "useful_array_util_pct": 3.225806451612903,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_k256_c8_f1_j0",
+      "commands": 486,
+      "bytes": 1120,
+      "peak": 132,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        680,
+        680
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          680,
+          280,
+          0,
+          0,
+          280,
+          280,
+          32,
+          31,
+          1,
+          32,
+          0,
+          4,
+          32,
+          0,
+          481,
+          0,
+          64,
+          1,
+          1,
+          1,
+          4,
+          32,
+          0,
+          0
+        ],
+        [
+          680,
+          280,
+          0,
+          0,
+          280,
+          280,
+          32,
+          31,
+          1,
+          32,
+          0,
+          4,
+          32,
+          0,
+          481,
+          0,
+          64,
+          1,
+          1,
+          1,
+          4,
+          32,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            680,
+            257,
+            11,
+            0,
+            481,
+            0,
+            32
+          ]
+        ],
+        [
+          [
+            0,
+            680,
+            257,
+            11,
+            0,
+            481,
+            0,
+            32
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k256_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 680,
+        "model_requests": 280,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 280,
+        "model_wait_response_cycles": 280,
+        "activation_requests": 32,
+        "activation_stall_cycles": 31,
+        "activation_max_stall": 1,
+        "activation_responses": 32,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 32,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 481,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 64,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 32,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 2048,
+        "issue_duty_pct": 4.705882352941177,
+        "useful_array_util_pct": 4.705882352941177,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_k1024_c8_f1_j0",
+      "commands": 1446,
+      "bytes": 4192,
+      "peak": 516,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        2408,
+        2408
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          2408,
+          1048,
+          0,
+          0,
+          1048,
+          1048,
+          128,
+          127,
+          1,
+          128,
+          0,
+          4,
+          128,
+          0,
+          1921,
+          0,
+          256,
+          1,
+          1,
+          1,
+          4,
+          128,
+          0,
+          0
+        ],
+        [
+          2408,
+          1048,
+          0,
+          0,
+          1048,
+          1048,
+          128,
+          127,
+          1,
+          128,
+          0,
+          4,
+          128,
+          0,
+          1921,
+          0,
+          256,
+          1,
+          1,
+          1,
+          4,
+          128,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            2408,
+            257,
+            11,
+            0,
+            1921,
+            0,
+            128
+          ]
+        ],
+        [
+          [
+            0,
+            2408,
+            257,
+            11,
+            0,
+            1921,
+            0,
+            128
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_k1024_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 2408,
+        "model_requests": 1048,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 1048,
+        "model_wait_response_cycles": 1048,
+        "activation_requests": 128,
+        "activation_stall_cycles": 127,
+        "activation_max_stall": 1,
+        "activation_responses": 128,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 128,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 1921,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 256,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 128,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 8192,
+        "issue_duty_pct": 5.3156146179401995,
+        "useful_array_util_pct": 5.3156146179401995,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_reuse1_c8_f1_j0",
+      "commands": 176,
+      "bytes": 128,
+      "peak": 8,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        122,
+        122
+      ],
+      "writes": [
+        4,
+        4
+      ],
+      "checked_write_events": 8,
+      "performance": [
+        [
+          122,
+          32,
+          0,
+          0,
+          32,
+          32,
+          1,
+          0,
+          0,
+          1,
+          0,
+          4,
+          1,
+          0,
+          16,
+          0,
+          2,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ],
+        [
+          122,
+          32,
+          0,
+          0,
+          32,
+          32,
+          1,
+          0,
+          0,
+          1,
+          0,
+          4,
+          1,
+          0,
+          16,
+          0,
+          2,
+          1,
+          1,
+          1,
+          4,
+          1,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            122,
+            257,
+            11,
+            0,
+            16,
+            0,
+            1
+          ]
+        ],
+        [
+          [
+            0,
+            122,
+            257,
+            11,
+            0,
+            16,
+            0,
+            1
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_reuse1_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 122,
+        "model_requests": 32,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 32,
+        "model_wait_response_cycles": 32,
+        "activation_requests": 1,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 1,
+        "activation_wait_response_cycles": 0,
+        "writes": 4,
+        "mac_issues": 1,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 2,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 4,
+        "gather_contiguous_groups": 1,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 64,
+        "issue_duty_pct": 0.819672131147541,
+        "useful_array_util_pct": 0.819672131147541,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_reuse4_c8_f1_j0",
+      "commands": 188,
+      "bytes": 128,
+      "peak": 32,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        134,
+        134
+      ],
+      "writes": [
+        16,
+        16
+      ],
+      "checked_write_events": 32,
+      "performance": [
+        [
+          134,
+          32,
+          0,
+          0,
+          32,
+          32,
+          4,
+          0,
+          0,
+          4,
+          0,
+          16,
+          4,
+          0,
+          16,
+          0,
+          2,
+          4,
+          1,
+          4,
+          16,
+          4,
+          0,
+          0
+        ],
+        [
+          134,
+          32,
+          0,
+          0,
+          32,
+          32,
+          4,
+          0,
+          0,
+          4,
+          0,
+          16,
+          4,
+          0,
+          16,
+          0,
+          2,
+          4,
+          1,
+          4,
+          16,
+          4,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            134,
+            257,
+            11,
+            0,
+            16,
+            0,
+            4
+          ]
+        ],
+        [
+          [
+            0,
+            134,
+            257,
+            11,
+            0,
+            16,
+            0,
+            4
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_reuse4_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 134,
+        "model_requests": 32,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 32,
+        "model_wait_response_cycles": 32,
+        "activation_requests": 4,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 4,
+        "activation_wait_response_cycles": 0,
+        "writes": 16,
+        "mac_issues": 4,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 2,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 16,
+        "gather_contiguous_groups": 4,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 112,
+        "useful_macs": 256,
+        "issue_duty_pct": 2.985074626865672,
+        "useful_array_util_pct": 2.985074626865672,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_reuse16_c8_f1_j0",
+      "commands": 236,
+      "bytes": 128,
+      "peak": 128,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        194,
+        194
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "performance": [
+        [
+          194,
+          32,
+          0,
+          0,
+          32,
+          32,
+          16,
+          0,
+          0,
+          16,
+          0,
+          64,
+          16,
+          0,
+          16,
+          57,
+          2,
+          4,
+          1,
+          4,
+          64,
+          16,
+          0,
+          0
+        ],
+        [
+          194,
+          32,
+          0,
+          0,
+          32,
+          32,
+          16,
+          0,
+          0,
+          16,
+          0,
+          64,
+          16,
+          0,
+          16,
+          57,
+          2,
+          4,
+          1,
+          4,
+          64,
+          16,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            194,
+            257,
+            11,
+            0,
+            16,
+            57,
+            16
+          ]
+        ],
+        [
+          [
+            0,
+            194,
+            257,
+            11,
+            0,
+            16,
+            57,
+            16
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_reuse16_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 194,
+        "model_requests": 32,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 32,
+        "model_wait_response_cycles": 32,
+        "activation_requests": 16,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 16,
+        "activation_wait_response_cycles": 0,
+        "writes": 64,
+        "mac_issues": 16,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 57,
+        "kernel_prepare_cycles": 2,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 64,
+        "gather_contiguous_groups": 16,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 1024,
+        "issue_duty_pct": 8.24742268041237,
+        "useful_array_util_pct": 8.24742268041237,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_reuse64_c8_f1_j0",
+      "commands": 428,
+      "bytes": 128,
+      "peak": 512,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        448,
+        448
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "performance": [
+        [
+          448,
+          56,
+          0,
+          0,
+          56,
+          56,
+          64,
+          5,
+          1,
+          64,
+          0,
+          256,
+          64,
+          2,
+          16,
+          255,
+          8,
+          4,
+          2,
+          4,
+          256,
+          64,
+          0,
+          0
+        ],
+        [
+          448,
+          56,
+          0,
+          0,
+          56,
+          56,
+          64,
+          5,
+          1,
+          64,
+          0,
+          256,
+          64,
+          2,
+          16,
+          255,
+          8,
+          4,
+          2,
+          4,
+          256,
+          64,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            448,
+            257,
+            11,
+            2,
+            16,
+            255,
+            64
+          ]
+        ],
+        [
+          [
+            0,
+            448,
+            257,
+            11,
+            2,
+            16,
+            255,
+            64
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_reuse64_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 448,
+        "model_requests": 56,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 56,
+        "model_wait_response_cycles": 56,
+        "activation_requests": 64,
+        "activation_stall_cycles": 5,
+        "activation_max_stall": 1,
+        "activation_responses": 64,
+        "activation_wait_response_cycles": 0,
+        "writes": 256,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 2,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 255,
+        "kernel_prepare_cycles": 8,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 256,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 4096,
+        "issue_duty_pct": 14.285714285714286,
+        "useful_array_util_pct": 14.285714285714286,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_reuse256_c8_f1_j0",
+      "commands": 1196,
+      "bytes": 128,
+      "peak": 2048,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        1504,
+        1504
+      ],
+      "writes": [
+        1024,
+        1024
+      ],
+      "checked_write_events": 2048,
+      "performance": [
+        [
+          1504,
+          152,
+          0,
+          0,
+          152,
+          152,
+          256,
+          17,
+          1,
+          256,
+          0,
+          1024,
+          256,
+          2,
+          16,
+          1095,
+          32,
+          4,
+          2,
+          4,
+          1024,
+          256,
+          0,
+          0
+        ],
+        [
+          1504,
+          152,
+          0,
+          0,
+          152,
+          152,
+          256,
+          17,
+          1,
+          256,
+          0,
+          1024,
+          256,
+          2,
+          16,
+          1095,
+          32,
+          4,
+          2,
+          4,
+          1024,
+          256,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1504,
+            257,
+            11,
+            2,
+            16,
+            1095,
+            256
+          ]
+        ],
+        [
+          [
+            0,
+            1504,
+            257,
+            11,
+            2,
+            16,
+            1095,
+            256
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_reuse256_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 1504,
+        "model_requests": 152,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 152,
+        "model_wait_response_cycles": 152,
+        "activation_requests": 256,
+        "activation_stall_cycles": 17,
+        "activation_max_stall": 1,
+        "activation_responses": 256,
+        "activation_wait_response_cycles": 0,
+        "writes": 1024,
+        "mac_issues": 256,
+        "mac_wait_activation_cycles": 2,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 1095,
+        "kernel_prepare_cycles": 32,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 1024,
+        "gather_contiguous_groups": 256,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 16384,
+        "issue_duty_pct": 17.02127659574468,
+        "useful_array_util_pct": 17.02127659574468,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_reuse1024_c8_f1_j0",
+      "commands": 4268,
+      "bytes": 128,
+      "peak": 8192,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        5728,
+        5728
+      ],
+      "writes": [
+        4096,
+        4096
+      ],
+      "checked_write_events": 8192,
+      "performance": [
+        [
+          5728,
+          536,
+          0,
+          0,
+          536,
+          536,
+          1024,
+          65,
+          1,
+          1024,
+          0,
+          4096,
+          1024,
+          2,
+          16,
+          4455,
+          128,
+          4,
+          2,
+          4,
+          4096,
+          1024,
+          0,
+          0
+        ],
+        [
+          5728,
+          536,
+          0,
+          0,
+          536,
+          536,
+          1024,
+          65,
+          1,
+          1024,
+          0,
+          4096,
+          1024,
+          2,
+          16,
+          4455,
+          128,
+          4,
+          2,
+          4,
+          4096,
+          1024,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            5728,
+            257,
+            11,
+            2,
+            16,
+            4455,
+            1024
+          ]
+        ],
+        [
+          [
+            0,
+            5728,
+            257,
+            11,
+            2,
+            16,
+            4455,
+            1024
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_reuse1024_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 5728,
+        "model_requests": 536,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 536,
+        "model_wait_response_cycles": 536,
+        "activation_requests": 1024,
+        "activation_stall_cycles": 65,
+        "activation_max_stall": 1,
+        "activation_responses": 1024,
+        "activation_wait_response_cycles": 0,
+        "writes": 4096,
+        "mac_issues": 1024,
+        "mac_wait_activation_cycles": 2,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 4455,
+        "kernel_prepare_cycles": 128,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 4096,
+        "gather_contiguous_groups": 1024,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 65536,
+        "issue_duty_pct": 17.877094972067038,
+        "useful_array_util_pct": 17.877094972067038,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_oc1_c8_f1_j0",
+      "commands": 197,
+      "bytes": 84,
+      "peak": 72,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        159,
+        159
+      ],
+      "writes": [
+        16,
+        16
+      ],
+      "checked_write_events": 32,
+      "performance": [
+        [
+          159,
+          25,
+          0,
+          0,
+          25,
+          25,
+          16,
+          0,
+          0,
+          16,
+          0,
+          16,
+          16,
+          0,
+          16,
+          39,
+          2,
+          4,
+          1,
+          4,
+          16,
+          16,
+          0,
+          0
+        ],
+        [
+          159,
+          25,
+          0,
+          0,
+          25,
+          25,
+          16,
+          0,
+          0,
+          16,
+          0,
+          16,
+          16,
+          0,
+          16,
+          39,
+          2,
+          4,
+          1,
+          4,
+          16,
+          16,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            159,
+            257,
+            11,
+            0,
+            16,
+            39,
+            16
+          ]
+        ],
+        [
+          [
+            0,
+            159,
+            257,
+            11,
+            0,
+            16,
+            39,
+            16
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc1_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 159,
+        "model_requests": 25,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 25,
+        "model_wait_response_cycles": 25,
+        "activation_requests": 16,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 16,
+        "activation_wait_response_cycles": 0,
+        "writes": 16,
+        "mac_issues": 16,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 39,
+        "kernel_prepare_cycles": 2,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 16,
+        "gather_contiguous_groups": 16,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 86,
+        "useful_macs": 128,
+        "issue_duty_pct": 10.062893081761006,
+        "useful_array_util_pct": 1.2578616352201257,
+        "logical_work_per_issued_capacity_pct": 12.5
+      }
+    },
+    {
+      "case": "limit_oc7_c8_f1_j0",
+      "commands": 231,
+      "bytes": 124,
+      "peak": 120,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        192,
+        192
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "performance": [
+        [
+          192,
+          31,
+          0,
+          0,
+          31,
+          31,
+          16,
+          0,
+          0,
+          16,
+          0,
+          64,
+          16,
+          0,
+          16,
+          57,
+          2,
+          4,
+          1,
+          4,
+          64,
+          16,
+          0,
+          0
+        ],
+        [
+          192,
+          31,
+          0,
+          0,
+          31,
+          31,
+          16,
+          0,
+          0,
+          16,
+          0,
+          64,
+          16,
+          0,
+          16,
+          57,
+          2,
+          4,
+          1,
+          4,
+          64,
+          16,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            192,
+            257,
+            11,
+            0,
+            16,
+            57,
+            16
+          ]
+        ],
+        [
+          [
+            0,
+            192,
+            257,
+            11,
+            0,
+            16,
+            57,
+            16
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc7_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 192,
+        "model_requests": 31,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 31,
+        "model_wait_response_cycles": 31,
+        "activation_requests": 16,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 16,
+        "activation_wait_response_cycles": 0,
+        "writes": 64,
+        "mac_issues": 16,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 57,
+        "kernel_prepare_cycles": 2,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 64,
+        "gather_contiguous_groups": 16,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 101,
+        "useful_macs": 896,
+        "issue_duty_pct": 8.333333333333334,
+        "useful_array_util_pct": 7.291666666666667,
+        "logical_work_per_issued_capacity_pct": 87.5
+      }
+    },
+    {
+      "case": "limit_oc8_c8_f1_j0",
+      "commands": 236,
+      "bytes": 128,
+      "peak": 128,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        194,
+        194
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "performance": [
+        [
+          194,
+          32,
+          0,
+          0,
+          32,
+          32,
+          16,
+          0,
+          0,
+          16,
+          0,
+          64,
+          16,
+          0,
+          16,
+          57,
+          2,
+          4,
+          1,
+          4,
+          64,
+          16,
+          0,
+          0
+        ],
+        [
+          194,
+          32,
+          0,
+          0,
+          32,
+          32,
+          16,
+          0,
+          0,
+          16,
+          0,
+          64,
+          16,
+          0,
+          16,
+          57,
+          2,
+          4,
+          1,
+          4,
+          64,
+          16,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            194,
+            257,
+            11,
+            0,
+            16,
+            57,
+            16
+          ]
+        ],
+        [
+          [
+            0,
+            194,
+            257,
+            11,
+            0,
+            16,
+            57,
+            16
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc8_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 194,
+        "model_requests": 32,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 32,
+        "model_wait_response_cycles": 32,
+        "activation_requests": 16,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 16,
+        "activation_wait_response_cycles": 0,
+        "writes": 64,
+        "mac_issues": 16,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 57,
+        "kernel_prepare_cycles": 2,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 64,
+        "gather_contiguous_groups": 16,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 1024,
+        "issue_duty_pct": 8.24742268041237,
+        "useful_array_util_pct": 8.24742268041237,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_oc9_c8_f1_j0",
+      "commands": 245,
+      "bytes": 148,
+      "peak": 136,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        343,
+        343
+      ],
+      "writes": [
+        80,
+        80
+      ],
+      "checked_write_events": 160,
+      "performance": [
+        [
+          343,
+          41,
+          0,
+          0,
+          41,
+          41,
+          32,
+          2,
+          1,
+          32,
+          0,
+          80,
+          32,
+          0,
+          32,
+          112,
+          4,
+          4,
+          1,
+          4,
+          80,
+          32,
+          0,
+          0
+        ],
+        [
+          343,
+          41,
+          0,
+          0,
+          41,
+          41,
+          32,
+          2,
+          1,
+          32,
+          0,
+          80,
+          32,
+          0,
+          32,
+          112,
+          4,
+          4,
+          1,
+          4,
+          80,
+          32,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            343,
+            257,
+            11,
+            0,
+            32,
+            112,
+            32
+          ]
+        ],
+        [
+          [
+            0,
+            343,
+            257,
+            11,
+            0,
+            32,
+            112,
+            32
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc9_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 343,
+        "model_requests": 41,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 41,
+        "model_wait_response_cycles": 41,
+        "activation_requests": 32,
+        "activation_stall_cycles": 2,
+        "activation_max_stall": 1,
+        "activation_responses": 32,
+        "activation_wait_response_cycles": 0,
+        "writes": 80,
+        "mac_issues": 32,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 32,
+        "mac_wait_slot_cycles": 112,
+        "kernel_prepare_cycles": 4,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 80,
+        "gather_contiguous_groups": 32,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 163,
+        "useful_macs": 1152,
+        "issue_duty_pct": 9.329446064139942,
+        "useful_array_util_pct": 5.247813411078718,
+        "logical_work_per_issued_capacity_pct": 56.25
+      }
+    },
+    {
+      "case": "limit_oc16_c8_f1_j0",
+      "commands": 284,
+      "bytes": 192,
+      "peak": 192,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        340,
+        340
+      ],
+      "writes": [
+        128,
+        128
+      ],
+      "checked_write_events": 256,
+      "performance": [
+        [
+          340,
+          48,
+          0,
+          0,
+          48,
+          48,
+          32,
+          0,
+          0,
+          32,
+          0,
+          128,
+          32,
+          0,
+          32,
+          114,
+          4,
+          4,
+          1,
+          4,
+          128,
+          32,
+          0,
+          0
+        ],
+        [
+          340,
+          48,
+          0,
+          0,
+          48,
+          48,
+          32,
+          0,
+          0,
+          32,
+          0,
+          128,
+          32,
+          0,
+          32,
+          114,
+          4,
+          4,
+          1,
+          4,
+          128,
+          32,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            340,
+            257,
+            11,
+            0,
+            32,
+            114,
+            32
+          ]
+        ],
+        [
+          [
+            0,
+            340,
+            257,
+            11,
+            0,
+            32,
+            114,
+            32
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc16_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 340,
+        "model_requests": 48,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 48,
+        "model_wait_response_cycles": 48,
+        "activation_requests": 32,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 32,
+        "activation_wait_response_cycles": 0,
+        "writes": 128,
+        "mac_issues": 32,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 32,
+        "mac_wait_slot_cycles": 114,
+        "kernel_prepare_cycles": 4,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 128,
+        "gather_contiguous_groups": 32,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 158,
+        "useful_macs": 2048,
+        "issue_duty_pct": 9.411764705882353,
+        "useful_array_util_pct": 9.411764705882353,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_oc32_c8_f1_j0",
+      "commands": 380,
+      "bytes": 320,
+      "peak": 320,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        632,
+        632
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "performance": [
+        [
+          632,
+          80,
+          0,
+          0,
+          80,
+          80,
+          64,
+          0,
+          0,
+          64,
+          0,
+          256,
+          64,
+          0,
+          64,
+          228,
+          8,
+          4,
+          1,
+          4,
+          256,
+          64,
+          0,
+          0
+        ],
+        [
+          632,
+          80,
+          0,
+          0,
+          80,
+          80,
+          64,
+          0,
+          0,
+          64,
+          0,
+          256,
+          64,
+          0,
+          64,
+          228,
+          8,
+          4,
+          1,
+          4,
+          256,
+          64,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            632,
+            257,
+            11,
+            0,
+            64,
+            228,
+            64
+          ]
+        ],
+        [
+          [
+            0,
+            632,
+            257,
+            11,
+            0,
+            64,
+            228,
+            64
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc32_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 632,
+        "model_requests": 80,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 80,
+        "model_wait_response_cycles": 80,
+        "activation_requests": 64,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 64,
+        "activation_wait_response_cycles": 0,
+        "writes": 256,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 64,
+        "mac_wait_slot_cycles": 228,
+        "kernel_prepare_cycles": 8,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 256,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 268,
+        "useful_macs": 4096,
+        "issue_duty_pct": 10.126582278481013,
+        "useful_array_util_pct": 10.126582278481013,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_oc64_c8_f1_j0",
+      "commands": 572,
+      "bytes": 576,
+      "peak": 576,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        1216,
+        1216
+      ],
+      "writes": [
+        512,
+        512
+      ],
+      "checked_write_events": 1024,
+      "performance": [
+        [
+          1216,
+          144,
+          0,
+          0,
+          144,
+          144,
+          128,
+          0,
+          0,
+          128,
+          0,
+          512,
+          128,
+          0,
+          128,
+          456,
+          16,
+          4,
+          1,
+          4,
+          512,
+          128,
+          0,
+          0
+        ],
+        [
+          1216,
+          144,
+          0,
+          0,
+          144,
+          144,
+          128,
+          0,
+          0,
+          128,
+          0,
+          512,
+          128,
+          0,
+          128,
+          456,
+          16,
+          4,
+          1,
+          4,
+          512,
+          128,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1216,
+            257,
+            11,
+            0,
+            128,
+            456,
+            128
+          ]
+        ],
+        [
+          [
+            0,
+            1216,
+            257,
+            11,
+            0,
+            128,
+            456,
+            128
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc64_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 1216,
+        "model_requests": 144,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 144,
+        "model_wait_response_cycles": 144,
+        "activation_requests": 128,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 128,
+        "activation_wait_response_cycles": 0,
+        "writes": 512,
+        "mac_issues": 128,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 128,
+        "mac_wait_slot_cycles": 456,
+        "kernel_prepare_cycles": 16,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 512,
+        "gather_contiguous_groups": 128,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 488,
+        "useful_macs": 8192,
+        "issue_duty_pct": 10.526315789473685,
+        "useful_array_util_pct": 10.526315789473685,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_oc128_c8_f1_j0",
+      "commands": 956,
+      "bytes": 1088,
+      "peak": 1088,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        2384,
+        2384
+      ],
+      "writes": [
+        1024,
+        1024
+      ],
+      "checked_write_events": 2048,
+      "performance": [
+        [
+          2384,
+          272,
+          0,
+          0,
+          272,
+          272,
+          256,
+          0,
+          0,
+          256,
+          0,
+          1024,
+          256,
+          0,
+          256,
+          912,
+          32,
+          4,
+          1,
+          4,
+          1024,
+          256,
+          0,
+          0
+        ],
+        [
+          2384,
+          272,
+          0,
+          0,
+          272,
+          272,
+          256,
+          0,
+          0,
+          256,
+          0,
+          1024,
+          256,
+          0,
+          256,
+          912,
+          32,
+          4,
+          1,
+          4,
+          1024,
+          256,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            2384,
+            257,
+            11,
+            0,
+            256,
+            912,
+            256
+          ]
+        ],
+        [
+          [
+            0,
+            2384,
+            257,
+            11,
+            0,
+            256,
+            912,
+            256
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc128_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 2384,
+        "model_requests": 272,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 272,
+        "model_wait_response_cycles": 272,
+        "activation_requests": 256,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 256,
+        "activation_wait_response_cycles": 0,
+        "writes": 1024,
+        "mac_issues": 256,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 256,
+        "mac_wait_slot_cycles": 912,
+        "kernel_prepare_cycles": 32,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 1024,
+        "gather_contiguous_groups": 256,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 928,
+        "useful_macs": 16384,
+        "issue_duty_pct": 10.738255033557047,
+        "useful_array_util_pct": 10.738255033557047,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_oc256_c8_f1_j0",
+      "commands": 1724,
+      "bytes": 2112,
+      "peak": 2112,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        4720,
+        4720
+      ],
+      "writes": [
+        2048,
+        2048
+      ],
+      "checked_write_events": 4096,
+      "performance": [
+        [
+          4720,
+          528,
+          0,
+          0,
+          528,
+          528,
+          512,
+          0,
+          0,
+          512,
+          0,
+          2048,
+          512,
+          0,
+          512,
+          1824,
+          64,
+          4,
+          1,
+          4,
+          2048,
+          512,
+          0,
+          0
+        ],
+        [
+          4720,
+          528,
+          0,
+          0,
+          528,
+          528,
+          512,
+          0,
+          0,
+          512,
+          0,
+          2048,
+          512,
+          0,
+          512,
+          1824,
+          64,
+          4,
+          1,
+          4,
+          2048,
+          512,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            4720,
+            257,
+            11,
+            0,
+            512,
+            1824,
+            512
+          ]
+        ],
+        [
+          [
+            0,
+            4720,
+            257,
+            11,
+            0,
+            512,
+            1824,
+            512
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_oc256_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 4720,
+        "model_requests": 528,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 528,
+        "model_wait_response_cycles": 528,
+        "activation_requests": 512,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 512,
+        "activation_wait_response_cycles": 0,
+        "writes": 2048,
+        "mac_issues": 512,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 512,
+        "mac_wait_slot_cycles": 1824,
+        "kernel_prepare_cycles": 64,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 1,
+        "inflight_peak": 4,
+        "post_lanes": 2048,
+        "gather_contiguous_groups": 512,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 1808,
+        "useful_macs": 32768,
+        "issue_duty_pct": 10.847457627118644,
+        "useful_array_util_pct": 10.847457627118644,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_compute_k64_p16_c8_f1_j0",
+      "commands": 516,
+      "bytes": 352,
+      "peak": 576,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        383,
+        383
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "performance": [
+        [
+          383,
+          88,
+          0,
+          0,
+          88,
+          88,
+          128,
+          41,
+          1,
+          128,
+          0,
+          64,
+          128,
+          45,
+          34,
+          57,
+          16,
+          4,
+          2,
+          14,
+          64,
+          128,
+          0,
+          0
+        ],
+        [
+          383,
+          88,
+          0,
+          0,
+          88,
+          88,
+          128,
+          41,
+          1,
+          128,
+          0,
+          64,
+          128,
+          45,
+          34,
+          57,
+          16,
+          4,
+          2,
+          14,
+          64,
+          128,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            383,
+            257,
+            11,
+            45,
+            34,
+            57,
+            128
+          ]
+        ],
+        [
+          [
+            0,
+            383,
+            257,
+            11,
+            45,
+            34,
+            57,
+            128
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_compute_k64_p16_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 383,
+        "model_requests": 88,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 88,
+        "model_wait_response_cycles": 88,
+        "activation_requests": 128,
+        "activation_stall_cycles": 41,
+        "activation_max_stall": 1,
+        "activation_responses": 128,
+        "activation_wait_response_cycles": 0,
+        "writes": 64,
+        "mac_issues": 128,
+        "mac_wait_activation_cycles": 45,
+        "mac_wait_weight_cycles": 34,
+        "mac_wait_slot_cycles": 57,
+        "kernel_prepare_cycles": 16,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 14,
+        "post_lanes": 64,
+        "gather_contiguous_groups": 128,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 8192,
+        "issue_duty_pct": 33.420365535248045,
+        "useful_array_util_pct": 33.420365535248045,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_compute_k64_p64_c8_f1_j0",
+      "commands": 1380,
+      "bytes": 352,
+      "peak": 2304,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        1181,
+        1181
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "performance": [
+        [
+          1181,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          153,
+          1,
+          512,
+          0,
+          256,
+          512,
+          167,
+          106,
+          229,
+          64,
+          4,
+          2,
+          14,
+          256,
+          512,
+          0,
+          0
+        ],
+        [
+          1181,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          153,
+          1,
+          512,
+          0,
+          256,
+          512,
+          167,
+          106,
+          229,
+          64,
+          4,
+          2,
+          14,
+          256,
+          512,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1181,
+            257,
+            11,
+            167,
+            106,
+            229,
+            512
+          ]
+        ],
+        [
+          [
+            0,
+            1181,
+            257,
+            11,
+            167,
+            106,
+            229,
+            512
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_compute_k64_p64_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 1181,
+        "model_requests": 280,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 280,
+        "model_wait_response_cycles": 280,
+        "activation_requests": 512,
+        "activation_stall_cycles": 153,
+        "activation_max_stall": 1,
+        "activation_responses": 512,
+        "activation_wait_response_cycles": 0,
+        "writes": 256,
+        "mac_issues": 512,
+        "mac_wait_activation_cycles": 167,
+        "mac_wait_weight_cycles": 106,
+        "mac_wait_slot_cycles": 229,
+        "kernel_prepare_cycles": 64,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 14,
+        "post_lanes": 256,
+        "gather_contiguous_groups": 512,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 32768,
+        "issue_duty_pct": 43.353090601185436,
+        "useful_array_util_pct": 43.353090601185436,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_compute_k64_p128_c8_f1_j0",
+      "commands": 2532,
+      "bytes": 352,
+      "peak": 4608,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        2241,
+        2241
+      ],
+      "writes": [
+        512,
+        512
+      ],
+      "checked_write_events": 1024,
+      "performance": [
+        [
+          2241,
+          536,
+          0,
+          0,
+          536,
+          536,
+          1024,
+          301,
+          1,
+          1024,
+          0,
+          512,
+          1024,
+          331,
+          202,
+          453,
+          128,
+          4,
+          2,
+          14,
+          512,
+          1024,
+          0,
+          0
+        ],
+        [
+          2241,
+          536,
+          0,
+          0,
+          536,
+          536,
+          1024,
+          301,
+          1,
+          1024,
+          0,
+          512,
+          1024,
+          331,
+          202,
+          453,
+          128,
+          4,
+          2,
+          14,
+          512,
+          1024,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            2241,
+            257,
+            11,
+            331,
+            202,
+            453,
+            1024
+          ]
+        ],
+        [
+          [
+            0,
+            2241,
+            257,
+            11,
+            331,
+            202,
+            453,
+            1024
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_compute_k64_p128_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 2241,
+        "model_requests": 536,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 536,
+        "model_wait_response_cycles": 536,
+        "activation_requests": 1024,
+        "activation_stall_cycles": 301,
+        "activation_max_stall": 1,
+        "activation_responses": 1024,
+        "activation_wait_response_cycles": 0,
+        "writes": 512,
+        "mac_issues": 1024,
+        "mac_wait_activation_cycles": 331,
+        "mac_wait_weight_cycles": 202,
+        "mac_wait_slot_cycles": 453,
+        "kernel_prepare_cycles": 128,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 14,
+        "post_lanes": 512,
+        "gather_contiguous_groups": 1024,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 65536,
+        "issue_duty_pct": 45.69388665774208,
+        "useful_array_util_pct": 45.69388665774208,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_compute_k256_p16_c8_f1_j0",
+      "commands": 1476,
+      "bytes": 1120,
+      "peak": 2112,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        1031,
+        1031
+      ],
+      "writes": [
+        64,
+        64
+      ],
+      "checked_write_events": 128,
+      "performance": [
+        [
+          1031,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          173,
+          1,
+          512,
+          0,
+          64,
+          512,
+          189,
+          106,
+          57,
+          64,
+          4,
+          2,
+          14,
+          64,
+          512,
+          0,
+          0
+        ],
+        [
+          1031,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          173,
+          1,
+          512,
+          0,
+          64,
+          512,
+          189,
+          106,
+          57,
+          64,
+          4,
+          2,
+          14,
+          64,
+          512,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1031,
+            257,
+            11,
+            189,
+            106,
+            57,
+            512
+          ]
+        ],
+        [
+          [
+            0,
+            1031,
+            257,
+            11,
+            189,
+            106,
+            57,
+            512
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_compute_k256_p16_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 1031,
+        "model_requests": 280,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 280,
+        "model_wait_response_cycles": 280,
+        "activation_requests": 512,
+        "activation_stall_cycles": 173,
+        "activation_max_stall": 1,
+        "activation_responses": 512,
+        "activation_wait_response_cycles": 0,
+        "writes": 64,
+        "mac_issues": 512,
+        "mac_wait_activation_cycles": 189,
+        "mac_wait_weight_cycles": 106,
+        "mac_wait_slot_cycles": 57,
+        "kernel_prepare_cycles": 64,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 14,
+        "post_lanes": 64,
+        "gather_contiguous_groups": 512,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 32768,
+        "issue_duty_pct": 49.66052376333656,
+        "useful_array_util_pct": 49.66052376333656,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_compute_k256_p32_c8_f1_j0",
+      "commands": 2532,
+      "bytes": 1120,
+      "peak": 4224,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        1947,
+        1947
+      ],
+      "writes": [
+        128,
+        128
+      ],
+      "checked_write_events": 256,
+      "performance": [
+        [
+          1947,
+          536,
+          0,
+          0,
+          536,
+          536,
+          1024,
+          343,
+          1,
+          1024,
+          0,
+          128,
+          1024,
+          373,
+          202,
+          117,
+          128,
+          4,
+          2,
+          14,
+          128,
+          1024,
+          0,
+          0
+        ],
+        [
+          1947,
+          536,
+          0,
+          0,
+          536,
+          536,
+          1024,
+          343,
+          1,
+          1024,
+          0,
+          128,
+          1024,
+          373,
+          202,
+          117,
+          128,
+          4,
+          2,
+          14,
+          128,
+          1024,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1947,
+            257,
+            11,
+            373,
+            202,
+            117,
+            1024
+          ]
+        ],
+        [
+          [
+            0,
+            1947,
+            257,
+            11,
+            373,
+            202,
+            117,
+            1024
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_compute_k256_p32_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 1947,
+        "model_requests": 536,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 536,
+        "model_wait_response_cycles": 536,
+        "activation_requests": 1024,
+        "activation_stall_cycles": 343,
+        "activation_max_stall": 1,
+        "activation_responses": 1024,
+        "activation_wait_response_cycles": 0,
+        "writes": 128,
+        "mac_issues": 1024,
+        "mac_wait_activation_cycles": 373,
+        "mac_wait_weight_cycles": 202,
+        "mac_wait_slot_cycles": 117,
+        "kernel_prepare_cycles": 128,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 14,
+        "post_lanes": 128,
+        "gather_contiguous_groups": 1024,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 65536,
+        "issue_duty_pct": 52.59373394966615,
+        "useful_array_util_pct": 52.59373394966615,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_post_k1_q0_c8_f1_j0",
+      "commands": 1212,
+      "bytes": 128,
+      "peak": 2080,
+      "groups": [
+        [
+          "Conv"
+        ]
+      ],
+      "cycles": [
+        627,
+        627
+      ],
+      "writes": [
+        512,
+        512
+      ],
+      "checked_write_events": 1024,
+      "performance": [
+        [
+          627,
+          28,
+          0,
+          0,
+          28,
+          28,
+          64,
+          1,
+          1,
+          64,
+          0,
+          512,
+          64,
+          4,
+          2,
+          404,
+          36,
+          4,
+          2,
+          4,
+          512,
+          64,
+          0,
+          0
+        ],
+        [
+          627,
+          28,
+          0,
+          0,
+          28,
+          28,
+          64,
+          1,
+          1,
+          64,
+          0,
+          512,
+          64,
+          4,
+          2,
+          404,
+          36,
+          4,
+          2,
+          4,
+          512,
+          64,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            627,
+            4097,
+            11,
+            4,
+            2,
+            404,
+            64
+          ]
+        ],
+        [
+          [
+            0,
+            627,
+            4097,
+            11,
+            4,
+            2,
+            404,
+            64
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_post_k1_q0_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 627,
+        "model_requests": 28,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 28,
+        "model_wait_response_cycles": 28,
+        "activation_requests": 64,
+        "activation_stall_cycles": 1,
+        "activation_max_stall": 1,
+        "activation_responses": 64,
+        "activation_wait_response_cycles": 0,
+        "writes": 512,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 4,
+        "mac_wait_weight_cycles": 2,
+        "mac_wait_slot_cycles": 404,
+        "kernel_prepare_cycles": 36,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 512,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 117,
+        "useful_macs": 512,
+        "issue_duty_pct": 10.207336523125997,
+        "useful_array_util_pct": 1.2759170653907497,
+        "logical_work_per_issued_capacity_pct": 12.5
+      }
+    },
+    {
+      "case": "limit_post_k1_q1_c8_f1_j0",
+      "commands": 316,
+      "bytes": 128,
+      "peak": 288,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        436,
+        436
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "performance": [
+        [
+          436,
+          28,
+          0,
+          0,
+          28,
+          28,
+          64,
+          1,
+          1,
+          64,
+          0,
+          256,
+          64,
+          4,
+          2,
+          227,
+          36,
+          4,
+          2,
+          4,
+          256,
+          64,
+          0,
+          0
+        ],
+        [
+          436,
+          28,
+          0,
+          0,
+          28,
+          28,
+          64,
+          1,
+          1,
+          64,
+          0,
+          256,
+          64,
+          4,
+          2,
+          227,
+          36,
+          4,
+          2,
+          4,
+          256,
+          64,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            436,
+            257,
+            11,
+            4,
+            2,
+            227,
+            64
+          ]
+        ],
+        [
+          [
+            0,
+            436,
+            257,
+            11,
+            4,
+            2,
+            227,
+            64
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_post_k1_q1_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 436,
+        "model_requests": 28,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 28,
+        "model_wait_response_cycles": 28,
+        "activation_requests": 64,
+        "activation_stall_cycles": 1,
+        "activation_max_stall": 1,
+        "activation_responses": 64,
+        "activation_wait_response_cycles": 0,
+        "writes": 256,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 4,
+        "mac_wait_weight_cycles": 2,
+        "mac_wait_slot_cycles": 227,
+        "kernel_prepare_cycles": 36,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 256,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 512,
+        "issue_duty_pct": 14.678899082568808,
+        "useful_array_util_pct": 1.834862385321101,
+        "logical_work_per_issued_capacity_pct": 12.5
+      }
+    },
+    {
+      "case": "limit_post_k8_q0_c8_f1_j0",
+      "commands": 1324,
+      "bytes": 128,
+      "peak": 2304,
+      "groups": [
+        [
+          "Conv"
+        ]
+      ],
+      "cycles": [
+        697,
+        697
+      ],
+      "writes": [
+        512,
+        512
+      ],
+      "checked_write_events": 1024,
+      "performance": [
+        [
+          697,
+          56,
+          0,
+          0,
+          56,
+          56,
+          64,
+          3,
+          1,
+          64,
+          0,
+          512,
+          64,
+          2,
+          16,
+          490,
+          8,
+          4,
+          2,
+          4,
+          512,
+          64,
+          0,
+          0
+        ],
+        [
+          697,
+          56,
+          0,
+          0,
+          56,
+          56,
+          64,
+          3,
+          1,
+          64,
+          0,
+          512,
+          64,
+          2,
+          16,
+          490,
+          8,
+          4,
+          2,
+          4,
+          512,
+          64,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            697,
+            4097,
+            11,
+            2,
+            16,
+            490,
+            64
+          ]
+        ],
+        [
+          [
+            0,
+            697,
+            4097,
+            11,
+            2,
+            16,
+            490,
+            64
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_post_k8_q0_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 697,
+        "model_requests": 56,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 56,
+        "model_wait_response_cycles": 56,
+        "activation_requests": 64,
+        "activation_stall_cycles": 3,
+        "activation_max_stall": 1,
+        "activation_responses": 64,
+        "activation_wait_response_cycles": 0,
+        "writes": 512,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 2,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 490,
+        "kernel_prepare_cycles": 8,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 512,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 117,
+        "useful_macs": 4096,
+        "issue_duty_pct": 9.182209469153515,
+        "useful_array_util_pct": 9.182209469153515,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_post_k8_q1_c8_f1_j0",
+      "commands": 428,
+      "bytes": 128,
+      "peak": 512,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        448,
+        448
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "performance": [
+        [
+          448,
+          56,
+          0,
+          0,
+          56,
+          56,
+          64,
+          5,
+          1,
+          64,
+          0,
+          256,
+          64,
+          2,
+          16,
+          255,
+          8,
+          4,
+          2,
+          4,
+          256,
+          64,
+          0,
+          0
+        ],
+        [
+          448,
+          56,
+          0,
+          0,
+          56,
+          56,
+          64,
+          5,
+          1,
+          64,
+          0,
+          256,
+          64,
+          2,
+          16,
+          255,
+          8,
+          4,
+          2,
+          4,
+          256,
+          64,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            448,
+            257,
+            11,
+            2,
+            16,
+            255,
+            64
+          ]
+        ],
+        [
+          [
+            0,
+            448,
+            257,
+            11,
+            2,
+            16,
+            255,
+            64
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_post_k8_q1_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 448,
+        "model_requests": 56,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 56,
+        "model_wait_response_cycles": 56,
+        "activation_requests": 64,
+        "activation_stall_cycles": 5,
+        "activation_max_stall": 1,
+        "activation_responses": 64,
+        "activation_wait_response_cycles": 0,
+        "writes": 256,
+        "mac_issues": 64,
+        "mac_wait_activation_cycles": 2,
+        "mac_wait_weight_cycles": 16,
+        "mac_wait_slot_cycles": 255,
+        "kernel_prepare_cycles": 8,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 4,
+        "post_lanes": 256,
+        "gather_contiguous_groups": 64,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 4096,
+        "issue_duty_pct": 14.285714285714286,
+        "useful_array_util_pct": 14.285714285714286,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_post_k64_q0_c8_f1_j0",
+      "commands": 2276,
+      "bytes": 352,
+      "peak": 4096,
+      "groups": [
+        [
+          "Conv"
+        ]
+      ],
+      "cycles": [
+        1398,
+        1398
+      ],
+      "writes": [
+        512,
+        512
+      ],
+      "checked_write_events": 1024,
+      "performance": [
+        [
+          1398,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          152,
+          1,
+          512,
+          0,
+          512,
+          512,
+          167,
+          106,
+          432,
+          64,
+          4,
+          2,
+          14,
+          512,
+          512,
+          0,
+          0
+        ],
+        [
+          1398,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          152,
+          1,
+          512,
+          0,
+          512,
+          512,
+          167,
+          106,
+          432,
+          64,
+          4,
+          2,
+          14,
+          512,
+          512,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1398,
+            4097,
+            11,
+            167,
+            106,
+            432,
+            512
+          ]
+        ],
+        [
+          [
+            0,
+            1398,
+            4097,
+            11,
+            167,
+            106,
+            432,
+            512
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_post_k64_q0_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 1398,
+        "model_requests": 280,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 280,
+        "model_wait_response_cycles": 280,
+        "activation_requests": 512,
+        "activation_stall_cycles": 152,
+        "activation_max_stall": 1,
+        "activation_responses": 512,
+        "activation_wait_response_cycles": 0,
+        "writes": 512,
+        "mac_issues": 512,
+        "mac_wait_activation_cycles": 167,
+        "mac_wait_weight_cycles": 106,
+        "mac_wait_slot_cycles": 432,
+        "kernel_prepare_cycles": 64,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 14,
+        "post_lanes": 512,
+        "gather_contiguous_groups": 512,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 117,
+        "useful_macs": 32768,
+        "issue_duty_pct": 36.62374821173105,
+        "useful_array_util_pct": 36.62374821173105,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "limit_post_k64_q1_c8_f1_j0",
+      "commands": 1380,
+      "bytes": 352,
+      "peak": 2304,
+      "groups": [
+        [
+          "Conv",
+          "Requant"
+        ]
+      ],
+      "cycles": [
+        1181,
+        1181
+      ],
+      "writes": [
+        256,
+        256
+      ],
+      "checked_write_events": 512,
+      "performance": [
+        [
+          1181,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          153,
+          1,
+          512,
+          0,
+          256,
+          512,
+          167,
+          106,
+          229,
+          64,
+          4,
+          2,
+          14,
+          256,
+          512,
+          0,
+          0
+        ],
+        [
+          1181,
+          280,
+          0,
+          0,
+          280,
+          280,
+          512,
+          153,
+          1,
+          512,
+          0,
+          256,
+          512,
+          167,
+          106,
+          229,
+          64,
+          4,
+          2,
+          14,
+          256,
+          512,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            1181,
+            257,
+            11,
+            167,
+            106,
+            229,
+            512
+          ]
+        ],
+        [
+          [
+            0,
+            1181,
+            257,
+            11,
+            167,
+            106,
+            229,
+            512
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/limit_post_k64_q1_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 1181,
+        "model_requests": 280,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 280,
+        "model_wait_response_cycles": 280,
+        "activation_requests": 512,
+        "activation_stall_cycles": 153,
+        "activation_max_stall": 1,
+        "activation_responses": 512,
+        "activation_wait_response_cycles": 0,
+        "writes": 256,
+        "mac_issues": 512,
+        "mac_wait_activation_cycles": 167,
+        "mac_wait_weight_cycles": 106,
+        "mac_wait_slot_cycles": 229,
+        "kernel_prepare_cycles": 64,
+        "result_slots_peak": 4,
+        "weight_banks_peak": 2,
+        "inflight_peak": 14,
+        "post_lanes": 256,
+        "gather_contiguous_groups": 512,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 103,
+        "useful_macs": 32768,
+        "issue_duty_pct": 43.353090601185436,
+        "useful_array_util_pct": 43.353090601185436,
+        "logical_work_per_issued_capacity_pct": 100.0
+      }
+    },
+    {
+      "case": "max_k_int4_c8_f1_j0",
+      "commands": 927,
+      "bytes": 2116,
+      "peak": 516,
+      "groups": [
+        [
+          "FC"
+        ]
+      ],
+      "cycles": [
+        2394,
+        2394
+      ],
+      "writes": [
+        1,
+        1
+      ],
+      "checked_write_events": 2,
+      "performance": [
+        [
+          2394,
+          1041,
+          0,
+          0,
+          1041,
+          1048,
+          128,
+          127,
+          1,
+          128,
+          0,
+          1,
+          128,
+          0,
+          1928,
+          0,
+          256,
+          1,
+          1,
+          1,
+          1,
+          128,
+          0,
+          0
+        ],
+        [
+          2394,
+          1041,
+          0,
+          0,
+          1041,
+          1048,
+          128,
+          127,
+          1,
+          128,
+          0,
+          1,
+          128,
+          0,
+          1928,
+          0,
+          256,
+          1,
+          1,
+          1,
+          1,
+          128,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            2394,
+            4098,
+            11,
+            0,
+            1928,
+            0,
+            128
+          ]
+        ],
+        [
+          [
+            0,
+            2394,
+            4098,
+            11,
+            0,
+            1928,
+            0,
+            128
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/max_k_int4_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 2394,
+        "model_requests": 1041,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 1041,
+        "model_wait_response_cycles": 1048,
+        "activation_requests": 128,
+        "activation_stall_cycles": 127,
+        "activation_max_stall": 1,
+        "activation_responses": 128,
+        "activation_wait_response_cycles": 0,
+        "writes": 1,
+        "mac_issues": 128,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 1928,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 256,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 1,
+        "inflight_peak": 1,
+        "post_lanes": 1,
+        "gather_contiguous_groups": 128,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 82,
+        "useful_macs": 1024,
+        "issue_duty_pct": 5.3467000835421885,
+        "useful_array_util_pct": 0.6683375104427736,
+        "logical_work_per_issued_capacity_pct": 12.5
+      }
+    },
+    {
+      "case": "full_activation_c8_f1_j0",
+      "commands": 4252,
+      "bytes": 64,
+      "peak": 4096,
+      "groups": [
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        32832,
+        32832
+      ],
+      "writes": [
+        8192,
+        8192
+      ],
+      "checked_write_events": 16384,
+      "performance": [
+        [
+          32832,
+          16,
+          0,
+          0,
+          16,
+          16,
+          8192,
+          0,
+          0,
+          8192,
+          0,
+          8192,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          8192,
+          0,
+          0,
+          0
+        ],
+        [
+          32832,
+          16,
+          0,
+          0,
+          16,
+          16,
+          8192,
+          0,
+          0,
+          8192,
+          0,
+          8192,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          8192,
+          0,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            32832,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            32832,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/full_activation_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 32832,
+        "model_requests": 16,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 16,
+        "model_wait_response_cycles": 16,
+        "activation_requests": 8192,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 8192,
+        "activation_wait_response_cycles": 0,
+        "writes": 8192,
+        "mac_issues": 0,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 0,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 0,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 0,
+        "inflight_peak": 0,
+        "post_lanes": 8192,
+        "gather_contiguous_groups": 0,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 32832,
+        "useful_macs": 0,
+        "issue_duty_pct": 0.0,
+        "useful_array_util_pct": 0.0,
+        "logical_work_per_issued_capacity_pct": 0
+      }
+    },
+    {
+      "case": "full_activation_8k_c8_f1_j0",
+      "commands": 8348,
+      "bytes": 64,
+      "peak": 8192,
+      "groups": [
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        65600,
+        65600
+      ],
+      "writes": [
+        16384,
+        16384
+      ],
+      "checked_write_events": 32768,
+      "performance": [
+        [
+          65600,
+          16,
+          0,
+          0,
+          16,
+          16,
+          16384,
+          0,
+          0,
+          16384,
+          0,
+          16384,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          16384,
+          0,
+          0,
+          0
+        ],
+        [
+          65600,
+          16,
+          0,
+          0,
+          16,
+          16,
+          16384,
+          0,
+          0,
+          16384,
+          0,
+          16384,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          16384,
+          0,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            65600,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            65600,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/full_activation_8k_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 65600,
+        "model_requests": 16,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 16,
+        "model_wait_response_cycles": 16,
+        "activation_requests": 16384,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 16384,
+        "activation_wait_response_cycles": 0,
+        "writes": 16384,
+        "mac_issues": 0,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 0,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 0,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 0,
+        "inflight_peak": 0,
+        "post_lanes": 16384,
+        "gather_contiguous_groups": 0,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 65600,
+        "useful_macs": 0,
+        "issue_duty_pct": 0.0,
+        "useful_array_util_pct": 0.0,
+        "logical_work_per_issued_capacity_pct": 0
+      }
+    },
+    {
+      "case": "descriptors_17_c8_f1_j0",
+      "commands": 680,
+      "bytes": 1088,
+      "peak": 12,
+      "groups": [
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        2210,
+        2210
+      ],
+      "writes": [
+        153,
+        153
+      ],
+      "checked_write_events": 306,
+      "performance": [
+        [
+          2210,
+          272,
+          0,
+          0,
+          272,
+          272,
+          51,
+          0,
+          0,
+          51,
+          0,
+          153,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          153,
+          0,
+          0,
+          0
+        ],
+        [
+          2210,
+          272,
+          0,
+          0,
+          272,
+          272,
+          51,
+          0,
+          0,
+          51,
+          0,
+          153,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          153,
+          0,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            114,
+            230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            230,
+            348,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            348,
+            468,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            468,
+            590,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            590,
+            714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            714,
+            840,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            840,
+            968,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            968,
+            1098,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1098,
+            1230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1230,
+            1364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1364,
+            1500,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1500,
+            1638,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1638,
+            1778,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1778,
+            1920,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1920,
+            2064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2064,
+            2210,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            114,
+            230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            230,
+            348,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            348,
+            468,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            468,
+            590,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            590,
+            714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            714,
+            840,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            840,
+            968,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            968,
+            1098,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1098,
+            1230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1230,
+            1364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1364,
+            1500,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1500,
+            1638,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1638,
+            1778,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1778,
+            1920,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1920,
+            2064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2064,
+            2210,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/descriptors_17_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 2210,
+        "model_requests": 272,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 272,
+        "model_wait_response_cycles": 272,
+        "activation_requests": 51,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 51,
+        "activation_wait_response_cycles": 0,
+        "writes": 153,
+        "mac_issues": 0,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 0,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 0,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 0,
+        "inflight_peak": 0,
+        "post_lanes": 153,
+        "gather_contiguous_groups": 0,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 2210,
+        "useful_macs": 0,
+        "issue_duty_pct": 0.0,
+        "useful_array_util_pct": 0.0,
+        "logical_work_per_issued_capacity_pct": 0
+      }
+    },
+    {
+      "case": "descriptors_64_c8_f1_j0",
+      "commands": 2184,
+      "bytes": 4096,
+      "peak": 12,
+      "groups": [
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        11328,
+        11328
+      ],
+      "writes": [
+        576,
+        576
+      ],
+      "checked_write_events": 1152,
+      "performance": [
+        [
+          11328,
+          1024,
+          0,
+          0,
+          1024,
+          1024,
+          192,
+          0,
+          0,
+          192,
+          0,
+          576,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          576,
+          0,
+          0,
+          0
+        ],
+        [
+          11328,
+          1024,
+          0,
+          0,
+          1024,
+          1024,
+          192,
+          0,
+          0,
+          192,
+          0,
+          576,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          576,
+          0,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            114,
+            230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            230,
+            348,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            348,
+            468,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            468,
+            590,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            590,
+            714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            714,
+            840,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            840,
+            968,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            968,
+            1098,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1098,
+            1230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1230,
+            1364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1364,
+            1500,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1500,
+            1638,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1638,
+            1778,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1778,
+            1920,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1920,
+            2064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2064,
+            2210,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2210,
+            2358,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2358,
+            2508,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2508,
+            2660,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2660,
+            2814,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2814,
+            2970,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2970,
+            3128,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3128,
+            3288,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3288,
+            3450,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3450,
+            3614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3614,
+            3780,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3780,
+            3948,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3948,
+            4118,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4118,
+            4290,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4290,
+            4464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4464,
+            4640,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4640,
+            4818,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4818,
+            4998,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4998,
+            5180,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5180,
+            5364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5364,
+            5550,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5550,
+            5738,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5738,
+            5928,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5928,
+            6120,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6120,
+            6314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6314,
+            6510,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6510,
+            6708,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6708,
+            6908,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6908,
+            7110,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7110,
+            7314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7314,
+            7520,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7520,
+            7728,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7728,
+            7938,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7938,
+            8150,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8150,
+            8364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8364,
+            8580,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8580,
+            8798,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8798,
+            9018,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9018,
+            9240,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9240,
+            9464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9464,
+            9690,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9690,
+            9918,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9918,
+            10148,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10148,
+            10380,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10380,
+            10614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10614,
+            10850,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10850,
+            11088,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11088,
+            11328,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            114,
+            230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            230,
+            348,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            348,
+            468,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            468,
+            590,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            590,
+            714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            714,
+            840,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            840,
+            968,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            968,
+            1098,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1098,
+            1230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1230,
+            1364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1364,
+            1500,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1500,
+            1638,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1638,
+            1778,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1778,
+            1920,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1920,
+            2064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2064,
+            2210,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2210,
+            2358,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2358,
+            2508,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2508,
+            2660,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2660,
+            2814,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2814,
+            2970,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2970,
+            3128,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3128,
+            3288,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3288,
+            3450,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3450,
+            3614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3614,
+            3780,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3780,
+            3948,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3948,
+            4118,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4118,
+            4290,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4290,
+            4464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4464,
+            4640,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4640,
+            4818,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4818,
+            4998,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4998,
+            5180,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5180,
+            5364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5364,
+            5550,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5550,
+            5738,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5738,
+            5928,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5928,
+            6120,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6120,
+            6314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6314,
+            6510,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6510,
+            6708,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6708,
+            6908,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6908,
+            7110,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7110,
+            7314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7314,
+            7520,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7520,
+            7728,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7728,
+            7938,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7938,
+            8150,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8150,
+            8364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8364,
+            8580,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8580,
+            8798,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8798,
+            9018,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9018,
+            9240,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9240,
+            9464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9464,
+            9690,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9690,
+            9918,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9918,
+            10148,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10148,
+            10380,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10380,
+            10614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10614,
+            10850,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10850,
+            11088,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11088,
+            11328,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/descriptors_64_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 11328,
+        "model_requests": 1024,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 1024,
+        "model_wait_response_cycles": 1024,
+        "activation_requests": 192,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 192,
+        "activation_wait_response_cycles": 0,
+        "writes": 576,
+        "mac_issues": 0,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 0,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 0,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 0,
+        "inflight_peak": 0,
+        "post_lanes": 576,
+        "gather_contiguous_groups": 0,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 11328,
+        "useful_macs": 0,
+        "issue_duty_pct": 0.0,
+        "useful_array_util_pct": 0.0,
+        "logical_work_per_issued_capacity_pct": 0
+      }
+    },
+    {
+      "case": "descriptors_128_c8_f1_j0",
+      "commands": 4232,
+      "bytes": 8192,
+      "peak": 12,
+      "groups": [
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ],
+        [
+          "ReLU"
+        ]
+      ],
+      "cycles": [
+        30848,
+        30848
+      ],
+      "writes": [
+        1152,
+        1152
+      ],
+      "checked_write_events": 2304,
+      "performance": [
+        [
+          30848,
+          2048,
+          0,
+          0,
+          2048,
+          2048,
+          384,
+          0,
+          0,
+          384,
+          0,
+          1152,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1152,
+          0,
+          0,
+          0
+        ],
+        [
+          30848,
+          2048,
+          0,
+          0,
+          2048,
+          2048,
+          384,
+          0,
+          0,
+          384,
+          0,
+          1152,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1152,
+          0,
+          0,
+          0
+        ]
+      ],
+      "operator_trace": [
+        [
+          [
+            0,
+            114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            114,
+            230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            230,
+            348,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            348,
+            468,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            468,
+            590,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            590,
+            714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            714,
+            840,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            840,
+            968,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            968,
+            1098,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1098,
+            1230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1230,
+            1364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1364,
+            1500,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1500,
+            1638,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1638,
+            1778,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1778,
+            1920,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1920,
+            2064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2064,
+            2210,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2210,
+            2358,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2358,
+            2508,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2508,
+            2660,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2660,
+            2814,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2814,
+            2970,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2970,
+            3128,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3128,
+            3288,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3288,
+            3450,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3450,
+            3614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3614,
+            3780,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3780,
+            3948,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3948,
+            4118,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4118,
+            4290,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4290,
+            4464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4464,
+            4640,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4640,
+            4818,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4818,
+            4998,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4998,
+            5180,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5180,
+            5364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5364,
+            5550,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5550,
+            5738,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5738,
+            5928,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5928,
+            6120,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6120,
+            6314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6314,
+            6510,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6510,
+            6708,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6708,
+            6908,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6908,
+            7110,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7110,
+            7314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7314,
+            7520,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7520,
+            7728,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7728,
+            7938,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7938,
+            8150,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8150,
+            8364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8364,
+            8580,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8580,
+            8798,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8798,
+            9018,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9018,
+            9240,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9240,
+            9464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9464,
+            9690,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9690,
+            9918,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9918,
+            10148,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10148,
+            10380,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10380,
+            10614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10614,
+            10850,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10850,
+            11088,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11088,
+            11328,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11328,
+            11570,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11570,
+            11814,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11814,
+            12060,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12060,
+            12308,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12308,
+            12558,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12558,
+            12810,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12810,
+            13064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13064,
+            13320,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13320,
+            13578,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13578,
+            13838,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13838,
+            14100,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14100,
+            14364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14364,
+            14630,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14630,
+            14898,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14898,
+            15168,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15168,
+            15440,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15440,
+            15714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15714,
+            15990,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15990,
+            16268,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            16268,
+            16548,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            16548,
+            16830,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            16830,
+            17114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17114,
+            17400,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17400,
+            17688,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17688,
+            17978,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17978,
+            18270,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            18270,
+            18564,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            18564,
+            18860,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            18860,
+            19158,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            19158,
+            19458,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            19458,
+            19760,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            19760,
+            20064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20064,
+            20370,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20370,
+            20678,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20678,
+            20988,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20988,
+            21300,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            21300,
+            21614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            21614,
+            21930,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            21930,
+            22248,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            22248,
+            22568,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            22568,
+            22890,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            22890,
+            23214,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            23214,
+            23540,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            23540,
+            23868,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            23868,
+            24198,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            24198,
+            24530,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            24530,
+            24864,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            24864,
+            25200,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            25200,
+            25538,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            25538,
+            25878,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            25878,
+            26220,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            26220,
+            26564,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            26564,
+            26910,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            26910,
+            27258,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            27258,
+            27608,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            27608,
+            27960,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            27960,
+            28314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            28314,
+            28670,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            28670,
+            29028,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            29028,
+            29388,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            29388,
+            29750,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            29750,
+            30114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            30114,
+            30480,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            30480,
+            30848,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ],
+        [
+          [
+            0,
+            114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            114,
+            230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            230,
+            348,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            348,
+            468,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            468,
+            590,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            590,
+            714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            714,
+            840,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            840,
+            968,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            968,
+            1098,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1098,
+            1230,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1230,
+            1364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1364,
+            1500,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1500,
+            1638,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1638,
+            1778,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1778,
+            1920,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            1920,
+            2064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2064,
+            2210,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2210,
+            2358,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2358,
+            2508,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2508,
+            2660,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2660,
+            2814,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2814,
+            2970,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            2970,
+            3128,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3128,
+            3288,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3288,
+            3450,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3450,
+            3614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3614,
+            3780,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3780,
+            3948,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            3948,
+            4118,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4118,
+            4290,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4290,
+            4464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4464,
+            4640,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4640,
+            4818,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4818,
+            4998,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            4998,
+            5180,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5180,
+            5364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5364,
+            5550,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5550,
+            5738,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5738,
+            5928,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            5928,
+            6120,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6120,
+            6314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6314,
+            6510,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6510,
+            6708,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6708,
+            6908,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            6908,
+            7110,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7110,
+            7314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7314,
+            7520,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7520,
+            7728,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7728,
+            7938,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            7938,
+            8150,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8150,
+            8364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8364,
+            8580,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8580,
+            8798,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            8798,
+            9018,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9018,
+            9240,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9240,
+            9464,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9464,
+            9690,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9690,
+            9918,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            9918,
+            10148,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10148,
+            10380,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10380,
+            10614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10614,
+            10850,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            10850,
+            11088,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11088,
+            11328,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11328,
+            11570,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11570,
+            11814,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            11814,
+            12060,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12060,
+            12308,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12308,
+            12558,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12558,
+            12810,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            12810,
+            13064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13064,
+            13320,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13320,
+            13578,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13578,
+            13838,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            13838,
+            14100,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14100,
+            14364,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14364,
+            14630,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14630,
+            14898,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            14898,
+            15168,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15168,
+            15440,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15440,
+            15714,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15714,
+            15990,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            15990,
+            16268,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            16268,
+            16548,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            16548,
+            16830,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            16830,
+            17114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17114,
+            17400,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17400,
+            17688,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17688,
+            17978,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            17978,
+            18270,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            18270,
+            18564,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            18564,
+            18860,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            18860,
+            19158,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            19158,
+            19458,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            19458,
+            19760,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            19760,
+            20064,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20064,
+            20370,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20370,
+            20678,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20678,
+            20988,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            20988,
+            21300,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            21300,
+            21614,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            21614,
+            21930,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            21930,
+            22248,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            22248,
+            22568,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            22568,
+            22890,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            22890,
+            23214,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            23214,
+            23540,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            23540,
+            23868,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            23868,
+            24198,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            24198,
+            24530,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            24530,
+            24864,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            24864,
+            25200,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            25200,
+            25538,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            25538,
+            25878,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            25878,
+            26220,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            26220,
+            26564,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            26564,
+            26910,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            26910,
+            27258,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            27258,
+            27608,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            27608,
+            27960,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            27960,
+            28314,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            28314,
+            28670,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            28670,
+            29028,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            29028,
+            29388,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            29388,
+            29750,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            29750,
+            30114,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            30114,
+            30480,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            30480,
+            30848,
+            4,
+            11,
+            0,
+            0,
+            0,
+            0
+          ]
+        ]
+      ],
+      "tile": 16,
+      "fused": true,
+      "directory": "/Users/mac/Documents/demos/ChipDesign/build/bottlenecks_limits_20261108_final/tile16/descriptors_128_c8_f1_j0",
+      "metrics": {
+        "active_cycles": 30848,
+        "model_requests": 2048,
+        "model_stall_cycles": 0,
+        "model_max_stall": 0,
+        "model_responses": 2048,
+        "model_wait_response_cycles": 2048,
+        "activation_requests": 384,
+        "activation_stall_cycles": 0,
+        "activation_max_stall": 0,
+        "activation_responses": 384,
+        "activation_wait_response_cycles": 0,
+        "writes": 1152,
+        "mac_issues": 0,
+        "mac_wait_activation_cycles": 0,
+        "mac_wait_weight_cycles": 0,
+        "mac_wait_slot_cycles": 0,
+        "kernel_prepare_cycles": 0,
+        "result_slots_peak": 1,
+        "weight_banks_peak": 0,
+        "inflight_peak": 0,
+        "post_lanes": 1152,
+        "gather_contiguous_groups": 0,
+        "gather_scalar_groups": 0,
+        "gather_zero_groups": 0,
+        "other_cycles": 30848,
+        "useful_macs": 0,
+        "issue_duty_pct": 0.0,
+        "useful_array_util_pct": 0.0,
+        "logical_work_per_issued_capacity_pct": 0
+      }
+    }
+  ],
+  "clock_mhz_assumption": 50,
+  "scope": "RTL experiment; two repeats, every materialized tensor write checked; logical MACs include padding zeros"
+}

@@ -1,0 +1,1 @@
+Get-CimInstance Win32_Process -Filter "Name='vivado.exe'" | Where-Object { $_.ProcessId -ne 40204 -and ($_.CommandLine -like '*chipdesign_nocpu_2v9ii684*' -or $_.CommandLine -like '*npu_gather_20261108*margin_from_route.tcl*') } | Select-Object ProcessId,CommandLine | ConvertTo-Json -Compress

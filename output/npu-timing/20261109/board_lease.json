@@ -1,0 +1,6 @@
+{
+  "released": true,
+  "owner_thread": "01a1bba4-ae9f-73a3-93b3-423fcc3dff61",
+  "purpose": "host batch A/B completed; side chat explicitly released FT232H",
+  "require_explicit_release": true
+}

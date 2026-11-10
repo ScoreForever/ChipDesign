@@ -1,0 +1,17 @@
+Generated with built-in imagegen, editing user-supplied Chinese full SoC diagram.
+Preserved Chinese language, pale blue host strip, mint SoC/core groups, white boxes and blue/green links.
+Corrected compute pipeline: MAC -> K accumulation + INT32 bias -> result slots / optional MaxPool -> Q31 Requant / ReLU / clamp -> core output FIFO.
+Cross-region connections use matching named ports to avoid falsely connected long wires:
+M: controller model write -> model SRAM.
+H: controller activation read/write <-> activation adapter.
+R: model SRAM read -> descriptor scheduler / weight loader / parameter cache (shared model read interface, not independent simultaneous physical ports).
+A: activation adapter read -> address generation/gather; independent operators reuse corresponding postprocessing resources.
+W: core output FIFO write -> activation adapter.
+B: parameter cache bias -> INT32 bias addition.
+Q: parameter cache multiplier/shift -> requantizer.
+C: controller validate/run/reset and core completion/status.
+T: weight-bank output -> MAC weights.
+TAP connects only through JTAG and CDC command/response chain; it does not directly access memory.
+IRQ is optional external monitoring; current Python host polls over JTAG.
+Both SRAMs remain single-port. Port labels represent logical connections, not extra SRAM ports.
+This is a functional architecture abstraction, not a cycle-accurate wiring schematic. Optional pool reduces within result slot management; independent operators do not traverse the MAC.

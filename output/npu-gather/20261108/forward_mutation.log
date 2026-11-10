@@ -1,0 +1,2 @@
+FATAL: hardware/npu/tb/tb_npu_forward_priority.sv:40: forward priority head=1 count=8 bitmap=0
+       Time: 4353000  Scope: tb_npu_forward_priority

@@ -1,0 +1,2167 @@
+
+****** Vivado v2025.2 (64-bit)
+  **** SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+  **** IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+  **** SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+  **** Start of session at: Sat Nov  7 08:37:55 2026
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2025 Advanced Micro Devices, Inc. All Rights Reserved.
+
+INFO: [Common 17-1239] XILINX_LOCAL_USER_DATA is set to 'no'.
+source {C:\Users\Lenovo\AppData\Local\Temp\chipdesign_nocpu_6fdyh3pq\source\hardware\fpga\scripts\build_ego1.tcl}
+# set repo [file normalize [lindex $argv 0]]
+# set out [file normalize [lindex $argv 1]]
+# set jobs [lindex $argv 2]
+# set frequency_mhz 50
+# set ppa_mode [expr {[llength $argv] > 3}]
+# set synth_only [expr {[llength $argv] > 4 && [lindex $argv 4] eq "synth_only"}]
+# set array_cols 8
+# if {[llength $argv] > 5} {set array_cols [lindex $argv 5]}
+# if {$array_cols ni {4 8}} {error "Array columns must be 4 or 8"}
+# if {[llength $argv] > 3} { set frequency_mhz [lindex $argv 3] }
+# if {![string is double -strict $frequency_mhz] || $frequency_mhz <= 0} {
+#     error "Output frequency must be positive MHz"
+# }
+# set stage setup
+# set last_stage none
+# set bram_status "Not run"
+# set mainmem_cells {}
+# set mainmem_status "Not measured"
+# set timing_values {}
+# set utilization_file ""
+# set route_override "Not applied"
+# set result FAILED
+# set failure ""
+# proc read_text {path} {
+#     set f [open $path r]
+#     set value [read $f]
+#     close $f
+#     return $value
+# }
+# proc reports {label} {
+#     global out utilization_file timing_values mainmem_cells mainmem_status
+#     set utilization_file [file join $out ${label}_utilization.rpt]
+#     report_utilization -file $utilization_file
+#     report_utilization -hierarchical -file [file join $out ${label}_utilization_hierarchical.rpt]
+#     set timing_file [file join $out ${label}_timing_summary.rpt]
+#     report_timing_summary -delay_type min_max -report_unconstrained -file $timing_file
+#     report_drc -file [file join $out ${label}_drc.rpt]
+#     report_methodology -file [file join $out ${label}_methodology.rpt]
+#     set timing_values {}
+#     # The design timing table has WNS/TNS/failing/total/WHS/THS columns.
+#     if {[regexp {WNS\(ns\)[^\n]*\n[^\n]*\n\s*([-+0-9.]+)\s+([-+0-9.]+)\s+\d+\s+\d+\s+([-+0-9.]+)} [read_text $timing_file] -> wns tns whs]} {
+#         set timing_values [list $wns $tns $whs]
+#     }
+#     set mainmem_cells {}
+#     set mainmem_status "N/A: CPU-less system uses NPU-local storage; no main SRAM"
+# }
+# proc bram_guard {label} {
+#     global repo out bram_status
+#     set bram_status "FAILED at $label"
+#     set guard_failed [catch {source [file join $repo hardware/fpga/check_bram_drc.tcl]} guard_error guard_options]
+#     if {[info exists critical_bram_checks]} {
+#         report_drc -name chipdesign_bram_guard -checks $critical_bram_checks -file [file join $out ${label}_bram_guard.rpt]
+#     }
+#     if {$guard_failed} { return -options $guard_options $guard_error }
+#     set bram_status "PASS at $label: CFGBVS-1, REQP-1839, RBOR-1"
+# }
+# proc summary {} {
+#     global out stage last_stage result failure utilization_file timing_values mainmem_status mainmem_cells bram_status route_override frequency_mhz
+#     set f [open [file join $out summary.md] w]
+#     puts $f "# EGo1 build summary\n"
+#     puts $f "Result: $result"
+#     puts $f "Stage: $stage; last completed stage: $last_stage"
+#     puts $f "Part: xc7a35tcsg324-1; top: fpga_top; CPU-less JTAG controller and programmable five-operator NPU"
+#     puts $f "Clocking Wizard: 100 MHz input, [format %g $frequency_mhz] MHz output, locked enabled, reset disabled"
+#     puts $f "Log: vivado.log"
+#     if {$failure ne ""} { puts $f "\nFailure: $failure" }
+#     puts $f "\n## Resources (latest available stage)\n"
+#     puts $f "| Resource | Used | Available | Utilization (%) |"
+#     puts $f "|---|---:|---:|---:|"
+#     set resource_count 0
+#     set seen_resources {}
+#     if {$utilization_file ne "" && [file exists $utilization_file]} {
+#         foreach line [split [read_text $utilization_file] \n] {
+#             set cols [split $line |]
+#             if {[llength $cols] < 7} { continue }
+#             set name [string trim [lindex $cols 1]]
+#             if {[regexp {^(Slice LUTs|CLB LUTs|Slice Registers|CLB Registers|Block RAM Tile|DSPs|DSP48E1|MMCME2_ADV|MMCM)(\*|$)} $name]} {
+#                 if {[lsearch -exact $seen_resources $name] >= 0} { continue }
+#                 lappend seen_resources $name
+#                 puts $f "| $name | [string trim [lindex $cols 2]] | [string trim [lindex $cols 5]] | [string trim [lindex $cols 6]] |"
+#                 incr resource_count
+#             }
+#         }
+#     }
+#     if {$resource_count == 0} { puts $f "\nResources unavailable; see failure and log." }
+#     puts $f "\n## Timing (latest available stage)\n"
+#     if {[llength $timing_values] == 3} {
+#         lassign $timing_values wns tns whs
+#         puts $f "WNS: $wns ns; TNS: $tns ns; WHS: $whs ns"
+#     } else { puts $f "WNS/TNS/WHS unavailable." }
+#     puts $f "\n## Main SRAM mapping\n\n$mainmem_status"
+#     foreach cell $mainmem_cells { puts $f "- $cell ([get_property REF_NAME $cell])" }
+#     puts $f "\n## Configuration/BRAM DRC\n\n$bram_status"
+#     puts $f "\n## JTAG clock routing\n\n$route_override"
+#     close $f
+# }
+# if {[catch {
+#     cd $out
+#     set_param general.maxThreads $jobs
+#     create_project -in_memory -part xc7a35tcsg324-1
+#     set_property target_language Verilog [current_project]
+#     set_property simulator_language Mixed [current_project]
+#     set stage clock_ip
+#     file mkdir [file join $out ip]
+#     create_ip -name clk_wiz -vendor xilinx.com -library ip -module_name clk_wiz_0 -dir [file join $out ip]
+#     set_property -dict [list CONFIG.PRIM_IN_FREQ {100.000} CONFIG.CLKOUT1_REQUESTED_OUT_FREQ $frequency_mhz CONFIG.USE_RESET {false} CONFIG.USE_LOCKED {true}] [get_ips clk_wiz_0]
+#     generate_target all [get_ips clk_wiz_0]
+#     synth_ip [get_ips clk_wiz_0]
+#     set stage read_sources
+#     set sources {}
+#     set includes {}
+#     foreach line [split [read_text [file join $repo hardware/soc/sim/filelists/chipdesign_nocpu.f]] \n] {
+#         set line [string trim $line]
+#         if {$line eq "" || [string match "#*" $line] || [string match "//*" $line]} { continue }
+#         if {[string match "+incdir+*" $line]} {
+#             lappend includes [file join $repo [string range $line 8 end]]
+#         } elseif {[string index $line 0] eq "+"} {
+#             if {![string match "*.svh" $line]} { error "Unsupported filelist directive: $line" }
+#         } elseif {![string match "hardware/soc/sim/*" $line]} {
+#             lappend sources [file join $repo $line]
+#         }
+#     }
+#     set_property include_dirs $includes [current_fileset]
+#     # Debug traces are off by default: with the ABI 4 operators a yosys XC7
+#     # estimate gives ~15.7k LUT without them versus ~18.9k with them (the
+#     # last board-validated build used 17.3k of 20.8k). Set CHIPDESIGN_TRACE=1
+#     # in the environment to build them in for bring-up.
+#     set trace_defines [expr {[info exists ::env(CHIPDESIGN_TRACE)] && $::env(CHIPDESIGN_TRACE) ? {} : {NPU_ENABLE_WAVE_TRACE=0 NPU_ENABLE_OP_TRACE=0}}]
+#     set_property verilog_define [list SYNTHESIS CHIPDESIGN_FPGA_MEM NPU_ARRAY_COLS=$array_cols {*}$trace_defines] [current_fileset]
+#     read_verilog -sv $sources
+#     read_verilog -sv [file join $repo hardware/fpga/fpga_top.sv]
+#     read_xdc [file join $repo hardware/fpga/ego1_pins.xdc]
+#     read_xdc [file join $repo hardware/fpga/ego1_timing.xdc]
+#     read_xdc [file join $repo hardware/fpga/ego1_configuration.xdc]
+#     set stage synth
+#     synth_design -top fpga_top -part xc7a35tcsg324-1
+#     # This filelist has the dedicated NPU TAP, not the CPU DMI mailbox.
+#     source [file join $repo hardware/fpga/scripts/constrain_npu_jtag_cdc.tcl]
+#     constrain_npu_jtag_cdc
+#     audit_npu_jtag_cdc [file join $out synth_npu_jtag_cdc.tsv]
+#     write_checkpoint -force [file join $out synth.dcp]
+#     reports synth
+#     bram_guard synth
+#     set last_stage synth
+#     if {$synth_only} {
+#         set result PASS_SYNTHESIS_ONLY
+#         set stage complete
+#         set failure ""
+#         summary
+#         puts "PASS EGo1 synthesis only; no implementation/bitstream; summary: [file join $out summary.md]"
+#         exit 0
+#     }
+#     set stage opt
+#     opt_design
+#     write_checkpoint -force [file join $out opt.dcp]
+#     reports opt
+#     bram_guard opt
+#     set last_stage opt
+#     set stage place
+#     if {[catch {place_design} place_error place_options]} {
+#         # Retry only the documented non-dedicated JTAG clock pin failure.
+#         set place_log [read_text [file join $out vivado.log]]
+#         if {![regexp {ERROR: \[Place 30-574\]} $place_log] || ![string match "*tck_i*" $place_log]} {
+#             return -options $place_options $place_error
+#         }
+#         close_design
+#         open_checkpoint [file join $out opt.dcp]
+#         set tck_net [get_nets -of_objects [get_ports tck_i]]
+#         if {[llength $tck_net] != 1} { error "Cannot identify the JTAG clock input net" }
+#         set_property CLOCK_DEDICATED_ROUTE FALSE $tck_net
+#         set route_override "CLOCK_DEDICATED_ROUTE FALSE on $tck_net after Place 30-574 (E15 is not a dedicated clock pin)"
+#         place_design
+#     }
+#     write_checkpoint -force [file join $out place.dcp]
+#     reports place
+#     set last_stage place
+#     set stage route
+#     # Match implement_nocpu.tcl: preserve the clock/I/O/CDC requirements and
+#     # improve placement before routing. The full build must use the same
+#     # physical flow as the source-verified checkpoint implementation helper.
+#     phys_opt_design
+#     route_design
+#     set initial_wns [get_property SLACK [lindex [get_timing_paths -delay_type max -max_paths 1] 0]]
+#     if {$initial_wns < 0} {
+#         phys_opt_design -directive AggressiveExplore
+#         route_design -directive Explore
+#     }
+#     audit_npu_jtag_cdc [file join $out route_npu_jtag_cdc.tsv]
+#     source [file join $repo hardware/fpga/scripts/audit_jtag_io.tcl]
+#     audit_jtag_io [file join $out io_audit]
+#     write_checkpoint -force [file join $out route.dcp]
+#     reports route
+#     report_timing -delay_type max -max_paths 50 -nworst 1 -input_pins -nets -file [file join $out route_setup_paths.rpt]
+#     report_timing -delay_type min -max_paths 20 -nworst 1 -input_pins -nets -file [file join $out route_hold_paths.rpt]
+#     report_high_fanout_nets -max_nets 50 -file [file join $out route_high_fanout.rpt]
+#     report_cdc -details -file [file join $out route_cdc.rpt]
+#     reject_critical_npu_jtag_cdc [file join $out route_cdc.rpt]
+#     report_clock_interaction -file [file join $out route_clock_interaction.rpt]
+#     bram_guard route
+#     if {$ppa_mode} {
+#         # Actual MMCM clock period, rather than the requested wizard frequency.
+#         set soc_clock [get_clocks -of_objects [get_pins u_clk_wiz/clk_out1]]
+#         if {[llength $soc_clock] != 1} { error "Expected one SoC clock" }
+#         set metrics [open [file join $out route_metrics.tsv] w]
+#         puts $metrics "requested_mhz	$frequency_mhz"
+#         puts $metrics "period_ns	[get_property PERIOD $soc_clock]"
+#         puts $metrics "wns_ns	[lindex $timing_values 0]"
+#         puts $metrics "whs_ns	[lindex $timing_values 2]"
+#         close $metrics
+#     }
+#     set last_stage route
+#     set stage write_bitstream
+#     write_bitstream -force [file join $out fpga_top.bit]
+#     set last_stage write_bitstream
+#     set stage acceptance
+#     if {[llength $timing_values] != 3} { error "No timing metrics available" }
+#     lassign $timing_values wns tns whs
+#     if {$wns < 0 || $whs < 0} { error "Timing failed: WNS=$wns ns, WHS=$whs ns" }
+#     # Implemented DRCs and write_bitstream gate resource overflow and routing.
+#     set result PASS
+#     set stage complete
+# } failure options]} {
+#     puts stderr "ERROR: EGo1 build failed at $stage: $failure; log: [file join $out vivado.log]"
+#     puts stderr [dict get $options -errorinfo]
+#     summary
+#     exit 1
+# }
+create_project: Time (s): cpu = 00:00:29 ; elapsed = 00:00:49 . Memory (MB): peak = 565.121 ; gain = 229.043
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/AMDDesignTools/2025.2/Vivado/data/ip'.
+INFO: [Device 21-403] Loading part xc7a35tcsg324-1
+create_ip: Time (s): cpu = 00:00:09 ; elapsed = 00:00:26 . Memory (MB): peak = 806.809 ; gain = 241.688
+INFO: [IP_Flow 19-1686] Generating 'Instantiation Template' target for IP 'clk_wiz_0'...
+INFO: [IP_Flow 19-1686] Generating 'Synthesis' target for IP 'clk_wiz_0'...
+INFO: [IP_Flow 19-1686] Generating 'Simulation' target for IP 'clk_wiz_0'...
+INFO: [IP_Flow 19-1686] Generating 'Implementation' target for IP 'clk_wiz_0'...
+INFO: [IP_Flow 19-1686] Generating 'Change Log' target for IP 'clk_wiz_0'...
+INFO: [IP_Flow 19-234] Refreshing IP repositories
+INFO: [IP_Flow 19-1704] No user IP repositories specified
+INFO: [IP_Flow 19-2313] Loaded Vivado IP repository 'D:/AMDDesignTools/2025.2/Vivado/data/ip'.
+WARNING: [Vivado 12-13650] The IP file 'c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xci' has been moved from its original location, as a result the outputs for this IP will now be generated in 'c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0'. Alternatively a copy of the IP can be imported into the project using one of the 'import_ip' or 'import_files' commands.
+Command: synth_design -top clk_wiz_0 -part xc7a35tcsg324-1 -mode out_of_context
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 54224
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:14 ; elapsed = 00:00:16 . Memory (MB): peak = 1358.668 ; gain = 530.953
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'clk_wiz_0' [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.v:65]
+INFO: [Synth 8-6157] synthesizing module 'clk_wiz_0_clk_wiz' [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_clk_wiz.v:65]
+INFO: [Synth 8-6157] synthesizing module 'IBUF' [D:/AMDDesignTools/2025.2/Vivado/scripts/rt/data/unisim_comp.v:82804]
+INFO: [Synth 8-6155] done synthesizing module 'IBUF' (0#1) [D:/AMDDesignTools/2025.2/Vivado/scripts/rt/data/unisim_comp.v:82804]
+INFO: [Synth 8-6157] synthesizing module 'MMCME2_ADV' [D:/AMDDesignTools/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95844]
+	Parameter BANDWIDTH bound to: OPTIMIZED - type: string 
+	Parameter CLKFBOUT_MULT_F bound to: 1.000000e+01 - type: double 
+	Parameter CLKFBOUT_PHASE bound to: 0.000000e+00 - type: double 
+	Parameter CLKFBOUT_USE_FINE_PS bound to: FALSE - type: string 
+	Parameter CLKIN1_PERIOD bound to: 1.000000e+01 - type: double 
+	Parameter CLKOUT0_DIVIDE_F bound to: 2.000000e+01 - type: double 
+	Parameter CLKOUT0_DUTY_CYCLE bound to: 5.000000e-01 - type: double 
+	Parameter CLKOUT0_PHASE bound to: 0.000000e+00 - type: double 
+	Parameter CLKOUT0_USE_FINE_PS bound to: FALSE - type: string 
+	Parameter CLKOUT4_CASCADE bound to: FALSE - type: string 
+	Parameter COMPENSATION bound to: ZHOLD - type: string 
+	Parameter DIVCLK_DIVIDE bound to: 1 - type: integer 
+	Parameter STARTUP_WAIT bound to: FALSE - type: string 
+INFO: [Synth 8-6155] done synthesizing module 'MMCME2_ADV' (0#1) [D:/AMDDesignTools/2025.2/Vivado/scripts/rt/data/unisim_comp.v:95844]
+INFO: [Synth 8-6157] synthesizing module 'BUFG' [D:/AMDDesignTools/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6155] done synthesizing module 'BUFG' (0#1) [D:/AMDDesignTools/2025.2/Vivado/scripts/rt/data/unisim_comp.v:2678]
+INFO: [Synth 8-6155] done synthesizing module 'clk_wiz_0_clk_wiz' (0#1) [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_clk_wiz.v:65]
+INFO: [Synth 8-6155] done synthesizing module 'clk_wiz_0' (0#1) [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.v:65]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:19 ; elapsed = 00:00:22 . Memory (MB): peak = 1476.680 ; gain = 648.965
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:20 ; elapsed = 00:00:22 . Memory (MB): peak = 1476.680 ; gain = 648.965
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:20 ; elapsed = 00:00:22 . Memory (MB): peak = 1476.680 ; gain = 648.965
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1476.680 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_ooc.xdc] for cell 'inst'
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_ooc.xdc] for cell 'inst'
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_board.xdc] for cell 'inst'
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_board.xdc] for cell 'inst'
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc] for cell 'inst'
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc] for cell 'inst'
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/clk_wiz_0_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/clk_wiz_0_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+INFO: [Timing 38-2] Deriving generated clocks
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1476.680 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.066 . Memory (MB): peak = 1476.680 ; gain = 0.000
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:41 ; elapsed = 00:00:46 . Memory (MB): peak = 1476.680 ; gain = 648.965
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35tcsg324-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:41 ; elapsed = 00:00:46 . Memory (MB): peak = 1476.680 ; gain = 648.965
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:41 ; elapsed = 00:00:46 . Memory (MB): peak = 1476.680 ; gain = 648.965
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:41 ; elapsed = 00:00:47 . Memory (MB): peak = 1476.680 ; gain = 648.965
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:47 ; elapsed = 00:00:53 . Memory (MB): peak = 1477.805 ; gain = 650.090
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:01:01 ; elapsed = 00:01:08 . Memory (MB): peak = 1633.234 ; gain = 805.520
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:01:01 ; elapsed = 00:01:08 . Memory (MB): peak = 1633.234 ; gain = 805.520
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:01:01 ; elapsed = 00:01:08 . Memory (MB): peak = 1642.824 ; gain = 815.109
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+-----------+------+
+|      |Cell       |Count |
++------+-----------+------+
+|1     |BUFG       |     2|
+|2     |MMCME2_ADV |     1|
+|3     |IBUF       |     1|
++------+-----------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 0 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:50 ; elapsed = 00:01:16 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+Synthesis Optimization Complete : Time (s): cpu = 00:01:13 ; elapsed = 00:01:20 . Memory (MB): peak = 1893.746 ; gain = 1066.031
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 1893.746 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 1 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_ooc.xdc] for cell 'inst'
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_ooc.xdc] for cell 'inst'
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_board.xdc] for cell 'inst'
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_board.xdc] for cell 'inst'
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc] for cell 'inst'
+INFO: [Timing 38-35] Done setting XDC timing constraints. [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc:54]
+INFO: [Timing 38-2] Deriving generated clocks [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc:54]
+get_clocks: Time (s): cpu = 00:00:16 ; elapsed = 00:00:18 . Memory (MB): peak = 2327.230 ; gain = 420.621
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc] for cell 'inst'
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 2327.230 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete | Checksum: 50198e6e
+INFO: [Common 17-83] Releasing license: Synthesis
+32 Infos, 1 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:01:34 ; elapsed = 00:01:45 . Memory (MB): peak = 2327.230 ; gain = 1510.488
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.005 . Memory (MB): peak = 2327.230 ; gain = 0.000
+INFO: [Timing 38-480] Writing timing data to binary archive.
+INFO: [Common 17-1381] The checkpoint 'c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.dcp' has been generated.
+INFO: [Vivado 12-3441] generate_netlist_ip - operation complete
+synth_ip: Time (s): cpu = 00:01:38 ; elapsed = 00:01:52 . Memory (MB): peak = 2327.230 ; gain = 1515.430
+Command: synth_design -top fpga_top -part xc7a35tcsg324-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:15 ; elapsed = 00:00:17 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+INFO: [Synth 8-6157] synthesizing module 'fpga_top' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/fpga_top.sv:6]
+INFO: [Synth 8-6157] synthesizing module 'clk_wiz_0' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/.Xil/Vivado-2812-LAPTOP-6R1URLIR/realtime/clk_wiz_0_stub.v:6]
+INFO: [Synth 8-6155] done synthesizing module 'clk_wiz_0' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/.Xil/Vivado-2812-LAPTOP-6R1URLIR/realtime/clk_wiz_0_stub.v:6]
+INFO: [Synth 8-6157] synthesizing module 'my_soc_top' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/my_soc_top.sv:2]
+INFO: [Synth 8-6157] synthesizing module 'npu_jtag_transport' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_jtag_transport.sv:14]
+INFO: [Synth 8-226] default block is never used [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_jtag_transport.sv:56]
+INFO: [Synth 8-6155] done synthesizing module 'npu_jtag_transport' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_jtag_transport.sv:14]
+INFO: [Synth 8-6157] synthesizing module 'npu_control_subsystem' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_control_subsystem.sv:2]
+	Parameter ACT_BYTES bound to: 16384 - type: integer 
+	Parameter MODEL_BYTES bound to: 8192 - type: integer 
+	Parameter COLS bound to: 8 - type: integer 
+	Parameter MAX_OPS bound to: 128 - type: integer 
+	Parameter MAX_K bound to: 1024 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'npu_trace_capture' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:7]
+	Parameter MAX_OPS bound to: 128 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'npu_trace_capture' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:7]
+INFO: [Synth 8-6157] synthesizing module 'npu_command_controller' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_command_controller.sv:4]
+	Parameter ACT_BYTES bound to: 16384 - type: integer 
+	Parameter MODEL_BYTES bound to: 8192 - type: integer 
+	Parameter COLS bound to: 8 - type: integer 
+	Parameter MAX_OPS bound to: 128 - type: integer 
+	Parameter MAX_K bound to: 1024 - type: integer 
+	Parameter DEFAULT_TIMEOUT bound to: 10000000 - type: integer 
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_command_controller.sv:125]
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_command_controller.sv:84]
+INFO: [Synth 8-6155] done synthesizing module 'npu_command_controller' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_command_controller.sv:4]
+INFO: [Synth 8-6157] synthesizing module 'npu_shared_store' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_model_store.sv:42]
+	Parameter BYTES bound to: 16384 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'npu_activation_store' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_activation_store.sv:12]
+	Parameter BYTES bound to: 16384 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'npu_activation_store' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_activation_store.sv:12]
+INFO: [Synth 8-6155] done synthesizing module 'npu_shared_store' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_model_store.sv:42]
+INFO: [Synth 8-6157] synthesizing module 'npu_program_core' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:5]
+	Parameter ACT_BYTES bound to: 16384 - type: integer 
+	Parameter MODEL_BYTES bound to: 8192 - type: integer 
+	Parameter COLS bound to: 8 - type: integer 
+	Parameter SHARED_MODEL bound to: 1 - type: integer 
+	Parameter MAX_OPS bound to: 128 - type: integer 
+	Parameter MAX_K bound to: 1024 - type: integer 
+INFO: [Synth 8-6157] synthesizing module 'requant_lane' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/requant_lane.sv:5]
+	Parameter TAG_WIDTH bound to: 17 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'requant_lane' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/requant_lane.sv:5]
+INFO: [Synth 8-6157] synthesizing module 'requant_lane__parameterized0' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/requant_lane.sv:5]
+	Parameter TAG_WIDTH bound to: 1 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'requant_lane__parameterized0' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/requant_lane.sv:5]
+INFO: [Synth 8-6157] synthesizing module 'npu_mac_array' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_mac_array.sv:13]
+	Parameter ARRAY_ROWS bound to: 8 - type: integer 
+	Parameter ARRAY_COLS bound to: 8 - type: integer 
+	Parameter ACC_WIDTH bound to: 11 - type: integer 
+	Parameter TAG_WIDTH bound to: 6 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'npu_mac_array' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_mac_array.sv:13]
+INFO: [Synth 8-155] case statement is not full and has no default [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:948]
+INFO: [Synth 8-6155] done synthesizing module 'npu_program_core' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:5]
+INFO: [Synth 8-6155] done synthesizing module 'npu_control_subsystem' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_control_subsystem.sv:2]
+INFO: [Synth 8-6155] done synthesizing module 'my_soc_top' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/my_soc_top.sv:2]
+WARNING: [Synth 8-7071] port 'irq_o' of module 'my_soc_top' is unconnected for instance 'u_soc' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/fpga_top.sv:45]
+WARNING: [Synth 8-7023] instance 'u_soc' of module 'my_soc_top' has 7 connections declared, but only 6 given [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/fpga_top.sv:45]
+INFO: [Synth 8-6155] done synthesizing module 'fpga_top' (0#1) [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/fpga_top.sv:6]
+WARNING: [Synth 8-6014] Unused sequential element events_q_reg was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:88]
+WARNING: [Synth 8-6014] Unused sequential element descriptor_q_reg was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:88]
+WARNING: [Synth 8-6014] Unused sequential element previous_active_reg was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:44]
+WARNING: [Synth 8-6014] Unused sequential element previous_pc_reg was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:44]
+WARNING: [Synth 8-6014] Unused sequential element age_reg was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:44]
+WARNING: [Synth 8-6014] Unused sequential element read_word_reg was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:92]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[0] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[1] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[2] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[3] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[4] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[5] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[6] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[7] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[8] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[9] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[10] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[11] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[12] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[13] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[14] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[15] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[16] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[17] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[18] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[19] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[20] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[21] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[22] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[23] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[24] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[25] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[26] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[27] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[28] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[29] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[30] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[31] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[32] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[33] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[34] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[35] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[36] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[37] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[38] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[39] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[40] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[41] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[42] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[43] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[44] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[45] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[46] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[47] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[48] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[49] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[50] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[51] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[52] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[53] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[54] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[55] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[56] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[57] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[58] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[59] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[60] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[61] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[62] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[63] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[64] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[65] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[66] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[67] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[68] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[69] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[70] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[71] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[72] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[73] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[74] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[75] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[76] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[77] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[78] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[79] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[80] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[81] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[82] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[83] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[84] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[85] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[86] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[87] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[88] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[89] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[90] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[91] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[92] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+WARNING: [Synth 8-6014] Unused sequential element op_start_reg[93] was removed.  [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_trace_capture.sv:94]
+INFO: [Common 17-14] Message 'Synth 8-6014' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+WARNING: [Synth 8-4767] Trying to implement RAM 'q_addr_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_activation_store.sv:108]
+Reason is one or more of the following :
+	1: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	2: Invalid write to RAM. 
+	3: Invalid write to RAM. 
+	4: No valid clock found for write to RAM. 
+WARNING: [Synth 8-4767] Trying to implement RAM 'q_mask_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_activation_store.sv:109]
+Reason is one or more of the following :
+	1: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	2: Invalid write to RAM. 
+	3: No valid clock found for write to RAM. 
+WARNING: [Synth 8-4767] Trying to implement RAM 'q_data_reg' in registers. Block RAM or DRAM implementation is not possible; see log for reasons. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_activation_store.sv:110]
+Reason is one or more of the following :
+	1: RAM has multiple writes via different ports in same process. If RAM inferencing intended, write to one port per process. 
+	2: Invalid write to RAM. 
+	3: No valid clock found for write to RAM. 
+WARNING: [Synth 8-3936] Found unconnected internal register 'calc_p_reg' and it is trimmed from '5' to '2' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:392]
+WARNING: [Synth 8-7129] Port read_addr[15] in module npu_activation_store is either unconnected or has no load
+WARNING: [Synth 8-7129] Port write_addr[15] in module npu_activation_store is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[127] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[126] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[125] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[124] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[123] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[122] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[121] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[120] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[119] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[118] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[117] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[116] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[115] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[114] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[113] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[112] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[111] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[110] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[109] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[108] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[107] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[106] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[105] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[104] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[103] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[102] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[101] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[100] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[99] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[98] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[97] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[96] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[95] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[94] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[93] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[92] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[91] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[90] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[89] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[88] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[87] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[86] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[85] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[84] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[83] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[82] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[81] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[80] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[79] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[78] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[77] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[76] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[75] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[74] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[73] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[72] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[71] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[70] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[69] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[68] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[67] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[66] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[65] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[64] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[63] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[62] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[61] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[60] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[59] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[58] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[57] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[56] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[55] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[54] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[53] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[52] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[51] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[50] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[49] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[48] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[47] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[46] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[45] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[44] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[43] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[42] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[41] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[40] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[39] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[38] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[37] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[36] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[35] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[34] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[33] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[32] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[31] in module npu_trace_capture is either unconnected or has no load
+WARNING: [Synth 8-7129] Port sample[30] in module npu_trace_capture is either unconnected or has no load
+INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:35 ; elapsed = 00:00:39 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:36 ; elapsed = 00:00:42 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:36 ; elapsed = 00:00:42 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:01 . Memory (MB): peak = 2327.230 ; gain = 0.000
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0/clk_wiz_0_in_context.xdc] for cell 'u_clk_wiz'
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0/clk_wiz_0_in_context.xdc] for cell 'u_clk_wiz'
+Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_pins.xdc]
+Finished Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_pins.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_pins.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/fpga_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/fpga_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_timing.xdc]
+Finished Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_timing.xdc]
+Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_configuration.xdc]
+Finished Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_configuration.xdc]
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.041 . Memory (MB): peak = 2327.230 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:01:23 ; elapsed = 00:01:28 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35tcsg324-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:01:23 ; elapsed = 00:01:28 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:01:23 ; elapsed = 00:01:28 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+INFO: [Synth 8-802] inferred FSM for state register 'tap_reg' in module 'npu_jtag_transport'
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'npu_command_controller'
+WARNING: [Synth 8-3936] Found unconnected internal register 'k_consecutive_reg' and it is trimmed from '64' to '56' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:851]
+WARNING: [Synth 8-3936] Found unconnected internal register 'element_scan_product_reg' and it is trimmed from '32' to '16' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:795]
+WARNING: [Synth 8-3936] Found unconnected internal register 'pool_scan_product_reg' and it is trimmed from '32' to '16' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:794]
+WARNING: [Synth 8-3936] Found unconnected internal register 'scan_product_reg' and it is trimmed from '32' to '16' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:793]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[12]' and it is trimmed from '32' to '16' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[1]' and it is trimmed from '32' to '15' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[11]' and it is trimmed from '32' to '15' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[2]' and it is trimmed from '32' to '15' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[3]' and it is trimmed from '32' to '24' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[8]' and it is trimmed from '32' to '16' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[7]' and it is trimmed from '32' to '16' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+WARNING: [Synth 8-3936] Found unconnected internal register 'd_reg[9]' and it is trimmed from '32' to '10' bits. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                     TLR |                             0000 |                             0000
+                     RTI |                             0001 |                             0001
+                     SDR |                             0010 |                             0010
+                     SIR |                             0011 |                             1001
+                     CIR |                             0100 |                             1010
+                    SHIR |                             0101 |                             1011
+                    E1IR |                             0110 |                             1100
+                     PIR |                             0111 |                             1101
+                    E2IR |                             1000 |                             1110
+                     UIR |                             1001 |                             1111
+                     CDR |                             1010 |                             0011
+                    SHDR |                             1011 |                             0100
+                    E1DR |                             1100 |                             0101
+                     PDR |                             1101 |                             0110
+                    E2DR |                             1110 |                             0111
+                     UDR |                             1111 |                             1000
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'tap_reg' using encoding 'sequential' in module 'npu_jtag_transport'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    IDLE |                              001 |                              000
+                    EXEC |                              101 |                              001
+                   RWAIT |                              011 |                              011
+                   TWAIT |                              010 |                              100
+                   VWAIT |                              100 |                              010
+                  IFLUSH |                              000 |                              101
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'sequential' in module 'npu_command_controller'
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:01:54 ; elapsed = 00:02:03 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input   41 Bit       Adders := 2     
+	   3 Input   33 Bit       Adders := 5     
+	   2 Input   32 Bit       Adders := 68    
+	   5 Input   32 Bit       Adders := 2     
+	   3 Input   32 Bit       Adders := 1     
+	   3 Input   22 Bit       Adders := 7     
+	   2 Input   22 Bit       Adders := 1     
+	   2 Input   21 Bit       Adders := 8     
+	   3 Input   20 Bit       Adders := 1     
+	   2 Input   18 Bit       Adders := 137   
+	   3 Input   18 Bit       Adders := 134   
+	   2 Input   17 Bit       Adders := 165   
+	   3 Input   17 Bit       Adders := 5     
+	   2 Input   16 Bit       Adders := 62    
+	   3 Input   16 Bit       Adders := 6     
+	   6 Input   16 Bit       Adders := 1     
+	   5 Input   16 Bit       Adders := 1     
+	   2 Input   12 Bit       Adders := 3     
+	   2 Input   11 Bit       Adders := 65    
+	   4 Input   10 Bit       Adders := 16    
+	   2 Input   10 Bit       Adders := 1     
+	   2 Input    9 Bit       Adders := 3     
+	   2 Input    8 Bit       Adders := 9     
+	   2 Input    6 Bit       Adders := 4     
+	   3 Input    6 Bit       Adders := 2     
+	   4 Input    5 Bit       Adders := 3     
+	   2 Input    5 Bit       Adders := 3     
+	   3 Input    5 Bit       Adders := 1     
+	   4 Input    4 Bit       Adders := 2     
+	   2 Input    4 Bit       Adders := 3     
+	   4 Input    3 Bit       Adders := 2     
+	   2 Input    3 Bit       Adders := 23    
+	   3 Input    3 Bit       Adders := 2     
+	   5 Input    3 Bit       Adders := 1     
+	   2 Input    2 Bit       Adders := 5     
++---XORs : 
+	   2 Input      1 Bit         XORs := 4     
++---Registers : 
+	               72 Bit    Registers := 2     
+	               56 Bit    Registers := 1     
+	               41 Bit    Registers := 2     
+	               32 Bit    Registers := 68    
+	               24 Bit    Registers := 1     
+	               18 Bit    Registers := 1     
+	               17 Bit    Registers := 4     
+	               16 Bit    Registers := 349   
+	               15 Bit    Registers := 5     
+	               12 Bit    Registers := 10    
+	               11 Bit    Registers := 86    
+	               10 Bit    Registers := 1     
+	                9 Bit    Registers := 8     
+	                8 Bit    Registers := 45    
+	                7 Bit    Registers := 1     
+	                6 Bit    Registers := 20    
+	                5 Bit    Registers := 55    
+	                4 Bit    Registers := 137   
+	                3 Bit    Registers := 32    
+	                2 Bit    Registers := 10    
+	                1 Bit    Registers := 83    
++---Multipliers : 
+	               9x32  Multipliers := 2     
+	                4x5  Multipliers := 8     
++---RAMs : 
+	             128K Bit	(4096 X 32 bit)          RAMs := 1     
+	               2K Bit	(16 X 144 bit)          RAMs := 1     
+	              256 Bit	(8 X 32 bit)          RAMs := 1     
+	              144 Bit	(8 X 18 bit)          RAMs := 1     
+	              128 Bit	(8 X 16 bit)          RAMs := 1     
+	               64 Bit	(8 X 8 bit)          RAMs := 2     
+	               64 Bit	(4 X 16 bit)          RAMs := 1     
+	               48 Bit	(8 X 6 bit)          RAMs := 1     
++---Muxes : 
+	  20 Input  256 Bit        Muxes := 2     
+	   2 Input  256 Bit        Muxes := 11    
+	  19 Input  144 Bit        Muxes := 2     
+	   2 Input  144 Bit        Muxes := 1     
+	  15 Input  129 Bit        Muxes := 4     
+	   5 Input  129 Bit        Muxes := 2     
+	   2 Input  126 Bit        Muxes := 1     
+	   2 Input   96 Bit        Muxes := 1     
+	   2 Input   72 Bit        Muxes := 2     
+	   8 Input   72 Bit        Muxes := 1     
+	   2 Input   64 Bit        Muxes := 1     
+	   2 Input   32 Bit        Muxes := 338   
+	   4 Input   32 Bit        Muxes := 7     
+	  15 Input   32 Bit        Muxes := 6     
+	   8 Input   32 Bit        Muxes := 2     
+	  11 Input   32 Bit        Muxes := 4     
+	   6 Input   32 Bit        Muxes := 3     
+	   2 Input   22 Bit        Muxes := 1     
+	   2 Input   21 Bit        Muxes := 24    
+	   2 Input   18 Bit        Muxes := 8     
+	   2 Input   16 Bit        Muxes := 117   
+	  15 Input   16 Bit        Muxes := 20    
+	   3 Input   16 Bit        Muxes := 6     
+	   4 Input   16 Bit        Muxes := 1     
+	  11 Input   16 Bit        Muxes := 2     
+	   6 Input   16 Bit        Muxes := 2     
+	   2 Input   12 Bit        Muxes := 24    
+	   8 Input   12 Bit        Muxes := 1     
+	  15 Input   11 Bit        Muxes := 1     
+	   2 Input   11 Bit        Muxes := 3     
+	   2 Input   10 Bit        Muxes := 5     
+	   2 Input    9 Bit        Muxes := 11    
+	   2 Input    8 Bit        Muxes := 234   
+	  15 Input    8 Bit        Muxes := 9     
+	   4 Input    8 Bit        Muxes := 2     
+	  11 Input    8 Bit        Muxes := 1     
+	   6 Input    8 Bit        Muxes := 1     
+	   2 Input    7 Bit        Muxes := 17    
+	  11 Input    7 Bit        Muxes := 1     
+	   6 Input    7 Bit        Muxes := 2     
+	   2 Input    6 Bit        Muxes := 5     
+	   8 Input    5 Bit        Muxes := 2     
+	  15 Input    5 Bit        Muxes := 6     
+	   2 Input    5 Bit        Muxes := 43    
+	   3 Input    5 Bit        Muxes := 1     
+	   6 Input    5 Bit        Muxes := 2     
+	  16 Input    4 Bit        Muxes := 1     
+	   2 Input    4 Bit        Muxes := 338   
+	  15 Input    4 Bit        Muxes := 8     
+	   6 Input    4 Bit        Muxes := 1     
+	   4 Input    4 Bit        Muxes := 5     
+	   3 Input    4 Bit        Muxes := 2     
+	  15 Input    3 Bit        Muxes := 11    
+	   2 Input    3 Bit        Muxes := 65    
+	   4 Input    3 Bit        Muxes := 3     
+	   3 Input    3 Bit        Muxes := 3     
+	   7 Input    3 Bit        Muxes := 1     
+	  30 Input    3 Bit        Muxes := 1     
+	   2 Input    2 Bit        Muxes := 29    
+	  15 Input    2 Bit        Muxes := 6     
+	   4 Input    2 Bit        Muxes := 1     
+	   3 Input    2 Bit        Muxes := 4     
+	  20 Input    2 Bit        Muxes := 1     
+	   2 Input    1 Bit        Muxes := 711   
+	   8 Input    1 Bit        Muxes := 19    
+	  15 Input    1 Bit        Muxes := 234   
+	   4 Input    1 Bit        Muxes := 14    
+	  20 Input    1 Bit        Muxes := 1     
+	  19 Input    1 Bit        Muxes := 1     
+	   3 Input    1 Bit        Muxes := 14    
+	  10 Input    1 Bit        Muxes := 11    
+	  11 Input    1 Bit        Muxes := 24    
+	   7 Input    1 Bit        Muxes := 6     
+	   6 Input    1 Bit        Muxes := 36    
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+INFO: [Synth 8-4471] merging register 'skew[1].delayed.act_delay_reg[0][4:0]' into 'skew[1].delayed.act_delay_reg[0][4:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_mac_array.sv:80]
+INFO: [Synth 8-4471] merging register 'skew[2].delayed.act_delay_reg[1][4:0]' into 'skew[2].delayed.act_delay_reg[1][4:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_mac_array.sv:80]
+INFO: [Synth 8-4471] merging register 'rows[1].cols[0].act_q_reg[4:0]' into 'rows[1].cols[0].act_q_reg[4:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_mac_array.sv:119]
+INFO: [Synth 8-4471] merging register 'gather_row_reg[2:0]' into 'gather_row_reg[2:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:539]
+INFO: [Synth 8-6851] RAM (psum_reg) has partial Byte Wide Write Enable pattern, however no output register found in fanout of RAM. Recommended to use supported Byte Wide Write Enable template. 
+INFO: [Synth 8-3886] merging instance 'i_array/rows[0].cols[0].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[0]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[0].cols[1].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[1]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[0].cols[2].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[2]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[0].cols[3].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[3]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[0].cols[4].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[4]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[0].cols[5].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[5]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[0].cols[6].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[6]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[7].cols[0].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[7]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[7].cols[1].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[8]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[7].cols[2].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[7].cols[3].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[10]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[7].cols[4].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[11]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[7].cols[5].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[12]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[7].cols[6].sel_q_reg' (FDR) to 'i_array/bank_pipe_reg[13]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[0].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[0].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[1].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[1].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[2].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[2].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[3].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[3].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[4].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[4].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[5].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[5].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[6].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[6].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'i_array/rows[1].cols[7].psum_q_reg[10]' (FDR) to 'i_array/rows[1].cols[7].psum_q_reg[9]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][3]' (FDRE) to 'perf_count_reg[17][4]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][4]' (FDRE) to 'perf_count_reg[17][5]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][5]' (FDRE) to 'perf_count_reg[17][6]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][6]' (FDRE) to 'perf_count_reg[17][7]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][7]' (FDRE) to 'perf_count_reg[17][8]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][8]' (FDRE) to 'perf_count_reg[17][9]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][9]' (FDRE) to 'perf_count_reg[17][10]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][10]' (FDRE) to 'perf_count_reg[17][11]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][11]' (FDRE) to 'perf_count_reg[17][12]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][12]' (FDRE) to 'perf_count_reg[17][13]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][13]' (FDRE) to 'perf_count_reg[17][14]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][14]' (FDRE) to 'perf_count_reg[17][15]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][15]' (FDRE) to 'perf_count_reg[17][16]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][16]' (FDRE) to 'perf_count_reg[17][17]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][17]' (FDRE) to 'perf_count_reg[17][18]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][18]' (FDRE) to 'perf_count_reg[17][19]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][19]' (FDRE) to 'perf_count_reg[17][20]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][20]' (FDRE) to 'perf_count_reg[17][21]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][21]' (FDRE) to 'perf_count_reg[17][22]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][22]' (FDRE) to 'perf_count_reg[17][23]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][23]' (FDRE) to 'perf_count_reg[17][24]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][24]' (FDRE) to 'perf_count_reg[17][25]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][25]' (FDRE) to 'perf_count_reg[17][26]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][26]' (FDRE) to 'perf_count_reg[17][27]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][27]' (FDRE) to 'perf_count_reg[17][28]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][28]' (FDRE) to 'perf_count_reg[17][29]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][29]' (FDRE) to 'perf_count_reg[17][30]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[17][30]' (FDRE) to 'perf_count_reg[17][31]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\perf_count_reg[17][31] )
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][2]' (FDRE) to 'perf_count_reg[18][3]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][3]' (FDRE) to 'perf_count_reg[18][4]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][4]' (FDRE) to 'perf_count_reg[18][5]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][5]' (FDRE) to 'perf_count_reg[18][6]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][6]' (FDRE) to 'perf_count_reg[18][7]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][7]' (FDRE) to 'perf_count_reg[18][8]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][8]' (FDRE) to 'perf_count_reg[18][9]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][9]' (FDRE) to 'perf_count_reg[18][10]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][10]' (FDRE) to 'perf_count_reg[18][11]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][11]' (FDRE) to 'perf_count_reg[18][12]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][12]' (FDRE) to 'perf_count_reg[18][13]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][13]' (FDRE) to 'perf_count_reg[18][14]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][14]' (FDRE) to 'perf_count_reg[18][15]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][15]' (FDRE) to 'perf_count_reg[18][16]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][16]' (FDRE) to 'perf_count_reg[18][17]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][17]' (FDRE) to 'perf_count_reg[18][18]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][18]' (FDRE) to 'perf_count_reg[18][19]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][19]' (FDRE) to 'perf_count_reg[18][20]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][20]' (FDRE) to 'perf_count_reg[18][21]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][21]' (FDRE) to 'perf_count_reg[18][22]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][22]' (FDRE) to 'perf_count_reg[18][23]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][23]' (FDRE) to 'perf_count_reg[18][24]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][24]' (FDRE) to 'perf_count_reg[18][25]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][25]' (FDRE) to 'perf_count_reg[18][26]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][26]' (FDRE) to 'perf_count_reg[18][27]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][27]' (FDRE) to 'perf_count_reg[18][28]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][28]' (FDRE) to 'perf_count_reg[18][29]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][29]' (FDRE) to 'perf_count_reg[18][30]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[18][30]' (FDRE) to 'perf_count_reg[18][31]'
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\perf_count_reg[18][31] )
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][6]' (FDRE) to 'perf_count_reg[19][7]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][7]' (FDRE) to 'perf_count_reg[19][8]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][8]' (FDRE) to 'perf_count_reg[19][9]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][9]' (FDRE) to 'perf_count_reg[19][10]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][10]' (FDRE) to 'perf_count_reg[19][11]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][11]' (FDRE) to 'perf_count_reg[19][12]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][12]' (FDRE) to 'perf_count_reg[19][13]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][13]' (FDRE) to 'perf_count_reg[19][14]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][14]' (FDRE) to 'perf_count_reg[19][15]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][15]' (FDRE) to 'perf_count_reg[19][16]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][16]' (FDRE) to 'perf_count_reg[19][17]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][17]' (FDRE) to 'perf_count_reg[19][18]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][18]' (FDRE) to 'perf_count_reg[19][19]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][19]' (FDRE) to 'perf_count_reg[19][20]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][20]' (FDRE) to 'perf_count_reg[19][21]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][21]' (FDRE) to 'perf_count_reg[19][22]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][22]' (FDRE) to 'perf_count_reg[19][23]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][23]' (FDRE) to 'perf_count_reg[19][24]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][24]' (FDRE) to 'perf_count_reg[19][25]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][25]' (FDRE) to 'perf_count_reg[19][26]'
+INFO: [Synth 8-3886] merging instance 'perf_count_reg[19][26]' (FDRE) to 'perf_count_reg[19][27]'
+INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Common 17-14] Message 'Synth 8-3886' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\perf_count_reg[19][31] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\estate_reg[2] )
+INFO: [Synth 8-12192] Not enough pipeline registers after wide multiplier. Pipeline registers present is 1. Recommended levels of pipeline registers is 2. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/requant_lane.sv:77]
+DSP Report: Generating DSP s2_product0, operation Mode is: A2*B2.
+DSP Report: register s2_product0 is absorbed into DSP s2_product0.
+DSP Report: register s2_product0 is absorbed into DSP s2_product0.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product0.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product0.
+DSP Report: Generating DSP s2_product_reg, operation Mode is: (PCIN>>17)+A2*B2.
+DSP Report: register s2_product_reg is absorbed into DSP s2_product_reg.
+DSP Report: register s1_value_reg is absorbed into DSP s2_product_reg.
+DSP Report: register s2_product_reg is absorbed into DSP s2_product_reg.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product_reg.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product_reg.
+INFO: [Synth 8-12192] Not enough pipeline registers after wide multiplier. Pipeline registers present is 1. Recommended levels of pipeline registers is 2. [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/requant_lane.sv:77]
+DSP Report: Generating DSP s2_product0, operation Mode is: A2*B2.
+DSP Report: register s2_product0 is absorbed into DSP s2_product0.
+DSP Report: register s2_product0 is absorbed into DSP s2_product0.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product0.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product0.
+DSP Report: Generating DSP s2_product_reg, operation Mode is: (PCIN>>17)+A2*B2.
+DSP Report: register s2_product_reg is absorbed into DSP s2_product_reg.
+DSP Report: register s1_value_reg is absorbed into DSP s2_product_reg.
+DSP Report: register s2_product_reg is absorbed into DSP s2_product_reg.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product_reg.
+DSP Report: operator s2_product0 is absorbed into DSP s2_product_reg.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[47]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[46]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[45]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[44]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[43]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[42]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[41]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[40]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[39]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[38]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[37]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[36]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[35]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[34]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[33]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[32]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[31]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[30]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[29]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[28]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[27]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[26]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[25]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[24]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[23]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[22]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[21]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[20]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[19]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[18]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[17]) is unused and will be removed from module requant_lane__parameterized0.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[47]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[46]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[45]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[44]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[43]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[42]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[41]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[40]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[39]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[38]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[37]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[36]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[35]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[34]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[33]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[32]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[31]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[30]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[29]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[28]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[27]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[26]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[25]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[24]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[23]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[22]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[21]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[20]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[19]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[18]) is unused and will be removed from module requant_lane.
+WARNING: [Synth 8-3332] Sequential element (s2_product_reg[17]) is unused and will be removed from module requant_lane.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[5][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[10][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[15][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[31][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[38][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[40][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[41][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[42][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[49][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[66][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[68][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[79][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[85][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[88][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[89][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[94][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[99][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[103][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[106][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[109][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[115][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[120][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[124][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[127][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[27][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[29][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[34][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[51][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[56][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[58][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[62][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[63][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[70][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[81][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[91][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[102][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[104][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[112][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[117][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\error_reg[4] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[3][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[12][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[19][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[32][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[43][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[53][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[59][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[65][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[69][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[71][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[74][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[78][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[80][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[83][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[93][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[100][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[108][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[114][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[125][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[128][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[4][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[7][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[14][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[22][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[30][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[33][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[37][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[45][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[46][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[47][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[52][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[54][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[55][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[64][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[73][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[77][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[82][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[84][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[90][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[98][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[105][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[107][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[113][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[122][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[126][0] )
+INFO: [Synth 8-4471] merging register 'element_lane_reg[2:0]' into 'element_lane_reg[2:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:542]
+INFO: [Synth 8-4471] merging register 'issue_tile_reg[15:0]' into 'issue_tile_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:293]
+INFO: [Synth 8-4471] merging register 'issue_tile_reg[15:0]' into 'issue_tile_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:293]
+INFO: [Synth 8-4471] merging register 'oct_reg[15:0]' into 'oct_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:672]
+INFO: [Synth 8-4471] merging register 'oct_reg[15:0]' into 'oct_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:672]
+INFO: [Synth 8-4471] merging register 'param_channel_reg[15:0]' into 'param_channel_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:672]
+INFO: [Synth 8-4471] merging register 'fetch_word_reg[3:0]' into 'fetch_word_reg[3:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:573]
+INFO: [Synth 8-4471] merging register 'y_step_reg[15:0]' into 'y_step_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:788]
+INFO: [Synth 8-4471] merging register 'y_step_reg[15:0]' into 'y_step_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:788]
+INFO: [Synth 8-4471] merging register 'oct_reg[15:0]' into 'oct_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:672]
+INFO: [Synth 8-4471] merging register 'oct_reg[15:0]' into 'oct_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:672]
+INFO: [Synth 8-4471] merging register 'load_tile_reg[15:0]' into 'load_tile_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'd_reg[8][15:0]' into 'd_reg[8][15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+INFO: [Synth 8-4471] merging register 'fetch_word_reg[3:0]' into 'fetch_word_reg[3:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:573]
+INFO: [Synth 8-4471] merging register 'pool_chk_h_reg[15:0]' into 'pool_chk_h_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:739]
+INFO: [Synth 8-4471] merging register 'pool_chk_w_reg[15:0]' into 'pool_chk_w_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:740]
+INFO: [Synth 8-5544] ROM "state" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "element_row_step" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "element_scan_product" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "tap_row_jump" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "weight_tile_base" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "pool_scan_product" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "scan_product" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "origin_y" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+INFO: [Synth 8-5544] ROM "origin_x" won't be mapped to Block RAM because address size (4) smaller than threshold (5)
+DSP Report: Generating DSP mul_p, operation Mode is: A*B.
+DSP Report: operator mul_p is absorbed into DSP mul_p.
+DSP Report: Generating DSP src_span1, operation Mode is: A*B+1.
+DSP Report: operator src_span1 is absorbed into DSP src_span1.
+DSP Report: operator mul_p is absorbed into DSP src_span1.
+DSP Report: Generating DSP pool_scan_jump_reg, operation Mode is: (C'-(A*B)')'.
+DSP Report: register y_step_reg is absorbed into DSP pool_scan_jump_reg.
+DSP Report: register pool_scan_jump_reg is absorbed into DSP pool_scan_jump_reg.
+DSP Report: register pool_scan_product_reg is absorbed into DSP pool_scan_jump_reg.
+DSP Report: operator pool_scan_jump0 is absorbed into DSP pool_scan_jump_reg.
+DSP Report: operator mul_p is absorbed into DSP pool_scan_jump_reg.
+DSP Report: Generating DSP scan_jump_reg, operation Mode is: (C'-(A*B)')'.
+DSP Report: register y_step_reg is absorbed into DSP scan_jump_reg.
+DSP Report: register scan_jump_reg is absorbed into DSP scan_jump_reg.
+DSP Report: register scan_product_reg is absorbed into DSP scan_jump_reg.
+DSP Report: operator scan_jump0 is absorbed into DSP scan_jump_reg.
+DSP Report: operator mul_p is absorbed into DSP scan_jump_reg.
+DSP Report: Generating DSP element_row_jump_reg, operation Mode is: (C'-(A*B)')'.
+DSP Report: register element_row_step_reg is absorbed into DSP element_row_jump_reg.
+DSP Report: register element_row_jump_reg is absorbed into DSP element_row_jump_reg.
+DSP Report: register element_scan_product_reg is absorbed into DSP element_row_jump_reg.
+DSP Report: operator element_row_jump0 is absorbed into DSP element_row_jump_reg.
+DSP Report: operator mul_p is absorbed into DSP element_row_jump_reg.
+DSP Report: Generating DSP xk1, operation Mode is: (C or 0)+(0 or A*B).
+DSP Report: operator xk1 is absorbed into DSP xk1.
+DSP Report: Generating DSP state9, operation Mode is: C+(A*B)'.
+DSP Report: register pool_chk_h_reg is absorbed into DSP state9.
+DSP Report: operator state9 is absorbed into DSP state9.
+DSP Report: operator mul_p is absorbed into DSP state9.
+DSP Report: Generating DSP state7, operation Mode is: C+(A*B)'.
+DSP Report: register pool_chk_w_reg is absorbed into DSP state7.
+DSP Report: operator state7 is absorbed into DSP state7.
+DSP Report: operator mul_p is absorbed into DSP state7.
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\octs_reg[7] )
+INFO: [Synth 8-4471] merging register 'issue_g_reg[15:0]' into 'issue_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'issue_g_reg[15:0]' into 'issue_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'issue_g_reg[15:0]' into 'issue_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'issue_g_reg[15:0]' into 'issue_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'issue_g_reg[15:0]' into 'issue_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'issue_g_reg[15:0]' into 'issue_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'issue_g_reg[15:0]' into 'issue_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:536]
+INFO: [Synth 8-4471] merging register 'load_g_reg[15:0]' into 'load_g_reg[15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:199]
+INFO: [Synth 8-4471] merging register 'd_reg[8][15:0]' into 'd_reg[8][15:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/npu/rtl/npu_program_core.sv:574]
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[0][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[11][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[48][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[76][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[118][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\weight_span_reg[1] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\dst_span_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\src_span_reg[0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[11][0] )
+INFO: [Synth 8-3333] propagating constant 0 across sequential element (\known_base_reg[48][0] )
+INFO: [Common 17-14] Message 'Synth 8-3333' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-4471] merging register 'op_count_o_reg[7:0]' into 'op_count_o_reg[7:0]' [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/soc/rtl/control/npu_command_controller.sv:36]
+INFO: [Synth 8-5546] ROM "rsp_error_o" won't be mapped to RAM because it is too sparse
+INFO: [Synth 8-5546] ROM "rsp_error_o" won't be mapped to RAM because it is too sparse
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:03:41 ; elapsed = 00:04:08 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+ Sort Area is npu_program_core__GB1 s2_product0_0 : 0 0 : 1650 3265 : Used 1 time 0
+ Sort Area is npu_program_core__GB1 s2_product0_0 : 0 1 : 1615 3265 : Used 1 time 0
+ Sort Area is npu_program_core__GB1 s2_product0_3 : 0 0 : 1650 3265 : Used 1 time 0
+ Sort Area is npu_program_core__GB1 s2_product0_3 : 0 1 : 1615 3265 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 element_row_jump_reg_3 : 0 0 : 2104 2104 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 pool_scan_jump_reg_6 : 0 0 : 2104 2104 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 scan_jump_reg_5 : 0 0 : 2104 2104 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 state7_b : 0 0 : 2009 2009 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 state9_9 : 0 0 : 2009 2009 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 mul_p_0 : 0 0 : 1946 1946 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 src_span1_2 : 0 0 : 1946 1946 : Used 1 time 0
+ Sort Area is npu_program_core__GB6 xk1_7 : 0 0 : 648 648 : Used 1 time 0
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Preliminary Mapping Report (see note below)
++-----------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name            | RTL Object | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-----------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|\i_activation/i_store  | mem_reg    | 4 K x 32(READ_FIRST)   | W |   | 4 K x 32(WRITE_FIRST)  |   | R | Port A and B     | 0      | 4      | 
++-----------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+Note: The table above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
+
+Distributed RAM: Preliminary Mapping Report (see note below)
++----------------------+-----------------+-----------+----------------------+-----------------+
+|Module Name           | RTL Object      | Inference | Size (Depth x Width) | Primitives      | 
++----------------------+-----------------+-----------+----------------------+-----------------+
+|npu_program_core__GB0 | bias_cache_reg  | Implied   | 8 x 18               | RAM32M x 24     | 
+|npu_program_core__GB0 | psum_reg        | Implied   | 16 x 144             | RAM16X1S x 144  | 
+|npu_program_core__GB0 | results_reg     | Implied   | 4 x 256              | RAM32M x 129    | 
+|npu_program_core__GB0 | write_addr_reg  | Implied   | 8 x 16               | RAM32M x 3      | 
+|npu_program_core__GB0 | write_data_reg  | Implied   | 8 x 32               | RAM32M x 6      | 
+|npu_program_core__GB1 | shift_cache_reg | Implied   | 8 x 6                | RAM32M x 2      | 
+|npu_program_core__GB1 | mult_cache_reg  | Implied   | 8 x 8                | RAM32M x 4      | 
+|npu_program_core__GB1 | write_mask_reg  | Implied   | 8 x 8                | RAM32M x 2      | 
+|npu_program_core__GB6 | result_addr_reg | Implied   | 4 x 16               | RAM32M x 6      | 
++----------------------+-----------------+-----------+----------------------+-----------------+
+
+Note: The table above is a preliminary report that shows the Distributed RAMs at the current stage of the synthesis flow. Some Distributed RAMs may be reimplemented as non Distributed RAM primitives later in the synthesis flow. Multiple instantiated RAMs are reported only once.
+
+DSP: Preliminary Mapping Report (see note below. The ' indicates corresponding REG is set)
++----------------------+---------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name           | DSP Mapping         | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++----------------------+---------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|requant_lane          | A2*B2               | 18     | 9      | -      | -      | 48     | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|requant_lane          | (PCIN>>17)+A2*B2    | 15     | 9      | -      | -      | 48     | 1    | 1    | -    | -    | -     | 0    | 1    | 
+|requant_lane          | A2*B2               | 18     | 9      | -      | -      | 48     | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|requant_lane          | (PCIN>>17)+A2*B2    | 15     | 9      | -      | -      | 48     | 1    | 1    | -    | -    | -     | 0    | 1    | 
+|npu_program_core      | A*B                 | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|npu_program_core      | A*B+1               | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|npu_program_core__GB6 | (C'-(A*B)')'        | 16     | 16     | 16     | -      | 16     | 0    | 0    | 1    | -    | -     | 1    | 1    | 
+|npu_program_core__GB6 | (C'-(A*B)')'        | 16     | 16     | 16     | -      | 16     | 0    | 0    | 1    | -    | -     | 1    | 1    | 
+|npu_program_core      | (C'-(A*B)')'        | 16     | 16     | 16     | -      | 16     | 0    | 0    | 1    | -    | -     | 1    | 1    | 
+|npu_program_core      | (C or 0)+(0 or A*B) | 16     | 6      | 22     | -      | 22     | 0    | 0    | 0    | -    | -     | 0    | 0    | 
+|npu_program_core__GB6 | C+(A*B)'            | 16     | 16     | 8      | -      | 16     | 0    | 0    | 0    | -    | -     | 1    | 0    | 
+|npu_program_core__GB6 | C+(A*B)'            | 16     | 16     | 8      | -      | 16     | 0    | 0    | 0    | -    | -     | 1    | 0    | 
++----------------------+---------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+Note: The table above is a preliminary report that shows the DSPs inferred at the current stage of the synthesis flow. Some DSP may be reimplemented as non DSP primitives later in the synthesis flow. Multiple instantiated DSPs are reported only once.
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:04:11 ; elapsed = 00:04:44 . Memory (MB): peak = 2327.230 ; gain = 0.000
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:10:27 ; elapsed = 00:11:46 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Final Mapping Report
++-----------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name            | RTL Object | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++-----------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|\i_activation/i_store  | mem_reg    | 4 K x 32(READ_FIRST)   | W |   | 4 K x 32(WRITE_FIRST)  |   | R | Port A and B     | 0      | 4      | 
++-----------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+
+Distributed RAM: Final Mapping Report
++----------------------+-----------------+-----------+----------------------+-----------------+
+|Module Name           | RTL Object      | Inference | Size (Depth x Width) | Primitives      | 
++----------------------+-----------------+-----------+----------------------+-----------------+
+|npu_program_core__GB0 | write_addr_reg  | Implied   | 8 x 16               | RAM32M x 3      | 
+|npu_program_core__GB0 | write_data_reg  | Implied   | 8 x 32               | RAM32M x 6      | 
+|npu_program_core__GB1 | write_mask_reg  | Implied   | 8 x 8                | RAM32M x 2      | 
+|npu_program_core__GB0 | bias_cache_reg  | Implied   | 8 x 18               | RAM32M x 24     | 
+|npu_program_core__GB0 | psum_reg        | Implied   | 16 x 144             | RAM16X1S x 144  | 
+|npu_program_core__GB0 | results_reg     | Implied   | 4 x 256              | RAM32M x 129    | 
+|npu_program_core__GB1 | shift_cache_reg | Implied   | 8 x 6                | RAM32M x 2      | 
+|npu_program_core__GB1 | mult_cache_reg  | Implied   | 8 x 8                | RAM32M x 4      | 
+|npu_program_core__GB6 | result_addr_reg | Implied   | 4 x 16               | RAM32M x 6      | 
++----------------------+-----------------+-----------+----------------------+-----------------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:11:12 ; elapsed = 00:12:44 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_0 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_1 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_2 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+INFO: [Synth 8-7052] The timing for the instance u_soc/i_control/i_activation/i_store/mem_reg_3 (implemented as a Block RAM) might be sub-optimal as no optional output register could be merged into the ram block. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:11:39 ; elapsed = 00:13:17 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:11:40 ; elapsed = 00:13:18 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:12:03 ; elapsed = 00:13:44 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:12:04 ; elapsed = 00:13:45 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:12:07 ; elapsed = 00:13:49 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:12:08 ; elapsed = 00:13:50 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+
+Static Shift Register Report:
++------------+-------------------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|Module Name | RTL Name                                                          | Length | Width | Reset Signal | Pull out first Reg | Pull out last Reg | SRL16E | SRLC32E | 
++------------+-------------------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+|fpga_top    | u_soc/i_control/i_npu/i_array/valid_pipe_reg[14]                  | 15     | 1     | YES          | NO                 | YES               | 1      | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/tag_pipe_reg[14][5]                 | 15     | 6     | YES          | NO                 | YES               | 6      | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/skew[7].delayed.act_delay_reg[6][4] | 7      | 5     | YES          | NO                 | YES               | 5      | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/skew[6].delayed.act_delay_reg[5][4] | 6      | 5     | YES          | NO                 | YES               | 5      | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/skew[5].delayed.act_delay_reg[4][4] | 5      | 5     | YES          | NO                 | YES               | 5      | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/skew[4].delayed.act_delay_reg[3][4] | 4      | 5     | YES          | NO                 | YES               | 5      | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/deskew[0].delayed.delay_reg[6][10]  | 8      | 11    | YES          | NO                 | YES               | 11     | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/deskew[1].delayed.delay_reg[5][10]  | 7      | 11    | YES          | NO                 | YES               | 11     | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/deskew[2].delayed.delay_reg[4][10]  | 6      | 11    | YES          | NO                 | YES               | 11     | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/deskew[3].delayed.delay_reg[3][10]  | 5      | 11    | YES          | NO                 | YES               | 11     | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_array/deskew[4].delayed.delay_reg[2][10]  | 4      | 11    | YES          | NO                 | YES               | 11     | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_requant/out_valid_reg                     | 4      | 1     | YES          | NO                 | YES               | 1      | 0       | 
+|fpga_top    | u_soc/i_control/i_npu/i_requant/out_tag_reg[16]                   | 4      | 17    | YES          | NO                 | YES               | 17     | 0       | 
++------------+-------------------------------------------------------------------+--------+-------+--------------+--------------------+-------------------+--------+---------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP, Shift Register and Retiming Reporting
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+DSP Final Report (the ' indicates corresponding REG is set)
++----------------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|Module Name           | DSP Mapping      | A Size | B Size | C Size | D Size | P Size | AREG | BREG | CREG | DREG | ADREG | MREG | PREG | 
++----------------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+|npu_program_core      | A*B              | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|npu_program_core      | A*B+1            | 16     | 16     | -      | -      | 32     | 0    | 0    | -    | -    | -     | 0    | 0    | 
+|npu_program_core__GB6 | (C'-((A*B)'))'   | 16     | 16     | 16     | -      | 16     | 0    | 0    | 1    | -    | -     | 1    | 1    | 
+|npu_program_core__GB6 | (C'-((A*B)'))'   | 16     | 16     | 16     | -      | 16     | 0    | 0    | 1    | -    | -     | 1    | 1    | 
+|npu_program_core      | (C'-((A*B)'))'   | 16     | 16     | 16     | -      | 16     | 0    | 0    | 1    | -    | -     | 1    | 1    | 
+|npu_program_core__GB6 | C+(A*B)'         | 16     | 16     | 8      | -      | 16     | 0    | 0    | 0    | -    | -     | 1    | 0    | 
+|npu_program_core__GB6 | C+(A*B)'         | 16     | 16     | 8      | -      | 16     | 0    | 0    | 0    | -    | -     | 1    | 0    | 
+|npu_program_core      | Dynamic          | -      | -      | -      | -      | 22     | -    | -    | -    | -    | -     | 0    | 0    | 
+|requant_lane          | A'*B'            | 17     | 8      | -      | -      | 48     | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|requant_lane          | (PCIN>>17+A'*B)' | 30     | 0      | -      | -      | 48     | 1    | 0    | -    | -    | -     | 0    | 1    | 
+|requant_lane          | A'*B'            | 17     | 8      | -      | -      | 48     | 1    | 1    | -    | -    | -     | 0    | 0    | 
+|requant_lane          | (PCIN>>17+A'*B)' | 30     | 0      | -      | -      | 48     | 1    | 0    | -    | -    | -     | 0    | 1    | 
++----------------------+------------------+--------+--------+--------+--------+--------+------+------+------+------+-------+------+------+
+
+
+Report BlackBoxes: 
++------+--------------+----------+
+|      |BlackBox name |Instances |
++------+--------------+----------+
+|1     |clk_wiz_0     |         1|
++------+--------------+----------+
+
+Report Cell Usage: 
++------+---------+------+
+|      |Cell     |Count |
++------+---------+------+
+|1     |clk_wiz  |     1|
+|2     |BUFG     |     1|
+|3     |CARRY4   |  5733|
+|4     |DSP48E1  |    12|
+|9     |LUT1     |   509|
+|10    |LUT2     | 13730|
+|11    |LUT3     |  4234|
+|12    |LUT4     | 12169|
+|13    |LUT5     |  3698|
+|14    |LUT6     |  8356|
+|15    |MUXF7    |   495|
+|16    |MUXF8    |    63|
+|17    |RAM16X1S |   144|
+|18    |RAM32M   |   172|
+|19    |RAM32X1D |     6|
+|20    |RAMB36E1 |     4|
+|21    |SRL16E   |   100|
+|22    |FDCE     |   372|
+|23    |FDPE     |     2|
+|24    |FDRE     | 10518|
+|25    |FDSE     |    36|
+|26    |IBUF     |     4|
+|27    |OBUF     |     4|
++------+---------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:12:08 ; elapsed = 00:13:50 . Memory (MB): peak = 2959.680 ; gain = 632.449
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 76 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:11:05 ; elapsed = 00:13:28 . Memory (MB): peak = 2959.680 ; gain = 632.449
+Synthesis Optimization Complete : Time (s): cpu = 00:12:09 ; elapsed = 00:13:52 . Memory (MB): peak = 2959.680 ; gain = 632.449
+INFO: [Project 1-571] Translating synthesized netlist
+INFO: [Project 1-454] Reading design checkpoint 'c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.dcp' for cell 'u_clk_wiz'
+Netlist sorting complete. Time (s): cpu = 00:00:01 ; elapsed = 00:00:02 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Netlist 29-17] Analyzing 6630 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 3 CPU seconds
+INFO: [Project 1-479] Netlist was created with Vivado 2025.2
+INFO: [Project 1-570] Preparing netlist for logic optimization
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_board.xdc] for cell 'u_clk_wiz/inst'
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0_board.xdc] for cell 'u_clk_wiz/inst'
+Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc] for cell 'u_clk_wiz/inst'
+INFO: [Timing 38-35] Done setting XDC timing constraints. [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc:54]
+INFO: [Timing 38-2] Deriving generated clocks [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc:54]
+get_clocks: Time (s): cpu = 00:00:25 ; elapsed = 00:00:21 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Finished Parsing XDC File [c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.xdc] for cell 'u_clk_wiz/inst'
+Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_pins.xdc]
+Finished Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_pins.xdc]
+Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_timing.xdc]
+Finished Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_timing.xdc]
+Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_configuration.xdc]
+Finished Parsing XDC File [C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/source/hardware/fpga/ego1_configuration.xdc]
+INFO: [Project 1-538] Using original IP XDC constraints instead of the XDC constraints in dcp 'c:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/ip/clk_wiz_0/clk_wiz_0.dcp'
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.094 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Project 1-111] Unisim Transformation Summary:
+  A total of 322 instances were transformed.
+  RAM16X1S => RAM32X1S (RAMS32): 144 instances
+  RAM32M => RAM32M (RAMD32(x6), RAMS32(x2)): 172 instances
+  RAM32X1D => RAM32X1D (RAMD32(x2)): 6 instances
+
+Synth Design complete | Checksum: 887b8068
+INFO: [Common 17-83] Releasing license: Synthesis
+343 Infos, 281 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:13:19 ; elapsed = 00:15:07 . Memory (MB): peak = 2959.680 ; gain = 632.449
+## proc reject_critical_npu_jtag_cdc {report_file} {
+##     set stream [open $report_file r]
+##     set report [read $stream]
+##     close $stream
+##     if {![string match {*CDC Report*} $report] ||
+##         ![regexp -line {^[ \t]*CDC-[0-9]+[ \t]+(Info|Warning|Critical)[ \t]+[0-9]+} $report]} {
+##         error "Unrecognized/empty NPU CDC report: $report_file"
+##     }
+##     if {[regexp -line {^[ \t]*CDC-[0-9]+[ \t]+Critical[ \t]+[1-9][0-9]*} $report]} {
+##         error "Critical CDC circuitry blocks FPGA acceptance: $report_file"
+##     }
+## }
+## proc npu_jtag_cdc_cells {stems minimum label} {
+##     set selectors {}
+##     foreach stem $stems {
+##         lappend selectors [format {NAME =~ "u_soc/i_host/%s_reg*"} $stem]
+##     }
+##     set cells [get_cells -hier -filter [join $selectors { || }]]
+##     if {[llength $cells] < $minimum} {
+##         error "NPU TAP CDC endpoints missing: $label ([llength $cells] < $minimum)"
+##     }
+##     return $cells
+## }
+## proc npu_jtag_cdc_pin {stem bit pin} {
+##     if {$bit < 0} {
+##         set name [format {u_soc/i_host/%s_reg} $stem]
+##     } else {
+##         set name [format {u_soc/i_host/%s_reg[%d]} $stem $bit]
+##     }
+##     set cells [get_cells -hier -filter [format {NAME == "%s"} $name]]
+##     if {[llength $cells] != 1} {error "NPU TAP CDC register missing/ambiguous: $name"}
+##     set pins [get_pins -of_objects $cells -filter [format {REF_PIN_NAME == "%s"} $pin]]
+##     if {[llength $pins] != 1} {error "NPU TAP CDC pin missing/ambiguous: $name/$pin"}
+##     return $pins
+## }
+## proc npu_jtag_cdc_bound {} {
+##     set core [get_clocks -of_objects [get_pins u_clk_wiz/clk_out1]]
+##     set host [get_clocks tck_i]
+##     if {[llength $core] != 1 || [llength $host] != 1} {error "Missing NPU core/TCK clock"}
+##     return [expr {min([get_property PERIOD $core],[get_property PERIOD $host])}]
+## }
+## proc npu_jtag_cdc_payloads {} {
+##     set groups {}
+##     foreach {label source_stems target_stems minimum} {
+##         request_payload {req_payload} {cmd_op_o cmd_addr_o cmd_data_o} 72
+##         response_payload {rsp_mailbox_data rsp_mailbox_error} {reply_data reply_error} 37
+##     } {
+##         set source [npu_jtag_cdc_cells $source_stems $minimum $label/source]
+##         set target [npu_jtag_cdc_cells $target_stems $minimum $label/target]
+##         # Whole source registers are legal timing startpoints. Using Q pins
+##         # here would segment the path and discard the launching clock arc.
+##         set from $source
+##         set to [get_pins -of_objects $target -filter {REF_PIN_NAME == D}]
+##         if {[llength $from] < $minimum || [llength $to] < $minimum} {
+##             error "NPU TAP CDC payload pins missing: $label"
+##         }
+##         lappend groups [list $label $minimum $from $to]
+##     }
+##     return $groups
+## }
+## proc npu_jtag_cdc_controls {} {
+##     return [list \
+##         [list request_toggle req_toggle req_sync] \
+##         [list response_toggle ack_toggle ack_sync]]
+## }
+## proc npu_jtag_cdc_resets {} {
+##     set groups {}
+##     foreach {label pattern} {
+##         fpga_core_reset rst_sync_q_reg*
+##         fpga_tck_reset tck_reset_q_reg*
+##         tap_core_reset u_soc/i_host/sys_reset_sync_reg*
+##         tap_tck_reset u_soc/i_host/tck_reset_sync_reg*
+##     } {
+##         set cells [get_cells -hier -filter [format {NAME =~ "%s"} $pattern]]
+##         if {[llength $cells] != 2} {error "Expected two reset synchronizer stages: $label"}
+##         set pins [get_pins -of_objects $cells -filter {REF_PIN_NAME == CLR}]
+##         if {[llength $pins] != 2} {error "Expected two asynchronous CLR pins: $label"}
+##         lappend groups [list $label $cells $pins]
+##     }
+##     return $groups
+## }
+## proc constrain_npu_jtag_cdc {} {
+##     set bound [npu_jtag_cdc_bound]
+##     foreach group [npu_jtag_cdc_payloads] {
+##         lassign $group label minimum from to
+##         set_max_delay -datapath_only $bound -from $from -to $to
+##     }
+##     foreach group [npu_jtag_cdc_controls] {
+##         lassign $group label source target
+##         # Metastability is handled by ASYNC_REG stages, not by a synchronous
+##         # phase relationship between independent TCK and core clock edges.
+##         set_false_path -from [get_cells -of_objects [npu_jtag_cdc_pin $source -1 Q]] \
+##             -to [npu_jtag_cdc_pin $target 0 D]
+##     }
+##     foreach group [npu_jtag_cdc_resets] {
+##         lassign $group label cells pins
+##         # Exclude asynchronous assertion only at the synchronizer bank.
+##         # Downstream reset release/recovery/removal paths remain timed.
+##         set_false_path -to $pins
+##     }
+## }
+## proc npu_jtag_cdc_finite_paths {args} {
+##     set result {}
+##     foreach path [get_timing_paths -quiet {*}$args] {
+##         set slack [get_property SLACK $path]
+##         if {$slack ne "" && [string is double -strict $slack] && abs($slack)<1e9} {
+##             lappend result $path
+##         }
+##     }
+##     return $result
+## }
+## proc audit_npu_jtag_cdc {path} {
+##     set f [open $path w]
+##     puts $f "group\tkind\tsource_registers\ttarget_pins\tpaths\tbound_ns\tmin_slack_ns\tlaunch_clock\tcapture_clock"
+##     set bound [npu_jtag_cdc_bound]
+##     foreach group [npu_jtag_cdc_payloads] {
+##         lassign $group label minimum from to
+##         set paths [npu_jtag_cdc_finite_paths -from $from -to $to -delay_type max -max_paths 10000 -nworst 1]
+##         if {[llength $paths] != [llength $to]} {
+##             error "NPU bundled payload paths cut/missing: $label ([llength $paths]/[llength $to])"
+##         }
+##         set slack 1e9
+##         foreach timing $paths {
+##             if {abs([get_property REQUIREMENT $timing]-$bound)>0.001 ||
+##                 [get_property EXCEPTION $timing] eq ""} {
+##                 error "NPU bundled payload lacks the effective max-delay budget: $label"
+##             }
+##             set slack [expr {min($slack,[get_property SLACK $timing])}]
+##         }
+##         set first [lindex $paths 0]
+##         puts $f "$label\tbundled_max_delay\t[llength $from]\t[llength $to]\t[llength $paths]\t$bound\t$slack\t[get_property STARTPOINT_CLOCK $first]\t[get_property ENDPOINT_CLOCK $first]"
+##         if {$slack < 0} {error "NPU bundled payload max delay failed: $label"}
+##     }
+##     foreach group [npu_jtag_cdc_controls] {
+##         lassign $group label source target
+##         set entry [npu_jtag_cdc_pin $target 0 D]
+##         set cut [npu_jtag_cdc_finite_paths -from [get_cells -of_objects [npu_jtag_cdc_pin $source -1 Q]] -to $entry -max_paths 1]
+##         if {[llength $cut]} {error "Asynchronous toggle entry still synchronously timed: $label"}
+##         set first_q [npu_jtag_cdc_pin $target 0 Q]
+##         set second_d [npu_jtag_cdc_pin $target 1 D]
+##         set stage_cells [get_cells -of_objects [list $entry $second_d]]
+##         foreach cell $stage_cells {
+##             if {[string tolower [get_property ASYNC_REG $cell]] ni {true 1 yes}} {
+##                 error "NPU toggle stage lacks ASYNC_REG: $cell"
+##             }
+##         }
+##         if {[get_nets -of_objects $first_q] ne [get_nets -of_objects $second_d]} {
+##             error "NPU toggle synchronizer has logic between stages: $label"
+##         }
+##         foreach type {max min} {
+##             set timed [npu_jtag_cdc_finite_paths -from [get_cells -of_objects $first_q] -to $second_d -delay_type $type -max_paths 1]
+##             if {[llength $timed] != 1 || [get_property EXCEPTION [lindex $timed 0]] ne ""} {
+##                 error "NPU synchronizer second stage missing/cut: $label/$type"
+##             }
+##             set timing [lindex $timed 0]
+##             puts $f "$label\tsecond_stage_$type\t1\t1\t1\t[get_property REQUIREMENT $timing]\t[get_property SLACK $timing]\t[get_property STARTPOINT_CLOCK $timing]\t[get_property ENDPOINT_CLOCK $timing]"
+##         }
+##         puts $f "$label\tasync_entry_D_only\t1\t1\t0\tNA\tNA\tNA\tNA"
+##     }
+##     foreach group [npu_jtag_cdc_resets] {
+##         lassign $group label cells pins
+##         foreach cell $cells {
+##             if {[string tolower [get_property ASYNC_REG $cell]] ni {true 1 yes}} {
+##                 error "NPU reset stage lacks ASYNC_REG: $cell"
+##             }
+##         }
+##         set timed [npu_jtag_cdc_finite_paths -to $pins -max_paths 10000]
+##         if {[llength $timed]} {error "Reset synchronizer asynchronous assertion still timed: $label"}
+##         puts $f "$label\tasync_CLR_only\tNA\t[llength $pins]\t0\tNA\tNA\tNA\tNA"
+##     }
+##     close $f
+## }
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+get_clocks: Time (s): cpu = 00:00:12 ; elapsed = 00:00:06 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Wrote PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Writing XDEF routing.
+Writing XDEF routing logical nets.
+Writing XDEF routing special nets.
+Wrote RouteStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.103 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote PlaceStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.018 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Write Physdb Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.170 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Write ShapeDB Complete: Time (s): cpu = 00:00:02 ; elapsed = 00:00:00.593 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/synth.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:21 ; elapsed = 00:00:23 . Memory (MB): peak = 2959.680 ; gain = 0.000
+report_timing_summary: Time (s): cpu = 00:00:08 ; elapsed = 00:00:05 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Command: report_drc -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/synth_drc.rpt
+INFO: [IP_Flow 19-1839] IP Catalog is up to date.
+INFO: [DRC 23-27] Running DRC with 4 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/synth_drc.rpt.
+report_drc completed successfully
+report_drc: Time (s): cpu = 00:00:17 ; elapsed = 00:00:12 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Command: report_methodology -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/synth_methodology.rpt
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [DRC 23-133] Running Methodology with 4 threads
+INFO: [Vivado_Tcl 2-1520] The results of Report Methodology are in file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/synth_methodology.rpt.
+report_methodology completed successfully
+report_methodology: Time (s): cpu = 00:00:33 ; elapsed = 00:00:13 . Memory (MB): peak = 2959.680 ; gain = 0.000
+## set critical_bram_checks [get_drc_checks {CFGBVS-1 REQP-1839 RBOR-1}]
+## if {[llength $critical_bram_checks] != 3} {
+##     error "Required configuration/BRAM DRC checks are unavailable"
+## }
+## report_drc -name chipdesign_bram_guard -checks $critical_bram_checks
+Command: report_drc -name chipdesign_bram_guard -checks {CFGBVS-1 RBOR-1 REQP-1839}
+WARNING: [Vivado_Tcl 2-1291] -name option used when not in GUI mode. A DRC tab will not be created, but the results will be stored for use with 'get_drc_violations -name chipdesign_bram_guard'
+INFO: [DRC 23-27] Running DRC with 4 threads
+report_drc completed successfully
+WARNING: [Vivado_Tcl 4-49] No violations matched '*'.
+## set critical_bram_violations [get_drc_violations -name chipdesign_bram_guard]
+## if {[llength $critical_bram_violations] != 0} {
+##     error "Configuration/BRAM DRC failed: $critical_bram_violations"
+## }
+## puts "PASS configuration/BRAM DRC; DSP pipeline advisories remain visible"
+PASS configuration/BRAM DRC; DSP pipeline advisories remain visible
+Command: report_drc -name chipdesign_bram_guard -checks {CFGBVS-1 RBOR-1 REQP-1839} -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/synth_bram_guard.rpt
+WARNING: [Vivado_Tcl 2-1291] -name option used when not in GUI mode. A DRC tab will not be created, but the results will be stored for use with 'get_drc_violations -name chipdesign_bram_guard'
+INFO: [DRC 23-27] Running DRC with 4 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/synth_bram_guard.rpt.
+report_drc completed successfully
+Command: opt_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7a35t'
+Running DRC as a precondition to command opt_design
+
+Starting DRC Task
+INFO: [DRC 23-27] Running DRC with 4 threads
+INFO: [Project 1-461] DRC finished with 0 Errors
+INFO: [Project 1-462] Please refer to the DRC report (report_drc) for more information.
+
+Time (s): cpu = 00:00:02 ; elapsed = 00:00:01 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Starting Cache Timing Information Task
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Ending Cache Timing Information Task | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:04 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Starting Logic Optimization Task
+
+Phase 1 Initialization
+
+Phase 1.1 Core Generation And Design Setup
+Phase 1.1 Core Generation And Design Setup | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.134 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Phase 1.2 Setup Constraints And Sort Netlist
+Phase 1.2 Setup Constraints And Sort Netlist | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.291 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Phase 1 Initialization | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.314 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Phase 2 Timer Update And Timing Data Collection
+
+Phase 2.1 Detect if minReqCache needed
+Phase 2.1 Detect if minReqCache needed | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.476 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Phase 2.2 Timer Update
+Phase 2.2 Timer Update | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:06 ; elapsed = 00:00:03 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Phase 2.3 Timing Data Collection
+Phase 2.3 Timing Data Collection | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:07 ; elapsed = 00:00:04 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Phase 2 Timer Update And Timing Data Collection | Checksum: 2297b07d7
+
+Time (s): cpu = 00:00:07 ; elapsed = 00:00:04 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Phase 3 Retarget
+INFO: [Opt 31-1851] Number of loadless carry chains removed were: 0
+INFO: [Opt 31-1834] Total Chains To Be Transformed Were: 0 AND Number of Transformed insts Created are: 0
+INFO: [Opt 31-1566] Pulled 44 inverters resulting in an inversion of 234 pins
+INFO: [Opt 31-138] Pushed 1 inverter(s) to 2 load pin(s).
+INFO: [Opt 31-49] Retargeted 0 cell(s).
+Phase 3 Retarget | Checksum: 155da2a52
+
+Time (s): cpu = 00:00:11 ; elapsed = 00:00:08 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Retarget | Checksum: 155da2a52
+INFO: [Opt 31-389] Phase Retarget created 4 cells and removed 62 cells
+INFO: [Opt 31-1021] In phase Retarget, 1 netlist objects are constrained preventing optimization. Please run opt_design with -debug_log to get more detail. 
+
+Phase 4 Constant propagation
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Phase 4 Constant propagation | Checksum: 22fbacd19
+
+Time (s): cpu = 00:00:13 ; elapsed = 00:00:10 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Constant propagation | Checksum: 22fbacd19
+INFO: [Opt 31-389] Phase Constant propagation created 0 cells and removed 0 cells
+
+Phase 5 Sweep
+INFO: [Constraints 18-11670] Building netlist checker database with flags, 0x8
+Done building netlist checker database: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.049 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Phase 5 Sweep | Checksum: 1d1bf9b49
+
+Time (s): cpu = 00:00:15 ; elapsed = 00:00:14 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Sweep | Checksum: 1d1bf9b49
+INFO: [Opt 31-389] Phase Sweep created 0 cells and removed 0 cells
+
+Phase 6 BUFG optimization
+Phase 6 BUFG optimization | Checksum: 1d1bf9b49
+
+Time (s): cpu = 00:00:18 ; elapsed = 00:00:15 . Memory (MB): peak = 2959.680 ; gain = 0.000
+BUFG optimization | Checksum: 1d1bf9b49
+INFO: [Opt 31-662] Phase BUFG optimization created 0 cells of which 0 are BUFGs and removed 0 cells.
+
+Phase 7 Shift Register Optimization
+INFO: [Opt 31-1064] SRL Remap converted 0 SRLs to 0 registers and converted 0 registers of register chains to 0 SRLs
+Phase 7 Shift Register Optimization | Checksum: 1d1bf9b49
+
+Time (s): cpu = 00:00:19 ; elapsed = 00:00:16 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Shift Register Optimization | Checksum: 1d1bf9b49
+INFO: [Opt 31-389] Phase Shift Register Optimization created 0 cells and removed 0 cells
+
+Phase 8 Post Processing Netlist
+Phase 8 Post Processing Netlist | Checksum: 1d1bf9b49
+
+Time (s): cpu = 00:00:20 ; elapsed = 00:00:17 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Post Processing Netlist | Checksum: 1d1bf9b49
+INFO: [Opt 31-389] Phase Post Processing Netlist created 0 cells and removed 0 cells
+
+Phase 9 Finalization
+
+Phase 9.1 Finalizing Design Cores and Updating Shapes
+Phase 9.1 Finalizing Design Cores and Updating Shapes | Checksum: 14cf915c7
+
+Time (s): cpu = 00:00:27 ; elapsed = 00:00:25 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Phase 9.2 Verifying Netlist Connectivity
+
+Starting Connectivity Check Task
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.507 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Phase 9.2 Verifying Netlist Connectivity | Checksum: 14cf915c7
+
+Time (s): cpu = 00:00:27 ; elapsed = 00:00:25 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Phase 9 Finalization | Checksum: 14cf915c7
+
+Time (s): cpu = 00:00:27 ; elapsed = 00:00:25 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Opt_design Change Summary
+=========================
+
+
+-------------------------------------------------------------------------------------------------------------------------
+|  Phase                        |  #Cells created  |  #Cells Removed  |  #Constrained objects preventing optimizations  |
+-------------------------------------------------------------------------------------------------------------------------
+|  Retarget                     |               4  |              62  |                                              1  |
+|  Constant propagation         |               0  |               0  |                                              0  |
+|  Sweep                        |               0  |               0  |                                              0  |
+|  BUFG optimization            |               0  |               0  |                                              0  |
+|  Shift Register Optimization  |               0  |               0  |                                              0  |
+|  Post Processing Netlist      |               0  |               0  |                                              0  |
+-------------------------------------------------------------------------------------------------------------------------
+
+
+Ending Logic Optimization Task | Checksum: 14cf915c7
+
+Time (s): cpu = 00:00:28 ; elapsed = 00:00:25 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Starting Power Optimization Task
+INFO: [Pwropt 34-132] Skipping clock gating for clocks with a period < 2.00 ns.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Running Vector-less Activity Propagation...
+
+Finished Running Vector-less Activity Propagation
+INFO: [Pwropt 34-9] Applying IDT optimizations ...
+INFO: [Pwropt 34-10] Applying ODC optimizations ...
+
+
+Starting PowerOpt Patch Enables Task
+INFO: [Pwropt 34-162] WRITE_MODE attribute of 0 BRAM(s) out of a total of 4 has been updated to save power. Run report_power_opt to get a complete listing of the BRAMs updated.
+INFO: [Pwropt 34-201] Structural ODC has moved 0 WE to EN ports
+Number of BRAM Ports augmented: 0 newly gated: 0 Total Ports: 8
+Ending PowerOpt Patch Enables Task | Checksum: 14cf915c7
+
+Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.667 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Ending Power Optimization Task | Checksum: 14cf915c7
+
+Time (s): cpu = 00:01:40 ; elapsed = 00:01:12 . Memory (MB): peak = 2959.680 ; gain = 0.000
+
+Starting Final Cleanup Task
+Ending Final Cleanup Task | Checksum: 14cf915c7
+
+Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.095 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Common 17-83] Releasing license: Implementation
+29 Infos, 1 Warnings, 0 Critical Warnings and 0 Errors encountered.
+opt_design completed successfully
+opt_design: Time (s): cpu = 00:02:25 ; elapsed = 00:01:55 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Timing 38-480] Writing timing data to binary archive.
+Wrote PlaceDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote PulsedLatchDB: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Writing XDEF routing.
+Writing XDEF routing logical nets.
+Writing XDEF routing special nets.
+Wrote RouteStorage: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.171 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote PlaceStorage: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.001 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote Netlist Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Wrote Device Cache: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.024 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Write Physdb Complete: Time (s): cpu = 00:00:01 ; elapsed = 00:00:00.245 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Write ShapeDB Complete: Time (s): cpu = 00:00:02 ; elapsed = 00:00:00.571 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Common 17-1381] The checkpoint 'C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/opt.dcp' has been generated.
+write_checkpoint: Time (s): cpu = 00:00:20 ; elapsed = 00:00:22 . Memory (MB): peak = 2959.680 ; gain = 0.000
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+report_timing_summary: Time (s): cpu = 00:01:02 ; elapsed = 00:00:26 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Command: report_drc -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/opt_drc.rpt
+INFO: [IP_Flow 19-1839] IP Catalog is up to date.
+INFO: [DRC 23-27] Running DRC with 4 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/opt_drc.rpt.
+report_drc completed successfully
+report_drc: Time (s): cpu = 00:00:11 ; elapsed = 00:00:07 . Memory (MB): peak = 2959.680 ; gain = 0.000
+Command: report_methodology -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/opt_methodology.rpt
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+INFO: [DRC 23-133] Running Methodology with 4 threads
+INFO: [Vivado_Tcl 2-1520] The results of Report Methodology are in file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/opt_methodology.rpt.
+report_methodology completed successfully
+report_methodology: Time (s): cpu = 00:00:31 ; elapsed = 00:00:13 . Memory (MB): peak = 2959.680 ; gain = 0.000
+## set critical_bram_checks [get_drc_checks {CFGBVS-1 REQP-1839 RBOR-1}]
+## if {[llength $critical_bram_checks] != 3} {
+##     error "Required configuration/BRAM DRC checks are unavailable"
+## }
+## report_drc -name chipdesign_bram_guard -checks $critical_bram_checks
+Command: report_drc -name chipdesign_bram_guard -checks {CFGBVS-1 RBOR-1 REQP-1839}
+WARNING: [Vivado_Tcl 2-1291] -name option used when not in GUI mode. A DRC tab will not be created, but the results will be stored for use with 'get_drc_violations -name chipdesign_bram_guard'
+INFO: [DRC 23-27] Running DRC with 4 threads
+report_drc completed successfully
+WARNING: [Vivado_Tcl 4-49] No violations matched '*'.
+## set critical_bram_violations [get_drc_violations -name chipdesign_bram_guard]
+## if {[llength $critical_bram_violations] != 0} {
+##     error "Configuration/BRAM DRC failed: $critical_bram_violations"
+## }
+## puts "PASS configuration/BRAM DRC; DSP pipeline advisories remain visible"
+PASS configuration/BRAM DRC; DSP pipeline advisories remain visible
+Command: report_drc -name chipdesign_bram_guard -checks {CFGBVS-1 RBOR-1 REQP-1839} -file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/opt_bram_guard.rpt
+WARNING: [Vivado_Tcl 2-1291] -name option used when not in GUI mode. A DRC tab will not be created, but the results will be stored for use with 'get_drc_violations -name chipdesign_bram_guard'
+INFO: [DRC 23-27] Running DRC with 4 threads
+INFO: [Vivado_Tcl 2-168] The results of DRC are in file C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/opt_bram_guard.rpt.
+report_drc completed successfully
+Command: place_design
+Attempting to get a license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Implementation' and/or device 'xc7a35t'
+INFO: [Common 17-83] Releasing license: Implementation
+INFO: [DRC 23-27] Running DRC with 4 threads
+INFO: [Vivado_Tcl 4-198] DRC finished with 0 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+INFO: [Timing 38-35] Done setting XDC timing constraints.
+Running DRC as a precondition to command place_design
+INFO: [DRC 23-27] Running DRC with 4 threads
+ERROR: [DRC UTLZ-1] Resource utilization: LUT as Logic over-utilized in Top Level Design (This design requires more LUT as Logic cells than are available in the target device. This design requires 32957 of such cell types but only 20800 compatible sites are available in the target device. Please analyze your synthesis results and constraints to ensure the design is mapped to Xilinx primitives as expected. If so, please consider targeting a larger device. Please set tcl parameter "drc.disableLUTOverUtilError" to 1 to change this error to warning.)
+INFO: [Vivado_Tcl 4-198] DRC finished with 1 Errors
+INFO: [Vivado_Tcl 4-199] Please refer to the DRC report (report_drc) for more information.
+ERROR: [Vivado_Tcl 4-23] Error(s) found during DRC. Placer not run.
+11 Infos, 1 Warnings, 0 Critical Warnings and 2 Errors encountered.
+place_design failed
+place_design: Time (s): cpu = 00:00:14 ; elapsed = 00:00:09 . Memory (MB): peak = 2959.680 ; gain = 0.000
+ERROR: EGo1 build failed at place: ERROR: [Common 17-39] 'place_design' failed due to earlier errors.
+; log: C:/Users/Lenovo/AppData/Local/Temp/chipdesign_nocpu_6fdyh3pq/run/vivado.log
+ERROR: [Common 17-39] 'place_design' failed due to earlier errors.
+
+    while executing
+"place_design"
+    invoked from within
+"if {![regexp {ERROR: \[Place 30-574\]} $place_log] || ![string match "*tck_i*" $place_log]} {
+            return -options $place_options $place_error
+..."
+    invoked from within
+"if {[catch {place_design} place_error place_options]} {
+        # Retry only the documented non-dedicated JTAG clock pin failure.
+        set place_lo..."
+INFO: [Common 17-206] Exiting Vivado at Sat Nov  7 09:01:58 2026...

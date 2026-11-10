@@ -1,0 +1,71 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Sat Nov  7 08:40:10 2026
+# Process ID         : 22264
+# Current directory  : C:/Users/Lenovo
+# Command line       : vivado.exe -mode batch -source D:/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_38fdd73_20261107_083726/board_probe/probe_selected.tcl -log D:/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_38fdd73_20261107_083726/board_probe/selected_probe.log -journal D:/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_38fdd73_20261107_083726/board_probe/selected_probe.jou -tclargs D:/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_38fdd73_20261107_083726/board_probe
+# Log file           : D:/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_38fdd73_20261107_083726/board_probe/selected_probe.log
+# Journal file       : D:/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_38fdd73_20261107_083726/board_probe/selected_probe.jou
+# Running On         : LAPTOP-6R1URLIR
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26300
+# Processor Detail   : Intel(R) Core(TM) i9-14900HX
+# CPU Frequency      : 2419 MHz
+# CPU Physical cores : 24
+# CPU Logical cores  : 32
+# Host memory        : 34070 MB
+# Swap memory        : 28991 MB
+# Total Virtual      : 63061 MB
+# Available Virtual  : 30029 MB
+#-----------------------------------------------------------
+source D:/IWS/advanced_soc/ChipDesign/build/fpga_signoff/fpga_38fdd73_20261107_083726/board_probe/probe_selected.tcl
+# set out [file normalize [lindex $argv 0]]
+# open_hw_manager
+open_hw_manager: Time (s): cpu = 00:00:26 ; elapsed = 00:00:40 . Memory (MB): peak = 558.645 ; gain = 221.723
+# connect_hw_server
+INFO: [Labtools 27-2285] Connecting to hw_server url TCP:localhost:3121
+INFO: [Labtools 27-2222] Launching hw_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+****** Xilinx hw_server v2025.2
+  **** Build date : Oct 28 2025 at 10:03:13
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+
+
+INFO: [Labtools 27-3415] Connecting to cs_server url TCP:localhost:0
+INFO: [Labtools 27-3417] Launching cs_server...
+INFO: [Labtools 27-2221] Launch Output:
+
+
+******** Xilinx cs_server v2025.2.0
+  ****** Build date   : Nov 14 2025-07:16:52
+    **** Build number : 2025.2.1763075812
+      ** Copyright 2017-2022 Xilinx, Inc. All Rights Reserved.
+      ** Copyright 2022-2026 Advanced Micro Devices, Inc. All Rights Reserved.
+
+
+
+connect_hw_server: Time (s): cpu = 00:00:00 ; elapsed = 00:00:08 . Memory (MB): peak = 563.598 ; gain = 4.953
+# foreach target [get_hw_targets] { puts "CABLE=$target" }
+CABLE=localhost:3121/xilinx_tcf/Digilent/210512180081
+CABLE=localhost:3121/xilinx_tcf/Xilinx/1234-tulA
+# set targets [get_hw_targets *1234-tulA]
+# if {[llength $targets] != 1} { error "Expected one Xilinx programming cable 1234-tulA" }
+# open_hw_target [lindex $targets 0]
+INFO: [Labtoolstcl 44-466] Opening hw_target localhost:3121/xilinx_tcf/Xilinx/1234-tulA
+# set devs [get_hw_devices -filter {PART =~ xc7a35t*}]
+# if {[llength $devs] != 1} { error "Expected one xc7a35t FPGA" }
+# set dev [lindex $devs 0]
+# refresh_hw_device $dev
+INFO: [Labtools 27-1435] Device xc7a35t (JTAG device index = 0) is not programmed (DONE status = 0).
+# report_property $dev -file [file join $out board_properties.txt]
+# puts "FPGA_DEVICE=$dev"
+FPGA_DEVICE=xc7a35t_0
+# close_hw_target
+INFO: [Labtoolstcl 44-464] Closing hw_target localhost:3121/xilinx_tcf/Xilinx/1234-tulA
+# disconnect_hw_server
+# close_hw_manager
+INFO: [Common 17-206] Exiting Vivado at Sat Nov  7 08:41:18 2026...
