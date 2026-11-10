@@ -1,0 +1,38 @@
+//  v2lvs v2022.3_17.8    Fri Jul 1 14:37:11 PDT 2022
+//
+//  Copyright (c) 1992, 1993 Regents of the University of California
+//         All rights reserved.
+//
+//                   Copyright Siemens 1996-2022
+//                       All Rights Reserved.
+//   THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY INFORMATION
+//      WHICH IS THE PROPERTY OF MENTOR GRAPHICS CORPORATION
+//        OR ITS LICENSORS AND IS SUBJECT TO LICENSE TERMS.
+//
+//  The registered trademark Linux is used pursuant to a sublicense from LMI, the
+//  exclusive licensee of Linus Torvalds, owner of the mark on a world-wide basis.
+//
+//  Mentor Graphics software executing under x86-64 Linux
+//
+//  64 bit virtual addressing enabled
+//
+//  mgc_s license acquired (calibrelvs requested).
+//  v2lvs authorized.
+//
+//  Starting time: Tue Nov 10 02:33:28 2026
+//
+
+Info: Creating Verilog Library Database ...
+Info: Verilog Library Database Creation completed. CPU TIME = 0  REAL TIME = 0  MALLOC = 7/7/7  ELAPSED TIME = 2
+
+Info: Creating Design Database of Module Interfaces ...
+Info: Design Database of Module Interfaces Creation completed. CPU TIME = 0  REAL TIME = 0  MALLOC = 7/7/7  ELAPSED TIME = 2
+
+Info: Creating Design Database of Module Instantiations ...
+Info: Design Database of Module Instantiations Creation completed. CPU TIME = 0  REAL TIME = 0  MALLOC = 7/7/7  ELAPSED TIME = 2
+Info: 1 modules parsed, containing 0 instances and 0 gate instance calls 
+
+Info: Converting Design ...
+Info: Design Conversion completed. CPU TIME = 0  REAL TIME = 0  MALLOC = 7/7/7  ELAPSED TIME = 2
+
+TOTAL CPU TIME = 0  REAL TIME = 3  MALLOC = 7/7/7  ELAPSED TIME = 2

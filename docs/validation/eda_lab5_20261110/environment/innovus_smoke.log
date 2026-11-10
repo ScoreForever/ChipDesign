@@ -1,0 +1,29 @@
+
+Cadence Innovus(TM) Implementation System.
+Copyright 2021 Cadence Design Systems, Inc. All rights reserved worldwide.
+
+Version:	v21.16-s078_1, built Wed Dec 7 12:07:06 PST 2022
+Options:	-no_gui -files probe.tcl 
+Date:		Tue Nov 10 02:33:33 2026
+Host:		tc-01a0e839fa89 (x86_64 w/Linux 6.12.0-211.53.1.el10_2.x86_64) (96cores*384cpus*AMD EPYC 9654 96-Core Processor 1024KB)
+OS:		AlmaLinux release 8.10 (Cerulean Leopard)
+
+License:
+		[02:33:33.093042] Configured Lic search path (21.01-s002): /opt/eda/Cadence/license/license.dat:27000@eda-lic.eda-service.eda-services.tc
+
+		invs	Innovus Implementation System	21.1	checkout succeeded
+		8 CPU jobs allowed with the current license(s). Use setMultiCpuUsage to set your required CPU count.
+Create and set the environment variable TMPDIR to /tmp/innovus_temp_6757_tc-01a0e839fa89_s2400012892_VUl3Wi.
+
+Change the soft stacksize limit to 0.2%RAM (32 mbytes). Set global soft_stack_size_limit to change the value.
+
+**INFO:  MMMC transition support version v31-84 
+
+Sourcing file "probe.tcl" ...
+INNOVUS_ENV_PROBE_PASS
+
+*** Memory Usage v#1 (Current mem = 971.758M, initial mem = 484.910M) ***
+*** Message Summary: 0 warning(s), 0 error(s)
+
+--- Ending "Innovus" (totcpu=0:00:23.5, real=0:00:17.0, mem=971.8M) ---
+
