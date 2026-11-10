@@ -39,7 +39,11 @@ endmodule
 // the immutable model occupies the high end of SRAM1. All accesses share one coherent cache/write queue. Round-robin
 // read arbitration prevents weight fetch and activation gather starving each
 // other; a response owner is retained until the consumer accepts it.
-module npu_shared_store #(parameter BYTES=16384)(
+// SIDE_MODEL=1: model reads use the store's side port on whichever macro holds
+// the image, concurrently with activation traffic on the other macro. The image
+// is immutable while validating/running; host image writes mark it dirty until
+// the write queue has drained, so the uncached side port never reads stale data.
+module npu_shared_store #(parameter BYTES=16384,SIDE_MODEL=1)(
  input wire clk,rst,
  input wire [15:0] model_bytes,
  input wire model_write,output wire model_write_ready,
@@ -73,17 +77,23 @@ module npu_shared_store #(parameter BYTES=16384)(
  wire [15:0] model_base=(16'd16384-model_bytes)<<1;
 `endif
  reg owner,halfword,prefer_model;
+ wire side_ready,side_rsp_valid;wire [31:0] side_rsp_data;
+ reg model_dirty,side_halfword;
+ wire side_valid=SIDE_MODEL && model_read && base_ready && !model_dirty;
+ wire side_fire=side_valid && side_ready;
 `ifdef CHIPDESIGN_FPGA_MEM
  // Reserve the activation turn after a model read. If no activation arrives,
  // release it on the next edge, before the registered model response returns.
  // The grant then depends only on registered arbitration state, keeping the
  // gather's mask/valid calculation out of the shared address selection.
- wire select_model=model_read && prefer_model;
+ wire select_model=!SIDE_MODEL && model_read && prefer_model;
  wire request_valid=(select_model || read_valid) && base_ready;
 `else
- wire select_model=model_read && (!read_valid || prefer_model);
- wire request_valid=(model_read || read_valid) && base_ready;
+ wire select_model=!SIDE_MODEL && model_read && (!read_valid || prefer_model);
+ wire request_valid=((select_model || read_valid)) && base_ready;
 `endif
+ // The side port returns the aligned word: a byte-offset-2 halfword is its top half.
+ wire [31:0] side_word=side_halfword ? {16'd0,side_rsp_data[31:16]} : side_rsp_data;
  wire [15:0] request_addr=select_model ? model_base+(model_read_addr<<1) : read_addr;
  wire store_valid,store_model,store_halfword,request_ready;
  wire [15:0] store_addr;
@@ -103,15 +113,15 @@ module npu_shared_store #(parameter BYTES=16384)(
  always @(posedge clk) begin
   if(rst) model_valid_q<=0;
   else begin
-   model_valid_q<=rv && owner;
-   if(rv && owner) model_word_q<=model_word;
+   model_valid_q<=SIDE_MODEL ? side_rsp_valid : rv && owner;
+   if(SIDE_MODEL ? side_rsp_valid : rv && owner) model_word_q<=SIDE_MODEL ? side_word : model_word;
   end
  end
  assign model_rsp_valid=model_valid_q;
  assign model_rsp_data=model_word_q;
 `else
- assign model_rsp_valid=rv && owner;
- assign model_rsp_data=model_word;
+ assign model_rsp_valid=SIDE_MODEL ? side_rsp_valid : rv && owner;
+ assign model_rsp_data=SIDE_MODEL ? side_word : model_word;
  assign request_ready=rr;
  assign store_valid=request_valid;
  assign store_addr=request_addr;
@@ -119,14 +129,18 @@ module npu_shared_store #(parameter BYTES=16384)(
  assign store_halfword=model_read_addr[1];
  assign idle=store_idle;
 `endif
- assign model_read_ready=request_ready && select_model;
+ assign model_read_ready=SIDE_MODEL ? side_fire : request_ready && select_model;
  assign read_ready=request_ready && !select_model;
  assign rsp_data=rd;
  assign model_write_ready=wr && base_ready;
  assign write_ready=wr && !model_write && base_ready;
  always @(posedge clk)begin
-  if(rst)begin owner<=0;halfword<=0;prefer_model<=1;end
+  if(rst)begin owner<=0;halfword<=0;prefer_model<=1;model_dirty<=0;side_halfword<=0;end
   else begin
+   if(side_fire)side_halfword<=model_read_addr[1];
+   // Any accepted image write leaves the side port blocked until it lands.
+   if(model_write && wr && base_ready)model_dirty<=1;
+   else if(store_idle)model_dirty<=0;
    if(request_ready && request_valid)prefer_model<=!select_model;
 `ifdef CHIPDESIGN_FPGA_MEM
    else if(!prefer_model && !read_valid)prefer_model<=1;
@@ -134,7 +148,7 @@ module npu_shared_store #(parameter BYTES=16384)(
    if(rr && store_valid)begin owner<=store_model;halfword<=store_halfword;end
   end
  end
- npu_activation_store #(.BYTES(BYTES)) i_store(
+ npu_activation_store #(.BYTES(BYTES),.SIDE_PORT(SIDE_MODEL)) i_store(
   .clk(clk),.rst(rst),
   .read_valid(store_valid),.read_ready(rr),.read_addr(store_addr),
   .rsp_valid(rv),.rsp_ready(owner || rsp_ready),.rsp_data(rd),
@@ -142,6 +156,8 @@ module npu_shared_store #(parameter BYTES=16384)(
   .write_addr(model_write ? model_base+(model_write_addr<<1) : write_addr),
   .write_data(model_write ? model_write_data : write_data),
   .write_mask(model_write ? 8'hff : write_mask),
-  .flush(flush || model_write),.idle(store_idle));
+  .flush(flush || model_write || model_dirty),.idle(store_idle),
+  .side_valid(side_valid),.side_ready(side_ready),.side_addr(model_base+(model_read_addr<<1)),
+  .side_rsp_valid(side_rsp_valid),.side_rsp_data(side_rsp_data));
  initial if(BYTES!=16384)$fatal(1,"shared SRAM requires two 8KiB banks");
 endmodule

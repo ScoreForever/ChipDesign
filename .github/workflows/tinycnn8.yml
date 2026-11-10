@@ -38,6 +38,35 @@ jobs:
             build/conv_streaming.json
           retention-days: 14
 
+  memory-configurations:
+    # Same programs and the seven packaged models on the FPGA BRAM timing path and on the
+    # RA1SHD macro interface model (ASIC path); the testbench protocol checker runs in all.
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        memory:
+          - {name: fpga_mem, args: '--define CHIPDESIGN_FPGA_MEM'}
+          - {name: ra1shd, args: '--macro-model hardware/npu/tb/ra1shd_functional_model.sv'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install simulator
+        run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Verification tooling unit tests
+        run: python -m unittest discover -s hardware/npu/scripts -p 'test_*.py' -v
+      - name: Program regression and packaged models (${{ matrix.memory.name }})
+        run: python hardware/npu/scripts/run_program_regression.py --quick --packaged-models --jobs 2 ${{ matrix.memory.args }} --output build/regression_${{ matrix.memory.name }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-${{ matrix.memory.name }}
+          path: build/regression_${{ matrix.memory.name }}
+          retention-days: 14
+
   model-evidence:
     runs-on: ubuntu-latest
     timeout-minutes: 10

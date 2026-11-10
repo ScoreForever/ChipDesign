@@ -8,8 +8,18 @@
 // reaches each PE. Partial sums enter as zero; accumulation across K groups
 // is done by the caller on the output side, so issues never wait on results.
 //
-// The array always advances. An issue at edge t is retired with out_valid
-// LATENCY edges later, with all columns aligned to that issue.
+// An issue at edge t is retired with out_valid LATENCY edges later, with all
+// columns aligned to that issue.
+//
+// R1 wavefront enables: the issue accepted at edge E0 is captured by PE (r,c)
+// exactly at edge E0+r+c, by row-skew stage d at E0+d and by column-c deskew
+// stage d at E0+ROWS+c+d. Every operand, partial-sum, skew and deskew register
+// therefore loads only on the edge its own issue passes (enable wave[j] for a
+// load at E0+j: in_valid for j=0, valid_pipe[j-1] otherwise) and holds
+// otherwise. A held register only carries data of a slot no consumer reads
+// (no issue), so results and timing are bit-identical to an always-clocked
+// array; synthesis maps the enables to clock gating (ASIC) or clock enables
+// (FPGA). Weight registers keep their own load enable.
 module npu_mac_array #(
     parameter ARRAY_ROWS = 8,
     parameter ARRAY_COLS = 8,
@@ -40,6 +50,10 @@ module npu_mac_array #(
     reg [LATENCY-1:0] valid_pipe;
     reg [LATENCY-1:0] bank_pipe;
     reg [TAG_WIDTH-1:0] tag_pipe [0:LATENCY-1];
+    // Any issue in flight (pipeline control registers).
+    wire active = in_valid || (|valid_pipe);
+    // wave[j]: an issue is captured at this edge by registers j edges after issue.
+    wire [LATENCY-1:0] wave = {valid_pipe[LATENCY-2:0], in_valid};
     integer t;
     always @(posedge clk) begin
         if (rst) begin
@@ -47,7 +61,7 @@ module npu_mac_array #(
             bank_pipe <= {LATENCY{1'b0}};
             for (t = 0; t < LATENCY; t = t + 1)
                 tag_pipe[t] <= {TAG_WIDTH{1'b0}};
-        end else begin
+        end else if (active) begin
             valid_pipe <= {valid_pipe[LATENCY-2:0], in_valid};
             bank_pipe <= {bank_pipe[LATENCY-2:0], in_bank};
             tag_pipe[0] <= in_tag;
@@ -81,9 +95,11 @@ module npu_mac_array #(
                             sel_delay[d] <= 1'b0;
                         end
                     end else begin
-                        act_delay[0] <= {!in_unsigned && in_act[r*4+3], in_act[r*4 +: 4]};
-                        sel_delay[0] <= in_bank;
-                        for (d = 1; d < r; d = d + 1) begin
+                        if (wave[0]) begin
+                            act_delay[0] <= {!in_unsigned && in_act[r*4+3], in_act[r*4 +: 4]};
+                            sel_delay[0] <= in_bank;
+                        end
+                        for (d = 1; d < r; d = d + 1) if (wave[d]) begin
                             act_delay[d] <= act_delay[d-1];
                             sel_delay[d] <= sel_delay[d-1];
                         end
@@ -124,9 +140,11 @@ module npu_mac_array #(
                             weight_bank0 <= weight_data[c*4 +: 4];
                         if (weight_we && weight_row == r && weight_bank)
                             weight_bank1 <= weight_data[c*4 +: 4];
-                        act_q <= act_link[r][c];
-                        sel_q <= sel_link[r][c];
-                        psum_q <= mac;
+                        if (wave[r+c]) begin
+                            act_q <= act_link[r][c];
+                            sel_q <= sel_link[r][c];
+                            psum_q <= mac;
+                        end
                     end
                 end
                 assign act_link[r][c+1] = act_q;
@@ -151,9 +169,9 @@ module npu_mac_array #(
                         for (d = 0; d < DEPTH; d = d + 1)
                             delay[d] <= {ACC_WIDTH{1'b0}};
                     end else begin
-                        delay[0] <= psum_link[ARRAY_ROWS][c];
+                        if (wave[ARRAY_ROWS+c]) delay[0] <= psum_link[ARRAY_ROWS][c];
                         for (d = 1; d < DEPTH; d = d + 1)
-                            delay[d] <= delay[d-1];
+                            if (wave[ARRAY_ROWS+c+d]) delay[d] <= delay[d-1];
                     end
                 end
                 assign out_psum[c*ACC_WIDTH +: ACC_WIDTH] = delay[DEPTH-1];

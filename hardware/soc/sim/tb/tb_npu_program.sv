@@ -180,7 +180,168 @@ module tb_npu_program;
   if(have_prev)begin op=1;addr=4;data=0;expected_error=0;exchange;end
   $display("JTAG ticks=%0d tck_ns=%0.1f bursts=%0d sim_ns=%0t",ticks,tck_ns,bursts,$time);
 `endif
+  chk.report();
   $display("PASS program commands=%0d",commands);$finish;
  end
+ npu_protocol_checker chk();
  initial begin #1000000000;$fatal(1,"global timeout");end
+endmodule
+
+// Always-on protocol assertions and functional-coverage counters for every
+// program simulation (regression, limits, fuzz, packaged models; native and
+// JTAG; behavioral, FPGA_MEM and RA1SHD memories). Any violated invariant
+// stops the run with $fatal; coverage bins are printed as COVER lines on PASS.
+module npu_protocol_checker;
+`ifdef JTAG_TEST
+`define CHK_SUB tb_npu_program.dut.i_control
+`else
+`define CHK_SUB tb_npu_program.dut
+`endif
+`define CHK_CORE `CHK_SUB.i_npu
+`define CHK_SH `CHK_SUB.i_activation
+`define CHK_ST `CHK_SUB.i_activation.i_store
+ wire clk=`CHK_CORE.clk, rst=`CHK_CORE.rst;
+ wire running=`CHK_SUB.running;
+ integer mo=0, max_mo=0;
+ integer run_cycles=0, array_active=0, array_issue=0, pe_clocks=0;
+ reg [3:0] prev_state=0;
+ wire [16:0] model_base={1'b0,16'd16384-`CHK_CORE.model_bytes}<<1;   // nibble address
+ // Coverage bins: name -> hit count.
+ localparam NB=32;
+ integer cov[0:NB-1];
+ integer k;
+ initial for(k=0;k<NB;k=k+1)cov[k]=0;
+ task automatic hit(input integer i); cov[i]=cov[i]+1; endtask
+ always @(posedge clk) if(!rst) begin
+  // --- X propagation on control after reset ---
+  if(^{`CHK_CORE.state,`CHK_CORE.m_valid,`CHK_CORE.a_valid,`CHK_CORE.w_valid}===1'bx)
+   $fatal(1,"CHK X on core control state=%b m=%b a=%b w=%b",`CHK_CORE.state,`CHK_CORE.m_valid,`CHK_CORE.a_valid,`CHK_CORE.w_valid);
+  if(`CHK_CORE.m_valid && ^`CHK_CORE.m_addr===1'bx)$fatal(1,"CHK X on model read address");
+  if(`CHK_CORE.a_valid && running && ^`CHK_CORE.a_addr===1'bx)$fatal(1,"CHK X on activation read address");
+  if(`CHK_CORE.w_valid && (^`CHK_CORE.w_addr===1'bx || ^`CHK_CORE.w_mask===1'bx))$fatal(1,"CHK X on write address/mask");
+  if(`CHK_CORE.m_rsp_valid && ^`CHK_CORE.m_data===1'bx)$fatal(1,"CHK X in model response data");
+  // --- model read protocol at the core interface: in order, bounded, drained ---
+  if(`CHK_CORE.m_valid && `CHK_CORE.m_ready) begin
+   if(`CHK_CORE.m_addr>=`CHK_CORE.model_bytes || `CHK_CORE.m_addr[0])
+    $fatal(1,"CHK model read address %h outside image of %0d bytes",`CHK_CORE.m_addr,`CHK_CORE.model_bytes);
+  end
+  if(`CHK_CORE.m_rsp_valid && mo==0 && !(`CHK_CORE.m_valid && `CHK_CORE.m_ready))
+   $fatal(1,"CHK model response without an outstanding request");
+  // Reads of the finished descriptor must be drained before the first cycle
+  // after EXECUTE (that cycle may already issue the next descriptor's read).
+  if(prev_state==`CHK_CORE.EXECUTE && `CHK_CORE.state!=`CHK_CORE.EXECUTE &&
+     `CHK_CORE.state!=`CHK_CORE.FAILED && `CHK_CORE.state!=`CHK_CORE.IDLE && mo!=0)
+   $fatal(1,"CHK descriptor finished with %0d model reads outstanding",mo);
+  mo = mo + (`CHK_CORE.m_valid && `CHK_CORE.m_ready) - `CHK_CORE.m_rsp_valid;
+  if(mo<0)$fatal(1,"CHK model response count exceeded requests");
+  if(mo>3)$fatal(1,"CHK more than three model reads outstanding (%0d)",mo);
+  if(mo>max_mo)max_mo=mo;
+  if(mo==2)hit(0); if(mo==3)hit(1);
+  // --- weight-load queue invariants (A2) ---
+  if({1'b0,`CHK_CORE.l_out}+{1'b0,`CHK_CORE.lq_count}>3)$fatal(1,"CHK weight queue over-subscribed");
+  if(`CHK_CORE.state==`CHK_CORE.EXECUTE && `CHK_CORE.lstate==`CHK_CORE.L_IDLE &&
+     (`CHK_CORE.l_out!=0 || `CHK_CORE.lq_count!=0))$fatal(1,"CHK weight reads left over after a bank load");
+  if(`CHK_CORE.lq_count==3)hit(2);
+  if(`CHK_CORE.lq_push && `CHK_CORE.lq_pop)hit(3);
+  if(`CHK_CORE.array_weight_we && `CHK_CORE.dw_hold)hit(4);
+  if(`CHK_CORE.array_weight_we && `CHK_CORE.load_zero)hit(5);
+  if(`CHK_CORE.array_weight_we && `CHK_CORE.inflight[`CHK_CORE.load_bank]==0 && `CHK_CORE.lq_count!=0)hit(6);
+  // --- memory map: activation traffic never touches the model image ---
+  if(running && `CHK_CORE.a_valid && `CHK_CORE.a_ready && {1'b0,`CHK_CORE.a_addr}>=model_base)
+   $fatal(1,"CHK activation read %h inside model image (base %h)",`CHK_CORE.a_addr,model_base);
+  if(running && `CHK_CORE.w_valid && `CHK_CORE.w_ready && {1'b0,`CHK_CORE.w_addr}>=model_base)
+   $fatal(1,"CHK activation write %h inside model image (base %h)",`CHK_CORE.w_addr,model_base);
+  // --- dual-macro side port (A) ---
+  if(`CHK_ST.side_fire && `CHK_ST.sram_en && `CHK_ST.main_bank==`CHK_ST.side_bank)
+   $fatal(1,"CHK side and main port access the same macro in one cycle");
+  if(`CHK_ST.side_fire && `CHK_ST.sram_en)hit(7);              // both macros busy at once
+  if(`CHK_ST.side_valid && !`CHK_ST.side_ready)hit(8);          // side blocked by bank conflict
+  if(`CHK_ST.side_claim)hit(9);                                 // side claims the macros after waiting
+  if(`CHK_SH.model_dirty && `CHK_SH.model_read)hit(10);
+  // --- queue/slot bounds ---
+  if(`CHK_ST.count>8)$fatal(1,"CHK store write queue overflow");
+  if(`CHK_CORE.write_count>8)$fatal(1,"CHK core output FIFO overflow");
+  if(`CHK_ST.count==8)hit(11);
+  if(`CHK_ST.count>=6)hit(12);
+  if(`CHK_ST.state==`CHK_ST.S_HELD)hit(13);
+  if(`CHK_ST.state==`CHK_ST.S_RMW)hit(14);
+  if(`CHK_ST.state==`CHK_ST.S_FIRST)hit(15);
+  if(`CHK_CORE.write_count==8)hit(16);
+  if(`CHK_CORE.slot_busy==4'hf)hit(17);
+  if(running && `CHK_CORE.a_valid && !`CHK_CORE.a_ready)hit(18);
+  if(running && `CHK_CORE.w_valid && !`CHK_CORE.w_ready)hit(19);
+  // --- descriptor mix seen at EXECUTE entry ---
+  if(prev_state!=`CHK_CORE.EXECUTE && `CHK_CORE.state==`CHK_CORE.EXECUTE) begin
+   case(`CHK_CORE.op)
+    `CHK_CORE.CONV: hit(`CHK_CORE.dwconv ? 21 : (`CHK_CORE.rowpad ? 22 : 20));
+    `CHK_CORE.FC: hit(23);
+    `CHK_CORE.POOL: hit(24);
+    `CHK_CORE.RELU: hit(25);
+    `CHK_CORE.REQUANT: hit(26);
+    `CHK_CORE.AVGPOOL: hit(27);
+    `CHK_CORE.ADD: hit(28);
+   endcase
+   if(`CHK_CORE.mac_op && `CHK_CORE.pool_enable)hit(29);
+   if(`CHK_CORE.mac_op && `CHK_CORE.narrow)hit(30);
+  end
+  if(`CHK_CORE.state==`CHK_CORE.FAILED && prev_state!=`CHK_CORE.FAILED)hit(31);
+  // --- power proxy (R1): array register clock-enable duty while the NPU runs ---
+  if(running)begin
+   run_cycles=run_cycles+1;
+   if(`CHK_CORE.i_array.active)array_active=array_active+1;
+   // PE register clocks this cycle: diagonal d of the 8x8 array holds min(d,14-d)+1 PEs.
+   for(k=0;k<15;k=k+1)if(`CHK_CORE.i_array.wave[k])pe_clocks=pe_clocks+((k<7?k:14-k)+1);
+   if(`CHK_CORE.i_array.in_valid)array_issue=array_issue+1;
+  end
+  prev_state<=`CHK_CORE.state;
+ end else mo=0;
+ function [8*24-1:0] bin_name(input integer i);
+  case(i)
+   0: bin_name="model_outstanding_2";
+   1: bin_name="model_outstanding_3";
+   2: bin_name="weight_queue_full";
+   3: bin_name="weight_queue_push_pop";
+   4: bin_name="dw_row_from_hold";
+   5: bin_name="zero_pad_row";
+   6: bin_name="row_from_queue";
+   7: bin_name="both_macros_busy";
+   8: bin_name="side_port_blocked";
+   9: bin_name="side_port_claim";
+   10: bin_name="model_read_while_dirty";
+   11: bin_name="store_queue_full";
+   12: bin_name="store_queue_urgent";
+   13: bin_name="store_held_response";
+   14: bin_name="store_rmw";
+   15: bin_name="store_two_word_read";
+   16: bin_name="core_fifo_full";
+   17: bin_name="result_slots_full";
+   18: bin_name="act_read_backpressure";
+   19: bin_name="act_write_backpressure";
+   20: bin_name="op_conv";
+   21: bin_name="op_depthwise";
+   22: bin_name="op_conv_rowpad";
+   23: bin_name="op_fc";
+   24: bin_name="op_maxpool";
+   25: bin_name="op_relu";
+   26: bin_name="op_requant";
+   27: bin_name="op_avgpool";
+   28: bin_name="op_add";
+   29: bin_name="fused_pool";
+   30: bin_name="narrow_tile";
+   31: bin_name="descriptor_failed";
+   default: bin_name="unknown";
+  endcase
+ endfunction
+ task report;
+  begin
+   $display("COVER max_model_outstanding %0d",max_mo);
+   $display("POWER run_cycles=%0d array_active=%0d array_issue=%0d pe_clocks=%0d pe_clocks_ungated=%0d",
+    run_cycles,array_active,array_issue,pe_clocks,64*run_cycles);
+   for(k=0;k<NB;k=k+1)$display("COVER %0s %0d",bin_name(k),cov[k]);
+  end
+ endtask
+`undef CHK_CORE
+`undef CHK_SH
+`undef CHK_ST
+`undef CHK_SUB
 endmodule

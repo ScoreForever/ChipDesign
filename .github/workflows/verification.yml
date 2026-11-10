@@ -1,0 +1,137 @@
+name: Verification gate
+# Full pre-tape-out gate for candidate branches: memory-configuration regressions,
+# shared-store stress, CDC limit sweep, mutation testing (one job per mutant) and the
+# performance/coverage evaluation whose exports feed the evaluation dashboard.
+on:
+  push:
+    branches: ['perf/**', 'power/**', 'verify/**']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: verification-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  PYTHONUNBUFFERED: '1'
+
+jobs:
+  tooling:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      mutants: ${{ steps.list.outputs.mutants }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - name: Verification tooling unit tests
+        run: python -m unittest discover -s hardware/npu/scripts -p 'test_*.py' -v
+      - id: list
+        name: Mutant list for sharding
+        run: echo "mutants=$(python hardware/npu/scripts/mutation_test.py --run list --list | python -c 'import json,sys;print(json.dumps(sys.stdin.read().split()))')" >> "$GITHUB_OUTPUT"
+
+  regression:
+    needs: tooling
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        memory:
+          - {name: behavioral, args: ''}
+          - {name: fpga_mem, args: '--quick --packaged-models --define CHIPDESIGN_FPGA_MEM'}
+          - {name: ra1shd, args: '--quick --packaged-models --macro-model hardware/npu/tb/ra1shd_functional_model.sv'}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Program regression, block benches, shared-store stress, protocol checker (${{ matrix.memory.name }})
+        run: python hardware/npu/scripts/run_program_regression.py --jobs 4 ${{ matrix.memory.args }} --output build/regression_${{ matrix.memory.name }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: regression-${{ matrix.memory.name }}
+          path: |
+            build/regression_${{ matrix.memory.name }}/*.log
+            build/regression_${{ matrix.memory.name }}/summary.json
+            build/regression_${{ matrix.memory.name }}/*/rtl.log
+          retention-days: 14
+
+  cdc:
+    needs: tooling
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Existing TAP mailbox and burst CDC benches
+        run: |
+          mkdir -p build/cdc
+          iverilog -g2012 -s tb_npu_jtag_cdc -o build/cdc/t.vvp hardware/soc/rtl/control/npu_jtag_transport.sv verification/fpga/cdc/tb_npu_jtag_cdc.sv
+          vvp -n build/cdc/t.vvp | tee build/cdc/sim.log; grep -q 'PASS NPU_JTAG_CDC:' build/cdc/sim.log
+          iverilog -g2012 -s tb_npu_jtag_burst_cdc -o build/cdc/b.vvp hardware/soc/rtl/control/npu_jtag_transport.sv verification/fpga/cdc/tb_npu_jtag_burst_cdc.sv
+          vvp -n build/cdc/b.vvp | tee build/cdc/burst.log; grep -q 'PASS NPU_JTAG_BURST_CDC:' build/cdc/burst.log
+      - name: CDC limit sweep (clock ratios, jitter, metastability, async resets, backpressure)
+        run: python verification/fpga/cdc/run_cdc_limits.py --jobs 4 --output build/cdc_limits
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cdc-limits
+          path: |
+            build/cdc
+            build/cdc_limits/cdc_limits.csv
+            build/cdc_limits/summary.json
+          retention-days: 30
+
+  mutation:
+    # A mutant only counts as killed if the unmutated design passes the same gate,
+    # so mutants start after the regression and CDC jobs succeed.
+    needs: [tooling, regression, cdc]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        mutant: ${{ fromJSON(needs.tooling.outputs.mutants) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Mutant ${{ matrix.mutant }} must be killed (unless an expected survivor)
+        run: python hardware/npu/scripts/mutation_test.py --run ci --only ${{ matrix.mutant }} --jobs 4 --timeout 2400 --strict
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutant-${{ matrix.mutant }}
+          path: build/mutants/ci/summary.json
+          retention-days: 30
+
+  evaluation:
+    needs: tooling
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: sudo apt-get update && sudo apt-get install -y iverilog
+      - name: Performance, limits, fuzz, packaged models, deploy envelope and coverage
+        run: |
+          label="ci-${GITHUB_REF_NAME//\//-}-${GITHUB_SHA::7}"
+          python hardware/npu/scripts/eval_change.py run --label "$label" --role candidate --jobs 4 \
+            --suites limits ext fuzz models deploy --description "CI ${GITHUB_REF_NAME} ${GITHUB_SHA::7}"
+          python hardware/npu/scripts/eval_change.py export --label "$label" --output build/eval_export
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evaluation-export
+          path: |
+            build/eval_export
+            build/eval/*/meta.json
+            build/eval/*/*.log
+          retention-days: 30
