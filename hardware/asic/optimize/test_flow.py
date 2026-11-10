@@ -30,6 +30,27 @@ class FlowTests(unittest.TestCase):
             gap=max(x1-(x0+w0),x0-(x1+w1),y1-(y0+h0),y0-(y1+h1))
             self.assertGreaterEqual(gap,2*26)
         with self.assertRaises(ValueError):flow.geometry(std,SIZES,.6,'nowhere')
+    def test_sram_roles_distinguish_shared_banks_and_reject_unknown_banks(self):
+        import subprocess
+        script = 'source {' + str(flow.HERE/'sram_roles.tcl') + '}\n'
+        for name, role in [
+            ('i_control/i_activation/i_store/g_bank[0].i_sram', 'activation'),
+            ('i_control/i_activation/i_store/g_bank[1].i_sram', 'model'),
+            ('i_control_i_activation_i_store_g_bank_0__i_sram', 'activation'),
+            ('i_control_i_activation_i_store_g_bank_1__i_sram', 'model'),
+            ('i_control/i_model_store/i_sram', 'model'),
+            ('i_control/i_activation/i_sram', 'activation'),
+        ]:
+            script += 'if {[npu_sram_role {'+name+'}] ne "'+role+'"} {error "wrong role"}\n'
+        for name in ['i_control/i_activation/g_bank[2].i_sram', 'unknown_sram',
+                     'i_control/g_bank[0]/g_bank[1]/i_sram']:
+            script += 'if {![catch {npu_sram_role {'+name+'}}]} {error "unknown bank accepted"}\n'
+        script += 'puts PASS\n'
+        result = subprocess.run(['tclsh'], input=script, text=True, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, '')
+        self.assertEqual(result.stdout.strip(), 'PASS')
+
     def test_area_budget_skips_oversized_candidates_without_tools(self):
         # The die cap is 1.95x1.95 mm; an oversized point never launches Innovus.
         self.assertEqual(flow.MAX_DIE_UM,1950)
@@ -121,6 +142,34 @@ class FlowTests(unittest.TestCase):
             self.assertEqual(area['standard_cell_area_um2'],700);self.assertEqual(area['macro_count'],2)
             self.assertEqual((output/'synthesis/mapped.v').read_bytes(),(source/'my_soc_top.v').read_bytes())
             with self.assertRaises(RuntimeError):flow.adopt_synthesis(output,{'macro_lib':macro},source)
+
+    def test_native_synthesis_adoption_checks_original_evidence_and_input_hashes(self):
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);source=root/'old/synthesis';source.mkdir(parents=True)
+            output=root/'new';output.mkdir()
+            lib=root/'macro.lib';lib.write_text('library input');libs={'macro_lib':lib}
+            flow.save(source.parent/'preflight.json',dict(library_sha256={'macro_lib':flow.digest(lib)}))
+            flow.save(source/'rtl_sources.json',dict(sources_sha256=flow.rtl_fingerprint()))
+            flow.save(source/'status.json',dict(status='complete'))
+            flow.save(source/'tool_exit.json',dict(exit_code=0))
+            (source/'console.log').write_text('PNR_OPT_SYNTHESIS_COMPLETE\n')
+            for n in ('mapped.v','area.rpt','timing.rpt','config.tcl'):(source/n).write_text(n)
+            (source/'mapped.sdc').write_text('set_units -time ns\ncreate_clock -name core_clk -period 20\ncreate_clock -name jtag_clk -period 1000\n')
+            flow.save(source/'area.json',dict(macro_count=2,standard_cell_area_um2=100))
+            (source/'cdc_paths.tsv').write_text('audit input')
+            flow.save(source/'handoff.json',{n:flow.digest(source/n) for n in ('mapped.v','mapped.sdc','area.json')})
+            with patch('flow.validate_cdc_synth',return_value=False):
+                with self.assertRaisesRegex(RuntimeError,'CDC audit'):flow.adopt_synthesis(output,libs,source)
+            with patch('flow.validate_cdc_synth',return_value=True):
+                (source/'mapped.v').write_text('tampered')
+                with self.assertRaisesRegex(RuntimeError,'hashes'):flow.adopt_synthesis(output,libs,source)
+                (source/'mapped.v').write_text('mapped.v')
+                lib.write_text('changed library')
+                with self.assertRaisesRegex(RuntimeError,'library'):flow.adopt_synthesis(output,libs,source)
+                lib.write_text('library input')
+                flow.adopt_synthesis(output,libs,source)
+            self.assertEqual((source/'mapped.v').read_bytes(),(output/'synthesis/mapped.v').read_bytes())
+            self.assertEqual(json.loads((output/'synthesis/import.json').read_text())['kind'],'native')
 
     def test_clock_units_are_never_silently_reinterpreted(self):
         with tempfile.TemporaryDirectory() as d:

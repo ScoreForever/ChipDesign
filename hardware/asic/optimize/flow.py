@@ -388,11 +388,45 @@ def verify_clocks(path):
     return clocks
 
 
+def adopt_native_synthesis(output, libs, source):
+    """Reuse this driver's completed handoff when only downstream scripts changed."""
+    state=json.loads((source/'status.json').read_text())
+    receipt=json.loads((source/'tool_exit.json').read_text())
+    if state.get('status')!='complete' or receipt.get('exit_code')!=0:
+        raise RuntimeError('native synthesis is not complete')
+    log=(source/'console.log').read_text(errors='replace')
+    if not re.search(r'(?m)^PNR_OPT_SYNTHESIS_COMPLETE$',log):
+        raise RuntimeError('native synthesis completion marker missing')
+    original=json.loads((source.parent/'preflight.json').read_text())
+    if original.get('library_sha256')!={k:digest(v) for k,v in libs.items()}:
+        raise RuntimeError('native synthesis library inputs changed')
+    handoff=json.loads((source/'handoff.json').read_text())
+    if set(handoff)!={'mapped.v','mapped.sdc','area.json'} or any(digest(source/n)!=h for n,h in handoff.items()):
+        raise RuntimeError('native synthesis handoff hashes changed')
+    verify_clocks(source/'mapped.sdc')
+    if not validate_cdc_synth(source/'cdc_paths.tsv'):
+        raise RuntimeError('native synthesis CDC audit failed')
+    area=json.loads((source/'area.json').read_text())
+    if area.get('macro_count')!=MACROS or area.get('standard_cell_area_um2',0)<=0:
+        raise RuntimeError('native synthesis area or SRAM count invalid')
+    directory=output/'synthesis'
+    if directory.exists():raise RuntimeError('refusing to replace synthesis handoff')
+    directory.mkdir()
+    for name in ('mapped.v','mapped.sdc','area.json','area.rpt','timing.rpt','console.log',
+                 'config.tcl','rtl_sources.json','cdc_paths.tsv','status.json','tool_exit.json','handoff.json'):
+        shutil.copyfile(source/name,directory/name)
+    save(directory/'import.json',dict(source=str(source),kind='native',sources_sha256=fingerprint(),
+         library_sha256=original['library_sha256'],note='Original completion evidence retained; no HDL or mapping change'))
+
+
 def adopt_synthesis(output, libs, source):
     """Import a completed course synthesis, without remapping or changing it."""
     source=source.resolve()
     original=json.loads((source/'rtl_sources.json').read_text())
     if original.get('sources_sha256')!=rtl_fingerprint():raise RuntimeError('imported synthesis RTL/constraints do not match current checkout')
+    if (source/'handoff.json').is_file():
+        adopt_native_synthesis(output,libs,source)
+        return
     log=(source/'console.log').read_text(errors='replace')
     if not re.search(r'(?m)^EDA_MAPPED_SYNTHESIS_COMPLETE$',log) or re.search(r'(?mi)^Error\s*:',log):
         raise RuntimeError('external synthesis has no clean completion evidence')

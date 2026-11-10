@@ -1,6 +1,7 @@
-# Independent ABI-3 INT4 full-chip flow. All geometry is generated in config.tcl.
+# INT4 full-chip flow with legacy and ABI-5 shared-bank role mapping. All geometry is generated in config.tcl.
 source config.tcl
 set here [file dirname [file normalize [info script]]]
+source $here/sram_roles.tcl
 setMultiCpuUsage -localCpu $threads
 set init_top_cell my_soc_top
 set init_verilog $netlist
@@ -100,9 +101,11 @@ set macros {}
 foreach box $macro_boxes {
     lassign $box role mx my mw mh orient
     if {$orient eq ""} {set orient R0}
-    set pattern [expr {$role eq "model" ? "*model_store*" : "*activation*"}]
     set match {}
-    foreach inst $macro_insts {if {[string match $pattern [dbGet $inst.name]]} {lappend match [dbGet $inst.name]}}
+    foreach inst $macro_insts {
+        set inst_name [dbGet $inst.name]
+        if {[npu_sram_role $inst_name] eq $role} {lappend match $inst_name}
+    }
     if {[llength $match]!=1} {error "Cannot identify the $role SRAM instance: $match"}
     set name [lindex $match 0]
     placeInstance $name $mx $my $orient -fixed

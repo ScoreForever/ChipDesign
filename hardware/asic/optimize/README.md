@@ -57,7 +57,7 @@ no prior physical acceptance or FPGA WNS is evidence for this modified ASIC
 flow. This audit is a timing gate, not a replacement for CDC/RDC protocol or
 metastability analysis.
 
-This is an independent ABI-3 INT4 course flow for `my_soc_top`. It preserves the
+This is an INT4 course flow for `my_soc_top`, with legacy separate-store and ABI-5 shared-bank placement role resolution. The model-side placement box selects shared bank 1, which contains the immutable image and can also hold activation spill; the activation-side box selects bank 0. Unknown or ambiguous banks stop the flow. Changing the role resolver requires a fresh frozen experiment and new physical acceptance. It preserves the
 legacy six-PAD SoC scripts. The full-chip build adds all seven signal PADs,
 28 supply PADs, four corners, 35 wire-bond openings, IO/core fillers, the
 two SRAM macros (model and activation store) with their power rings, a core
@@ -234,3 +234,5 @@ between final and pre-CTS active area is the net CTS/timing-repair change, not
 an attribution of every added cell to the clock tree. All bond openings must
 also stay within the actual snapped die; their intended overlays with electrical
 PADs are excluded only from electrical-PAD overlap checks.
+
+A completed native synthesis can be imported with `adopt --import-dir <old-experiment>/synthesis` when only downstream PnR scripts change. The RTL/constraints, original library hashes, completed tool receipt, handoff hashes, clocks and synthesis CDC audit must all match. Original reports and provenance are retained; imports never imply a new mapping or a passed PnR run.
