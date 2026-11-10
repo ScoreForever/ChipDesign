@@ -4,7 +4,7 @@ name: Verification gate
 # performance/coverage evaluation whose exports feed the evaluation dashboard.
 on:
   push:
-    branches: ['perf/**', 'power/**', 'verify/**']
+    branches: ['main', 'perf/**', 'power/**', 'verify/**']
   pull_request:
   workflow_dispatch:
 permissions:

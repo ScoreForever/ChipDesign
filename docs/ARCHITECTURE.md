@@ -1,6 +1,6 @@
 # NPU 架构（INT4 / ABI 5.0）
 
-版本来源与验证范围见 [main baseline](BASELINE_MAIN_20261106.md)，完整编码与形状限制以
+ABI 4 冻结基线见 [main baseline](BASELINE_MAIN_20261106.md)，ABI 5 改动与验证见 [SoC 扩展记录](SOC_EXPANSION_20261106.md)，完整编码与形状限制以
 [ABI 5.0 协议](CPU_LESS_CONTROL.md)为准，ABI 4 历史物理实现见 [INT4 v2 报告](INT4_V2_REPORT.md)。
 
 ## 默认实例树
@@ -12,11 +12,11 @@ my_soc_top
 ├─ npu_jtag_transport：IR12 普通命令、IR13/14 突发传输、握手邮箱 CDC
 └─ npu_control_subsystem
    ├─ npu_command_controller：模型/输入事务、完成保护、超时与复位
-   ├─ npu_shared_store：模型/激活轮转读仲裁与响应归属
-   │  └─ npu_activation_store：两颗 8 KiB SRAM、统一缓存和写队列
+   ├─ npu_shared_store：模型旁路读取、镜像写入刷新与激活存储接口
+   │  └─ npu_activation_store：两颗 8 KiB SRAM、逐宏互斥、激活缓存和写队列
    ├─ npu_trace_capture：可选逐算子摘要与 16 KiB 波形存储
    └─ npu_program_core：预验证、描述符调度、算子执行
-      ├─ npu_mac_array：共享 8×8 MAC、双权重 bank
+      ├─ npu_mac_array：共享 8×8 MAC、双权重 bank、波前寄存器使能
       └─ requant_lane：双 lane 半字节输出、单次舍入
 ```
 
@@ -49,10 +49,12 @@ Conv→Conv 不融合，中间激活正常写回；关闭融合可能增加 i32 
 主机分析生命周期，硬件预验证形状、类型、有效区域和边界；成功才设置 model_valid。
 仅协议允许的精确区域 ReLU/Add 可以原地执行。
 
-两颗单端口 32-bit SRAM 由统一控制器访问，模型读与激活读轮转仲裁；当前保守实现每拍最多访问一颗宏。激活读缓存、写合并及转发保持 RAW 顺序；
+两颗单端口 32-bit SRAM 按宏仲裁：模型通过不可变镜像读旁路访问，激活访问另一颗宏时可以同拍并行；同一颗宏每拍仍只有一次访问。旁路等待一拍后获得访问优先权，模型写入则阻塞旁路直到写队列落地。激活读缓存、写合并及转发保持 RAW 顺序；
 孤立 nibble 写在仅有 byte 写使能的宏上使用读改写。提交和层边界等待必要的写入落地。
 运行中锁定模型/输入，完成输出保留到 ACK；RESET/超时取消在途状态并清有效性，不清 RAM。
 JTAG 只允许一条在途事务，超时后须检查状态，不能盲目重复 START/COMMIT。
+
+权重加载使用深度 3 的请求/响应队列，在不覆盖在途权重 bank 的前提下流水读取；MAC 数据寄存器按 issue 波前使能。寄存器使能本身不代表 ASIC 已插入时钟门控单元，也不构成功耗下降的实测证据。
 
 ## 平台和验证边界
 
@@ -66,3 +68,5 @@ ABI 4 历史 ASIC 选择 `diagonal_facing_h25`：1920 µm die，两颗宏相对�
 ABI 4 历史 FPGA 为 50 MHz、4×8、trace-off，setup WNS 0.000 ns，不能宣称充足裕量。
 112 帧 / 224 次实板验证与 67,245 次软件完整测试集评分属于不同验证层。
 物理按键、断电恢复、电气波形、多角 STA、IR/EM 等缺项见 baseline 记录。
+
+2026-11-10 合入的模型旁路、权重流水和波前使能改变了生产 RTL。[分支整合验证记录](validation/branch_integration_20261110/README.md)记录功能验收范围；2026-11-09 的 +0.533 ns 与板测证据只适用于冻结提交 `81876b3`，新 RTL 仍需重新实现与上板验收。
