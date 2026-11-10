@@ -1,0 +1,773 @@
+{
+  "passed": true,
+  "bitstream_sha256": "aa082471faef9ca59ef43674d4f7b4e5b222c65fe1c47abd7d3d5bf37866d94d",
+  "system_mhz": 50,
+  "nominal_khz": [
+    500,
+    600,
+    700,
+    800,
+    900,
+    1000,
+    1100,
+    1200,
+    1300,
+    1400,
+    1500,
+    1750,
+    2000,
+    2500,
+    3000,
+    5000
+  ],
+  "signed_off_max_khz": 1000,
+  "blocks": [
+    {
+      "block": 0,
+      "khz": 2500,
+      "divider": 12,
+      "divider_khz": 2500.0,
+      "speed_query": "adapter speed: 2500 kHz",
+      "output": "b0_2500khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1500,
+      "divider": 20,
+      "divider_khz": 1500.0,
+      "speed_query": "adapter speed: 1500 kHz",
+      "output": "b0_1500khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1300,
+      "divider": 24,
+      "divider_khz": 1250.0,
+      "speed_query": "adapter speed: 1300 kHz",
+      "output": "b0_1300khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 800,
+      "divider": 38,
+      "divider_khz": 789.4736842105264,
+      "speed_query": "adapter speed: 800 kHz",
+      "output": "b0_800khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1400,
+      "divider": 22,
+      "divider_khz": 1363.6363636363637,
+      "speed_query": "adapter speed: 1400 kHz",
+      "output": "b0_1400khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 500,
+      "divider": 60,
+      "divider_khz": 500.0,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b0_500khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1100,
+      "divider": 28,
+      "divider_khz": 1071.4285714285713,
+      "speed_query": "adapter speed: 1100 kHz",
+      "output": "b0_1100khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1750,
+      "divider": 18,
+      "divider_khz": 1666.6666666666667,
+      "speed_query": "adapter speed: 1750 kHz",
+      "output": "b0_1750khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 600,
+      "divider": 50,
+      "divider_khz": 600.0,
+      "speed_query": "adapter speed: 600 kHz",
+      "output": "b0_600khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 2000,
+      "divider": 15,
+      "divider_khz": 2000.0,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b0_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1200,
+      "divider": 25,
+      "divider_khz": 1200.0,
+      "speed_query": "adapter speed: 1200 kHz",
+      "output": "b0_1200khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 700,
+      "divider": 43,
+      "divider_khz": 697.6744186046511,
+      "speed_query": "adapter speed: 700 kHz",
+      "output": "b0_700khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1000,
+      "divider": 30,
+      "divider_khz": 1000.0,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b0_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 900,
+      "divider": 34,
+      "divider_khz": 882.3529411764706,
+      "speed_query": "adapter speed: 900 kHz",
+      "output": "b0_900khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 5000,
+      "divider": 6,
+      "divider_khz": 5000.0,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b0_5000khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 3000,
+      "divider": 10,
+      "divider_khz": 3000.0,
+      "speed_query": "adapter speed: 3000 kHz",
+      "output": "b0_3000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 900,
+      "divider": 34,
+      "divider_khz": 882.3529411764706,
+      "speed_query": "adapter speed: 900 kHz",
+      "output": "b1_900khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 500,
+      "divider": 60,
+      "divider_khz": 500.0,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b1_500khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1000,
+      "divider": 30,
+      "divider_khz": 1000.0,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b1_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1750,
+      "divider": 18,
+      "divider_khz": 1666.6666666666667,
+      "speed_query": "adapter speed: 1750 kHz",
+      "output": "b1_1750khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 2500,
+      "divider": 12,
+      "divider_khz": 2500.0,
+      "speed_query": "adapter speed: 2500 kHz",
+      "output": "b1_2500khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 700,
+      "divider": 43,
+      "divider_khz": 697.6744186046511,
+      "speed_query": "adapter speed: 700 kHz",
+      "output": "b1_700khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1200,
+      "divider": 25,
+      "divider_khz": 1200.0,
+      "speed_query": "adapter speed: 1200 kHz",
+      "output": "b1_1200khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1500,
+      "divider": 20,
+      "divider_khz": 1500.0,
+      "speed_query": "adapter speed: 1500 kHz",
+      "output": "b1_1500khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 600,
+      "divider": 50,
+      "divider_khz": 600.0,
+      "speed_query": "adapter speed: 600 kHz",
+      "output": "b1_600khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1400,
+      "divider": 22,
+      "divider_khz": 1363.6363636363637,
+      "speed_query": "adapter speed: 1400 kHz",
+      "output": "b1_1400khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 3000,
+      "divider": 10,
+      "divider_khz": 3000.0,
+      "speed_query": "adapter speed: 3000 kHz",
+      "output": "b1_3000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 5000,
+      "divider": 6,
+      "divider_khz": 5000.0,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b1_5000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 800,
+      "divider": 38,
+      "divider_khz": 789.4736842105264,
+      "speed_query": "adapter speed: 800 kHz",
+      "output": "b1_800khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1300,
+      "divider": 24,
+      "divider_khz": 1250.0,
+      "speed_query": "adapter speed: 1300 kHz",
+      "output": "b1_1300khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 2000,
+      "divider": 15,
+      "divider_khz": 2000.0,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b1_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1100,
+      "divider": 28,
+      "divider_khz": 1071.4285714285713,
+      "speed_query": "adapter speed: 1100 kHz",
+      "output": "b1_1100khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 2000,
+      "divider": 15,
+      "divider_khz": 2000.0,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b2_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 800,
+      "divider": 38,
+      "divider_khz": 789.4736842105264,
+      "speed_query": "adapter speed: 800 kHz",
+      "output": "b2_800khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1750,
+      "divider": 18,
+      "divider_khz": 1666.6666666666667,
+      "speed_query": "adapter speed: 1750 kHz",
+      "output": "b2_1750khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1100,
+      "divider": 28,
+      "divider_khz": 1071.4285714285713,
+      "speed_query": "adapter speed: 1100 kHz",
+      "output": "b2_1100khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1400,
+      "divider": 22,
+      "divider_khz": 1363.6363636363637,
+      "speed_query": "adapter speed: 1400 kHz",
+      "output": "b2_1400khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1300,
+      "divider": 24,
+      "divider_khz": 1250.0,
+      "speed_query": "adapter speed: 1300 kHz",
+      "output": "b2_1300khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 900,
+      "divider": 34,
+      "divider_khz": 882.3529411764706,
+      "speed_query": "adapter speed: 900 kHz",
+      "output": "b2_900khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 600,
+      "divider": 50,
+      "divider_khz": 600.0,
+      "speed_query": "adapter speed: 600 kHz",
+      "output": "b2_600khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1200,
+      "divider": 25,
+      "divider_khz": 1200.0,
+      "speed_query": "adapter speed: 1200 kHz",
+      "output": "b2_1200khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 3000,
+      "divider": 10,
+      "divider_khz": 3000.0,
+      "speed_query": "adapter speed: 3000 kHz",
+      "output": "b2_3000khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1500,
+      "divider": 20,
+      "divider_khz": 1500.0,
+      "speed_query": "adapter speed: 1500 kHz",
+      "output": "b2_1500khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 5000,
+      "divider": 6,
+      "divider_khz": 5000.0,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b2_5000khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 700,
+      "divider": 43,
+      "divider_khz": 697.6744186046511,
+      "speed_query": "adapter speed: 700 kHz",
+      "output": "b2_700khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 2500,
+      "divider": 12,
+      "divider_khz": 2500.0,
+      "speed_query": "adapter speed: 2500 kHz",
+      "output": "b2_2500khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 500,
+      "divider": 60,
+      "divider_khz": 500.0,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b2_500khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1000,
+      "divider": 30,
+      "divider_khz": 1000.0,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b2_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 2000,
+      "divider": 15,
+      "divider_khz": 2000.0,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b3_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 900,
+      "divider": 34,
+      "divider_khz": 882.3529411764706,
+      "speed_query": "adapter speed: 900 kHz",
+      "output": "b3_900khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 1500,
+      "divider": 20,
+      "divider_khz": 1500.0,
+      "speed_query": "adapter speed: 1500 kHz",
+      "output": "b3_1500khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 1000,
+      "divider": 30,
+      "divider_khz": 1000.0,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b3_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 1100,
+      "divider": 28,
+      "divider_khz": 1071.4285714285713,
+      "speed_query": "adapter speed: 1100 kHz",
+      "output": "b3_1100khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 600,
+      "divider": 50,
+      "divider_khz": 600.0,
+      "speed_query": "adapter speed: 600 kHz",
+      "output": "b3_600khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 3000,
+      "divider": 10,
+      "divider_khz": 3000.0,
+      "speed_query": "adapter speed: 3000 kHz",
+      "output": "b3_3000khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 500,
+      "divider": 60,
+      "divider_khz": 500.0,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b3_500khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 1750,
+      "divider": 18,
+      "divider_khz": 1666.6666666666667,
+      "speed_query": "adapter speed: 1750 kHz",
+      "output": "b3_1750khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 5000,
+      "divider": 6,
+      "divider_khz": 5000.0,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b3_5000khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 2500,
+      "divider": 12,
+      "divider_khz": 2500.0,
+      "speed_query": "adapter speed: 2500 kHz",
+      "output": "b3_2500khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 1200,
+      "divider": 25,
+      "divider_khz": 1200.0,
+      "speed_query": "adapter speed: 1200 kHz",
+      "output": "b3_1200khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 1400,
+      "divider": 22,
+      "divider_khz": 1363.6363636363637,
+      "speed_query": "adapter speed: 1400 kHz",
+      "output": "b3_1400khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 1300,
+      "divider": 24,
+      "divider_khz": 1250.0,
+      "speed_query": "adapter speed: 1300 kHz",
+      "output": "b3_1300khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 800,
+      "divider": 38,
+      "divider_khz": 789.4736842105264,
+      "speed_query": "adapter speed: 800 kHz",
+      "output": "b3_800khz",
+      "exit": 0
+    },
+    {
+      "block": 3,
+      "khz": 700,
+      "divider": 43,
+      "divider_khz": 697.6744186046511,
+      "speed_query": "adapter speed: 700 kHz",
+      "output": "b3_700khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 900,
+      "divider": 34,
+      "divider_khz": 882.3529411764706,
+      "speed_query": "adapter speed: 900 kHz",
+      "output": "b4_900khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 3000,
+      "divider": 10,
+      "divider_khz": 3000.0,
+      "speed_query": "adapter speed: 3000 kHz",
+      "output": "b4_3000khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 1300,
+      "divider": 24,
+      "divider_khz": 1250.0,
+      "speed_query": "adapter speed: 1300 kHz",
+      "output": "b4_1300khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 1100,
+      "divider": 28,
+      "divider_khz": 1071.4285714285713,
+      "speed_query": "adapter speed: 1100 kHz",
+      "output": "b4_1100khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 800,
+      "divider": 38,
+      "divider_khz": 789.4736842105264,
+      "speed_query": "adapter speed: 800 kHz",
+      "output": "b4_800khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 2500,
+      "divider": 12,
+      "divider_khz": 2500.0,
+      "speed_query": "adapter speed: 2500 kHz",
+      "output": "b4_2500khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 600,
+      "divider": 50,
+      "divider_khz": 600.0,
+      "speed_query": "adapter speed: 600 kHz",
+      "output": "b4_600khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 1000,
+      "divider": 30,
+      "divider_khz": 1000.0,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b4_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 700,
+      "divider": 43,
+      "divider_khz": 697.6744186046511,
+      "speed_query": "adapter speed: 700 kHz",
+      "output": "b4_700khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 5000,
+      "divider": 6,
+      "divider_khz": 5000.0,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b4_5000khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 1500,
+      "divider": 20,
+      "divider_khz": 1500.0,
+      "speed_query": "adapter speed: 1500 kHz",
+      "output": "b4_1500khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 2000,
+      "divider": 15,
+      "divider_khz": 2000.0,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b4_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 1750,
+      "divider": 18,
+      "divider_khz": 1666.6666666666667,
+      "speed_query": "adapter speed: 1750 kHz",
+      "output": "b4_1750khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 1200,
+      "divider": 25,
+      "divider_khz": 1200.0,
+      "speed_query": "adapter speed: 1200 kHz",
+      "output": "b4_1200khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 500,
+      "divider": 60,
+      "divider_khz": 500.0,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b4_500khz",
+      "exit": 0
+    },
+    {
+      "block": 4,
+      "khz": 1400,
+      "divider": 22,
+      "divider_khz": 1363.6363636363637,
+      "speed_query": "adapter speed: 1400 kHz",
+      "output": "b4_1400khz",
+      "exit": 0
+    }
+  ],
+  "started": 1794348541.219382,
+  "finished": 1794350075.854235,
+  "status_before_cleanup": {
+    "busy": false,
+    "model_ready": true,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 30836,
+    "issues": 15696,
+    "writes": 8666
+  },
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  },
+  "source_commit": "aa778875eed49ada6b7b36bf10b1c0cdce2ad3c9"
+}

@@ -1,0 +1,18 @@
+{
+  "dynamic_simulation": "PASS",
+  "raw_cdc15_warnings": 109,
+  "reviewed_request_bits": 72,
+  "reviewed_response_bits": 37,
+  "unexpected_warning_rows": 0,
+  "waivers_created": false,
+  "legacy_phase_rate_cases": 100,
+  "burst_phase_rate_cases": 32,
+  "limitation": "Digital simulation does not model metastability; physical checks apply to supplied routed build only.",
+  "sha256": {
+    "C:\\Users\\Lenovo\\.codex\\worktrees\\eda-flow-main\\ChipDesign\\hardware\\soc\\rtl\\control\\npu_jtag_transport.sv": "1a5502bc780fae1dc07e97e068046af244e925c697d7f6fd4cde83d6dc74017a",
+    "C:\\Users\\Lenovo\\.codex\\worktrees\\eda-flow-main\\ChipDesign\\verification\\fpga\\cdc\\tb_npu_jtag_cdc.sv": "59c437d8e08503aadc078fda153cc85bf853c476d4a26aadf5c8d08636bede05",
+    "C:\\Users\\Lenovo\\.codex\\worktrees\\eda-flow-main\\ChipDesign\\verification\\fpga\\cdc\\tb_npu_jtag_burst_cdc.sv": "f1bd427f17ddd505075bbb1c75cdfb773e05d5b03a4acaddf734a9562a5b8e63",
+    "build\\fpga_verify_20261111\\impl_50mhz\\route_cdc.rpt": "b699d2451baf7c055c345d08ad03f82cddd6c1133cfdd789c65c507f85e518c2",
+    "build\\fpga_verify_20261111\\impl_50mhz\\route_npu_jtag_cdc.tsv": "82b4ace36eb46cf7ff9a65f2cd20b4937b8744a30a5b0e1b47b28d586fec9cee"
+  }
+}

@@ -1,0 +1,980 @@
+{
+  "runs": 756,
+  "rows": [
+    {
+      "khz": 100,
+      "model": "ecg",
+      "cold_ms": 1271.8714,
+      "resident_ms": 127.8476,
+      "resident_min_ms": 107.5856,
+      "resident_max_ms": 224.1138,
+      "upload_ms": 1137.9529,
+      "compute_cycles": [
+        13989
+      ],
+      "phases_ms": {
+        "input_metadata": 15.6065,
+        "input_upload": 33.9721,
+        "input_commit": 7.4745,
+        "start": 7.534,
+        "completion_poll": 7.2595,
+        "output_metadata": 15.3035,
+        "output_readout": 20.0906,
+        "ack": 7.5829
+      }
+    },
+    {
+      "khz": 100,
+      "model": "fashion_cnn",
+      "cold_ms": 2144.5705000000003,
+      "resident_ms": 191.3714,
+      "resident_min_ms": 168.3987,
+      "resident_max_ms": 397.3132,
+      "upload_ms": 1958.1762,
+      "compute_cycles": [
+        36016
+      ],
+      "phases_ms": {
+        "input_metadata": 15.3937,
+        "input_upload": 101.3564,
+        "input_commit": 7.1955,
+        "start": 7.5017,
+        "completion_poll": 7.386,
+        "output_metadata": 15.2733,
+        "output_readout": 24.289,
+        "ack": 7.0492
+      }
+    },
+    {
+      "khz": 100,
+      "model": "gtsrb_l",
+      "cold_ms": 2858.7914,
+      "resident_ms": 606.5366,
+      "resident_min_ms": 534.7106,
+      "resident_max_ms": 1129.2638,
+      "upload_ms": 2149.4116,
+      "compute_cycles": [
+        79756
+      ],
+      "phases_ms": {
+        "input_metadata": 15.7575,
+        "input_upload": 493.2751,
+        "input_commit": 7.4615,
+        "start": 7.2499,
+        "completion_poll": 7.8132,
+        "output_metadata": 14.6342,
+        "output_readout": 59.9736,
+        "ack": 7.1179
+      }
+    },
+    {
+      "khz": 100,
+      "model": "har",
+      "cold_ms": 1494.0577,
+      "resident_ms": 241.7104,
+      "resident_min_ms": 208.4956,
+      "resident_max_ms": 814.8177,
+      "upload_ms": 1260.2907,
+      "compute_cycles": [
+        15821,
+        15826
+      ],
+      "phases_ms": {
+        "input_metadata": 17.7034,
+        "input_upload": 146.5602,
+        "input_commit": 7.4277,
+        "start": 7.896,
+        "completion_poll": 7.4559,
+        "output_metadata": 15.9511,
+        "output_readout": 21.2019,
+        "ack": 7.6993
+      }
+    },
+    {
+      "khz": 100,
+      "model": "kws_l",
+      "cold_ms": 2289.3761999999997,
+      "resident_ms": 164.5408,
+      "resident_min_ms": 148.3654,
+      "resident_max_ms": 276.7792,
+      "upload_ms": 2113.9866,
+      "compute_cycles": [
+        72003,
+        72004
+      ],
+      "phases_ms": {
+        "input_metadata": 15.8649,
+        "input_upload": 71.4858,
+        "input_commit": 7.3763,
+        "start": 7.0454,
+        "completion_poll": 7.4533,
+        "output_metadata": 15.0156,
+        "output_readout": 27.0843,
+        "ack": 7.8673
+      }
+    },
+    {
+      "khz": 100,
+      "model": "kws_m",
+      "cold_ms": 2281.0207,
+      "resident_ms": 174.8547,
+      "resident_min_ms": 160.374,
+      "resident_max_ms": 663.5393,
+      "upload_ms": 2085.1242,
+      "compute_cycles": [
+        73713
+      ],
+      "phases_ms": {
+        "input_metadata": 15.6503,
+        "input_upload": 78.4822,
+        "input_commit": 8.6962,
+        "start": 7.6949,
+        "completion_poll": 8.2928,
+        "output_metadata": 16.7613,
+        "output_readout": 30.1512,
+        "ack": 7.6608
+      }
+    },
+    {
+      "khz": 100,
+      "model": "mnist_l",
+      "cold_ms": 1447.6444,
+      "resident_ms": 202.1758,
+      "resident_min_ms": 185.4155,
+      "resident_max_ms": 491.9015,
+      "upload_ms": 1263.9485,
+      "compute_cycles": [
+        30836
+      ],
+      "phases_ms": {
+        "input_metadata": 16.5617,
+        "input_upload": 107.2386,
+        "input_commit": 7.3878,
+        "start": 7.4225,
+        "completion_poll": 7.5935,
+        "output_metadata": 14.8638,
+        "output_readout": 26.3597,
+        "ack": 7.6665
+      }
+    },
+    {
+      "khz": 250,
+      "model": "ecg",
+      "cold_ms": 806.1886,
+      "resident_ms": 81.9955,
+      "resident_min_ms": 70.8136,
+      "resident_max_ms": 195.3536,
+      "upload_ms": 739.1776,
+      "compute_cycles": [
+        13989
+      ],
+      "phases_ms": {
+        "input_metadata": 9.5754,
+        "input_upload": 23.0472,
+        "input_commit": 4.8949,
+        "start": 4.8541,
+        "completion_poll": 5.4594,
+        "output_metadata": 10.7905,
+        "output_readout": 14.5108,
+        "ack": 5.1043
+      }
+    },
+    {
+      "khz": 250,
+      "model": "fashion_cnn",
+      "cold_ms": 1776.0883,
+      "resident_ms": 124.0672,
+      "resident_min_ms": 112.413,
+      "resident_max_ms": 254.8381,
+      "upload_ms": 1586.8661,
+      "compute_cycles": [
+        36016
+      ],
+      "phases_ms": {
+        "input_metadata": 9.7552,
+        "input_upload": 66.2728,
+        "input_commit": 4.7348,
+        "start": 5.0991,
+        "completion_poll": 4.5629,
+        "output_metadata": 9.7257,
+        "output_readout": 18.4531,
+        "ack": 4.8507
+      }
+    },
+    {
+      "khz": 250,
+      "model": "gtsrb_l",
+      "cold_ms": 1908.139,
+      "resident_ms": 383.6707,
+      "resident_min_ms": 347.5181,
+      "resident_max_ms": 501.0523,
+      "upload_ms": 1303.8247,
+      "compute_cycles": [
+        79756
+      ],
+      "phases_ms": {
+        "input_metadata": 9.596,
+        "input_upload": 285.2038,
+        "input_commit": 4.8166,
+        "start": 5.1102,
+        "completion_poll": 4.5985,
+        "output_metadata": 9.4535,
+        "output_readout": 44.4533,
+        "ack": 4.5776
+      }
+    },
+    {
+      "khz": 250,
+      "model": "har",
+      "cold_ms": 1018.7287,
+      "resident_ms": 150.9125,
+      "resident_min_ms": 133.083,
+      "resident_max_ms": 518.1437,
+      "upload_ms": 859.9969,
+      "compute_cycles": [
+        15821,
+        15826
+      ],
+      "phases_ms": {
+        "input_metadata": 10.7587,
+        "input_upload": 96.4482,
+        "input_commit": 5.2061,
+        "start": 5.2313,
+        "completion_poll": 4.7951,
+        "output_metadata": 10.2864,
+        "output_readout": 14.9307,
+        "ack": 4.71
+      }
+    },
+    {
+      "khz": 250,
+      "model": "kws_l",
+      "cold_ms": 1445.0249000000001,
+      "resident_ms": 106.4915,
+      "resident_min_ms": 92.5442,
+      "resident_max_ms": 129.9589,
+      "upload_ms": 1303.9371,
+      "compute_cycles": [
+        72003,
+        72004
+      ],
+      "phases_ms": {
+        "input_metadata": 9.3037,
+        "input_upload": 45.5905,
+        "input_commit": 5.1757,
+        "start": 4.7521,
+        "completion_poll": 4.7424,
+        "output_metadata": 9.9078,
+        "output_readout": 19.1382,
+        "ack": 4.9188
+      }
+    },
+    {
+      "khz": 250,
+      "model": "kws_m",
+      "cold_ms": 1343.2029,
+      "resident_ms": 110.6841,
+      "resident_min_ms": 97.8392,
+      "resident_max_ms": 301.9688,
+      "upload_ms": 1226.4527,
+      "compute_cycles": [
+        73713
+      ],
+      "phases_ms": {
+        "input_metadata": 9.6222,
+        "input_upload": 46.3767,
+        "input_commit": 5.1453,
+        "start": 5.0515,
+        "completion_poll": 5.1748,
+        "output_metadata": 10.0025,
+        "output_readout": 20.4867,
+        "ack": 4.796
+      }
+    },
+    {
+      "khz": 250,
+      "model": "mnist_l",
+      "cold_ms": 868.6848,
+      "resident_ms": 139.3694,
+      "resident_min_ms": 110.9553,
+      "resident_max_ms": 628.4744,
+      "upload_ms": 723.5186,
+      "compute_cycles": [
+        30836
+      ],
+      "phases_ms": {
+        "input_metadata": 9.5618,
+        "input_upload": 70.0728,
+        "input_commit": 5.5571,
+        "start": 5.2684,
+        "completion_poll": 5.3125,
+        "output_metadata": 10.8681,
+        "output_readout": 17.734,
+        "ack": 5.2297
+      }
+    },
+    {
+      "khz": 500,
+      "model": "ecg",
+      "cold_ms": 699.8574000000001,
+      "resident_ms": 67.2622,
+      "resident_min_ms": 61.4893,
+      "resident_max_ms": 120.9898,
+      "upload_ms": 632.6991,
+      "compute_cycles": [
+        13989
+      ],
+      "phases_ms": {
+        "input_metadata": 8.84,
+        "input_upload": 20.8045,
+        "input_commit": 4.0645,
+        "start": 4.1348,
+        "completion_poll": 4.1249,
+        "output_metadata": 8.5171,
+        "output_readout": 12.9664,
+        "ack": 4.3518
+      }
+    },
+    {
+      "khz": 500,
+      "model": "fashion_cnn",
+      "cold_ms": 1235.6163999999999,
+      "resident_ms": 162.7321,
+      "resident_min_ms": 99.9015,
+      "resident_max_ms": 431.8948,
+      "upload_ms": 1127.9629,
+      "compute_cycles": [
+        36016
+      ],
+      "phases_ms": {
+        "input_metadata": 9.9576,
+        "input_upload": 84.8992,
+        "input_commit": 4.6813,
+        "start": 4.6167,
+        "completion_poll": 4.4293,
+        "output_metadata": 9.2945,
+        "output_readout": 18.8222,
+        "ack": 4.6403
+      }
+    },
+    {
+      "khz": 500,
+      "model": "gtsrb_l",
+      "cold_ms": 1912.1748,
+      "resident_ms": 478.9317,
+      "resident_min_ms": 312.7961,
+      "resident_max_ms": 1452.1734,
+      "upload_ms": 1384.1233,
+      "compute_cycles": [
+        79756
+      ],
+      "phases_ms": {
+        "input_metadata": 9.8729,
+        "input_upload": 270.043,
+        "input_commit": 6.1127,
+        "start": 5.7353,
+        "completion_poll": 7.4064,
+        "output_metadata": 15.8346,
+        "output_readout": 67.8674,
+        "ack": 6.1759
+      }
+    },
+    {
+      "khz": 500,
+      "model": "har",
+      "cold_ms": 1153.5527,
+      "resident_ms": 133.1698,
+      "resident_min_ms": 116.7557,
+      "resident_max_ms": 160.8776,
+      "upload_ms": 1039.5538,
+      "compute_cycles": [
+        15821,
+        15826
+      ],
+      "phases_ms": {
+        "input_metadata": 8.4638,
+        "input_upload": 83.5877,
+        "input_commit": 3.9589,
+        "start": 3.9886,
+        "completion_poll": 4.0687,
+        "output_metadata": 8.1026,
+        "output_readout": 12.7797,
+        "ack": 3.9038
+      }
+    },
+    {
+      "khz": 500,
+      "model": "kws_l",
+      "cold_ms": 1514.816,
+      "resident_ms": 107.6119,
+      "resident_min_ms": 82.01,
+      "resident_max_ms": 204.5719,
+      "upload_ms": 1368.018,
+      "compute_cycles": [
+        72003,
+        72004
+      ],
+      "phases_ms": {
+        "input_metadata": 9.2676,
+        "input_upload": 41.202,
+        "input_commit": 4.0899,
+        "start": 4.3853,
+        "completion_poll": 4.5978,
+        "output_metadata": 9.0144,
+        "output_readout": 18.7425,
+        "ack": 4.5165
+      }
+    },
+    {
+      "khz": 500,
+      "model": "kws_m",
+      "cold_ms": 1075.2646,
+      "resident_ms": 142.0421,
+      "resident_min_ms": 86.565,
+      "resident_max_ms": 353.895,
+      "upload_ms": 983.6847,
+      "compute_cycles": [
+        73713
+      ],
+      "phases_ms": {
+        "input_metadata": 8.7478,
+        "input_upload": 50.1612,
+        "input_commit": 6.2207,
+        "start": 6.8991,
+        "completion_poll": 5.7159,
+        "output_metadata": 13.3223,
+        "output_readout": 23.7342,
+        "ack": 4.4193
+      }
+    },
+    {
+      "khz": 500,
+      "model": "mnist_l",
+      "cold_ms": 1042.8932,
+      "resident_ms": 108.3738,
+      "resident_min_ms": 103.1337,
+      "resident_max_ms": 400.5411,
+      "upload_ms": 928.8792,
+      "compute_cycles": [
+        30836
+      ],
+      "phases_ms": {
+        "input_metadata": 11.7324,
+        "input_upload": 58.4198,
+        "input_commit": 4.6778,
+        "start": 4.6856,
+        "completion_poll": 4.8581,
+        "output_metadata": 8.94,
+        "output_readout": 17.9586,
+        "ack": 4.5345
+      }
+    },
+    {
+      "khz": 1000,
+      "model": "ecg",
+      "cold_ms": 911.2024,
+      "resident_ms": 66.0693,
+      "resident_min_ms": 53.5677,
+      "resident_max_ms": 266.5846,
+      "upload_ms": 755.398,
+      "compute_cycles": [
+        13989
+      ],
+      "phases_ms": {
+        "input_metadata": 8.2558,
+        "input_upload": 20.0717,
+        "input_commit": 3.7615,
+        "start": 3.9353,
+        "completion_poll": 4.0737,
+        "output_metadata": 8.0697,
+        "output_readout": 12.9249,
+        "ack": 4.3973
+      }
+    },
+    {
+      "khz": 1000,
+      "model": "fashion_cnn",
+      "cold_ms": 1357.4577,
+      "resident_ms": 97.7402,
+      "resident_min_ms": 85.8233,
+      "resident_max_ms": 254.5354,
+      "upload_ms": 1263.3673,
+      "compute_cycles": [
+        36016
+      ],
+      "phases_ms": {
+        "input_metadata": 8.0457,
+        "input_upload": 51.1269,
+        "input_commit": 3.7135,
+        "start": 3.4893,
+        "completion_poll": 3.7932,
+        "output_metadata": 7.1458,
+        "output_readout": 15.3211,
+        "ack": 3.7272
+      }
+    },
+    {
+      "khz": 1000,
+      "model": "gtsrb_l",
+      "cold_ms": 1255.2046,
+      "resident_ms": 308.4337,
+      "resident_min_ms": 266.7471,
+      "resident_max_ms": 819.3292,
+      "upload_ms": 953.8306,
+      "compute_cycles": [
+        79756
+      ],
+      "phases_ms": {
+        "input_metadata": 7.2762,
+        "input_upload": 232.3373,
+        "input_commit": 3.8016,
+        "start": 3.3774,
+        "completion_poll": 3.8115,
+        "output_metadata": 7.7381,
+        "output_readout": 37.6483,
+        "ack": 3.804
+      }
+    },
+    {
+      "khz": 1000,
+      "model": "har",
+      "cold_ms": 654.4928,
+      "resident_ms": 118.3054,
+      "resident_min_ms": 102.4993,
+      "resident_max_ms": 415.1529,
+      "upload_ms": 525.9805,
+      "compute_cycles": [
+        15821,
+        15826
+      ],
+      "phases_ms": {
+        "input_metadata": 7.4573,
+        "input_upload": 71.8686,
+        "input_commit": 3.5984,
+        "start": 3.4616,
+        "completion_poll": 3.7591,
+        "output_metadata": 7.2918,
+        "output_readout": 12.6582,
+        "ack": 3.5131
+      }
+    },
+    {
+      "khz": 1000,
+      "model": "kws_l",
+      "cold_ms": 1136.7319,
+      "resident_ms": 82.9928,
+      "resident_min_ms": 72.0666,
+      "resident_max_ms": 121.7294,
+      "upload_ms": 1023.2099,
+      "compute_cycles": [
+        72003,
+        72004
+      ],
+      "phases_ms": {
+        "input_metadata": 7.6922,
+        "input_upload": 37.3249,
+        "input_commit": 3.6149,
+        "start": 3.9549,
+        "completion_poll": 3.7508,
+        "output_metadata": 7.1592,
+        "output_readout": 16.4571,
+        "ack": 3.7671
+      }
+    },
+    {
+      "khz": 1000,
+      "model": "kws_m",
+      "cold_ms": 1018.9094,
+      "resident_ms": 86.3654,
+      "resident_min_ms": 70.9939,
+      "resident_max_ms": 232.3978,
+      "upload_ms": 938.1891,
+      "compute_cycles": [
+        73713
+      ],
+      "phases_ms": {
+        "input_metadata": 7.7311,
+        "input_upload": 36.2918,
+        "input_commit": 3.8227,
+        "start": 3.8586,
+        "completion_poll": 3.7298,
+        "output_metadata": 7.8854,
+        "output_readout": 17.1391,
+        "ack": 3.7383
+      }
+    },
+    {
+      "khz": 1000,
+      "model": "mnist_l",
+      "cold_ms": 651.3534,
+      "resident_ms": 98.8952,
+      "resident_min_ms": 81.8766,
+      "resident_max_ms": 541.2321,
+      "upload_ms": 554.2587,
+      "compute_cycles": [
+        30836
+      ],
+      "phases_ms": {
+        "input_metadata": 7.4722,
+        "input_upload": 52.4763,
+        "input_commit": 3.8054,
+        "start": 3.7205,
+        "completion_poll": 3.6278,
+        "output_metadata": 7.2572,
+        "output_readout": 14.2414,
+        "ack": 3.7895
+      }
+    },
+    {
+      "khz": 2000,
+      "model": "ecg",
+      "cold_ms": 620.5429,
+      "resident_ms": 63.662,
+      "resident_min_ms": 50.3835,
+      "resident_max_ms": 145.4872,
+      "upload_ms": 564.5571,
+      "compute_cycles": [
+        13989
+      ],
+      "phases_ms": {
+        "input_metadata": 7.3976,
+        "input_upload": 18.4738,
+        "input_commit": 4.1395,
+        "start": 3.4774,
+        "completion_poll": 3.5074,
+        "output_metadata": 6.8217,
+        "output_readout": 11.6793,
+        "ack": 3.3701
+      }
+    },
+    {
+      "khz": 2000,
+      "model": "fashion_cnn",
+      "cold_ms": 1198.167,
+      "resident_ms": 92.7251,
+      "resident_min_ms": 83.5707,
+      "resident_max_ms": 218.7556,
+      "upload_ms": 1072.8505,
+      "compute_cycles": [
+        36016
+      ],
+      "phases_ms": {
+        "input_metadata": 6.5984,
+        "input_upload": 51.789,
+        "input_commit": 3.1456,
+        "start": 3.0929,
+        "completion_poll": 3.4923,
+        "output_metadata": 6.4734,
+        "output_readout": 14.763,
+        "ack": 3.4008
+      }
+    },
+    {
+      "khz": 2000,
+      "model": "gtsrb_l",
+      "cold_ms": 1636.8198,
+      "resident_ms": 308.7716,
+      "resident_min_ms": 269.4984,
+      "resident_max_ms": 410.07,
+      "upload_ms": 1289.4666,
+      "compute_cycles": [
+        79756
+      ],
+      "phases_ms": {
+        "input_metadata": 6.4403,
+        "input_upload": 234.8732,
+        "input_commit": 3.382,
+        "start": 3.3963,
+        "completion_poll": 3.5545,
+        "output_metadata": 7.0715,
+        "output_readout": 37.7875,
+        "ack": 3.6514
+      }
+    },
+    {
+      "khz": 2000,
+      "model": "har",
+      "cold_ms": 647.2877000000001,
+      "resident_ms": 128.2652,
+      "resident_min_ms": 105.9884,
+      "resident_max_ms": 318.528,
+      "upload_ms": 528.96,
+      "compute_cycles": [
+        15821,
+        15826
+      ],
+      "phases_ms": {
+        "input_metadata": 8.233,
+        "input_upload": 75.7829,
+        "input_commit": 3.9168,
+        "start": 3.6922,
+        "completion_poll": 3.7417,
+        "output_metadata": 7.75,
+        "output_readout": 12.4283,
+        "ack": 4.1054
+      }
+    },
+    {
+      "khz": 2000,
+      "model": "kws_l",
+      "cold_ms": 1730.7394,
+      "resident_ms": 85.723,
+      "resident_min_ms": 74.324,
+      "resident_max_ms": 189.5381,
+      "upload_ms": 1649.8183,
+      "compute_cycles": [
+        72003,
+        72004
+      ],
+      "phases_ms": {
+        "input_metadata": 7.3716,
+        "input_upload": 38.306,
+        "input_commit": 3.8443,
+        "start": 4.0668,
+        "completion_poll": 3.756,
+        "output_metadata": 7.357,
+        "output_readout": 17.5493,
+        "ack": 4.2135
+      }
+    },
+    {
+      "khz": 2000,
+      "model": "kws_m",
+      "cold_ms": 1258.0653000000002,
+      "resident_ms": 84.6039,
+      "resident_min_ms": 71.4286,
+      "resident_max_ms": 650.1196,
+      "upload_ms": 1128.7886,
+      "compute_cycles": [
+        73713
+      ],
+      "phases_ms": {
+        "input_metadata": 7.3723,
+        "input_upload": 37.1799,
+        "input_commit": 3.5925,
+        "start": 3.5374,
+        "completion_poll": 3.5875,
+        "output_metadata": 7.5722,
+        "output_readout": 16.7555,
+        "ack": 3.8818
+      }
+    },
+    {
+      "khz": 2000,
+      "model": "mnist_l",
+      "cold_ms": 696.0199,
+      "resident_ms": 101.4613,
+      "resident_min_ms": 85.3139,
+      "resident_max_ms": 480.438,
+      "upload_ms": 600.7276,
+      "compute_cycles": [
+        30836
+      ],
+      "phases_ms": {
+        "input_metadata": 7.089,
+        "input_upload": 54.3168,
+        "input_commit": 3.411,
+        "start": 3.5137,
+        "completion_poll": 3.6995,
+        "output_metadata": 6.9954,
+        "output_readout": 15.3908,
+        "ack": 3.4554
+      }
+    },
+    {
+      "khz": 5000,
+      "model": "ecg",
+      "cold_ms": 608.3027,
+      "resident_ms": 67.6053,
+      "resident_min_ms": 58.04,
+      "resident_max_ms": 112.5227,
+      "upload_ms": 545.0541,
+      "compute_cycles": [
+        13989
+      ],
+      "phases_ms": {
+        "input_metadata": 8.3274,
+        "input_upload": 21.177,
+        "input_commit": 4.6034,
+        "start": 4.8019,
+        "completion_poll": 4.1088,
+        "output_metadata": 10.0066,
+        "output_readout": 13.8444,
+        "ack": 4.2858
+      }
+    },
+    {
+      "khz": 5000,
+      "model": "fashion_cnn",
+      "cold_ms": 1330.2755,
+      "resident_ms": 158.6657,
+      "resident_min_ms": 87.3639,
+      "resident_max_ms": 338.7378,
+      "upload_ms": 1152.0615,
+      "compute_cycles": [
+        36016
+      ],
+      "phases_ms": {
+        "input_metadata": 10.7162,
+        "input_upload": 79.2026,
+        "input_commit": 4.4801,
+        "start": 4.4348,
+        "completion_poll": 4.3077,
+        "output_metadata": 8.6156,
+        "output_readout": 22.2972,
+        "ack": 6.5449
+      }
+    },
+    {
+      "khz": 5000,
+      "model": "gtsrb_l",
+      "cold_ms": 1504.1644,
+      "resident_ms": 390.512,
+      "resident_min_ms": 301.9353,
+      "resident_max_ms": 610.2275,
+      "upload_ms": 1029.357,
+      "compute_cycles": [
+        79756
+      ],
+      "phases_ms": {
+        "input_metadata": 8.5519,
+        "input_upload": 306.2499,
+        "input_commit": 4.2917,
+        "start": 3.8991,
+        "completion_poll": 4.0303,
+        "output_metadata": 8.2273,
+        "output_readout": 41.0463,
+        "ack": 4.3053
+      }
+    },
+    {
+      "khz": 5000,
+      "model": "har",
+      "cold_ms": 726.8851999999999,
+      "resident_ms": 129.8522,
+      "resident_min_ms": 112.7376,
+      "resident_max_ms": 284.8396,
+      "upload_ms": 602.406,
+      "compute_cycles": [
+        15821,
+        15826
+      ],
+      "phases_ms": {
+        "input_metadata": 7.8707,
+        "input_upload": 83.3619,
+        "input_commit": 3.9564,
+        "start": 3.8518,
+        "completion_poll": 4.025,
+        "output_metadata": 7.789,
+        "output_readout": 13.4542,
+        "ack": 4.2255
+      }
+    },
+    {
+      "khz": 5000,
+      "model": "kws_l",
+      "cold_ms": 1271.326,
+      "resident_ms": 97.3585,
+      "resident_min_ms": 82.3697,
+      "resident_max_ms": 191.4036,
+      "upload_ms": 1115.1445,
+      "compute_cycles": [
+        72003,
+        72004
+      ],
+      "phases_ms": {
+        "input_metadata": 8.0266,
+        "input_upload": 39.7077,
+        "input_commit": 4.1879,
+        "start": 4.6879,
+        "completion_poll": 4.9389,
+        "output_metadata": 9.7228,
+        "output_readout": 18.6767,
+        "ack": 4.6082
+      }
+    },
+    {
+      "khz": 5000,
+      "model": "kws_m",
+      "cold_ms": 1469.2664,
+      "resident_ms": 97.7003,
+      "resident_min_ms": 80.5822,
+      "resident_max_ms": 223.7447,
+      "upload_ms": 1388.939,
+      "compute_cycles": [
+        73713
+      ],
+      "phases_ms": {
+        "input_metadata": 8.4094,
+        "input_upload": 42.1817,
+        "input_commit": 4.5837,
+        "start": 4.0419,
+        "completion_poll": 4.1528,
+        "output_metadata": 7.9907,
+        "output_readout": 19.4772,
+        "ack": 4.3015
+      }
+    },
+    {
+      "khz": 5000,
+      "model": "mnist_l",
+      "cold_ms": 735.1559,
+      "resident_ms": 109.4514,
+      "resident_min_ms": 96.5594,
+      "resident_max_ms": 293.5338,
+      "upload_ms": 636.0076,
+      "compute_cycles": [
+        30836
+      ],
+      "phases_ms": {
+        "input_metadata": 7.8154,
+        "input_upload": 54.9248,
+        "input_commit": 3.9407,
+        "start": 3.7563,
+        "completion_poll": 4.1805,
+        "output_metadata": 7.6449,
+        "output_readout": 16.0346,
+        "ack": 4.4208
+      }
+    }
+  ],
+  "aggregate": [
+    {
+      "khz": 100,
+      "cold_ms": 1895.9833606230275,
+      "resident_ms": 214.45844357048784,
+      "upload_ms": 1652.3584783515837
+    },
+    {
+      "khz": 250,
+      "cold_ms": 1247.1574220918535,
+      "resident_ms": 138.29741603324808,
+      "upload_ms": 1061.8220981709478
+    },
+    {
+      "khz": 500,
+      "cold_ms": 1182.8755249871485,
+      "resident_ms": 141.86492891321222,
+      "upload_ms": 1036.3075884291518
+    },
+    {
+      "khz": 1000,
+      "cold_ms": 962.7424520105288,
+      "resident_ms": 107.60385237048129,
+      "upload_ms": 822.5440056298518
+    },
+    {
+      "khz": 2000,
+      "cold_ms": 1025.6330029780993,
+      "resident_ms": 108.05847882273231,
+      "upload_ms": 895.6022782802895
+    },
+    {
+      "khz": 5000,
+      "cold_ms": 1028.2054774547362,
+      "resident_ms": 128.1082034018259,
+      "upload_ms": 872.0664956345129
+    }
+  ],
+  "aggregation": "equal-model geometric mean of per-model medians"
+}

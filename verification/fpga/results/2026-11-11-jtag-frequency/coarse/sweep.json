@@ -1,0 +1,170 @@
+{
+  "passed": true,
+  "bitstream_sha256": "aa082471faef9ca59ef43674d4f7b4e5b222c65fe1c47abd7d3d5bf37866d94d",
+  "system_mhz": 50,
+  "nominal_khz": [
+    100,
+    250,
+    500,
+    1000,
+    2000,
+    5000
+  ],
+  "signed_off_max_khz": 1000,
+  "blocks": [
+    {
+      "block": 0,
+      "khz": 100,
+      "speed_query": "adapter speed: 100 kHz",
+      "output": "b0_100khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 250,
+      "speed_query": "adapter speed: 250 kHz",
+      "output": "b0_250khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 500,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b0_500khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 1000,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b0_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 2000,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b0_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 0,
+      "khz": 5000,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b0_5000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 5000,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b1_5000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 2000,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b1_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 1000,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b1_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 500,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b1_500khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 250,
+      "speed_query": "adapter speed: 250 kHz",
+      "output": "b1_250khz",
+      "exit": 0
+    },
+    {
+      "block": 1,
+      "khz": 100,
+      "speed_query": "adapter speed: 100 kHz",
+      "output": "b1_100khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 500,
+      "speed_query": "adapter speed: 500 kHz",
+      "output": "b2_500khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 1000,
+      "speed_query": "adapter speed: 1000 kHz",
+      "output": "b2_1000khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 250,
+      "speed_query": "adapter speed: 250 kHz",
+      "output": "b2_250khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 2000,
+      "speed_query": "adapter speed: 2000 kHz",
+      "output": "b2_2000khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 100,
+      "speed_query": "adapter speed: 100 kHz",
+      "output": "b2_100khz",
+      "exit": 0
+    },
+    {
+      "block": 2,
+      "khz": 5000,
+      "speed_query": "adapter speed: 5000 kHz",
+      "output": "b2_5000khz",
+      "exit": 0
+    }
+  ],
+  "started": 1794347895.014694,
+  "finished": 1794348320.4008563,
+  "status_before_cleanup": {
+    "busy": false,
+    "model_ready": true,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 30836,
+    "issues": 15696,
+    "writes": 8666
+  },
+  "final_status": {
+    "busy": false,
+    "model_ready": false,
+    "input_ready": false,
+    "done": false,
+    "faulted": false,
+    "error": 0,
+    "error_op": 0,
+    "cycles": 0,
+    "issues": 0,
+    "writes": 0
+  },
+  "source_commit": "aa778875eed49ada6b7b36bf10b1c0cdce2ad3c9",
+  "compute_cycle_sets_invariant": true
+}

@@ -1,0 +1,16 @@
+{
+  "fine": {
+    "passed": true,
+    "inferences": 3360,
+    "original_hashed_files": 5857,
+    "archive_sha256": "cac4c2499cb5808c168cf7dcfb1fe870828efdbefd7d24031344931ca09da7f3",
+    "archive_bytes": 5107453
+  },
+  "coarse": {
+    "passed": true,
+    "inferences": 756,
+    "original_hashed_files": 1327,
+    "archive_sha256": "76956b59f44cf6adec804858e4509491e3bf7513bfd8c789a6063b05cbc31264",
+    "archive_bytes": 1264965
+  }
+}
