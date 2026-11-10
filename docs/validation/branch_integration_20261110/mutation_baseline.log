@@ -1,0 +1,51 @@
+PASS cnn_c8_f1_j0
+PASS cnn_c8_f0_j0
+PASS mlp_c8_f1_j0
+PASS mlp_c8_f0_j0
+PASS strided_c8_f1_j0
+PASS strided_c8_f0_j0
+PASS edges_c8_f1_j0
+PASS edges_c8_f0_j0
+PASS long_k_c8_f1_j0
+PASS long_k_c8_f0_j0
+PASS tiny_padded_c8_f1_j0
+PASS tiny_padded_c8_f0_j0
+PASS slot_pressure_c8_f1_j0
+PASS slot_pressure_c8_f0_j0
+PASS dwconv_c8_f1_j0
+PASS dwconv_c8_f0_j0
+PASS dw_rect_pool_c8_f1_j0
+PASS dw_rect_pool_c8_f0_j0
+PASS conv1d_c8_f1_j0
+PASS conv1d_c8_f0_j0
+PASS rect_kernels_c8_f1_j0
+PASS rect_kernels_c8_f0_j0
+PASS pool_general_c8_f1_j0
+PASS pool_general_c8_f0_j0
+PASS residual_add_c8_f1_j0
+PASS residual_add_c8_f0_j0
+PASS u4_chain_c8_f1_j0
+PASS u4_chain_c8_f0_j0
+PASS rowpad_kernels_c8_f1_j0
+PASS rowpad_kernels_c8_f0_j0
+PASS reject opcode
+PASS reject reserved
+PASS reject old_abi
+PASS reject wrong_cols
+PASS reject stride
+PASS reject shape
+PASS reject model_overlap
+PASS reject destination
+PASS reject source
+PASS reject shift
+PASS reject dw_channels
+PASS reject pool_window
+PASS reject add_src2_overlap
+PASS reject add_fused_pool
+PASS reject u4_int32
+PASS reject dw_on_fc
+PASS reject pool1d_unfused
+PASS reject last_descriptor
+PASS lifecycle/abort/timeout/incomplete
+PASS 20000 quant vectors, dual-SRAM memory semantics, trace, random read/write stalls and drain
+ALL 30 PROGRAM TESTS PASSED

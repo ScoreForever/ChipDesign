@@ -475,6 +475,7 @@ def main():
     ap.add_argument('--jobs',type=int,default=1,help='parallel simulations per build')
     ap.add_argument('--only',help='comma-separated fixture names (debug)')
     ap.add_argument('--skip-unit',action='store_true',help='skip block-level unit benches (debug)')
+    ap.add_argument('--unit-after-program',action='store_true',help='run protocol-checked programs before block benches (mutation tests)')
     args=ap.parse_args();out=args.output.resolve();out.mkdir(parents=True,exist_ok=True)
     sources=(ROOT/'hardware/soc/sim/filelists/chipdesign_nocpu.f').read_text().splitlines()
     defines=['-D'+d for d in args.define]
@@ -482,7 +483,7 @@ def main():
     if args.macro_model:
         sources.append(str(args.macro_model.resolve()))
         defines.extend(['-DNPU_USE_RA1SHD_MODEL','-DNPU_USE_RA1SHD_ACTIVATION'])
-    if not args.skip_unit:unit_tests(out,defines,args.macro_model)
+    if not args.skip_unit and not args.unit_after_program:unit_tests(out,defines,args.macro_model)
     cases=list(fixtures())
     if args.packaged_models:
         for path in sorted((ROOT/'software/zoo/pretrained').glob('*/model.json')):
@@ -511,6 +512,7 @@ def main():
     if cnn:
         fused=cnn['cnn_c8_f1_j0'];plain=cnn['cnn_c8_f0_j0']
         assert fused['writes'][0]<plain['writes'][0] and fused['cycles'][0]<plain['cycles'][0]
+    if not args.skip_unit and args.unit_after_program:unit_tests(out,defines,args.macro_model)
     (out/'summary.json').write_text(json.dumps(dict(tests=results,negative_tests=negatives,sources_sha256={s:hashlib.sha256((ROOT/s).read_bytes()).hexdigest() for s in sources if not Path(s).is_absolute()}),indent=2)+'\n')
     print(f'ALL {len(results)} PROGRAM TESTS PASSED',flush=True)
 if __name__=='__main__':main()

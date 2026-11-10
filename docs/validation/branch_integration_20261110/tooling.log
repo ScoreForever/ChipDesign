@@ -1,0 +1,19 @@
+test_aggregates_hits_and_tests_per_suite (test_tooling.CoverageTest.test_aggregates_hits_and_tests_per_suite) ... ok
+test_testbench_bin_names_are_unique_and_complete (test_tooling.CoverageTest.test_testbench_bin_names_are_unique_and_complete) ... ok
+test_compiler_messages_map_to_constraints (test_tooling.DeployClassifyTest.test_compiler_messages_map_to_constraints) ... ok
+test_every_mutant_still_applies_exactly_once (test_tooling.MutantTest.test_every_mutant_still_applies_exactly_once) ... ok
+test_normal_exit_keeps_output_and_status (test_tooling.MutationProcessTest.test_normal_exit_keeps_output_and_status) ... ok
+test_timeout_kills_the_simulator_group_and_drains_output (test_tooling.MutationProcessTest.test_timeout_kills_the_simulator_group_and_drains_output) ... ok
+test_complete_run_counts_checks (test_tooling.RegressionCountTest.test_complete_run_counts_checks) ... ok
+test_failure_counts_in_total (test_tooling.RegressionCountTest.test_failure_counts_in_total) ... ok
+test_interrupted_run_is_incomplete (test_tooling.RegressionCountTest.test_interrupted_run_is_incomplete) ... ok
+test_missing_suite (test_tooling.RegressionCountTest.test_missing_suite) ... ok
+test_memory_configurations_are_pinned (test_tooling.SimBuildTest.test_memory_configurations_are_pinned) ... ok
+test_ra1shd_adds_macro_model_and_all_sources_exist (test_tooling.SimBuildTest.test_ra1shd_adds_macro_model_and_all_sources_exist) ... ok
+test_tile_and_non_profile_build (test_tooling.SimBuildTest.test_tile_and_non_profile_build) ... ok
+test_unknown_memory_rejected (test_tooling.SimBuildTest.test_unknown_memory_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.007s
+
+OK

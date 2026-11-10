@@ -1,0 +1,112 @@
+{
+ "bound_ns": 20.0,
+ "points": 150,
+ "failures": 0,
+ "envelope": [
+  {
+   "sys_ns": 5,
+   "sys_mhz": 200.0,
+   "min_request_margin_ns": 10.008,
+   "request_bound_ok": false,
+   "fastest_tck_half_ns_with_response_margin": 5,
+   "response_margin_by_tck_half": {
+    "2.5": 10.04,
+    "5": 20.04,
+    "10": 40.32,
+    "25": 100.29,
+    "50": 200.28,
+    "100": 495.05,
+    "500": 2899.55,
+    "2500": 14899.55
+   }
+  },
+  {
+   "sys_ns": 8,
+   "sys_mhz": 125.0,
+   "min_request_margin_ns": 16.01,
+   "request_bound_ok": false,
+   "fastest_tck_half_ns_with_response_margin": 5,
+   "response_margin_by_tck_half": {
+    "2.5": 10.04,
+    "5": 20.08,
+    "10": 40.1,
+    "25": 100.05,
+    "50": 200.58,
+    "100": 434.55,
+    "500": 2834.55,
+    "2500": 14834.55
+   }
+  },
+  {
+   "sys_ns": 10,
+   "sys_mhz": 100.0,
+   "min_request_margin_ns": 20.01,
+   "request_bound_ok": true,
+   "fastest_tck_half_ns_with_response_margin": 5,
+   "response_margin_by_tck_half": {
+    "2.5": 10.06,
+    "5": 20.04,
+    "10": 40.04,
+    "25": 100.1,
+    "50": 200.72,
+    "100": 405.28,
+    "500": 2794.55,
+    "2500": 14794.55
+   }
+  },
+  {
+   "sys_ns": 20,
+   "sys_mhz": 50.0,
+   "min_request_margin_ns": 40.01,
+   "request_bound_ok": true,
+   "fastest_tck_half_ns_with_response_margin": 5,
+   "response_margin_by_tck_half": {
+    "2.5": 10.05,
+    "5": 20.07,
+    "10": 40.04,
+    "25": 100.05,
+    "50": 200.1,
+    "100": 405.56,
+    "500": 2594.55,
+    "2500": 14594.55
+   }
+  },
+  {
+   "sys_ns": 40,
+   "sys_mhz": 25.0,
+   "min_request_margin_ns": 80.01,
+   "request_bound_ok": true,
+   "fastest_tck_half_ns_with_response_margin": 5,
+   "response_margin_by_tck_half": {
+    "2.5": 10.03,
+    "5": 20.05,
+    "10": 40.1,
+    "25": 100.09,
+    "50": 200.13,
+    "100": 400.16,
+    "500": 2194.55,
+    "2500": 14194.55
+   }
+  },
+  {
+   "sys_ns": 100,
+   "sys_mhz": 10.0,
+   "min_request_margin_ns": 200.09,
+   "request_bound_ok": true,
+   "fastest_tck_half_ns_with_response_margin": 5,
+   "response_margin_by_tck_half": {
+    "2.5": 10.06,
+    "5": 20.1,
+    "10": 40.06,
+    "25": 100.1,
+    "50": 200.05,
+    "100": 401.61,
+    "500": 2016.07,
+    "2500": 12934.55
+   }
+  }
+ ],
+ "resets": 707,
+ "metastability_injections": 7604,
+ "overruns_dropped": 890
+}

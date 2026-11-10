@@ -1,0 +1,8 @@
+model,previous_cycles,integrated_cycles,reduction_percent
+ecg,15854,13989,11.76
+fashion_cnn,47176,36016,23.66
+gtsrb_l,95147,79756,16.18
+har,18836,15826,15.98
+kws_l,86536,72006,16.79
+kws_m,88754,73716,16.94
+mnist_l,37059,30836,16.79

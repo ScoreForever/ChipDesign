@@ -14,6 +14,8 @@ assertion) or an equivalent mutant (same behaviour by construction; justify it).
 """
 import argparse
 import json
+import os
+import signal
 from pathlib import Path
 import re
 import shutil
@@ -133,6 +135,25 @@ def classify(log_text):
     return 'failed', ''
 
 
+
+def run_command(cmd, cwd, timeout):
+    """Bound the entire simulator process group, including CDC shell pipelines."""
+    p = subprocess.Popen(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT, start_new_session=True)
+    try:
+        text, _ = p.communicate(timeout=timeout)
+        return text, p.returncode
+    except subprocess.TimeoutExpired:
+        # Killing only the Python runner leaves its vvp children running, and
+        # their inherited output pipe can keep communicate blocked indefinitely.
+        try:
+            os.killpg(p.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+        text, _ = p.communicate()
+        return text + '\nTimeoutExpired', 'timeout'
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('--run', required=True)
@@ -175,16 +196,10 @@ def main():
                    f"{ROOT}/verification/fpga/cdc/run_cdc_limits.py --quick --jobs {args.jobs} "
                    f"--rtl {dst / JTAG} --output {out}"]
         else:
-            cmd = [sys.executable, 'hardware/npu/scripts/run_program_regression.py', '--quick', '--only', SUBSET,
+            cmd = [sys.executable, 'hardware/npu/scripts/run_program_regression.py', '--quick', '--unit-after-program', '--only', SUBSET,
                    '--jobs', str(args.jobs), *config, '--output', str(out)]
         t0 = time.time()
-        try:
-            p = subprocess.run(cmd, cwd=dst, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                               timeout=args.timeout)
-            text, code = p.stdout, p.returncode
-        except subprocess.TimeoutExpired as e:
-            text, code = (e.stdout or b'').decode(errors='replace') if isinstance(e.stdout, bytes) else (e.stdout or ''), 'timeout'
-            text += '\nTimeoutExpired'
+        text, code = run_command(cmd, dst, args.timeout)
         (dst / 'regression.log').write_text(text)
         killed = code != 0
         how, detail = classify(text) if killed else ('', '')

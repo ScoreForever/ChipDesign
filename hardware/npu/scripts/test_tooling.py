@@ -8,6 +8,9 @@ applies would weaken the evidence without failing any simulation.
 """
 from pathlib import Path
 import re
+import subprocess
+import signal
+from unittest.mock import Mock, patch
 import sys
 import tempfile
 import unittest
@@ -108,6 +111,28 @@ class MutantTest(unittest.TestCase):
             self.assertEqual(text.count(old), 1, f'{mid}: anchor not unique in {file}')
             self.assertNotEqual(old, new, mid)
             self.assertTrue(note, mid)
+
+
+class MutationProcessTest(unittest.TestCase):
+    def test_timeout_kills_the_simulator_group_and_drains_output(self):
+        process = Mock(pid=12345)
+        process.communicate.side_effect = [subprocess.TimeoutExpired('runner', 1), ('partial output', None)]
+        with patch.object(mutation_test.subprocess, 'Popen', return_value=process) as start, \
+             patch.object(mutation_test.os, 'killpg') as kill:
+            text, code = mutation_test.run_command(['runner'], HERE, 1)
+        self.assertTrue(start.call_args.kwargs['start_new_session'])
+        kill.assert_called_once_with(12345, signal.SIGKILL)
+        self.assertEqual(code, 'timeout')
+        self.assertIn('partial output', text)
+        self.assertIn('TimeoutExpired', text)
+
+    def test_normal_exit_keeps_output_and_status(self):
+        process = Mock(returncode=0)
+        process.communicate.return_value = ('PASS', None)
+        with patch.object(mutation_test.subprocess, 'Popen', return_value=process), \
+             patch.object(mutation_test.os, 'killpg') as kill:
+            self.assertEqual(mutation_test.run_command(['runner'], HERE, 1), ('PASS', 0))
+        kill.assert_not_called()
 
 
 class DeployClassifyTest(unittest.TestCase):
