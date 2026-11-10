@@ -98,12 +98,14 @@ if {[llength $macro_insts]!=2 || $macro_insts eq "0x0"} {error "Expected exactly
 # macros: list of {instance x y w h orient}, matched by role so each store keeps
 # its box; w x h is the placed footprint and older configs default to R0.
 set macros {}
+set macro_ptrs [dict create]
 foreach box $macro_boxes {
     lassign $box role mx my mw mh orient
     if {$orient eq ""} {set orient R0}
     set match {}
     foreach inst $macro_insts {
-        set inst_name [dbGet $inst.name]
+        set inst_name [npu_sram_name [dbGet $inst.name]]
+        dict set macro_ptrs $inst_name $inst
         if {[npu_sram_role $inst_name] eq $role} {lappend match $inst_name}
     }
     if {[llength $match]!=1} {error "Cannot identify the $role SRAM instance: $match"}
@@ -118,7 +120,8 @@ set pin_report [open macro_pins.tsv w]
 foreach m $macros {
     lassign $m name mx my mw mh orient
     set sx 0.0; set sy 0.0; set n 0
-    foreach term [dbGet [dbGet -p top.insts.name $name].instTerms] {
+    set macro_ptr [dict get $macro_ptrs $name]
+    foreach term [dbGet $macro_ptr.instTerms] {
         # dbGet returns lists; a bus bit such as D[0] comes back brace-quoted.
         if {![string match {[DQ]\[*} [lindex [dbGet $term.cellTerm.name] 0]]} {continue}
         lassign [lindex [dbGet $term.pt] 0] px py

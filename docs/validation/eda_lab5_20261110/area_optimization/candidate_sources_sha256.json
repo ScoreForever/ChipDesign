@@ -1,0 +1,13 @@
+{
+  "base_commit": "8c16462",
+  "clock_gating": true,
+  "files": {
+    "hardware/npu/rtl/npu_program_core.sv": "b7e1783b0bd845c2731c7b6b4309bef2658773b8b908480df6d2068684bb62c7",
+    "hardware/npu/scripts/run_program_regression.py": "df1747eb1ec362cd75a1fe614055dc6aa3823db69679b7d1abec1971ea8fd1c8",
+    "hardware/npu/tb/tb_npu_tensor_lookup.sv": "41c39ad41a73fca7b1ed6f8421c063ee541061cfefc67ad1d3c53bf27a126aa2",
+    "hardware/npu/tb/tensor_lookup_reference.sv": "159c5d7e5045fb71e1d528fbf9b4680a62030b1fbb3ce03be9054acdc219379a",
+    "hardware/asic/optimize/flow.py": "1a79bb1072deff245e27bb062aeb048b2642214622bded7680644691e0044b48",
+    "hardware/asic/optimize/synth.tcl": "f85d73ebfcf70b032926d2fa8238e9c2c742fdfaf7a983d072502d482c7d31ae",
+    "hardware/asic/optimize/test_flow.py": "eda78362ea20e273f4bc11b7cb323b92c12a61548014715cac60e05c4325ff05"
+  }
+}

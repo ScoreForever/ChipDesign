@@ -1,0 +1,38 @@
+{
+  "passed": true,
+  "scope": "mapped functional u4_chain, 2 inferences plus reset; precision-unit path delays; no SDF/timing signoff",
+  "clock_gating": true,
+  "state": {
+    "command": [
+      "xrun",
+      "-64bit",
+      "-sv",
+      "-delay_mode",
+      "punit",
+      "-ntcnotchks",
+      "-timescale",
+      "1ns/1ps",
+      "-top",
+      "tb_fullchip",
+      "/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/verilog/tcb018gbwp7t_270a/tcb018gbwp7t.v",
+      "/lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8.v",
+      "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110/work/area129_icg/synthesis/mapped.v",
+      "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110/work/mapped_punit/tb.sv",
+      "+TRACE=/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110/work/mapped_punit/commands.txt",
+      "-l",
+      "simulation.log"
+    ],
+    "started": 1794283758.7490776,
+    "status": "complete",
+    "timeout_seconds": 600,
+    "accepted_codes": [],
+    "pid": 20411,
+    "process_token": "525224254",
+    "exit_code": 0,
+    "marker": true,
+    "errors": [],
+    "unresolved_scan_diagnostics": [],
+    "accepted_diagnostics": [],
+    "finished": 1794283771.3304887
+  }
+}

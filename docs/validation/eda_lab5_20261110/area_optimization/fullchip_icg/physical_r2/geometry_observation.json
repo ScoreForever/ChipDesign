@@ -1,0 +1,16 @@
+{
+  "source": "my_soc_top_postSramPower.def",
+  "units_per_um": 2000,
+  "diearea_dbu": [
+    0,
+    0,
+    3880800,
+    3880800
+  ],
+  "die_size_um": [
+    1940.4,
+    1940.4
+  ],
+  "within_1950_um_cap": true,
+  "stage": "preCTS, not final routed acceptance"
+}

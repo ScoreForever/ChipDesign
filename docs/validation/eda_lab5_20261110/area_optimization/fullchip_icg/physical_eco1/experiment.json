@@ -1,0 +1,561 @@
+{
+  "array_cols": 8,
+  "congestion": false,
+  "geometry": {
+    "bond_depth_um": 73.16,
+    "core_side_um": 1640,
+    "corner_um": 115.0,
+    "die_side_um": 1940,
+    "halo_um": 26.0,
+    "layout": "diagonal_facing",
+    "macros": [
+      [
+        "model",
+        196.0,
+        196.0,
+        723.85,
+        554.595,
+        "R90"
+      ],
+      [
+        "activation",
+        1020.15,
+        1189.405,
+        723.85,
+        554.595,
+        "R270"
+      ]
+    ],
+    "margin_um": 150,
+    "pads": [
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          170.5,
+          1825.0
+        ],
+        "name": "i_pad_clk_i",
+        "orient": "R180",
+        "port": "clk_i",
+        "side": "N"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          341.5,
+          1825.0
+        ],
+        "name": "i_pad_rst_ni",
+        "orient": "R180",
+        "port": "rst_ni",
+        "side": "N"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "output",
+        "loc": [
+          512.5,
+          1825.0
+        ],
+        "name": "i_pad_irq_o",
+        "orient": "R180",
+        "port": "irq_o",
+        "side": "N"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          683.5,
+          1825.0
+        ],
+        "name": "i_pad_N_vss_1",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          854.5,
+          1825.0
+        ],
+        "name": "i_pad_N_vss_2",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          1025.5,
+          1825.0
+        ],
+        "name": "i_pad_N_vssio",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1196.5,
+          1825.0
+        ],
+        "name": "i_pad_N_vdd_1",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1367.5,
+          1825.0
+        ],
+        "name": "i_pad_N_vdd_2",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          1538.5,
+          1825.0
+        ],
+        "name": "i_pad_N_vddio",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          1709.5,
+          1825.0
+        ],
+        "name": "i_pad_N_poc",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          162.725,
+          0
+        ],
+        "name": "i_pad_tck_i",
+        "orient": "R0",
+        "port": "tck_i",
+        "side": "S"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          318.18,
+          0
+        ],
+        "name": "i_pad_tms_i",
+        "orient": "R0",
+        "port": "tms_i",
+        "side": "S"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          473.635,
+          0
+        ],
+        "name": "i_pad_td_i",
+        "orient": "R0",
+        "port": "td_i",
+        "side": "S"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "output",
+        "loc": [
+          629.09,
+          0
+        ],
+        "name": "i_pad_td_o",
+        "orient": "R0",
+        "port": "td_o",
+        "side": "S"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          784.545,
+          0
+        ],
+        "name": "i_pad_S_vss_1",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          940.0,
+          0
+        ],
+        "name": "i_pad_S_vss_2",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          1095.455,
+          0
+        ],
+        "name": "i_pad_S_vssio",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1250.91,
+          0
+        ],
+        "name": "i_pad_S_vdd_1",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1406.365,
+          0
+        ],
+        "name": "i_pad_S_vdd_2",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          1561.82,
+          0
+        ],
+        "name": "i_pad_S_vddio",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          1717.275,
+          0
+        ],
+        "name": "i_pad_S_poc",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          207.145
+        ],
+        "name": "i_pad_W_vss_1",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          451.43
+        ],
+        "name": "i_pad_W_vss_2",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          695.715
+        ],
+        "name": "i_pad_W_vssio",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          940.0
+        ],
+        "name": "i_pad_W_vdd_1",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          1184.285
+        ],
+        "name": "i_pad_W_vdd_2",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          1428.57
+        ],
+        "name": "i_pad_W_vddio",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          0,
+          1672.855
+        ],
+        "name": "i_pad_W_poc",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          1825.0,
+          207.145
+        ],
+        "name": "i_pad_E_vss_1",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          1825.0,
+          451.43
+        ],
+        "name": "i_pad_E_vss_2",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          1825.0,
+          695.715
+        ],
+        "name": "i_pad_E_vssio",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1825.0,
+          940.0
+        ],
+        "name": "i_pad_E_vdd_1",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1825.0,
+          1184.285
+        ],
+        "name": "i_pad_E_vdd_2",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          1825.0,
+          1428.57
+        ],
+        "name": "i_pad_E_vddio",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          1825.0,
+          1672.855
+        ],
+        "name": "i_pad_E_poc",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      }
+    ]
+  },
+  "handoff": {
+    "area.json": "45c2b30e94f4125fdc37666bd794eec2b6292f32a05228e7a639bcbefd7a7e9e",
+    "mapped.sdc": "f3bc6313b03090324ef3ad63bf7120bc31bae5e2867c478b468b66d773d66f53",
+    "mapped.v": "fa56eba2107336dd16af0e394bc5cd5181de9df46d5aa0a94986420ffd078ad6"
+  },
+  "hold_target": 0.12,
+  "layout": "diagonal_facing",
+  "operation": "bounded existing-marker signal DRC ECO from final checkpoint; no RTL, placement, CTS or timing exception changes",
+  "parent_candidate": "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75",
+  "parent_checkpoint_sha256": {
+    "final.enc": "6410530ab23d89fcb3213b479dd639f14dfc84e9e633f0ad8b65d1f25bfda0a8",
+    "final.enc.dat/AAE/persistAaeAr.dat": "7530b9f27e05a1ab66cbb57c76044214b0ad6c56b73cf749cb689a46f08731a2",
+    "final.enc.dat/AAE/vaMgrAr.dat": "6d634a7b03c727d777cd1b3aae263987c8c05b634b60cca5e64f890c47d34cbe",
+    "final.enc.dat/AAE/vaMgrVersionAr.dat": "96a2b61386b330a9a7258460cbd5ffb1fb0c631f73edf625ca11a902ccf078dc",
+    "final.enc.dat/ccopt/clock_trees.bin": "3cd2d33069ae89167d60548f9e86b1c90256dbd7634528213202ebbdaafe96f0",
+    "final.enc.dat/ccopt/prop_store_1.bin": "bd10894439f512bdab94289545768f14556b2bf9a2c5193807807fc89ae97930",
+    "final.enc.dat/ccopt/prop_store_2.bin": "e7ce2f60a2be7c8defea2aa51324adbb421ce34ac836249adfe02001e5553329",
+    "final.enc.dat/ccopt/skew_groups.bin": "84b07eab560bf9e7bc018d365eca54521294098b8ccc461de05fd68b24d8dc39",
+    "final.enc.dat/doubleClockFiles.tgz": "c803d80b75a0fed99ab3a918aba93dcc32235efb0e7464738fef4c341e03113e",
+    "final.enc.dat/gui.pref.tcl": "7b29f38bba06f1950826000c2cf7267ba223dc9357ef47bfb55cee98c898533f",
+    "final.enc.dat/inn.cmd.gz": "8f06be9819a478ee248af62799b06cfb52b0d037981cb821ec1d7dad21883315",
+    "final.enc.dat/libs/lef/RA1SHD_2048x32M8.vclef": "d46ab0a3933aef99ab57ebcc2d1dd998ad712d734d294d9b920b1cf5d69e72ba",
+    "final.enc.dat/libs/lef/RA1SHD_2048x32M8_ant.lef": "d169a0611766f2ce824a0fef660c1158db1b4f023e25de3d9721898d39da5e29",
+    "final.enc.dat/libs/lef/antenna_6lm.lef": "f806ecee02314fba91983bba49c5a7b68944e29d8776952d581ffe5ba4b591f9",
+    "final.enc.dat/libs/lef/tcb018gbwp7t_6lm.lef": "8b43a6818b058e2ed185f56ffb3f026b67046a7c209c3d9a3f04281a3347bbc7",
+    "final.enc.dat/libs/lef/tpb018v_6lm.lef": "21090e17e0b4f4ddf02b78a61b14a975bd0e89a7366295124dd8a2695b5e60da",
+    "final.enc.dat/libs/lef/tpd018nv_6lm.lef": "2b6bff7ef1d8b63de3a55cfa7cd1d1619edbae9c6b9b93419fdb6a6d9f174e29",
+    "final.enc.dat/libs/mmmc/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib": "e179b0f6842b66e34c4ae95c2ee3253ace2e35475300b6cfcb15f0bc079fd6fe",
+    "final.enc.dat/libs/mmmc/t018lo_1p6m_typical.captable": "0cd9ae6eba98de068664420153f51206f4440b6c48d7bcde37696f7d5bb8e7bc",
+    "final.enc.dat/libs/mmmc/tcb018gbwp7ttc.lib": "7378c9a4ae778909fe36956e2c7b42b90851eb7e6d37af84290ac6c4c64cc10f",
+    "final.enc.dat/libs/mmmc/tpd018nvtc.lib": "09ec264c1f98b5827fedcbeb0c8432c57fa178826bdd18f44af7d005224cbb57",
+    "final.enc.dat/mmmc/modes/func/func.sdc": "1e804c1b1533d6922b7c52a0c9885f36736ed1c37dcd84320b13d440786f916d",
+    "final.enc.dat/mmmc/views/func_tt_io/latency.sdc": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final.enc.dat/my_soc_top.aae.settings": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final.enc.dat/my_soc_top.apa": "852050c81cc45b5897153fab5f23502dcd613f9679eb01a8a5e8074ad1c052a1",
+    "final.enc.dat/my_soc_top.db.da.gz": "ab11df0f19aadeceeb0468cb26bf076397042a0dd46dafa559bc69f49988bd7b",
+    "final.enc.dat/my_soc_top.dbinfo": "77d17fce2c10cd237f75e35f999429ae1a9a454d0aa976b5cfb1e470c5ca3b4d",
+    "final.enc.dat/my_soc_top.flexmv": "d8ccc49edcdb033f7daf7669636340a9f8f53b007bf735b9dfdd5de6ab33fa80",
+    "final.enc.dat/my_soc_top.fp.gz": "995f0ebbf8e1f4aaf4d9373eb6a7311cad360bbff9315334b05008c4fe81ac69",
+    "final.enc.dat/my_soc_top.fp.spr.gz": "b1e32618f1b89f1b139fc578e8c8eaf79b5e751062715d78915676cc53c218e3",
+    "final.enc.dat/my_soc_top.globals": "c11fbcbd21cbc4678fa9b7e88174b1ca3d0b257fc8911dd630432e8db844e144",
+    "final.enc.dat/my_soc_top.init": "8d91a8f167645732da74beb69d5ecc5911314506858e93203411f6e067ef94f1",
+    "final.enc.dat/my_soc_top.marker.gz": "4479f61eacb3739db8e6a8fb1be580bfe663a0dea29027ecc8ac20bd32d16d00",
+    "final.enc.dat/my_soc_top.metric.gz": "85a379ca8cdacb7e39dea75ae961924e9d8f4692afebf948af9a28c00bbcaa1d",
+    "final.enc.dat/my_soc_top.mode": "d29fb340ace6254d0a263007bdc6cf6e8fa6fae5e22d56bacf0a5fda1ffb5097",
+    "final.enc.dat/my_soc_top.opconds": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "final.enc.dat/my_soc_top.pg.gz": "32ebb909b2d16ff92661b89e9f34970617af1f719ebf57afaaea8320314dc1d5",
+    "final.enc.dat/my_soc_top.place.gz": "6d0d1f9ec34fea7368e6daf46008de194573b4f650b1ad3ee9ca2085fa0dfbb0",
+    "final.enc.dat/my_soc_top.prop": "3fc419793d75b7f44fc47a0a8890d86664eb57283c0dc3c0f880acdc0b550053",
+    "final.enc.dat/my_soc_top.route.congmap.gz": "5065ec2f7e70f28d523b395ea71a7bc48ca0140b19b4fb3329a8721612f1c815",
+    "final.enc.dat/my_soc_top.route.gz": "e2383f8077bd577c44c4565116c1cfdf24d87824f5e29111f225e98603323f15",
+    "final.enc.dat/my_soc_top.symtbl.gz": "239f15f932d9cc5778ab7884fa9f1faf393c12b94dd5974b991b5543fe9dc032",
+    "final.enc.dat/my_soc_top.tcz": "efbf0c71712437599fe6c1a2a8f1928e9089a7685bc9c13b5c36b158f7313036",
+    "final.enc.dat/my_soc_top_power_constraints.tcl": "66ac06125786f2800291f01064db01076f7ad0956f22eaa2aa67bce1555c9168",
+    "final.enc.dat/user.attrdef": "f6ca2805aff266ba66909cbedaeed5b053c90ced217d4cc395735984873cb243",
+    "final.enc.dat/vbin/my_soc_top.v.bin": "f7226c1ba042503323d449a45d7706163a65634eac283117dfad4640824e1646",
+    "final.enc.dat/vbin/my_soc_top.v.bin_0": "819255dffd576744fdb64a40c7e76d0aa0544205ad5460115fc26e411bed62b3",
+    "final.enc.dat/vbin/my_soc_top.v.bin_1": "f00383b2c8a54237f970b55cb33eca2aa5c6604c5b5d003777444b4b194a5099",
+    "final.enc.dat/vbin/my_soc_top.v.bin_2": "2f03b47815b2de84fcc1098f5928697bae4462cacb908ca0bf71ef721d327be4",
+    "final.enc.dat/vbin/my_soc_top.v.bin_3": "c3c495e0fbce5bdcd2bc28d8b428513f2fade094332e2e5df2134a3df1b4cce2",
+    "final.enc.dat/vbin/my_soc_top.v.bin_lib": "6c0ec621317817ae9d7ed092c6460331881c0b5806dd29f14919249cf3ec3eb0",
+    "final.enc.dat/viewDefinition.tcl": "c818d28721a462b69002fd7cfabce4527b151293c67acc8294d1f96e529031b8"
+  },
+  "sources_sha256": {
+    "hardware/asic/flow/config/global_define.tcl": "5342081415ace8beaefbbed56a1eb5fbcc4e009d3c8dd1454a73938515e8423d",
+    "hardware/asic/flow/config/user_define.tcl": "8c69521f96e1a431031364189e9382f75905fec107aca8ca67a41770322a196f",
+    "hardware/asic/flow/pnr/scripts/init_pnr_standard.tcl": "645b42996143e6cf4419df79fd0eef80c0b718d7074233bac224fbae62deb2d9",
+    "hardware/asic/optimize/area_breakdown.py": "0b0a0f810690c2e6bd81e28f188e3506c603d4414c190e344d610f37db5af7cb",
+    "hardware/asic/optimize/cdc_check.py": "03e13af01a37f169dc831a73d04b43ba9ff2251d6ac7f785f76c5d08a7a0a7e5",
+    "hardware/asic/optimize/cell_stats.tcl": "af29a02004ab5ca1d7d339775be32ab3dc7188e96326755eb328acd07dc1800b",
+    "hardware/asic/optimize/connect_pad.tcl": "37c36e85e726d84aefc8933e35cdfdebf705ea95b9ce1fc88f52f42a1b54f6a4",
+    "hardware/asic/optimize/flow.py": "1a79bb1072deff245e27bb062aeb048b2642214622bded7680644691e0044b48",
+    "hardware/asic/optimize/fullchip.tcl": "ec0ad92e786b9c65db353555048d9efdaf4b850fce43a292e7467be33419202c",
+    "hardware/asic/optimize/make_trace.py": "1caff13e8af8abcac8f8b498f27e8fd1b700784fa74047b6ca3276d1cb3e97e6",
+    "hardware/asic/optimize/npu_jtag_cdc.tcl": "d6435bc56be7b5ec9c5ff8694b45b5c7a2aa39e2bbf44a8a18ee2ee8ff40ea89",
+    "hardware/asic/optimize/postlayout.py": "5c848d1823a7f20a8483ae21a689fe2646a7f8e88f340dd764fd18713053ffa6",
+    "hardware/asic/optimize/power_place.tcl": "eecdc15d4790e05ef06454f753817dc14b161a1eb1e7eabfa663c285a0fc1633",
+    "hardware/asic/optimize/register_io.tcl": "7427d9954d4c4369434878556529c3d97a6effc25c80a0c6bbb63b604052c4f8",
+    "hardware/asic/optimize/repair_antenna.tcl": "54586ab79c84fbfbbd3ab5879c6fc1de10c860436eac83e9012e9dd98c84b4f5",
+    "hardware/asic/optimize/route.tcl": "5901109476c051ec6253baf712561777cb8b4d329df4e7822bd11291def869d8",
+    "hardware/asic/optimize/screenshots.tcl": "afcc47bebc77f80eb3a301ef589abe1cb0e24b3f2c16e86ec10f2623306a3389",
+    "hardware/asic/optimize/signoff.py": "7504d1c698e1746a51f976f0e6f2add67d2debdcd630ee34393a776eada59df0",
+    "hardware/asic/optimize/sram_roles.tcl": "6d4d7b663556886be2c75cddbca2e687aeb89c07106701db5c4b51123399201e",
+    "hardware/asic/optimize/synth.tcl": "f85d73ebfcf70b032926d2fa8238e9c2c742fdfaf7a983d072502d482c7d31ae",
+    "hardware/asic/optimize/tb_fullchip.sv": "71c465d58cc47ef3469f605238903876d07baf765576abd53414a00a7bf0b1ed",
+    "hardware/asic/optimize/test_cdc.py": "7c0bc02deba9476babb818965d3eb40670505476493e9c9f70d414f2bf75776a",
+    "hardware/asic/optimize/test_flow.py": "95a62402c36a302a966c8a0fd26c507f64cdc9349357225d021b6f9f72e8b003",
+    "hardware/asic/optimize/test_postlayout.py": "3b3ff5dbe673c6e46d9508508fa6219cc83e2547acd291f8939007aeb2e49146",
+    "hardware/asic/optimize/test_signoff.py": "033e6799f37d595b46233de7a18c719b1b8866cd335f6c21df86a73f3786c86f",
+    "hardware/asic/optimize/tool_worker.py": "8ed97a85cdfcc01186d1437012b65fbe31bc5b93d229408128661bed67130e6b",
+    "hardware/npu/rtl/npu_activation_store.sv": "6eb646faaadc6e47cf0c4ff153b6388482ec169eb4563ab83021a64c05fe5072",
+    "hardware/npu/rtl/npu_mac_array.sv": "dc1ae71c54bfa51e7b917282bb632f880c509129dcc473e8d8add502655da2f2",
+    "hardware/npu/rtl/npu_model_store.sv": "acce594c723c4e6f07808e7fe14ad8ba434a9a54c86348866a657f0bd33fddc8",
+    "hardware/npu/rtl/npu_program_core.sv": "b7e1783b0bd845c2731c7b6b4309bef2658773b8b908480df6d2068684bb62c7",
+    "hardware/npu/rtl/npu_trace_capture.sv": "7ca692c198917144fc75f13c207a7f3635d541fdb2e7d798bbd7e1f884b32b67",
+    "hardware/npu/rtl/requant_lane.sv": "edb58a4e3c187682bf94c591477bb49de5db283062f30d06ce131178e0af391f",
+    "hardware/npu/scripts/run_program_regression.py": "b6133887baad912f1c46471689f1438937641706278304b037b10c31ed9e3419",
+    "hardware/npu/tools/tinycnn8_golden.py": "e4a202272ba1e439a617a317982623db94ee68e1afd35630a78091491fb48874",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "5ae242bcfc2693bd4d4390330fd106a029370d996fbf7697fe676c726253a17c",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "e04425898a7dc8a771589a0a8e47d596a3a51fd8e082719c993236471a469554",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "5736742a2272ef7b0a1fa98e4c47562fe98267232bf109addf19304c18510ae7",
+    "hardware/soc/rtl/my_soc_top.sv": "c78ea83c14cb7b537f63ef13d1752c312cbbb25c0c766822c801651abf13cfce",
+    "hardware/soc/sim/filelists/chipdesign_nocpu.f": "fb156c76054bba81d5f11f2fb71ec4d198d145a843ca9903e224b3ab582850ab",
+    "hardware/soc/synth/scripts/soc_constraints.tcl": "9b10fc3fded187abe2ae097e24962036ff14b13521537a4ee0747abce8930dcf",
+    "software/host/nocpu_jtag.py": "d1ad3c988c622889922465d51539a26b0658f1c6b31837f6dac03c78013a6208",
+    "software/host/npu_program.py": "66f78c28a32d2c965e68a40af30e4f5475051bfc8b28ba6cbfa000431fc352cd"
+  },
+  "utilization": 0.75
+}

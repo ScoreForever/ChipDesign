@@ -45,11 +45,31 @@ class FlowTests(unittest.TestCase):
         for name in ['i_control/i_activation/g_bank[2].i_sram', 'unknown_sram',
                      'i_control/g_bank[0]/g_bank[1]/i_sram']:
             script += 'if {![catch {npu_sram_role {'+name+'}}]} {error "unknown bank accepted"}\n'
+        script += 'set original {i_control/i_activation_i_store_g_bank[1].i_sram}\n'
+        script += 'if {[npu_sram_name [list $original]] ne $original} {error "list quoting leaked into physical name"}\n'
+        script += 'if {![catch {npu_sram_name {a b}}]} {error "ambiguous name accepted"}\n'
         script += 'puts PASS\n'
         result = subprocess.run(['tclsh'], input=script, text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stderr, '')
         self.assertEqual(result.stdout.strip(), 'PASS')
+
+    def test_clock_gating_is_explicit_and_frozen_in_the_experiment_profile(self):
+        import os,sys
+        with tempfile.TemporaryDirectory() as d, patch.dict(os.environ):
+            output=Path(d)/'run'
+            with patch.object(sys,'argv',['flow.py','preflight','--output',str(output)]), \
+                 patch('flow.preflight',return_value={}):
+                flow.main()
+            self.assertFalse(json.loads((output/'build_profile.json').read_text())['clock_gating'])
+            with patch.object(sys,'argv',['flow.py','preflight','--clock-gating','--output',str(output)]):
+                with self.assertRaisesRegex(RuntimeError,'profile changed'):flow.main()
+            gated=Path(d)/'gated'
+            with patch.object(sys,'argv',['flow.py','preflight','--clock-gating','--output',str(gated)]), \
+                 patch('flow.preflight',return_value={}):
+                flow.main()
+            self.assertTrue(json.loads((gated/'build_profile.json').read_text())['clock_gating'])
+            self.assertEqual(os.environ['EDA_NPU_CLOCK_GATING'],'1')
 
     def test_area_budget_skips_oversized_candidates_without_tools(self):
         # The die cap is 1.95x1.95 mm; an oversized point never launches Innovus.
@@ -148,6 +168,8 @@ class FlowTests(unittest.TestCase):
             root=Path(d);source=root/'old/synthesis';source.mkdir(parents=True)
             output=root/'new';output.mkdir()
             lib=root/'macro.lib';lib.write_text('library input');libs={'macro_lib':lib}
+            profile=dict(array_cols=8,activation_bits=4,weight_bits=4,requant_fraction_bits=15)
+            flow.save(source.parent/'build_profile.json',profile);flow.save(output/'build_profile.json',profile)
             flow.save(source.parent/'preflight.json',dict(library_sha256={'macro_lib':flow.digest(lib)}))
             flow.save(source/'rtl_sources.json',dict(sources_sha256=flow.rtl_fingerprint()))
             flow.save(source/'status.json',dict(status='complete'))
@@ -158,6 +180,9 @@ class FlowTests(unittest.TestCase):
             flow.save(source/'area.json',dict(macro_count=2,standard_cell_area_um2=100))
             (source/'cdc_paths.tsv').write_text('audit input')
             flow.save(source/'handoff.json',{n:flow.digest(source/n) for n in ('mapped.v','mapped.sdc','area.json')})
+            flow.save(output/'build_profile.json',{**profile,'clock_gating':True})
+            with self.assertRaisesRegex(RuntimeError,'profile'):flow.adopt_synthesis(output,libs,source)
+            flow.save(output/'build_profile.json',profile)
             with patch('flow.validate_cdc_synth',return_value=False):
                 with self.assertRaisesRegex(RuntimeError,'CDC audit'):flow.adopt_synthesis(output,libs,source)
             with patch('flow.validate_cdc_synth',return_value=True):

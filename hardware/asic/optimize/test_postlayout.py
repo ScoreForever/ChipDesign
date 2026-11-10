@@ -9,6 +9,18 @@ PERIOD = ('xmelab: *W,SDFNET: Unable to annotate to non-existent timing check (P
 
 
 class PostlayoutTests(unittest.TestCase):
+    def test_cdc_capture_paths_support_flat_and_hierarchical_exports(self):
+        flat=''.join('  DFF \\'+n+' (.D(d), .Q(q));\n' for n in postlayout.CDC_CAPTURE)
+        self.assertEqual(postlayout.cdc_capture_paths(flat),tuple('\\'+n for n in postlayout.CDC_CAPTURE))
+        cells=''.join('  DFF \\'+n[len('i_host_'):]+' (.D(d), .Q(q));\n' for n in postlayout.CDC_CAPTURE)
+        hierarchical='module my_soc_top ();\n npu_jtag_transport i_host ();\nendmodule\nmodule npu_jtag_transport ();\n'+cells+'endmodule\n'
+        paths=postlayout.cdc_capture_paths(hierarchical)
+        self.assertEqual(len(paths),6)
+        self.assertEqual(paths[0],'i_host.\\ack_sync_reg[0]')
+        self.assertFalse(any('req_sync_reg[1]' in p or 'ack_sync_reg[1]' in p for p in paths))
+        for malformed in (hierarchical.replace(cells,''),hierarchical.replace('i_host ()','other ()'),hierarchical+flat,hierarchical.replace(cells,cells+cells)):
+            with self.assertRaises(RuntimeError):postlayout.cdc_capture_paths(malformed)
+
     def test_ifnone_arcs_are_read_from_models(self):
         self.assertEqual(postlayout.ifnone_arcs(MODEL), {'FA1D0BWP7T': {('A', 'S')}, 'INVD1BWP7T': set()})
 

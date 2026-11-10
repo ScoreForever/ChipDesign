@@ -17,6 +17,24 @@ CDC_CAPTURE=('i_host_ack_sync_reg[0]','i_host_req_sync_reg[0]','i_host_sys_reset
 CORE_PERIOD_NS=20.0
 
 
+def cdc_capture_paths(netlist):
+    """Resolve exactly six capture/reset cells in either supported netlist form."""
+    flat=re.findall(r'(?m)^\s*\w+\s+\\(i_host_(?:req|ack)_sync_reg\[0\]|i_host_(?:tck|sys)_reset_sync_reg\[[01]\])\s+\(',netlist)
+    modules=re.findall(r'(?ms)^module\s+npu_jtag_transport\b(.*?)^endmodule',netlist)
+    top=re.findall(r'(?ms)^module\s+my_soc_top\b(.*?)^endmodule',netlist)
+    if flat:
+        if modules or tuple(sorted(flat))!=CDC_CAPTURE:
+            raise RuntimeError('unexpected flat CDC capture flops: '+repr(flat))
+        return tuple('\\'+name for name in sorted(flat))
+    if len(modules)!=1 or len(top)!=1 or len(re.findall(r'\bnpu_jtag_transport\s+i_host\s*\(',top[0]))!=1:
+        raise RuntimeError('expected one my_soc_top.i_host transport hierarchy')
+    names=re.findall(r'(?m)^\s*\w+\s+\\((?:req|ack)_sync_reg\[0\]|(?:tck|sys)_reset_sync_reg\[[01]\])\s+\(',modules[0])
+    expected=tuple(name[len('i_host_'):] for name in CDC_CAPTURE)
+    if tuple(sorted(names))!=expected:
+        raise RuntimeError('unexpected hierarchical CDC capture flops: '+repr(names))
+    return tuple('i_host.\\'+name for name in sorted(names))
+
+
 def ifnone_arcs(model_text):
     """Default (ifnone) path arcs declared by each Verilog cell model."""
     return {m[1]:set(re.findall(r'ifnone\s*\(\s*(\w+)\s*=>\s*(\w+)\s*\)',m[2]))
@@ -122,9 +140,8 @@ def main():
         # design; a Verilog timing check there turns Q into X. Disable checks
         # on exactly these flops (and nothing else), found in the netlist.
         netlist=(candidate/'outputs/simulation.v').read_text()
-        cdc=sorted(set(re.findall(r'\\(i_host_(?:req|ack)_sync_reg\[0\]|i_host_(?:tck|sys)_reset_sync_reg\[[01]\]) ',netlist)))
-        if tuple(cdc)!=CDC_CAPTURE:raise RuntimeError('unexpected CDC capture flops: '+repr(cdc))
-        (out/'cdc.tfile').write_text(''.join('PATH tb_fullchip.dut.\\%s  -tcheck\n'%name for name in cdc))
+        cdc=cdc_capture_paths(netlist)
+        (out/'cdc.tfile').write_text(''.join('PATH tb_fullchip.dut.%s  -tcheck\n'%name for name in cdc))
         save(out/'cdc_tcheck_disabled.json',dict(instances=cdc,reason='asynchronous capture stages of the JTAG/core synchronizers'))
         sdf=out/'routed.sdf'
         (out/'sdf.cmd').write_text('SDF_FILE = "%s",\nSCOPE = tb_fullchip.dut,\n'

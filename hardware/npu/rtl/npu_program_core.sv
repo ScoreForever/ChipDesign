@@ -1156,7 +1156,8 @@ module npu_tensor_lookup #(parameter MAX_OPS=128) (
     output reg done,source_known,source2_known
 );
     localparam ADDR_BITS=$clog2(MAX_OPS+1);
-    (* ram_style = "distributed" *) reg [33:0] records[0:(1<<ADDR_BITS)-1];
+    // One input record plus MAX_OPS descriptor outputs; do not round 129 entries up to 256.
+    (* ram_style = "distributed" *) reg [33:0] records[0:MAX_OPS];
     reg [33:0] record;
     reg [7:0] index;
     reg active,have_record;

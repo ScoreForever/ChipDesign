@@ -11,7 +11,7 @@ set macro_names {}
 foreach m $macros {
     lappend macro_names [lindex $m 0]
     deselectAll
-    selectInst [lindex $m 0]
+    dbSelectObj [dict get $macro_ptrs [lindex $m 0]]
     addRing -nets {VDD VSS} -type block_rings -around selected \
         -layer {top METAL5 bottom METAL5 left METAL4 right METAL4} \
         -width 4 -spacing 2 -offset 10 -center 0

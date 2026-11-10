@@ -334,6 +334,13 @@ def unit_tests(out,defines,macro_model=None):
     # Constrained-random concurrent soak of the shared store (model side port, cache,
     # write queue, RMW, held responses) against a nibble scoreboard. Smaller images put
     # activations in the model's macro, so side-port bank conflicts are exercised.
+    for max_ops in (1,16,128):
+        lookup_image=out/f'lookup{max_ops}.vvp'
+        run(['iverilog','-g2012',*defines,'-s','tb_npu_tensor_lookup',
+             f'-Ptb_npu_tensor_lookup.MAX_OPS={max_ops}','-o',lookup_image,
+             'hardware/npu/rtl/npu_program_core.sv','hardware/npu/tb/tensor_lookup_reference.sv',
+             'hardware/npu/tb/tb_npu_tensor_lookup.sv'],out/f'lookup{max_ops}_compile.log')
+        run(['vvp',lookup_image],out/f'lookup{max_ops}.log')
     stress_image=out/'shared_stress.vvp'
     run(['iverilog','-g2012',*defines,'-s','tb_npu_shared_stress','-o',stress_image,
          'hardware/npu/rtl/npu_model_store.sv','hardware/npu/rtl/npu_activation_store.sv',

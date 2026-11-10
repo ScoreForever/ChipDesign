@@ -1,0 +1,16 @@
+{
+  "base_commit": "8c16462",
+  "clock_gating": true,
+  "files": {
+    "hardware/npu/rtl/npu_program_core.sv": "b7e1783b0bd845c2731c7b6b4309bef2658773b8b908480df6d2068684bb62c7",
+    "hardware/npu/scripts/run_program_regression.py": "b6133887baad912f1c46471689f1438937641706278304b037b10c31ed9e3419",
+    "hardware/npu/tb/tb_npu_tensor_lookup.sv": "5e654bbe820e2e7615e655287f8bb0f95f62f1a32b62d31c4252d4e62a0633fa",
+    "hardware/npu/tb/tensor_lookup_reference.sv": "159c5d7e5045fb71e1d528fbf9b4680a62030b1fbb3ce03be9054acdc219379a",
+    "hardware/asic/optimize/flow.py": "1a79bb1072deff245e27bb062aeb048b2642214622bded7680644691e0044b48",
+    "hardware/asic/optimize/synth.tcl": "f85d73ebfcf70b032926d2fa8238e9c2c742fdfaf7a983d072502d482c7d31ae",
+    "hardware/asic/optimize/test_flow.py": "95a62402c36a302a966c8a0fd26c507f64cdc9349357225d021b6f9f72e8b003",
+    "hardware/asic/optimize/fullchip.tcl": "ec0ad92e786b9c65db353555048d9efdaf4b850fce43a292e7467be33419202c",
+    "hardware/asic/optimize/sram_roles.tcl": "6d4d7b663556886be2c75cddbca2e687aeb89c07106701db5c4b51123399201e",
+    "hardware/asic/optimize/power_place.tcl": "eecdc15d4790e05ef06454f753817dc14b161a1eb1e7eabfa663c285a0fc1633"
+  }
+}

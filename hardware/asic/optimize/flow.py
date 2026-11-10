@@ -359,7 +359,7 @@ def common_config(libs):
 def synth(output,libs):
     directory=output/'synthesis'
     directory.mkdir(parents=True,exist_ok=True)
-    cfg=common_config(libs)+'set source_root '+tcl(ROOT)+'\nset threads 4\nset array_cols '+os.environ.get('EDA_NPU_COLS','8')+'\n'
+    cfg=common_config(libs)+'set source_root '+tcl(ROOT)+'\nset threads 4\nset array_cols '+os.environ.get('EDA_NPU_COLS','8')+'\nset clock_gating '+os.environ.get('EDA_NPU_CLOCK_GATING','0')+'\n'
     (directory/'config.tcl').write_text(cfg)
     save(directory/'rtl_sources.json',dict(sources_sha256=rtl_fingerprint(),origin='captured immediately before synthesis launch'))
     state=launch(['genus','-no_gui','-batch','-files',str(HERE/'synth.tcl')],directory,'PNR_OPT_SYNTHESIS_COMPLETE')
@@ -390,6 +390,13 @@ def verify_clocks(path):
 
 def adopt_native_synthesis(output, libs, source):
     """Reuse this driver's completed handoff when only downstream scripts changed."""
+    source_profile=json.loads((source.parent/'build_profile.json').read_text())
+    target_profile=json.loads((output/'build_profile.json').read_text())
+    # Older native runs predate the optional ICG switch and used its false default.
+    source_profile.setdefault('clock_gating',False)
+    target_profile.setdefault('clock_gating',False)
+    if source_profile!=target_profile:
+        raise RuntimeError('native synthesis hardware profile changed')
     state=json.loads((source/'status.json').read_text())
     receipt=json.loads((source/'tool_exit.json').read_text())
     if state.get('status')!='complete' or receipt.get('exit_code')!=0:
@@ -582,6 +589,7 @@ def main():
     ap.add_argument('--halo',type=float,default=26)
     ap.add_argument('--cols',type=int,choices=(4,8),default=8)
     ap.add_argument('--congestion',action='store_true')
+    ap.add_argument('--clock-gating',action='store_true',help='use library integrated clock gates for explicit RTL enables')
     # Innovus hold target; PrimeTime on the SPEF reads hold ~0.1 ns worse than Innovus.
     ap.add_argument('--hold-target',type=float,default=0.02)
     args=ap.parse_args();output=args.output.resolve();output.mkdir(parents=True,exist_ok=True)
@@ -592,13 +600,13 @@ def main():
     lock=(output/'controller.lock').open('a')
     try:fcntl.flock(lock.fileno(),fcntl.LOCK_EX|fcntl.LOCK_NB)
     except BlockingIOError:raise RuntimeError('another controller is already running for this experiment')
-    profile=dict(array_cols=args.cols,activation_bits=4,weight_bits=4,requant_fraction_bits=15)
+    profile=dict(array_cols=args.cols,activation_bits=4,weight_bits=4,requant_fraction_bits=15,clock_gating=args.clock_gating)
     profile_path=output/'build_profile.json'
     if profile_path.exists() and json.loads(profile_path.read_text())!=profile:
         raise RuntimeError('hardware profile changed; use a new output directory')
     if not profile_path.exists() and (output/'sources.json').exists():
         raise RuntimeError('old experiment lacks a hardware profile; use a new output directory')
-    save(profile_path,profile);os.environ['EDA_NPU_COLS']=str(args.cols)
+    save(profile_path,profile);os.environ['EDA_NPU_COLS']=str(args.cols);os.environ['EDA_NPU_CLOCK_GATING']='1' if args.clock_gating else '0'
     libs=preflight(output)
     if args.action=='preflight':return
     frozen=output/'sources.json'

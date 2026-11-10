@@ -1,0 +1,6 @@
+PATH tb_fullchip.dut.i_host.\ack_sync_reg[0]  -tcheck
+PATH tb_fullchip.dut.i_host.\req_sync_reg[0]  -tcheck
+PATH tb_fullchip.dut.i_host.\sys_reset_sync_reg[0]  -tcheck
+PATH tb_fullchip.dut.i_host.\sys_reset_sync_reg[1]  -tcheck
+PATH tb_fullchip.dut.i_host.\tck_reset_sync_reg[0]  -tcheck
+PATH tb_fullchip.dut.i_host.\tck_reset_sync_reg[1]  -tcheck

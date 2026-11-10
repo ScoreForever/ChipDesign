@@ -18,3 +18,10 @@ proc npu_sram_role {name} {
     if {[string match *activation* $name]} {return activation}
     error "Unknown SRAM instance role: $name"
 }
+
+# dbGet serializes a name containing bus brackets as a one-element Tcl list.
+# Physical commands that expect a scalar must not receive the list's braces.
+proc npu_sram_name {query_result} {
+    if {[llength $query_result]!=1} {error "Expected one SRAM name: $query_result"}
+    return [lindex $query_result 0]
+}

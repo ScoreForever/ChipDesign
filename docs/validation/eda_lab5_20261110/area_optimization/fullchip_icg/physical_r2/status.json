@@ -1,0 +1,26 @@
+{
+  "accepted_codes": [],
+  "accepted_diagnostics": [],
+  "command": [
+    "innovus",
+    "-no_gui",
+    "-files",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75/driver/fullchip.tcl"
+  ],
+  "errors": [
+    "**ERROR: (IMPSP-9099):\tScan chains exist in this design but are not defined for 8.68% flops. Placement and timing QoR can be severely impacted in this case!",
+    "**ERROR: (IMPSP-9099):\tScan chains exist in this design but are not defined for 8.68% flops. Placement and timing QoR can be severely impacted in this case!"
+  ],
+  "exit_code": 0,
+  "finished": 1794286037.1616082,
+  "marker": true,
+  "pid": 20815,
+  "process_token": "525259329",
+  "started": 1794284109.499578,
+  "status": "complete",
+  "timeout_seconds": 14400,
+  "unresolved_scan_diagnostics": [
+    "**ERROR: (IMPSP-9099):\tScan chains exist in this design but are not defined for 8.68% flops. Placement and timing QoR can be severely impacted in this case!",
+    "**ERROR: (IMPSP-9099):\tScan chains exist in this design but are not defined for 8.68% flops. Placement and timing QoR can be severely impacted in this case!"
+  ]
+}

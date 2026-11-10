@@ -1,0 +1,21 @@
+{
+  "accepted_codes": [],
+  "accepted_diagnostics": [],
+  "command": [
+    "genus",
+    "-no_gui",
+    "-batch",
+    "-files",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110/source/hardware/asic/optimize/synth.tcl"
+  ],
+  "errors": [],
+  "exit_code": 0,
+  "finished": 1794282873.1251688,
+  "marker": true,
+  "pid": 14639,
+  "process_token": "525026555",
+  "started": 1794281781.7553673,
+  "status": "complete",
+  "timeout_seconds": 14400,
+  "unresolved_scan_diagnostics": []
+}

@@ -1,0 +1,5 @@
+{
+  "source": "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75_eco1/outputs/routed.sdf.gz",
+  "source_sha256": "e453251900c35712a57d4360339e50d605af59185d4ddc5798eca6f86ade9d23",
+  "sram_clk_q_iopaths_unqualified": 64
+}

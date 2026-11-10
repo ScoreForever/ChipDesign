@@ -1,0 +1,9 @@
+{
+  "command": "python3 -m unittest discover -p test_*.py",
+  "cwd": "hardware/asic/optimize",
+  "tests_run": 44,
+  "passed": true,
+  "warnings": "ResourceWarning for controller.lock on existing exception-path fixtures; tests all pass",
+  "git_diff_check": "authored source paths pass; raw tool reports and frozen reference retain original whitespace for hash integrity",
+  "evidence_hash_verification": "passed"
+}

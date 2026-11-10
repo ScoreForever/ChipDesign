@@ -1,0 +1,2 @@
+PASS TENSOR_LOOKUP_EQUIVALENCE max_ops=1 descriptors=16 cycles=195
+hardware/npu/tb/tb_npu_tensor_lookup.sv:57: $finish called at 1950000 (1ps)

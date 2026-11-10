@@ -2,6 +2,10 @@
 
 流程依据：[课程 Lab 5：Signoff & Tapeout](https://full-stack-ai-chip.tianyuj.com/lab-5/)。本轮目标为整合后 ABI 5.0、8×8 NPU，不使用旧 CPU 或 ABI 4 的版图冒充当前结果。
 
+## 面积优化最新进展
+
+[面积优化代码对应的验证报告](area_optimization/AREA_OPTIMIZATION_STATUS.md)：综合标准单元面积降低 22.48%，die 1.9404 × 1.9404 mm；一轮 Innovus 布线及 ECO 后 setup/hold +0.487/+0.050 ns，CDC 和严格 SDF 验证通过。原始报告、回归摘要、源文件哈希及实际复现脚本见同目录。独立重跑及最终 Calibre/多角/DFT/人工签核尚未完成。以下环境与面积阻塞记录描述原始基线，不代表优化候选的当前状态。
+
 ## 环境已配置
 
 连接：`ssh soc`。工艺：`/lec/pdk/tsmc180`；课程规则：`/lec/lab5/layout`；工具与课程环境：`/opt/eda/env.sh`、`/lec/eda.env`。只建立项目级环境，不改共享工具、工艺库或旧工程。

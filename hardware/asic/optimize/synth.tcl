@@ -1,5 +1,10 @@
 source config.tcl
 set_db max_cpus_per_server $threads
+# Area candidate option. Only library ICG cells and explicit RTL feedback
+# enables are allowed; no discrete AND gates or observability inference.
+set_db lp_insert_clock_gating $clock_gating
+set_db lp_clock_gating_infer_enable false
+set_db lp_insert_discrete_clock_gating_logic false
 set_db init_hdl_search_path [list $source_root]
 set_db library [list $std_lib $macro_lib]
 set fh [open $source_root/hardware/soc/sim/filelists/chipdesign_nocpu.f r]
@@ -29,6 +34,7 @@ npu_cdc::apply
 syn_opt
 npu_cdc::audit_synth cdc_paths.tsv
 report_area -depth 4 > area.rpt
+report_clock_gating > clock_gating.rpt
 report_timing > timing.rpt
 write_hdl > mapped.v
 write_sdc > mapped.sdc

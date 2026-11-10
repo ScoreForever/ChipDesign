@@ -1,0 +1,40 @@
+    tran (VSS,VSS);
+         |
+xmelab: *W,TRNNOP (/lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/verilog/tpd018nv_260a/tpd018nv.v,2251|9): bidirectional primitive NOP (tb_fullchip.dut.i_pad_N_vss_2).
+    tran (VSS,VSS);
+         |
+xmelab: *W,TRNNOP (/lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/verilog/tpd018nv_260a/tpd018nv.v,2251|9): bidirectional primitive NOP (tb_fullchip.dut.i_pad_N_vss_1).
+	Loading native compiled code:     .................... Done
+	Design hierarchy summary:
+		                      Instances  Unique
+		Modules:                  63727     625
+		UDPs:                     54957       4
+		Primitives:              201066      13
+		Timing outputs:           66045     150
+		Registers:                17051     160
+		Scalar wires:             85148       -
+		Expanded wires:              64       2
+		Vectored wires:               2       -
+		Always blocks:               19       5
+		Initial blocks:              19      13
+		Cont. assignments:            3      19
+		Pseudo assignments:          19       9
+		Timing checks:           147631   51087
+		Interconnect:            188688   32259
+		Delayed tcheck signals:   45301   22317
+		Simulation timescale:       1ps
+	Writing initial simulation snapshot: worklib.tb_fullchip:sv
+Loading snapshot worklib.tb_fullchip:sv .................... Done
+xmsim: *W,DSEM2009: This SystemVerilog design is simulated as per IEEE 1800-2009 SystemVerilog simulation semantics. Use -disable_sem2009 option for turning off SV 2009 simulation semantics.
+xcelium> source /opt/eda/Cadence/XCELIUM2109/tools/xcelium/files/xmsimrc
+xcelium> run
+ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_td_i
+ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_rst_ni
+ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tms_i
+ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_clk_i
+ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tck_i
+PNR_OPT_JTAG_PASS commands=41 bursts=340
+Simulation complete via $finish(1) at time 22682520 NS + 0
+../driver/tb_fullchip.sv:81  $display("PNR_OPT_JTAG_PASS commands=%0d bursts=%0d",commands,bursts);$finish;
+xcelium> exit
+TOOL:	xrun(64)	21.09-s013: Exiting on Nov 10, 2026 at 05:00:16 UTC  (total: 00:01:13)

@@ -1,0 +1,61 @@
+{
+  "accepted_time0_input_pad_conflicts": 5,
+  "annotation_log_present": true,
+  "diagnostics": {
+    "accepted_ifnone_paths": {
+      "by_arc": {
+        "CKMUX2D1BWP7T S->Z": 162,
+        "CKXOR2D0BWP7T A1->Z": 348,
+        "CKXOR2D0BWP7T A2->Z": 348,
+        "CKXOR2D1BWP7T A1->Z": 2466,
+        "CKXOR2D1BWP7T A2->Z": 2466,
+        "FA1D0BWP7T A->S": 13050,
+        "FA1D0BWP7T B->S": 13050,
+        "FA1D0BWP7T CI->S": 13050,
+        "FA1D1BWP7T A->S": 66,
+        "FA1D1BWP7T B->S": 66,
+        "FA1D1BWP7T CI->S": 66,
+        "HA1D0BWP7T A->S": 96,
+        "HA1D0BWP7T B->S": 96,
+        "MUX2D0BWP7T S->Z": 36,
+        "MUX2D1BWP7T S->Z": 582,
+        "MUX2D2BWP7T S->Z": 30,
+        "MUX2ND0BWP7T S->ZN": 42,
+        "XNR2D1BWP7T A1->ZN": 2316,
+        "XNR2D1BWP7T A2->ZN": 2316,
+        "XNR3D0BWP7T A1->ZN": 48,
+        "XNR3D0BWP7T A2->ZN": 48,
+        "XNR3D0BWP7T A3->ZN": 48,
+        "XNR3D1BWP7T A1->ZN": 6,
+        "XNR3D1BWP7T A2->ZN": 6,
+        "XNR3D1BWP7T A3->ZN": 6,
+        "XNR4D1BWP7T A1->ZN": 6,
+        "XNR4D1BWP7T A2->ZN": 6,
+        "XNR4D1BWP7T A3->ZN": 6,
+        "XNR4D1BWP7T A4->ZN": 6,
+        "XOR3D0BWP7T A1->Z": 18,
+        "XOR3D0BWP7T A2->Z": 18,
+        "XOR3D0BWP7T A3->Z": 18,
+        "XOR3D1BWP7T A1->Z": 6,
+        "XOR3D1BWP7T A2->Z": 6,
+        "XOR3D1BWP7T A3->Z": 6
+      },
+      "total": 50910
+    },
+    "accepted_sram_negedge_period": 6,
+    "fatal": [],
+    "unexpected_sdfnep": [],
+    "unexpected_sdfnet": []
+  },
+  "jtag_commands": 41,
+  "passed": true,
+  "sources_sha256": {
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75_eco1/driver/tb_fullchip.sv": "71c465d58cc47ef3469f605238903876d07baf765576abd53414a00a7bf0b1ed",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75_eco1/outputs/simulation.v": "95e6c53bed33c109c0dce0ad738c6b00f5f1ae8f9960f5f226fde5f11ed8335f",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75_eco1/sdf/cdc.tfile": "df7b36cd4d84eed9e038bdb1bffd8db56cd0a00e46e2fcc4431c32217195e7cc",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75_eco1/sdf/commands.txt": "47b352b575435f78f12714059c9691b5c9dfe03db5072c35e46e22f1162a9327",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75_eco1/sdf/routed.sdf": "3d91be80e1b934fa9efe6b7bce2dce16f52237d48f961e679a680d34d6acc2b4",
+    "/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_area129_icg_20261110_r2/work/area129_icg/candidates/area129_icg_diag75_eco1/sdf/sdf.cmd": "2764cfc689c93831ecc4fa2a8b3edc9318d2e5923a9bc235e041f856f0c56da9"
+  },
+  "timing_diagnostics": false
+}
