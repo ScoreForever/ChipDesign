@@ -1,0 +1,5 @@
+{
+  "source": "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/routed.sdf.gz",
+  "source_sha256": "4860add7bc38fe97c7d2a823c4fa5f487c692032a0dd27974ae2e634ab17fde8",
+  "sram_clk_q_iopaths_unqualified": 64
+}

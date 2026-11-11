@@ -1,0 +1,30 @@
+{
+  "i_control/FE_PDC15_FE_OFN117_i_activation_i_store_sram_wdata_8": [
+    "BUFFD1BWP7T",
+    "BUFFD4BWP7T"
+  ],
+  "i_control/FE_PDC19_i_activation_i_store_sram_wdata_21": [
+    "BUFFD1BWP7T",
+    "BUFFD4BWP7T"
+  ],
+  "i_control/FE_PDC27_i_activation_i_store_sram_wdata_27": [
+    "BUFFD1BWP7T",
+    "BUFFD4BWP7T"
+  ],
+  "i_control/g58321": [
+    "AN2D2BWP7T",
+    "AN2D4BWP7T"
+  ],
+  "i_control/i_npu/FE_PDC8_n_16487": [
+    "INVD0BWP7T",
+    "INVD4BWP7T"
+  ],
+  "i_control/i_npu/g349293": [
+    "ND4D1BWP7T",
+    "ND4D4BWP7T"
+  ],
+  "i_control/i_npu/i_tensor_lookup/g134642": [
+    "IND3D1BWP7T",
+    "IND3D2BWP7T"
+  ]
+}

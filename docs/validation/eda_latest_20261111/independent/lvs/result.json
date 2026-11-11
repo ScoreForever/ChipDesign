@@ -1,0 +1,13 @@
+{
+  "accepted_io_resistor_errors": 45,
+  "check": "lvs",
+  "correct": false,
+  "incorrect": true,
+  "max_io_resistor_deviation_percent": 3.47,
+  "passed": true,
+  "property_errors": 45,
+  "tool_status": "complete",
+  "top_errors": [
+    "Property errors."
+  ]
+}

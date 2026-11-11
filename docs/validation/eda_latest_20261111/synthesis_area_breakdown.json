@@ -1,0 +1,2461 @@
+{
+  "macro_area_um2": 802887.182,
+  "flop_area_um2": 734314.1567999874,
+  "comb_area_um2": 660327.1359999966,
+  "comb_by_module": {
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024": 425385.8560000066,
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024": 128401.63839999175,
+    "npu_tensor_lookup_MAX_OPS128": 46309.939199998626,
+    "requant_lane_TAG_WIDTH1": 20696.345600000364,
+    "requant_lane_TAG_WIDTH17": 20687.564800000357,
+    "npu_jtag_transport": 4142.3424000000105,
+    "RC_CG_MOD_56": 37.3184,
+    "RC_CG_MOD_57": 37.3184,
+    "RC_CG_MOD_58": 37.3184,
+    "RC_CG_MOD_59": 37.3184,
+    "RC_CG_MOD_60": 37.3184,
+    "RC_CG_MOD_61": 37.3184,
+    "RC_CG_MOD_62": 37.3184,
+    "RC_CG_MOD_63": 37.3184,
+    "RC_CG_MOD_64": 37.3184,
+    "RC_CG_MOD_65": 37.3184,
+    "RC_CG_MOD_66": 37.3184,
+    "RC_CG_MOD_67": 37.3184,
+    "RC_CG_MOD_68": 37.3184,
+    "RC_CG_MOD_69": 37.3184,
+    "RC_CG_MOD_70": 37.3184,
+    "RC_CG_MOD_71": 37.3184,
+    "RC_CG_MOD_72": 37.3184,
+    "RC_CG_MOD_73": 37.3184,
+    "RC_CG_MOD_74": 37.3184,
+    "RC_CG_MOD_75": 37.3184,
+    "RC_CG_MOD_76": 37.3184,
+    "RC_CG_MOD_77": 37.3184,
+    "RC_CG_MOD_78": 37.3184,
+    "RC_CG_MOD_79": 37.3184,
+    "RC_CG_MOD_80": 37.3184,
+    "RC_CG_MOD_81": 37.3184,
+    "RC_CG_MOD_82": 37.3184,
+    "RC_CG_MOD_83": 37.3184,
+    "RC_CG_MOD_84": 37.3184,
+    "RC_CG_MOD_85": 37.3184,
+    "RC_CG_MOD_86": 37.3184,
+    "RC_CG_MOD_87": 37.3184,
+    "RC_CG_MOD_88": 37.3184,
+    "RC_CG_MOD_89": 37.3184,
+    "RC_CG_MOD_90": 37.3184,
+    "RC_CG_MOD_91": 37.3184,
+    "RC_CG_MOD_92": 37.3184,
+    "RC_CG_MOD_93": 37.3184,
+    "RC_CG_MOD_94": 37.3184,
+    "RC_CG_MOD_95": 37.3184,
+    "RC_CG_MOD_96": 37.3184,
+    "RC_CG_MOD_97": 37.3184,
+    "RC_CG_MOD_98": 37.3184,
+    "RC_CG_MOD_99": 37.3184,
+    "RC_CG_MOD_100": 37.3184,
+    "RC_CG_MOD_101": 37.3184,
+    "RC_CG_MOD_102": 37.3184,
+    "RC_CG_MOD_103": 37.3184,
+    "RC_CG_MOD_104": 37.3184,
+    "RC_CG_MOD_105": 37.3184,
+    "RC_CG_MOD_106": 37.3184,
+    "RC_CG_MOD_107": 37.3184,
+    "RC_CG_MOD_108": 37.3184,
+    "RC_CG_MOD_109": 37.3184,
+    "RC_CG_MOD_110": 37.3184,
+    "RC_CG_MOD_111": 37.3184,
+    "RC_CG_MOD_112": 37.3184,
+    "RC_CG_MOD_113": 37.3184,
+    "RC_CG_MOD_114": 37.3184,
+    "RC_CG_MOD_115": 37.3184,
+    "RC_CG_MOD_116": 37.3184,
+    "RC_CG_MOD_117": 37.3184,
+    "RC_CG_MOD_118": 37.3184,
+    "RC_CG_MOD_119": 37.3184,
+    "RC_CG_MOD_120": 37.3184,
+    "RC_CG_MOD_121": 37.3184,
+    "RC_CG_MOD_122": 37.3184,
+    "RC_CG_MOD_123": 37.3184,
+    "RC_CG_MOD_124": 37.3184,
+    "RC_CG_MOD_125": 37.3184,
+    "RC_CG_MOD_126": 37.3184,
+    "RC_CG_MOD_127": 37.3184,
+    "RC_CG_MOD_128": 37.3184,
+    "RC_CG_MOD_129": 37.3184,
+    "RC_CG_MOD_130": 37.3184,
+    "RC_CG_MOD_131": 37.3184,
+    "RC_CG_MOD_132": 37.3184,
+    "RC_CG_MOD_133": 37.3184,
+    "RC_CG_MOD_134": 37.3184,
+    "RC_CG_MOD_135": 37.3184,
+    "RC_CG_MOD_136": 37.3184,
+    "RC_CG_MOD_137": 37.3184,
+    "RC_CG_MOD_138": 37.3184,
+    "RC_CG_MOD_139": 37.3184,
+    "RC_CG_MOD_140": 37.3184,
+    "RC_CG_MOD_141": 37.3184,
+    "RC_CG_MOD_142": 37.3184,
+    "RC_CG_MOD_143": 37.3184,
+    "RC_CG_MOD_144": 37.3184,
+    "RC_CG_MOD_145": 37.3184,
+    "RC_CG_MOD_146": 37.3184,
+    "RC_CG_MOD_147": 37.3184,
+    "RC_CG_MOD_148": 37.3184,
+    "RC_CG_MOD_149": 37.3184,
+    "RC_CG_MOD_150": 37.3184,
+    "RC_CG_MOD_151": 37.3184,
+    "RC_CG_MOD_152": 37.3184,
+    "RC_CG_MOD_153": 37.3184,
+    "RC_CG_MOD_154": 37.3184,
+    "RC_CG_MOD_156": 37.3184,
+    "RC_CG_MOD_157": 37.3184,
+    "RC_CG_MOD_158": 37.3184,
+    "RC_CG_MOD_159": 37.3184,
+    "RC_CG_MOD_160": 37.3184,
+    "RC_CG_MOD_161": 37.3184,
+    "RC_CG_MOD_162": 37.3184,
+    "RC_CG_MOD_163": 37.3184,
+    "RC_CG_MOD_164": 37.3184,
+    "RC_CG_MOD_165": 37.3184,
+    "RC_CG_MOD_166": 37.3184,
+    "RC_CG_MOD_167": 37.3184,
+    "RC_CG_MOD_168": 37.3184,
+    "RC_CG_MOD_169": 37.3184,
+    "RC_CG_MOD_170": 37.3184,
+    "RC_CG_MOD_171": 37.3184,
+    "RC_CG_MOD_172": 37.3184,
+    "RC_CG_MOD_173": 37.3184,
+    "RC_CG_MOD_174": 37.3184,
+    "RC_CG_MOD_175": 37.3184,
+    "RC_CG_MOD_176": 37.3184,
+    "RC_CG_MOD_177": 37.3184,
+    "RC_CG_MOD_178": 37.3184,
+    "RC_CG_MOD_179": 37.3184,
+    "RC_CG_MOD_180": 37.3184,
+    "RC_CG_MOD_181": 37.3184,
+    "RC_CG_MOD_182": 37.3184,
+    "RC_CG_MOD_183": 37.3184,
+    "RC_CG_MOD_184": 37.3184,
+    "RC_CG_MOD_185": 37.3184,
+    "RC_CG_MOD_186": 37.3184,
+    "RC_CG_MOD_187": 37.3184,
+    "RC_CG_MOD_188": 37.3184,
+    "RC_CG_MOD_190": 37.3184,
+    "RC_CG_MOD_191": 37.3184,
+    "RC_CG_MOD_192": 37.3184,
+    "RC_CG_MOD_193": 37.3184,
+    "RC_CG_MOD_194": 37.3184,
+    "RC_CG_MOD_195": 37.3184,
+    "RC_CG_MOD_196": 37.3184,
+    "RC_CG_MOD_197": 37.3184,
+    "RC_CG_MOD_198": 37.3184,
+    "RC_CG_MOD_199": 37.3184,
+    "RC_CG_MOD_200": 37.3184,
+    "RC_CG_MOD_201": 37.3184,
+    "RC_CG_MOD_202": 37.3184,
+    "RC_CG_MOD_203": 37.3184,
+    "RC_CG_MOD_205": 37.3184,
+    "RC_CG_MOD_206": 37.3184,
+    "RC_CG_MOD_207": 37.3184,
+    "RC_CG_MOD_208": 37.3184,
+    "RC_CG_MOD_209": 37.3184,
+    "RC_CG_MOD_210": 37.3184,
+    "RC_CG_MOD_211": 37.3184,
+    "RC_CG_MOD_212": 37.3184,
+    "RC_CG_MOD_213": 37.3184,
+    "RC_CG_MOD_214": 37.3184,
+    "RC_CG_MOD_215": 37.3184,
+    "RC_CG_MOD_216": 37.3184,
+    "RC_CG_MOD_217": 37.3184,
+    "RC_CG_MOD_218": 37.3184,
+    "RC_CG_MOD_219": 37.3184,
+    "RC_CG_MOD_220": 37.3184,
+    "RC_CG_MOD_222": 37.3184,
+    "RC_CG_MOD_223": 37.3184,
+    "RC_CG_MOD_224": 37.3184,
+    "RC_CG_MOD_225": 37.3184,
+    "RC_CG_MOD_226": 37.3184,
+    "RC_CG_MOD_227": 37.3184,
+    "RC_CG_MOD_228": 37.3184,
+    "RC_CG_MOD_229": 37.3184,
+    "RC_CG_MOD_230": 37.3184,
+    "RC_CG_MOD_231": 37.3184,
+    "RC_CG_MOD_232": 37.3184,
+    "RC_CG_MOD_233": 37.3184,
+    "RC_CG_MOD_234": 37.3184,
+    "RC_CG_MOD_235": 37.3184,
+    "RC_CG_MOD_236": 37.3184,
+    "RC_CG_MOD_237": 37.3184,
+    "RC_CG_MOD_238": 37.3184,
+    "RC_CG_MOD_239": 37.3184,
+    "RC_CG_MOD_240": 37.3184,
+    "RC_CG_MOD_241": 37.3184,
+    "RC_CG_MOD_242": 37.3184,
+    "RC_CG_MOD_243": 37.3184,
+    "RC_CG_MOD_244": 37.3184,
+    "RC_CG_MOD_245": 37.3184,
+    "RC_CG_MOD_246": 37.3184,
+    "RC_CG_MOD_247": 37.3184,
+    "RC_CG_MOD_248": 37.3184,
+    "RC_CG_MOD_249": 37.3184,
+    "RC_CG_MOD_250": 37.3184,
+    "RC_CG_MOD_251": 37.3184,
+    "RC_CG_MOD_252": 37.3184,
+    "RC_CG_MOD_253": 37.3184,
+    "RC_CG_MOD_254": 37.3184,
+    "RC_CG_MOD_255": 37.3184,
+    "RC_CG_MOD_256": 37.3184,
+    "RC_CG_MOD_257": 37.3184,
+    "RC_CG_MOD_258": 37.3184,
+    "RC_CG_MOD_259": 37.3184,
+    "RC_CG_MOD_260": 37.3184,
+    "RC_CG_MOD_261": 37.3184,
+    "RC_CG_MOD_262": 37.3184,
+    "RC_CG_MOD_263": 37.3184,
+    "RC_CG_MOD_264": 37.3184,
+    "RC_CG_MOD_265": 37.3184,
+    "RC_CG_MOD_266": 37.3184,
+    "RC_CG_MOD_267": 37.3184,
+    "RC_CG_MOD_268": 37.3184,
+    "RC_CG_MOD_269": 37.3184,
+    "RC_CG_MOD_270": 37.3184,
+    "RC_CG_MOD_271": 37.3184,
+    "RC_CG_MOD_272": 37.3184,
+    "RC_CG_MOD_273": 37.3184,
+    "RC_CG_MOD_274": 37.3184,
+    "RC_CG_MOD_275": 37.3184,
+    "RC_CG_MOD_276": 37.3184,
+    "RC_CG_MOD_277": 37.3184,
+    "RC_CG_MOD_278": 37.3184,
+    "RC_CG_MOD_279": 37.3184,
+    "RC_CG_MOD_280": 37.3184,
+    "RC_CG_MOD_281": 37.3184,
+    "RC_CG_MOD_282": 37.3184,
+    "RC_CG_MOD_283": 37.3184,
+    "RC_CG_MOD_284": 37.3184,
+    "RC_CG_MOD_285": 37.3184,
+    "RC_CG_MOD_286": 37.3184,
+    "RC_CG_MOD_287": 37.3184,
+    "RC_CG_MOD_288": 37.3184,
+    "RC_CG_MOD_289": 37.3184,
+    "RC_CG_MOD_290": 37.3184,
+    "RC_CG_MOD_291": 37.3184,
+    "RC_CG_MOD_292": 37.3184,
+    "RC_CG_MOD_293": 37.3184,
+    "RC_CG_MOD_294": 37.3184,
+    "RC_CG_MOD_295": 37.3184,
+    "RC_CG_MOD_296": 37.3184,
+    "RC_CG_MOD_297": 37.3184,
+    "RC_CG_MOD_298": 37.3184,
+    "RC_CG_MOD_299": 37.3184,
+    "RC_CG_MOD_300": 37.3184,
+    "RC_CG_MOD_301": 37.3184,
+    "RC_CG_MOD_302": 37.3184,
+    "RC_CG_MOD_303": 37.3184,
+    "RC_CG_MOD_304": 37.3184,
+    "RC_CG_MOD_305": 37.3184,
+    "RC_CG_MOD_306": 37.3184,
+    "RC_CG_MOD_307": 37.3184,
+    "RC_CG_MOD_308": 37.3184,
+    "RC_CG_MOD_309": 37.3184,
+    "RC_CG_MOD_310": 37.3184,
+    "RC_CG_MOD_311": 37.3184,
+    "RC_CG_MOD_312": 37.3184,
+    "RC_CG_MOD_313": 37.3184,
+    "RC_CG_MOD_314": 37.3184,
+    "RC_CG_MOD_315": 37.3184,
+    "RC_CG_MOD_316": 37.3184,
+    "RC_CG_MOD_317": 37.3184,
+    "RC_CG_MOD_318": 37.3184,
+    "RC_CG_MOD_319": 37.3184,
+    "RC_CG_MOD_320": 37.3184,
+    "RC_CG_MOD_321": 37.3184,
+    "RC_CG_MOD_322": 37.3184,
+    "RC_CG_MOD_323": 37.3184,
+    "RC_CG_MOD_324": 37.3184,
+    "RC_CG_MOD_325": 37.3184,
+    "RC_CG_MOD_326": 37.3184,
+    "RC_CG_MOD_327": 37.3184,
+    "RC_CG_MOD_328": 37.3184,
+    "RC_CG_MOD_329": 37.3184,
+    "RC_CG_MOD_330": 37.3184,
+    "RC_CG_MOD_331": 37.3184,
+    "RC_CG_MOD_332": 37.3184,
+    "RC_CG_MOD_333": 37.3184,
+    "RC_CG_MOD_334": 37.3184,
+    "RC_CG_MOD_335": 37.3184,
+    "RC_CG_MOD_336": 37.3184,
+    "RC_CG_MOD_337": 37.3184,
+    "RC_CG_MOD_338": 37.3184,
+    "RC_CG_MOD_339": 37.3184,
+    "RC_CG_MOD_340": 37.3184,
+    "RC_CG_MOD_341": 37.3184,
+    "RC_CG_MOD_342": 37.3184,
+    "RC_CG_MOD_343": 37.3184,
+    "RC_CG_MOD_344": 37.3184,
+    "RC_CG_MOD_345": 37.3184,
+    "RC_CG_MOD_346": 37.3184,
+    "RC_CG_MOD_347": 37.3184,
+    "RC_CG_MOD_348": 37.3184,
+    "RC_CG_MOD_349": 37.3184,
+    "RC_CG_MOD_350": 37.3184,
+    "RC_CG_MOD_351": 37.3184,
+    "RC_CG_MOD_352": 37.3184,
+    "RC_CG_MOD_353": 37.3184,
+    "RC_CG_MOD_354": 37.3184,
+    "RC_CG_MOD_355": 37.3184,
+    "RC_CG_MOD_356": 37.3184,
+    "RC_CG_MOD_357": 37.3184,
+    "RC_CG_MOD_358": 37.3184,
+    "RC_CG_MOD_359": 37.3184,
+    "RC_CG_MOD_360": 37.3184,
+    "RC_CG_MOD_361": 37.3184,
+    "RC_CG_MOD_362": 37.3184,
+    "RC_CG_MOD_363": 37.3184,
+    "RC_CG_MOD_364": 37.3184,
+    "RC_CG_MOD_365": 37.3184,
+    "RC_CG_MOD_366": 37.3184,
+    "RC_CG_MOD_367": 37.3184,
+    "RC_CG_MOD_368": 37.3184,
+    "RC_CG_MOD_369": 37.3184,
+    "RC_CG_MOD_370": 37.3184,
+    "RC_CG_MOD_371": 37.3184,
+    "RC_CG_MOD_372": 37.3184,
+    "RC_CG_MOD_373": 37.3184,
+    "RC_CG_MOD_374": 37.3184,
+    "RC_CG_MOD_375": 37.3184,
+    "RC_CG_MOD_376": 37.3184,
+    "RC_CG_MOD_377": 37.3184,
+    "RC_CG_MOD_378": 37.3184,
+    "RC_CG_MOD_379": 37.3184,
+    "RC_CG_MOD_380": 37.3184,
+    "RC_CG_MOD_381": 37.3184,
+    "RC_CG_MOD_382": 37.3184,
+    "RC_CG_MOD_383": 37.3184,
+    "RC_CG_MOD_384": 37.3184,
+    "RC_CG_MOD_385": 37.3184,
+    "RC_CG_MOD_386": 37.3184,
+    "RC_CG_MOD_155": 37.3184,
+    "RC_CG_MOD_204": 37.3184,
+    "RC_CG_MOD_387": 37.3184,
+    "RC_CG_MOD": 37.3184,
+    "RC_CG_MOD_1": 37.3184,
+    "RC_CG_MOD_2": 37.3184,
+    "RC_CG_MOD_3": 37.3184,
+    "RC_CG_MOD_4": 37.3184,
+    "RC_CG_MOD_5": 37.3184,
+    "RC_CG_MOD_6": 37.3184,
+    "RC_CG_MOD_7": 37.3184,
+    "RC_CG_MOD_8": 37.3184,
+    "RC_CG_MOD_9": 37.3184,
+    "RC_CG_MOD_10": 37.3184,
+    "RC_CG_MOD_11": 37.3184,
+    "RC_CG_MOD_12": 37.3184,
+    "RC_CG_MOD_13": 37.3184,
+    "RC_CG_MOD_14": 37.3184,
+    "RC_CG_MOD_15": 37.3184,
+    "RC_CG_MOD_16": 37.3184,
+    "RC_CG_MOD_17": 37.3184,
+    "RC_CG_MOD_18": 37.3184,
+    "RC_CG_MOD_19": 37.3184,
+    "RC_CG_MOD_20": 37.3184,
+    "RC_CG_MOD_21": 37.3184,
+    "RC_CG_MOD_22": 37.3184,
+    "RC_CG_MOD_23": 37.3184,
+    "RC_CG_MOD_24": 37.3184,
+    "RC_CG_MOD_25": 37.3184,
+    "RC_CG_MOD_26": 37.3184,
+    "RC_CG_MOD_27": 37.3184,
+    "RC_CG_MOD_28": 37.3184,
+    "RC_CG_MOD_29": 37.3184,
+    "RC_CG_MOD_30": 37.3184,
+    "RC_CG_MOD_31": 37.3184,
+    "RC_CG_MOD_32": 37.3184,
+    "RC_CG_MOD_33": 37.3184,
+    "RC_CG_MOD_34": 37.3184,
+    "RC_CG_MOD_35": 37.3184,
+    "RC_CG_MOD_36": 37.3184,
+    "RC_CG_MOD_37": 37.3184,
+    "RC_CG_MOD_38": 37.3184,
+    "RC_CG_MOD_39": 37.3184,
+    "RC_CG_MOD_40": 37.3184,
+    "RC_CG_MOD_41": 37.3184,
+    "RC_CG_MOD_42": 37.3184,
+    "RC_CG_MOD_43": 37.3184,
+    "RC_CG_MOD_44": 37.3184,
+    "RC_CG_MOD_45": 37.3184,
+    "RC_CG_MOD_46": 37.3184,
+    "RC_CG_MOD_47": 37.3184,
+    "RC_CG_MOD_48": 37.3184,
+    "RC_CG_MOD_49": 37.3184,
+    "RC_CG_MOD_50": 37.3184,
+    "RC_CG_MOD_51": 37.3184,
+    "RC_CG_MOD_52": 37.3184,
+    "RC_CG_MOD_53": 37.3184,
+    "RC_CG_MOD_54": 37.3184,
+    "RC_CG_MOD_55": 37.3184,
+    "RC_CG_MOD_388": 37.3184,
+    "RC_CG_MOD_389": 37.3184,
+    "RC_CG_MOD_390": 37.3184,
+    "RC_CG_MOD_391": 37.3184,
+    "RC_CG_MOD_392": 37.3184,
+    "RC_CG_MOD_393": 37.3184,
+    "RC_CG_MOD_394": 37.3184,
+    "RC_CG_MOD_395": 37.3184
+  },
+  "flops_by_register": {
+    "npu_tensor_lookup_MAX_OPS128:records": {
+      "count": 4386,
+      "area_um2": 182961.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:psum": {
+      "count": 2304,
+      "area_um2": 121385.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:results": {
+      "count": 1024,
+      "area_um2": 42709.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_count": {
+      "count": 683,
+      "area_um2": 30247.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_cache_data": {
+      "count": 512,
+      "area_um2": 21420.8
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_q_data": {
+      "count": 256,
+      "area_um2": 13206.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:d": {
+      "count": 265,
+      "area_um2": 11261.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_data": {
+      "count": 256,
+      "area_um2": 10677.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_cache_tag": {
+      "count": 128,
+      "area_um2": 6748.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:gather_addr": {
+      "count": 120,
+      "area_um2": 6324.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:bias_cache": {
+      "count": 144,
+      "area_um2": 6023.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_normalized": {
+      "count": 128,
+      "area_um2": 5619.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_q_addr": {
+      "count": 96,
+      "area_um2": 5057.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_addr": {
+      "count": 120,
+      "area_um2": 5011.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_request_addr": {
+      "count": 120,
+      "area_um2": 5005.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_offsets": {
+      "count": 120,
+      "area_um2": 5005.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:lq_data": {
+      "count": 96,
+      "area_um2": 4111.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_tag_pipe": {
+      "count": 90,
+      "area_um2": 3955.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:cursor_step": {
+      "count": 90,
+      "area_um2": 3918.4
+    },
+    "npu_jtag_transport:dr": {
+      "count": 72,
+      "area_um2": 3479.4
+    },
+    "npu_jtag_transport:req_payload": {
+      "count": 72,
+      "area_um2": 3477.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[0].delayed.delay": {
+      "count": 77,
+      "area_um2": 3385.0
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_q_mask": {
+      "count": 64,
+      "area_um2": 3301.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_x_end": {
+      "count": 72,
+      "area_um2": 3018.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_y_end": {
+      "count": 72,
+      "area_um2": 3014.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[1].delayed.delay": {
+      "count": 66,
+      "area_um2": 2902.1
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_saved_data": {
+      "count": 64,
+      "area_um2": 2809.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:result_addr": {
+      "count": 64,
+      "area_um2": 2739.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:mult_cache": {
+      "count": 64,
+      "area_um2": 2669.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[2].delayed.delay": {
+      "count": 55,
+      "area_um2": 2419.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:shift_cache": {
+      "count": 48,
+      "area_um2": 2002.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[3].delayed.delay": {
+      "count": 44,
+      "area_um2": 1936.2
+    },
+    "requant_lane_TAG_WIDTH17:s2_product": {
+      "count": 41,
+      "area_um2": 1800.1
+    },
+    "requant_lane_TAG_WIDTH1:s2_product": {
+      "count": 41,
+      "area_um2": 1800.1
+    },
+    "npu_jtag_transport:reply_data": {
+      "count": 32,
+      "area_um2": 1547.6
+    },
+    "npu_jtag_transport:cmd_addr_o": {
+      "count": 32,
+      "area_um2": 1545.4
+    },
+    "npu_jtag_transport:cmd_data_o": {
+      "count": 32,
+      "area_um2": 1545.4
+    },
+    "npu_jtag_transport:rsp_mailbox_data": {
+      "count": 32,
+      "area_um2": 1545.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_skew[7].delayed.act_delay": {
+      "count": 35,
+      "area_um2": 1536.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_a_streak": {
+      "count": 32,
+      "area_um2": 1479.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_m_streak": {
+      "count": 32,
+      "area_um2": 1479.6
+    },
+    "npu_tensor_lookup_MAX_OPS128:record": {
+      "count": 34,
+      "area_um2": 1479.6
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_addr": {
+      "count": 32,
+      "area_um2": 1466.4
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_command_elapsed": {
+      "count": 32,
+      "area_um2": 1462.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[4].delayed.delay": {
+      "count": 33,
+      "area_um2": 1453.2
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_elapsed": {
+      "count": 32,
+      "area_um2": 1448.8
+    },
+    "npu_jtag_transport:burst_word": {
+      "count": 30,
+      "area_um2": 1448.8
+    },
+    "requant_lane_TAG_WIDTH17:s3_scaled": {
+      "count": 32,
+      "area_um2": 1422.5
+    },
+    "requant_lane_TAG_WIDTH1:s3_scaled": {
+      "count": 32,
+      "area_um2": 1422.5
+    },
+    "requant_lane_TAG_WIDTH17:s1_value": {
+      "count": 32,
+      "area_um2": 1413.7
+    },
+    "requant_lane_TAG_WIDTH1:s1_value": {
+      "count": 32,
+      "area_um2": 1409.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_job_id": {
+      "count": 32,
+      "area_um2": 1409.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:act_reads": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:act_writes": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:cycles": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:issues": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:model_reads": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_completed_id": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_trace_offset_o": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_trace_register_data": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_data": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_rsp_data_o": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_low_word": {
+      "count": 32,
+      "area_um2": 1404.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:gathered": {
+      "count": 32,
+      "area_um2": 1391.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:src_span": {
+      "count": 31,
+      "area_um2": 1387.4
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_timeout_limit": {
+      "count": 32,
+      "area_um2": 1387.4
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_held_data": {
+      "count": 32,
+      "area_um2": 1374.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:dst_span": {
+      "count": 31,
+      "area_um2": 1369.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_acc": {
+      "count": 32,
+      "area_um2": 1365.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_skew[6].delayed.act_delay": {
+      "count": 30,
+      "area_um2": 1317.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:weight_span": {
+      "count": 30,
+      "area_um2": 1317.1
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_trace_control_o": {
+      "count": 29,
+      "area_um2": 1271.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_base": {
+      "count": 30,
+      "area_um2": 1251.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:load_data": {
+      "count": 28,
+      "area_um2": 1229.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_high_word": {
+      "count": 28,
+      "area_um2": 1229.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_consecutive": {
+      "count": 28,
+      "area_um2": 1207.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_skew[5].delayed.act_delay": {
+      "count": 25,
+      "area_um2": 1097.6
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_saved_word": {
+      "count": 24,
+      "area_um2": 1053.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_x_begin": {
+      "count": 24,
+      "area_um2": 1007.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_y_begin": {
+      "count": 24,
+      "area_um2": 1005.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_mask": {
+      "count": 24,
+      "area_um2": 1001.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[5].delayed.delay": {
+      "count": 22,
+      "area_um2": 970.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_skew[4].delayed.act_delay": {
+      "count": 20,
+      "area_um2": 878.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:x_step": {
+      "count": 16,
+      "area_um2": 838.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_addr": {
+      "count": 16,
+      "area_um2": 834.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:ret_pos_addr": {
+      "count": 16,
+      "area_um2": 834.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_events": {
+      "count": 18,
+      "area_um2": 790.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_base": {
+      "count": 15,
+      "area_um2": 790.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:y_step": {
+      "count": 15,
+      "area_um2": 785.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:issue_tile": {
+      "count": 16,
+      "area_um2": 755.1
+    },
+    "requant_lane_TAG_WIDTH17:s1_tag": {
+      "count": 17,
+      "area_um2": 746.4
+    },
+    "requant_lane_TAG_WIDTH17:s2_tag": {
+      "count": 17,
+      "area_um2": 746.4
+    },
+    "requant_lane_TAG_WIDTH17:s3_tag": {
+      "count": 17,
+      "area_um2": 746.4
+    },
+    "requant_lane_TAG_WIDTH17:out_tag": {
+      "count": 17,
+      "area_um2": 746.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:issue_g": {
+      "count": 16,
+      "area_um2": 746.4
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_model_bytes_o": {
+      "count": 16,
+      "area_um2": 742.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:kernel_offset": {
+      "count": 16,
+      "area_um2": 737.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:req_addr": {
+      "count": 14,
+      "area_um2": 737.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:dst_pixels": {
+      "count": 16,
+      "area_um2": 733.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:oct": {
+      "count": 16,
+      "area_um2": 731.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_count": {
+      "count": 16,
+      "area_um2": 726.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_pos": {
+      "count": 16,
+      "area_um2": 715.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:oh": {
+      "count": 16,
+      "area_um2": 711.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:ow": {
+      "count": 16,
+      "area_um2": 711.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:row_stride": {
+      "count": 16,
+      "area_um2": 711.2
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_input_bytes_o": {
+      "count": 16,
+      "area_um2": 711.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:load_g": {
+      "count": 16,
+      "area_um2": 709.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:param_channel": {
+      "count": 16,
+      "area_um2": 706.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:dw": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:issue_seq": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:load_tile": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:src_pixels": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_output_base_o": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_input_base_o": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_output_bytes_o": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_saved_mask": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_cache_valid": {
+      "count": 16,
+      "area_um2": 702.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:kernel_col_jump": {
+      "count": 16,
+      "area_um2": 700.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:dh": {
+      "count": 16,
+      "area_um2": 700.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:groups": {
+      "count": 16,
+      "area_um2": 700.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:load_seq": {
+      "count": 16,
+      "area_um2": 695.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:positions": {
+      "count": 16,
+      "area_um2": 687.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:pool_chk_h": {
+      "count": 16,
+      "area_um2": 676.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:pool_chk_w": {
+      "count": 16,
+      "area_um2": 676.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:kernel_row_jump": {
+      "count": 16,
+      "area_um2": 669.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_col_step": {
+      "count": 16,
+      "area_um2": 667.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_skew[3].delayed.act_delay": {
+      "count": 15,
+      "area_um2": 658.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:scan_product": {
+      "count": 15,
+      "area_um2": 658.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_bank_pipe": {
+      "count": 15,
+      "area_um2": 658.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_valid_pipe": {
+      "count": 15,
+      "area_um2": 658.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tap_col_step": {
+      "count": 15,
+      "area_um2": 658.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tap_row_jump": {
+      "count": 15,
+      "area_um2": 658.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tap_offset": {
+      "count": 15,
+      "area_um2": 658.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_first_addr": {
+      "count": 15,
+      "area_um2": 656.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_scan_product": {
+      "count": 15,
+      "area_um2": 654.2
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_input_count": {
+      "count": 14,
+      "area_um2": 645.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_row_jump": {
+      "count": 15,
+      "area_um2": 630.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tile_base": {
+      "count": 15,
+      "area_um2": 627.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_row_step": {
+      "count": 15,
+      "area_um2": 627.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:pool_scan_product": {
+      "count": 15,
+      "area_um2": 625.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:origin_x": {
+      "count": 15,
+      "area_um2": 625.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:origin_y": {
+      "count": 15,
+      "area_um2": 625.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:cursor_base": {
+      "count": 15,
+      "area_um2": 625.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:origin": {
+      "count": 15,
+      "area_um2": 625.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:load_address": {
+      "count": 14,
+      "area_um2": 608.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:weight_tile_base": {
+      "count": 14,
+      "area_um2": 583.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_model_count": {
+      "count": 12,
+      "area_um2": 535.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:kernel_c": {
+      "count": 11,
+      "area_um2": 496.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[7].psum_q": {
+      "count": 11,
+      "area_um2": 491.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_deskew[6].delayed.delay": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[7].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[5].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[2].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[4].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[7].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[1].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[5].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[1].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[6].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[0].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[2].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[1].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[4].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[7].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[6].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[0].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[3].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[2].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[1].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[0].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[1].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[2].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[3].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[4].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[5].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[7].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[0].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[0].psum_q": {
+      "count": 11,
+      "area_um2": 487.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[1].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[2].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[3].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[4].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[5].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[6].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[3].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[6].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[0].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[3].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[4].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[7].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[2].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[3].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[5].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[4].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[5].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[6].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[6].psum_q": {
+      "count": 11,
+      "area_um2": 482.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_x": {
+      "count": 9,
+      "area_um2": 463.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_y": {
+      "count": 9,
+      "area_um2": 463.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:inflight": {
+      "count": 10,
+      "area_um2": 461.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[1].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[2].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[3].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[4].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[5].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[7].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[6].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[0].psum_q": {
+      "count": 10,
+      "area_um2": 447.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_skew[2].delayed.act_delay": {
+      "count": 10,
+      "area_um2": 439.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:param_span": {
+      "count": 9,
+      "area_um2": 403.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[1].psum_q": {
+      "count": 9,
+      "area_um2": 399.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[2].psum_q": {
+      "count": 9,
+      "area_um2": 399.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[3].psum_q": {
+      "count": 9,
+      "area_um2": 399.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[4].psum_q": {
+      "count": 9,
+      "area_um2": 399.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[5].psum_q": {
+      "count": 9,
+      "area_um2": 399.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[6].psum_q": {
+      "count": 9,
+      "area_um2": 399.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[0].psum_q": {
+      "count": 9,
+      "area_um2": 399.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[7].psum_q": {
+      "count": 9,
+      "area_um2": 395.1
+    },
+    "npu_jtag_transport:cmd_op_o": {
+      "count": 8,
+      "area_um2": 386.4
+    },
+    "requant_lane_TAG_WIDTH17:s1_multiplier": {
+      "count": 8,
+      "area_um2": 373.2
+    },
+    "requant_lane_TAG_WIDTH1:s1_multiplier": {
+      "count": 8,
+      "area_um2": 373.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tile_x": {
+      "count": 8,
+      "area_um2": 364.4
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_op_count_o": {
+      "count": 8,
+      "area_um2": 360.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tap_x": {
+      "count": 8,
+      "area_um2": 355.6
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_op": {
+      "count": 8,
+      "area_um2": 355.6
+    },
+    "npu_tensor_lookup_MAX_OPS128:index": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_last_x": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[0].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[2].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[3].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[4].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[5].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[6].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[7].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[1].weight_bank": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:cursor_x": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:cursor_y": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_x": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:pc": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tap_y": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:error_op": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tile_y": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_error_op": {
+      "count": 8,
+      "area_um2": 351.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:scan_last_x": {
+      "count": 8,
+      "area_um2": 346.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_request_mask": {
+      "count": 8,
+      "area_um2": 335.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:gather_mask": {
+      "count": 8,
+      "area_um2": 333.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:k_valid": {
+      "count": 8,
+      "area_um2": 333.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:octs": {
+      "count": 7,
+      "area_um2": 313.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_config_written": {
+      "count": 7,
+      "area_um2": 311.7
+    },
+    "requant_lane_TAG_WIDTH17:s2_rshift": {
+      "count": 6,
+      "area_um2": 276.6
+    },
+    "requant_lane_TAG_WIDTH1:s2_rshift": {
+      "count": 6,
+      "area_um2": 276.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_sample_inflight": {
+      "count": 6,
+      "area_um2": 276.6
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_error_code": {
+      "count": 5,
+      "area_um2": 272.2
+    },
+    "requant_lane_TAG_WIDTH17:s1_rshift": {
+      "count": 6,
+      "area_um2": 261.2
+    },
+    "requant_lane_TAG_WIDTH1:s1_rshift": {
+      "count": 6,
+      "area_um2": 261.2
+    },
+    "npu_jtag_transport:ir": {
+      "count": 5,
+      "area_um2": 250.3
+    },
+    "npu_jtag_transport:ir_shift": {
+      "count": 5,
+      "area_um2": 243.7
+    },
+    "npu_jtag_transport:reply_error": {
+      "count": 5,
+      "area_um2": 241.5
+    },
+    "npu_jtag_transport:rsp_mailbox_error": {
+      "count": 5,
+      "area_um2": 241.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:rq_pending": {
+      "count": 5,
+      "area_um2": 237.1
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_rsp_error_o": {
+      "count": 5,
+      "area_um2": 237.1
+    },
+    "requant_lane_TAG_WIDTH1:s3_max": {
+      "count": 5,
+      "area_um2": 232.7
+    },
+    "requant_lane_TAG_WIDTH1:s3_min": {
+      "count": 5,
+      "area_um2": 232.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:issue_p": {
+      "count": 5,
+      "area_um2": 228.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:tile_positions": {
+      "count": 5,
+      "area_um2": 226.1
+    },
+    "requant_lane_TAG_WIDTH17:s3_max": {
+      "count": 5,
+      "area_um2": 223.9
+    },
+    "requant_lane_TAG_WIDTH17:s1_max": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH17:s1_min": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH17:s2_max": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH17:s2_min": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH17:s3_min": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH1:s1_max": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH1:s1_min": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH1:s2_max": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "requant_lane_TAG_WIDTH1:s2_min": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[0].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[1].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[2].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[3].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[4].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_skew[1].delayed.act_delay": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[5].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[6].act_q": {
+      "count": 5,
+      "area_um2": 219.5
+    },
+    "npu_jtag_transport:tap": {
+      "count": 4,
+      "area_um2": 197.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:slot_busy": {
+      "count": 4,
+      "area_um2": 193.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:slot_ready": {
+      "count": 4,
+      "area_um2": 193.2
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:fetch_word": {
+      "count": 4,
+      "area_um2": 188.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:astep": {
+      "count": 4,
+      "area_um2": 184.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:prep_row": {
+      "count": 4,
+      "area_um2": 184.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:state": {
+      "count": 4,
+      "area_um2": 184.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_count": {
+      "count": 4,
+      "area_um2": 184.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:req_row": {
+      "count": 4,
+      "area_um2": 180.0
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_count": {
+      "count": 4,
+      "area_um2": 180.0
+    },
+    "requant_lane_TAG_WIDTH17:out_data": {
+      "count": 4,
+      "area_um2": 175.6
+    },
+    "requant_lane_TAG_WIDTH1:out_data": {
+      "count": 4,
+      "area_um2": 173.4
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:read_lane": {
+      "count": 3,
+      "area_um2": 144.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:gather_row": {
+      "count": 3,
+      "area_um2": 144.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:kernel_x": {
+      "count": 3,
+      "area_um2": 140.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_rotation": {
+      "count": 3,
+      "area_um2": 140.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_head": {
+      "count": 3,
+      "area_um2": 140.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_sample_slots": {
+      "count": 3,
+      "area_um2": 136.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:load_row": {
+      "count": 3,
+      "area_um2": 136.1
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_tail": {
+      "count": 3,
+      "area_um2": 136.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:element_lane": {
+      "count": 3,
+      "area_um2": 131.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:kernel_y": {
+      "count": 3,
+      "area_um2": 131.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_head": {
+      "count": 3,
+      "area_um2": 131.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:write_tail": {
+      "count": 3,
+      "area_um2": 131.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:error": {
+      "count": 3,
+      "area_um2": 131.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_state": {
+      "count": 3,
+      "area_um2": 131.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_state": {
+      "count": 3,
+      "area_um2": 127.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_first": {
+      "count": 3,
+      "area_um2": 125.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:estate": {
+      "count": 2,
+      "area_um2": 107.6
+    },
+    "npu_jtag_transport:ack_sync": {
+      "count": 2,
+      "area_um2": 98.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:bank_ready": {
+      "count": 2,
+      "area_um2": 96.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:lq_count": {
+      "count": 2,
+      "area_um2": 96.6
+    },
+    "npu_jtag_transport:req_sync": {
+      "count": 2,
+      "area_um2": 96.6
+    },
+    "npu_jtag_transport:sys_reset_sync": {
+      "count": 2,
+      "area_um2": 96.6
+    },
+    "npu_jtag_transport:tck_reset_sync": {
+      "count": 2,
+      "area_um2": 96.6
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_p": {
+      "count": 2,
+      "area_um2": 90.0
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:gather_state": {
+      "count": 2,
+      "area_um2": 87.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:l_out": {
+      "count": 2,
+      "area_um2": 87.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:lq_head": {
+      "count": 2,
+      "area_um2": 87.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:lq_tail": {
+      "count": 2,
+      "area_um2": 87.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:read_slot": {
+      "count": 2,
+      "area_um2": 87.8
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_sample_banks": {
+      "count": 2,
+      "area_um2": 87.8
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_faulted_reg(.CP": {
+      "count": 1,
+      "area_um2": 70.2
+    },
+    "npu_jtag_transport:td_o_reg(.CDN": {
+      "count": 1,
+      "area_um2": 65.9
+    },
+    "npu_tensor_lookup_MAX_OPS128:active_reg(.CP": {
+      "count": 1,
+      "area_um2": 61.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:cursor_at_last_x_reg(.CP": {
+      "count": 1,
+      "area_um2": 61.5
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_side_halfword_reg(.CP": {
+      "count": 1,
+      "area_um2": 61.5
+    },
+    "npu_jtag_transport:cmd_valid_o_reg(.CDN": {
+      "count": 1,
+      "area_um2": 61.5
+    },
+    "npu_jtag_transport:have_reply_reg(.CDN": {
+      "count": 1,
+      "area_um2": 61.5
+    },
+    "npu_jtag_transport:overrun_reg(.CDN": {
+      "count": 1,
+      "area_um2": 61.5
+    },
+    "npu_jtag_transport:waiting_reply_reg(.CDN": {
+      "count": 1,
+      "area_um2": 61.5
+    },
+    "npu_tensor_lookup_MAX_OPS128:source2_known_reg(.CP": {
+      "count": 1,
+      "area_um2": 59.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:checking_reg(.CP": {
+      "count": 1,
+      "area_um2": 59.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:fetch_bad_reg(.CP": {
+      "count": 1,
+      "area_um2": 59.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_input_i32_o_reg(.CP": {
+      "count": 1,
+      "area_um2": 59.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:rst_reg(.CP": {
+      "count": 1,
+      "area_um2": 59.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_side_bank_q_reg(.CP": {
+      "count": 1,
+      "area_um2": 57.1
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_bank_select_reg(.CP": {
+      "count": 1,
+      "area_um2": 57.1
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:pool_enable_reg(.CP": {
+      "count": 1,
+      "area_um2": 54.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_core_reset_o_reg(.CP": {
+      "count": 1,
+      "area_um2": 52.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_rsp_valid_o_reg(.CP": {
+      "count": 1,
+      "area_um2": 52.7
+    },
+    "npu_jtag_transport:burst_request_reg(.CDN": {
+      "count": 1,
+      "area_um2": 50.5
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:mac_op_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:pool1d_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[5].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:elem_pool_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_sample_active_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[3].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[2].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[3].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[2].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[1].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[5].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[0].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[4].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[1].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[0].cols[4].sel_q": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_input_loading_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_model_loading_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_job_active_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_memory_high_reg(.CP": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_jtag_transport:ack_toggle_reg(.CDN": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_jtag_transport:burst_error_pending_reg(.CDN": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_jtag_transport:req_seen_reg(.CDN": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_jtag_transport:pending_reg(.CDN": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_jtag_transport:req_toggle_reg(.CDN": {
+      "count": 1,
+      "area_um2": 48.3
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:dwconv_reg(.CP": {
+      "count": 1,
+      "area_um2": 46.1
+    },
+    "requant_lane_TAG_WIDTH17:s1_valid_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "requant_lane_TAG_WIDTH17:s2_valid_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "requant_lane_TAG_WIDTH17:out_valid_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "requant_lane_TAG_WIDTH17:s3_valid_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_tensor_lookup_MAX_OPS128:have_record_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_tensor_lookup_MAX_OPS128:source_known_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[7].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:peek_any_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:relu_enable_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:add_second_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:last_group_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:lookup_done_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:lstate": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_a_pending_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:perf_m_pending_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:validation_ok_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:done_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:validation_done_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:i_array_rows[6].cols[6].sel_q": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:q_enable_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:has_next_q_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:kernel_prepare_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_trace_read_valid_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_config_ok_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_done_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_input_valid_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_controller_model_valid_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_trace_active_q_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_side_wait_reg(.CP": {
+      "count": 1,
+      "area_um2": 43.9
+    },
+    "npu_tensor_lookup_MAX_OPS128:done_reg(.CP": {
+      "count": 1,
+      "area_um2": 41.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:issue_more_reg(.CP": {
+      "count": 1,
+      "area_um2": 41.7
+    },
+    "npu_program_core_ACT_BYTES16384_MODEL_BYTES8192_COLS8_SHARED_MODEL1_MAX_OPS128_MAX_K1024:load_more_reg(.CP": {
+      "count": 1,
+      "area_um2": 41.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_model_dirty_reg(.CP": {
+      "count": 1,
+      "area_um2": 41.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_trace_finished_reg(.CP": {
+      "count": 1,
+      "area_um2": 41.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_trace_saw_active_reg(.CP": {
+      "count": 1,
+      "area_um2": 41.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_trace_read_error": {
+      "count": 1,
+      "area_um2": 41.7
+    },
+    "npu_control_subsystem_ACT_BYTES16384_MODEL_BYTES8192_COLS8_MAX_OPS128_MAX_K1024:i_activation_i_store_side_rsp_q_reg(.CP": {
+      "count": 1,
+      "area_um2": 41.7
+    }
+  }
+}

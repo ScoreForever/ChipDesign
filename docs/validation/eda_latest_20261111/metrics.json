@@ -1,0 +1,588 @@
+{
+  "tested_commit": "aa778875eed49ada6b7b36bf10b1c0cdce2ad3c9",
+  "synthesis": {
+    "total_area_um2": 2197528.48184,
+    "standard_cell_area_um2": 1394641.29434,
+    "macro_area_um2": 802887.1875,
+    "macro_count": 2
+  },
+  "physical": {
+    "active_standard_area_um2": 1431456.992000133,
+    "active_standard_instances": 63248,
+    "checks": {
+      "antenna": true,
+      "cdc": true,
+      "connectivity": true,
+      "drc": true,
+      "drv": true,
+      "macro_pins": true,
+      "pad_geometry": true,
+      "pg_connectivity": true,
+      "pg_drc": true,
+      "placement": true,
+      "ports": true
+    },
+    "core_area_mm2": 2.690387258,
+    "cts_and_repair_area_change_um2": 23890.361600029,
+    "die_area_mm2": 3.76515216,
+    "eligible": true,
+    "hold_tns_ns": 0.0,
+    "hold_wns_ns": 0.05,
+    "macro_area_um2": 802887.1815,
+    "macro_count": 2,
+    "missing": [],
+    "runtime_seconds": 589.9508917331696,
+    "setup_tns_ns": 0.0,
+    "setup_wns_ns": 0.486,
+    "wire_length_um": 5019798.015,
+    "within_area_budget": true
+  },
+  "checks": {
+    "antenna": true,
+    "cdc": true,
+    "connectivity": true,
+    "drc": true,
+    "drv": true,
+    "macro_pins": true,
+    "pad_geometry": true,
+    "pg_connectivity": true,
+    "pg_drc": true,
+    "placement": true,
+    "ports": true
+  },
+  "expanded_drv": {
+    "passed": true,
+    "reports": {
+      "timing_setup": {
+        "max_cap": {
+          "real_nets": 0.0,
+          "real_terms": 0.0,
+          "worst_violation": 0.0,
+          "total_nets": 0.0,
+          "total_terms": 0.0
+        },
+        "max_tran": {
+          "real_nets": 0.0,
+          "real_terms": 0.0,
+          "worst_violation": 0.0,
+          "total_nets": 0.0,
+          "total_terms": 0.0
+        },
+        "max_fanout": {
+          "real_nets": 0.0,
+          "real_terms": 0.0,
+          "worst_violation": 0.0,
+          "total_nets": 0.0,
+          "total_terms": 0.0
+        },
+        "max_length": {
+          "real_nets": 0.0,
+          "real_terms": 0.0,
+          "worst_violation": 0.0,
+          "total_nets": 0.0,
+          "total_terms": 0.0
+        }
+      }
+    },
+    "scope": "Innovus expanded-view SI timing summaries, separate from report_constraint"
+  },
+  "power": {
+    "internal_mw": 45.3247721,
+    "switching_mw": 18.04030882,
+    "leakage_mw": 0.03742205,
+    "total_mw": 63.40250296
+  },
+  "unit_tests": {
+    "flow": {
+      "passed": true,
+      "tests": 44
+    },
+    "software": {
+      "passed": true,
+      "tests": 20
+    },
+    "host": {
+      "passed": true,
+      "tests": 17
+    },
+    "tooling": {
+      "passed": true,
+      "tests": 14
+    },
+    "golden": {
+      "passed": true,
+      "tests": 30
+    }
+  },
+  "functional_programs": {
+    "rtl_full": 85,
+    "rtl_macro_waveoff": 85
+  },
+  "negative_checks_per_backend": {
+    "rtl_full": [
+      "opcode",
+      "reserved",
+      "old_abi",
+      "wrong_cols",
+      "stride",
+      "shape",
+      "model_overlap",
+      "destination",
+      "source",
+      "shift",
+      "dw_channels",
+      "pool_window",
+      "add_src2_overlap",
+      "add_fused_pool",
+      "u4_int32",
+      "dw_on_fc",
+      "pool1d_unfused",
+      "last_descriptor",
+      "lifecycle"
+    ],
+    "rtl_macro_waveoff": [
+      "opcode",
+      "reserved",
+      "old_abi",
+      "wrong_cols",
+      "stride",
+      "shape",
+      "model_overlap",
+      "destination",
+      "source",
+      "shift",
+      "dw_channels",
+      "pool_window",
+      "add_src2_overlap",
+      "add_fused_pool",
+      "u4_int32",
+      "dw_on_fc",
+      "pool1d_unfused",
+      "last_descriptor",
+      "lifecycle"
+    ]
+  },
+  "sdf": {
+    "sdf": {
+      "result": {
+        "accepted_time0_input_pad_conflicts": 5,
+        "annotation_log_present": true,
+        "diagnostics": {
+          "accepted_ifnone_paths": {
+            "by_arc": {
+              "CKMUX2D1BWP7T S->Z": 162,
+              "CKXOR2D0BWP7T A1->Z": 348,
+              "CKXOR2D0BWP7T A2->Z": 348,
+              "CKXOR2D1BWP7T A1->Z": 2466,
+              "CKXOR2D1BWP7T A2->Z": 2466,
+              "FA1D0BWP7T A->S": 13050,
+              "FA1D0BWP7T B->S": 13050,
+              "FA1D0BWP7T CI->S": 13050,
+              "FA1D1BWP7T A->S": 66,
+              "FA1D1BWP7T B->S": 66,
+              "FA1D1BWP7T CI->S": 66,
+              "HA1D0BWP7T A->S": 96,
+              "HA1D0BWP7T B->S": 96,
+              "MUX2D0BWP7T S->Z": 36,
+              "MUX2D1BWP7T S->Z": 582,
+              "MUX2D2BWP7T S->Z": 30,
+              "MUX2ND0BWP7T S->ZN": 42,
+              "XNR2D1BWP7T A1->ZN": 2316,
+              "XNR2D1BWP7T A2->ZN": 2316,
+              "XNR3D0BWP7T A1->ZN": 48,
+              "XNR3D0BWP7T A2->ZN": 48,
+              "XNR3D0BWP7T A3->ZN": 48,
+              "XNR3D1BWP7T A1->ZN": 6,
+              "XNR3D1BWP7T A2->ZN": 6,
+              "XNR3D1BWP7T A3->ZN": 6,
+              "XNR4D1BWP7T A1->ZN": 6,
+              "XNR4D1BWP7T A2->ZN": 6,
+              "XNR4D1BWP7T A3->ZN": 6,
+              "XNR4D1BWP7T A4->ZN": 6,
+              "XOR3D0BWP7T A1->Z": 18,
+              "XOR3D0BWP7T A2->Z": 18,
+              "XOR3D0BWP7T A3->Z": 18,
+              "XOR3D1BWP7T A1->Z": 6,
+              "XOR3D1BWP7T A2->Z": 6,
+              "XOR3D1BWP7T A3->Z": 6
+            },
+            "total": 50910
+          },
+          "accepted_sram_negedge_period": 6,
+          "fatal": [],
+          "unexpected_sdfnep": [],
+          "unexpected_sdfnet": []
+        },
+        "jtag_commands": 41,
+        "passed": true,
+        "sources_sha256": {
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/driver/tb_fullchip.sv": "98ade287480b1d093e56034b493b61131b8a8e90fdc54fc6cc39550ffffd318d",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/simulation.v": "38e95023d20fbeaee5f1a99e0b3b7761561b46d96ae97599ce4e3ab40ebba854",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/cdc.tfile": "df7b36cd4d84eed9e038bdb1bffd8db56cd0a00e46e2fcc4431c32217195e7cc",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/commands.txt": "47b352b575435f78f12714059c9691b5c9dfe03db5072c35e46e22f1162a9327",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf": "1f8007dfdc3b86bf0fba910161e78f937b4ad42e580c75fb48f62b1478e80099",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/sdf.cmd": "aaeb7664bc22d7095daebaced3145c9b36fc268ff64edd97fb5dff9989c7a6a4"
+        },
+        "timing_diagnostics": false
+      },
+      "tool_state": {
+        "accepted_codes": [],
+        "accepted_diagnostics": [],
+        "command": [
+          "xrun",
+          "-64bit",
+          "-sv",
+          "-timescale",
+          "1ns/1ps",
+          "-access",
+          "+rwc",
+          "-top",
+          "tb_fullchip",
+          "-sdf_cmd_file",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/sdf.cmd",
+          "-tfile",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/cdc.tfile",
+          "+define+NTC",
+          "+define+RECREM",
+          "+neg_tchk",
+          "-ignr_warnmax",
+          "SDFNEP",
+          "-ignr_warnmax",
+          "SDFNET",
+          "-sdfstats",
+          "sdf_stats.log",
+          "/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/verilog/tcb018gbwp7t_270a/tcb018gbwp7t.v",
+          "/lec/pdk/tsmc180/tpd018nv_280a/TSMCHOME/digital/Front_End/verilog/tpd018nv_260a/tpd018nv.v",
+          "/lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8.v",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/simulation.v",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/driver/tb_fullchip.sv",
+          "+SDF=/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf",
+          "+TRACE=/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/commands.txt",
+          "-l",
+          "simulation.log"
+        ],
+        "errors": [
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_td_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_rst_ni",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tms_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_clk_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tck_i"
+        ],
+        "exit_code": 0,
+        "finished": 1794374797.3796828,
+        "marker": true,
+        "pid": 132961,
+        "process_token": "38656459",
+        "started": 1794374651.5695486,
+        "status": "failed",
+        "timeout_seconds": 14400,
+        "unresolved_scan_diagnostics": []
+      },
+      "timing_violation_lines": 0,
+      "glitch_suppression_messages": 0,
+      "warning_codes": {
+        "SDFNDP": 252,
+        "SDFNEP": 50910,
+        "SDFNET": 6,
+        "CUVWSB": 32,
+        "CUVWSP": 4,
+        "CUVWSI": 788,
+        "DSEMEL": 2,
+        "TRNNOP": 56,
+        "DSEM2009": 2
+      }
+    },
+    "sdf_cnn_f1": {
+      "result": {
+        "accepted_time0_input_pad_conflicts": 5,
+        "annotation_validation": true,
+        "bursts": 145,
+        "commands": 41,
+        "diagnostics": {
+          "accepted_ifnone_paths": {
+            "by_arc": {},
+            "total": 0
+          },
+          "accepted_sram_negedge_period": 0,
+          "fatal": [],
+          "unexpected_sdfnep": [],
+          "unexpected_sdfnet": []
+        },
+        "expected_bursts": 145,
+        "expected_commands": 41,
+        "expected_payload_bytes": 6,
+        "fixture": "cnn",
+        "fuse": true,
+        "inferences": 2,
+        "logical_output_values": 11,
+        "parent_annotated_snapshot": "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf",
+        "passed": true,
+        "sources_sha256": {
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/driver/tb_fullchip.sv": "98ade287480b1d093e56034b493b61131b8a8e90fdc54fc6cc39550ffffd318d",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/simulation.v": "38e95023d20fbeaee5f1a99e0b3b7761561b46d96ae97599ce4e3ab40ebba854",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/result.json": "bb1a4b667a45b0b5b1a022432379446cd3aab530d4369ce843ba6875739517a3",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf": "1f8007dfdc3b86bf0fba910161e78f937b4ad42e580c75fb48f62b1478e80099",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf_cnn_f1/commands.txt": "15c23f5bffb9552ec17c2b02c07c17c7deeb084383f8a642b4441b256571a7d0"
+        },
+        "trace_counts_match": true
+      },
+      "tool_state": {
+        "accepted_codes": [],
+        "accepted_diagnostics": [],
+        "command": [
+          "xrun",
+          "-64bit",
+          "-R",
+          "-xmlibdirname",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf_cnn_f1/xcelium.d",
+          "-access",
+          "+rwc",
+          "+neg_tchk",
+          "+SDF=/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf",
+          "+TRACE=/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf_cnn_f1/commands.txt",
+          "-l",
+          "simulation.log"
+        ],
+        "errors": [
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_td_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_rst_ni",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tms_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_clk_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tck_i"
+        ],
+        "exit_code": 0,
+        "finished": 1794374876.9462397,
+        "marker": true,
+        "pid": 134984,
+        "process_token": "38671388",
+        "started": 1794374800.8576548,
+        "status": "failed",
+        "timeout_seconds": 14400,
+        "unresolved_scan_diagnostics": []
+      },
+      "timing_violation_lines": 0,
+      "glitch_suppression_messages": 0,
+      "warning_codes": {
+        "DSEM2009": 2
+      }
+    },
+    "sdf_cnn_f0": {
+      "result": {
+        "accepted_time0_input_pad_conflicts": 5,
+        "annotation_validation": true,
+        "bursts": 241,
+        "commands": 41,
+        "diagnostics": {
+          "accepted_ifnone_paths": {
+            "by_arc": {},
+            "total": 0
+          },
+          "accepted_sram_negedge_period": 0,
+          "fatal": [],
+          "unexpected_sdfnep": [],
+          "unexpected_sdfnet": []
+        },
+        "expected_bursts": 241,
+        "expected_commands": 41,
+        "expected_payload_bytes": 6,
+        "fixture": "cnn",
+        "fuse": false,
+        "inferences": 2,
+        "logical_output_values": 11,
+        "parent_annotated_snapshot": "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf",
+        "passed": true,
+        "sources_sha256": {
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/driver/tb_fullchip.sv": "98ade287480b1d093e56034b493b61131b8a8e90fdc54fc6cc39550ffffd318d",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/simulation.v": "38e95023d20fbeaee5f1a99e0b3b7761561b46d96ae97599ce4e3ab40ebba854",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/result.json": "bb1a4b667a45b0b5b1a022432379446cd3aab530d4369ce843ba6875739517a3",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf": "1f8007dfdc3b86bf0fba910161e78f937b4ad42e580c75fb48f62b1478e80099",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf_cnn_f0/commands.txt": "204b47e730c04db961a217a72d937217566128085dd8e7957fcf3fe982a8b543"
+        },
+        "trace_counts_match": true
+      },
+      "tool_state": {
+        "accepted_codes": [],
+        "accepted_diagnostics": [],
+        "command": [
+          "xrun",
+          "-64bit",
+          "-R",
+          "-xmlibdirname",
+          "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf_cnn_f0/xcelium.d",
+          "-access",
+          "+rwc",
+          "+neg_tchk",
+          "+SDF=/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf",
+          "+TRACE=/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf_cnn_f0/commands.txt",
+          "-l",
+          "simulation.log"
+        ],
+        "errors": [
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_td_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_rst_ni",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tms_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_clk_i",
+          "ERROR :                    0 ++BUS CONFLICT++ : tb_fullchip.dut.i_pad_tck_i"
+        ],
+        "exit_code": 0,
+        "finished": 1794374895.8237476,
+        "marker": true,
+        "pid": 134983,
+        "process_token": "38671385",
+        "started": 1794374800.829626,
+        "status": "failed",
+        "timeout_seconds": 14400,
+        "unresolved_scan_diagnostics": []
+      },
+      "timing_violation_lines": 0,
+      "glitch_suppression_messages": 0,
+      "warning_codes": {
+        "DSEM2009": 2
+      }
+    }
+  },
+  "sdf_annotation": {
+    "source_iopath_entries": 559261,
+    "source_interconnect_entries": 188733,
+    "source_timing_checks_by_type": {
+      "SETUPHOLD": 56478,
+      "WIDTH": 33967,
+      "PERIOD": 4,
+      "RECREM": 353
+    },
+    "unique_sdfnep_warning_lines_in_annotation_log": 16970,
+    "source_iopath_entries_without_sdfnep_percent": 96.96563858377394,
+    "coverage_definition": "SDF source IOPATH entries minus unique SDFNEP annotation-log entries; not model path coverage or multi-corner coverage.",
+    "sdfnet_warnings": [
+      "xmelab: *W,SDFNET: Unable to annotate to non-existent timing check (PERIOD (negedge CLK) (1.616)) of instance tb_fullchip.dut.i_control.\\i_activation_i_store_g_bank[0].i_sram  of module RA1SHD_2048x32M8 <./routed.sdf, line 1222132>.",
+      "xmelab: *W,SDFNET: Unable to annotate to non-existent timing check (PERIOD (negedge CLK) (1.616)) of instance tb_fullchip.dut.i_control.\\i_activation_i_store_g_bank[1].i_sram  of module RA1SHD_2048x32M8 <./routed.sdf, line 1222307>."
+    ],
+    "disabled_cdc_checks": {
+      "instances": [
+        "i_host.\\ack_sync_reg[0]",
+        "i_host.\\req_sync_reg[0]",
+        "i_host.\\sys_reset_sync_reg[0]",
+        "i_host.\\sys_reset_sync_reg[1]",
+        "i_host.\\tck_reset_sync_reg[0]",
+        "i_host.\\tck_reset_sync_reg[1]"
+      ],
+      "reason": "asynchronous capture stages of the JTAG/core synchronizers"
+    },
+    "rewrite": {
+      "source": "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/routed.sdf.gz",
+      "source_sha256": "4860add7bc38fe97c7d2a823c4fa5f487c692032a0dd27974ae2e634ab17fde8",
+      "sram_clk_q_iopaths_unqualified": 64
+    },
+    "simulator_statistics": {
+      "Pathdelays": {
+        "total": 550776.0,
+        "disabled": 0.0,
+        "percent": 98.46,
+        "annotated": 542291.0,
+        "eligible": 550776.0
+      },
+      "Tchecks": {
+        "total": 90800.0,
+        "disabled": 36.0,
+        "percent": 100.0,
+        "annotated": 90764.0,
+        "eligible": 90764.0
+      }
+    }
+  },
+  "independent": {
+    "sta": {
+      "black_boxes": [
+        "RA1SHD_2048x32M8..."
+      ],
+      "check": "sta",
+      "hold_wns_ns": 0.048556,
+      "passed": true,
+      "scope": "standard cells and IO; SRAM interface timing is checked by Innovus only",
+      "setup_wns_ns": 1.055285,
+      "tool_status": "complete",
+      "unannotated": false
+    },
+    "lec": {
+      "check": "lec",
+      "passed": true,
+      "succeeded": true,
+      "tool_status": "complete",
+      "verified": true
+    },
+    "drc": {
+      "accepted": {
+        "CO.R.4": {
+          "count": 1,
+          "reason": "front-end layer rule inside vendor IO cells"
+        },
+        "DRM.R.1": {
+          "count": 1,
+          "reason": "deck reminder to consult the DRM; emitted unconditionally"
+        },
+        "ESD.24g": {
+          "count": 30,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        },
+        "ESD.25g": {
+          "count": 2384,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        },
+        "LUP.3.3g_3.3V": {
+          "count": 1,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        },
+        "LUP.5.3g_3.3V": {
+          "count": 10,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        }
+      },
+      "blocking": {},
+      "check": "drc",
+      "locations": {
+        "CO.R.4": {
+          "io_ring": 1
+        },
+        "DRM.R.1": {
+          "core": 1
+        },
+        "ESD.24g": {
+          "io_ring": 30
+        },
+        "ESD.25g": {
+          "io_ring": 2384
+        },
+        "LUP.3.3g_3.3V": {
+          "io_ring": 1
+        },
+        "LUP.5.3g_3.3V": {
+          "io_ring": 10
+        }
+      },
+      "passed": true,
+      "tool_status": "complete",
+      "total": 2427,
+      "violated_rules": {
+        "CO.R.4": 1,
+        "DRM.R.1": 1,
+        "ESD.24g": 30,
+        "ESD.25g": 2384,
+        "LUP.3.3g_3.3V": 1,
+        "LUP.5.3g_3.3V": 10
+      }
+    },
+    "lvs": {
+      "accepted_io_resistor_errors": 45,
+      "check": "lvs",
+      "correct": false,
+      "incorrect": true,
+      "max_io_resistor_deviation_percent": 3.47,
+      "passed": true,
+      "property_errors": 45,
+      "tool_status": "complete",
+      "top_errors": [
+        "Property errors."
+      ]
+    }
+  }
+}

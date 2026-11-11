@@ -1,0 +1,14 @@
+......../home/s2400012724/chip-fullstack-2026/eda_latest_20261111/src/hardware/asic/optimize/test_flow.py:63: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpah82foqh/run/controller.lock' mode='a' encoding='UTF-8'>
+  flow.main()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/lib/python3.8/traceback.py:220: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpah82foqh/run/controller.lock' mode='a' encoding='UTF-8'>
+  tb.tb_frame.clear()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/src/hardware/asic/optimize/test_flow.py:70: ResourceWarning: unclosed file <_io.TextIOWrapper name='/tmp/tmpah82foqh/gated/controller.lock' mode='a' encoding='UTF-8'>
+  flow.main()
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+....................................
+----------------------------------------------------------------------
+Ran 44 tests in 3.582s
+
+OK

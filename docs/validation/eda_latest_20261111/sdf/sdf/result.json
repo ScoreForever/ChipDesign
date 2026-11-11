@@ -1,0 +1,61 @@
+{
+  "accepted_time0_input_pad_conflicts": 5,
+  "annotation_log_present": true,
+  "diagnostics": {
+    "accepted_ifnone_paths": {
+      "by_arc": {
+        "CKMUX2D1BWP7T S->Z": 162,
+        "CKXOR2D0BWP7T A1->Z": 348,
+        "CKXOR2D0BWP7T A2->Z": 348,
+        "CKXOR2D1BWP7T A1->Z": 2466,
+        "CKXOR2D1BWP7T A2->Z": 2466,
+        "FA1D0BWP7T A->S": 13050,
+        "FA1D0BWP7T B->S": 13050,
+        "FA1D0BWP7T CI->S": 13050,
+        "FA1D1BWP7T A->S": 66,
+        "FA1D1BWP7T B->S": 66,
+        "FA1D1BWP7T CI->S": 66,
+        "HA1D0BWP7T A->S": 96,
+        "HA1D0BWP7T B->S": 96,
+        "MUX2D0BWP7T S->Z": 36,
+        "MUX2D1BWP7T S->Z": 582,
+        "MUX2D2BWP7T S->Z": 30,
+        "MUX2ND0BWP7T S->ZN": 42,
+        "XNR2D1BWP7T A1->ZN": 2316,
+        "XNR2D1BWP7T A2->ZN": 2316,
+        "XNR3D0BWP7T A1->ZN": 48,
+        "XNR3D0BWP7T A2->ZN": 48,
+        "XNR3D0BWP7T A3->ZN": 48,
+        "XNR3D1BWP7T A1->ZN": 6,
+        "XNR3D1BWP7T A2->ZN": 6,
+        "XNR3D1BWP7T A3->ZN": 6,
+        "XNR4D1BWP7T A1->ZN": 6,
+        "XNR4D1BWP7T A2->ZN": 6,
+        "XNR4D1BWP7T A3->ZN": 6,
+        "XNR4D1BWP7T A4->ZN": 6,
+        "XOR3D0BWP7T A1->Z": 18,
+        "XOR3D0BWP7T A2->Z": 18,
+        "XOR3D0BWP7T A3->Z": 18,
+        "XOR3D1BWP7T A1->Z": 6,
+        "XOR3D1BWP7T A2->Z": 6,
+        "XOR3D1BWP7T A3->Z": 6
+      },
+      "total": 50910
+    },
+    "accepted_sram_negedge_period": 6,
+    "fatal": [],
+    "unexpected_sdfnep": [],
+    "unexpected_sdfnet": []
+  },
+  "jtag_commands": 41,
+  "passed": true,
+  "sources_sha256": {
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/driver/tb_fullchip.sv": "98ade287480b1d093e56034b493b61131b8a8e90fdc54fc6cc39550ffffd318d",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/simulation.v": "38e95023d20fbeaee5f1a99e0b3b7761561b46d96ae97599ce4e3ab40ebba854",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/cdc.tfile": "df7b36cd4d84eed9e038bdb1bffd8db56cd0a00e46e2fcc4431c32217195e7cc",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/commands.txt": "47b352b575435f78f12714059c9691b5c9dfe03db5072c35e46e22f1162a9327",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf": "1f8007dfdc3b86bf0fba910161e78f937b4ad42e580c75fb48f62b1478e80099",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/sdf.cmd": "aaeb7664bc22d7095daebaced3145c9b36fc268ff64edd97fb5dff9989c7a6a4"
+  },
+  "timing_diagnostics": false
+}

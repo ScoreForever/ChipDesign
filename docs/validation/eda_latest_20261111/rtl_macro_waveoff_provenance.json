@@ -1,0 +1,38 @@
+{
+  "programs_passed": 85,
+  "inferences_per_program": 2,
+  "negative_checks_passed": [
+    "opcode",
+    "reserved",
+    "old_abi",
+    "wrong_cols",
+    "stride",
+    "shape",
+    "model_overlap",
+    "destination",
+    "source",
+    "shift",
+    "dw_channels",
+    "pool_window",
+    "add_src2_overlap",
+    "add_fused_pool",
+    "u4_int32",
+    "dw_on_fc",
+    "pool1d_unfused",
+    "last_descriptor",
+    "lifecycle"
+  ],
+  "sources_sha256": {
+    "hardware/npu/rtl/npu_mac_array.sv": "837fca6cfba68fa529f07f155d559707480f0afe6d2702f05d458e6287cc021f",
+    "hardware/npu/rtl/requant_lane.sv": "60be7cfcbf57fb7705a08338a1f1f4328fbc646e08cfe205f66df5db84c7bae1",
+    "hardware/npu/rtl/npu_model_store.sv": "75ac211bbe6033e9749e8b4c9b8420f3b54a297c70cc93889c4627bd8b7d1bb2",
+    "hardware/npu/rtl/npu_activation_store.sv": "514e9bfd33ae1f4c5237d7082c155ee6569b91a22a117eeeeba981a3410df9b2",
+    "hardware/npu/rtl/npu_program_core.sv": "0326e730defbb8f65f659982cb80db0b5df2bceedfb189bbd5b234865af14166",
+    "hardware/npu/rtl/npu_trace_capture.sv": "a388519e0c9abeed9850d5c10d6efbe9ec0bb35391316bf32195a94c5de9cd60",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "fb4a73eb41b1a2057b628290ad54896cb9a48f9030e90dbcc943442637fe7273",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "26d1ecc93e78ef02a4c88f734eee9c20fe4ebf0188169fc1bdc22f9ece16828e",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "1a5502bc780fae1dc07e97e068046af244e925c697d7f6fd4cde83d6dc74017a",
+    "hardware/soc/rtl/my_soc_top.sv": "5619b464e25aa41a445a1e8bd992a2910ef9e42d5e9be120b1909c5362c89486"
+  },
+  "scope": "Functional RTL only; real timing checks are evaluated separately in Xcelium SDF simulations."
+}

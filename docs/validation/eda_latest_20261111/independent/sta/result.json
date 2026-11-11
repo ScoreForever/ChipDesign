@@ -1,0 +1,12 @@
+{
+  "black_boxes": [
+    "RA1SHD_2048x32M8..."
+  ],
+  "check": "sta",
+  "hold_wns_ns": 0.048556,
+  "passed": true,
+  "scope": "standard cells and IO; SRAM interface timing is checked by Innovus only",
+  "setup_wns_ns": 1.055285,
+  "tool_status": "complete",
+  "unannotated": false
+}

@@ -1,0 +1,35 @@
+test_all_patterns_classes_lengths_hashes_and_manifest (test_tinycnn8_golden.GenerationTests) ... ok
+test_cli_flags_and_json_stdout (test_tinycnn8_golden.GenerationTests) ... ok
+test_default_hand_stable_witness_outputs (test_tinycnn8_golden.GenerationTests) ... ok
+test_deterministic_files_and_distinct_seed (test_tinycnn8_golden.GenerationTests) ... ok
+test_hardware_valid_class_counts_and_bad_arguments (test_tinycnn8_golden.GenerationTests) ... ok
+test_impulses_cover_center_and_both_corners (test_tinycnn8_golden.GenerationTests) ... ok
+test_non_degenerate_across_seeds_and_patterns (test_tinycnn8_golden.GenerationTests) ... ok
+test_patterns_change_inputs_not_model_parameters (test_tinycnn8_golden.GenerationTests) ... ok
+test_33bit_offset_and_signed_multiplier_encoding (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_bias_wrap_and_int8_clamps (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_double_rounding_not_single_rounding (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_high_mul_exact_rational_rounding_interval (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_high_mul_halves_including_negative (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_high_mul_special_point_and_extremes (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_pre_left_shift_saturates_and_signed_shift_extremes (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_reject_invalid_shift_and_clamp (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_right_division_halves_away_from_zero (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_wrap32_hand_values (test_tinycnn8_golden.IntegerContractTests) ... ok
+test_conv_canonical_channel_order_nhwc (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_conv_same_edges_and_bias_once (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_fc_accumulator_wrap_without_bias_overflow (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_fc_signed_products_bias_once_no_int8_clamp (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_gap_sum_q31_not_early_integer_average (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_maxpool_signed_values_and_spatial_order (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_packed_lane_endianness_and_high_bits (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_parameter_layer_lane_layout (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_weight_packedword_bases_and_canonical_k_order (test_tinycnn8_golden.LayerAndPackingTests) ... ok
+test_fused_order_matches_reference_on_generated_models (test_tinycnn8_golden.PoolBeforeRequantTests) ... ok
+test_negative_multiplier_breaks_the_identity (test_tinycnn8_golden.PoolBeforeRequantTests) ... ok
+test_requant_is_monotonic_for_non_negative_multipliers (test_tinycnn8_golden.PoolBeforeRequantTests) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 2.771s
+
+OK

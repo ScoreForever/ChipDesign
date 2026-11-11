@@ -1,0 +1,19 @@
+test_aggregates_hits_and_tests_per_suite (test_tooling.CoverageTest) ... ok
+test_testbench_bin_names_are_unique_and_complete (test_tooling.CoverageTest) ... ok
+test_compiler_messages_map_to_constraints (test_tooling.DeployClassifyTest) ... ok
+test_every_mutant_still_applies_exactly_once (test_tooling.MutantTest) ... ok
+test_normal_exit_keeps_output_and_status (test_tooling.MutationProcessTest) ... ok
+test_timeout_kills_the_simulator_group_and_drains_output (test_tooling.MutationProcessTest) ... ok
+test_complete_run_counts_checks (test_tooling.RegressionCountTest) ... ok
+test_failure_counts_in_total (test_tooling.RegressionCountTest) ... ok
+test_interrupted_run_is_incomplete (test_tooling.RegressionCountTest) ... ok
+test_missing_suite (test_tooling.RegressionCountTest) ... ok
+test_memory_configurations_are_pinned (test_tooling.SimBuildTest) ... ok
+test_ra1shd_adds_macro_model_and_all_sources_exist (test_tooling.SimBuildTest) ... ok
+test_tile_and_non_profile_build (test_tooling.SimBuildTest) ... ok
+test_unknown_memory_rejected (test_tooling.SimBuildTest) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.019s
+
+OK

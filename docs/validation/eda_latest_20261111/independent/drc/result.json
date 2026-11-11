@@ -1,0 +1,61 @@
+{
+  "accepted": {
+    "CO.R.4": {
+      "count": 1,
+      "reason": "front-end layer rule inside vendor IO cells"
+    },
+    "DRM.R.1": {
+      "count": 1,
+      "reason": "deck reminder to consult the DRM; emitted unconditionally"
+    },
+    "ESD.24g": {
+      "count": 30,
+      "reason": "ESD/latch-up guideline inside vendor IO cells"
+    },
+    "ESD.25g": {
+      "count": 2384,
+      "reason": "ESD/latch-up guideline inside vendor IO cells"
+    },
+    "LUP.3.3g_3.3V": {
+      "count": 1,
+      "reason": "ESD/latch-up guideline inside vendor IO cells"
+    },
+    "LUP.5.3g_3.3V": {
+      "count": 10,
+      "reason": "ESD/latch-up guideline inside vendor IO cells"
+    }
+  },
+  "blocking": {},
+  "check": "drc",
+  "locations": {
+    "CO.R.4": {
+      "io_ring": 1
+    },
+    "DRM.R.1": {
+      "core": 1
+    },
+    "ESD.24g": {
+      "io_ring": 30
+    },
+    "ESD.25g": {
+      "io_ring": 2384
+    },
+    "LUP.3.3g_3.3V": {
+      "io_ring": 1
+    },
+    "LUP.5.3g_3.3V": {
+      "io_ring": 10
+    }
+  },
+  "passed": true,
+  "tool_status": "complete",
+  "total": 2427,
+  "violated_rules": {
+    "CO.R.4": 1,
+    "DRM.R.1": 1,
+    "ESD.24g": 30,
+    "ESD.25g": 2384,
+    "LUP.3.3g_3.3V": 1,
+    "LUP.5.3g_3.3V": 10
+  }
+}

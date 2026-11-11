@@ -1,0 +1,26 @@
+{
+  "die": [
+    0.0,
+    0.0,
+    1940.4,
+    1940.4
+  ],
+  "core": [
+    150.08,
+    150.08,
+    1790.32,
+    1790.32
+  ],
+  "def_die_um": [
+    0.0,
+    0.0,
+    1940.4,
+    1940.4
+  ],
+  "def_dbu_per_um": 2000,
+  "die_width_um": 1940.4,
+  "die_height_um": 1940.4,
+  "dimension_limit_um": 1950,
+  "within_dimension_budget": true,
+  "passed": true
+}

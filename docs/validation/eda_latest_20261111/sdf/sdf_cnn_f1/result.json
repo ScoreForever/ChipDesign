@@ -1,0 +1,33 @@
+{
+  "accepted_time0_input_pad_conflicts": 5,
+  "annotation_validation": true,
+  "bursts": 145,
+  "commands": 41,
+  "diagnostics": {
+    "accepted_ifnone_paths": {
+      "by_arc": {},
+      "total": 0
+    },
+    "accepted_sram_negedge_period": 0,
+    "fatal": [],
+    "unexpected_sdfnep": [],
+    "unexpected_sdfnet": []
+  },
+  "expected_bursts": 145,
+  "expected_commands": 41,
+  "expected_payload_bytes": 6,
+  "fixture": "cnn",
+  "fuse": true,
+  "inferences": 2,
+  "logical_output_values": 11,
+  "parent_annotated_snapshot": "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf",
+  "passed": true,
+  "sources_sha256": {
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/driver/tb_fullchip.sv": "98ade287480b1d093e56034b493b61131b8a8e90fdc54fc6cc39550ffffd318d",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/outputs/simulation.v": "38e95023d20fbeaee5f1a99e0b3b7761561b46d96ae97599ce4e3ab40ebba854",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/result.json": "bb1a4b667a45b0b5b1a022432379446cd3aab530d4369ce843ba6875739517a3",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf/routed.sdf": "1f8007dfdc3b86bf0fba910161e78f937b4ad42e580c75fb48f62b1478e80099",
+    "/home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix2/sdf_cnn_f1/commands.txt": "15c23f5bffb9552ec17c2b02c07c17c7deeb084383f8a642b4441b256571a7d0"
+  },
+  "trace_counts_match": true
+}

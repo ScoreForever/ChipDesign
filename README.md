@@ -69,8 +69,8 @@ python software/host/nocpu_jtag.py infer --package build/npu_demo/package --inpu
 ABI 4 历史 FPGA 证据覆盖 50 MHz 下七个模型的 112 帧 / 224 次实板运行；完整测试集的 67,245 次评分来自软件整数参考。
 该 ABI 4 镜像 FPGA setup WNS 为 0.000 ns；ABI 4 历史 ASIC 签核为 TT corner，未覆盖多角 STA、IR/EM。
 ABI 5 的 FPGA 实现与上板结果见 [2026-11-09 时序恢复验收](output/npu-timing/20261109/README.md)（50 MHz、routed WNS +0.533 ns，七模型首帧冷/热 14 次正确）；
-ABI 5 尚无 ASIC 综合/PnR/签核数据（UNKNOWN），物理按键、电气波形检查仍未完成。
-2026-11-10 合入模型双宏旁路、权重读取流水和 MAC 波前使能，功能验证见 [分支整合记录](docs/validation/branch_integration_20261110/README.md)；+0.533 ns 与板测仍只适用于冻结提交 `81876b3`，新 RTL 尚需重新实现和上板验收。
+ABI 5 的最新 ASIC 独立实现与后仿见 [2026-11-11 完整报告](docs/validation/eda_latest_20261111/REPORT.md)（[PDF](docs/validation/eda_latest_20261111/report.pdf)）：冻结 `aa77887`，die 1.9404 × 1.9404 mm，SI 电气约束修复后 setup/hold 为 +0.486/+0.050 ns，三组 SDF 场景通过。Calibre 原始 IO 库偏差及 SRAM 独立 STA 范围单列，尚非流片签核；物理按键、电气波形检查仍未完成。
+2026-11-10 合入模型双宏旁路、权重读取流水和 MAC 波前使能，功能验证见 [分支整合记录](docs/validation/branch_integration_20261110/README.md)；+0.533 ns 与板测仍只适用于冻结提交 `81876b3`，同源新 FPGA 实现及上板扫频见 [2026-11-11 记录](verification/fpga/results/2026-11-11-jtag-frequency/README.md)（setup +0.458 ns、hold +0.034 ns；细扫 3360 次推理正确，物理 TCK 约束为 1 MHz）。
 2026-10-23/24 等历史证据仅适用于当时冻结源码，不能替代当前版本验证。
 新协议不兼容旧 TinyCNN MMIO/JTAG ABI；旧固定模型实现与旧测试入口已移除，历史可从 Git 获取。
 训练和预处理由主机承担。早期 CPU/AXI 实现可从 [Git 历史快照](https://github.com/ScoreForever/ChipDesign/tree/8d475b26306ec9b6103fbcf622a5dde6504d6db2) 获取。

@@ -1,0 +1,107 @@
+*----------------------------------------------------------------------------------------
+*	Innovus 21.16-s078_1 (64bit) 12/07/2022 12:07 (Linux 3.10.0-693.el7.x86_64)
+*	
+*
+* 	Date & Time:	2026-Nov-11 05:22:01 (2026-Nov-11 05:22:01 GMT)
+*
+*----------------------------------------------------------------------------------------
+*
+*	Design: my_soc_top
+*
+*	Liberty Libraries used: 
+*	        func_tt_io: /home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix/routed.enc.dat/libs/mmmc/tcb018gbwp7ttc.lib
+*	        func_tt_io: /home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix/routed.enc.dat/libs/mmmc/tpd018nvtc.lib
+*	        func_tt_io: /home/s2400012724/chip-fullstack-2026/eda_latest_20261111/eda/candidates/latest_diag75_drvfix/routed.enc.dat/libs/mmmc/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib
+*
+*	Power Domain used: 
+*              Rail:     VDDPST      Voltage:        3.3 
+*              Rail:        VDD      Voltage:        1.8 
+*
+*       Power View : func_tt_io
+*
+*       User-Defined Activity : N.A.
+*
+*       Activity File: N.A.
+*
+*       Hierarchical Global Activity: N.A.
+*
+*       Global Activity: N.A.
+*
+*       Sequential Element Activity: 0.100000
+*
+*       Primary Input Activity: 0.100000
+*
+*       Default icg ratio: N.A.
+*
+*       Global Comb ClockGate Ratio: N.A.
+*
+*	Power Units = 1mW
+*
+*	Time Units = 1e-09 secs 
+*
+*       report_power -outfile power.rpt
+*
+-----------------------------------------------------------------------------------------
+
+
+Total Power 
+-----------------------------------------------------------------------------------------
+Total Internal Power:       45.32477210 	   71.4874%
+Total Switching Power:      18.04030882 	   28.4536%
+Total Leakage Power:         0.03742205 	    0.0590%
+Total Power:                63.40250296 
+-----------------------------------------------------------------------------------------
+
+
+Group                           Internal   Switching     Leakage       Total  Percentage 
+                                Power      Power         Power         Power  (%)        
+-----------------------------------------------------------------------------------------
+Sequential                         30.91       2.569    0.002539       33.48       52.81 
+Macro                               1.91      0.1407     0.03272       2.084       3.286 
+IO                                0.3904      0.5081   1.117e-05      0.8985       1.417 
+Combinational                      9.428       10.23    0.002052       19.66       31.01 
+Clock (Combinational)             0.8422       3.945    5.31e-05       4.787       7.551 
+Clock (Sequential)                  1.84      0.6482   4.843e-05       2.489       3.925 
+-----------------------------------------------------------------------------------------
+Total                              45.32       18.04     0.03742        63.4         100 
+-----------------------------------------------------------------------------------------
+
+
+Rail                  Voltage   Internal   Switching     Leakage       Total  Percentage 
+                                Power      Power         Power         Power  (%)        
+-----------------------------------------------------------------------------------------
+Default                   1.8     0.3904      0.5081     0.01699      0.9155       1.444 
+VDD                       1.8      44.93       17.53     0.02043       62.49       98.56 
+
+
+Clock                           Internal   Switching     Leakage       Total  Percentage 
+                                Power      Power         Power         Power  (%)        
+-----------------------------------------------------------------------------------------
+jtag_clk                        0.005692     0.07278   2.963e-06     0.07847      0.1238 
+core_clk                            2.94       4.882   0.0001018       7.822       12.34 
+-----------------------------------------------------------------------------------------
+Total (excluding duplicates)       2.946       4.955   0.0001047       7.901       12.46 
+-----------------------------------------------------------------------------------------
+Clock: jtag_clk
+Clock Period: 1.000000 usec 
+Clock Toggle Rate:     2.0000 Mhz 
+Clock Static Probability:  0.5000
+
+Clock: core_clk
+Clock Period: 0.020000 usec 
+Clock Toggle Rate:   100.0000 Mhz 
+Clock Static Probability:  0.5000
+
+
+
+-----------------------------------------------------------------------------------------
+*	Power Distribution Summary: 
+*                Highest Average Power: i_control/i_activation_i_store_g_bank[0].i_sram (RA1SHD_2048x32M8):            1.135 
+*                Highest Leakage Power: i_control/i_activation_i_store_g_bank[0].i_sram (RA1SHD_2048x32M8):          0.00769 
+*          Total Cap:      1.54991e-09 F
+*          Total instances in design: 63370
+*          Total instances in design with no power:   104
+*          Total instances in design with no activity:   104
+*          Total Fillers and Decap:     0
+-----------------------------------------------------------------------------------------
+

@@ -1,0 +1,22 @@
+test_malformed_or_out_of_range_reply_is_rejected (test_nocpu_jtag_transport.JtagScanTests) ... ok
+test_packet_above_64_bits_uses_three_hex_fields (test_nocpu_jtag_transport.JtagScanTests) ... ok
+test_zero_poll_and_space_separated_reply (test_nocpu_jtag_transport.JtagScanTests) ... ok
+test_busy_does_not_read_bank (test_nocpu_performance.PerformanceTests) ... ok
+test_changed_job_is_discarded (test_nocpu_performance.PerformanceTests) ... ok
+test_named_bank_and_no_mutating_commands (test_nocpu_performance.PerformanceTests) ... ok
+test_unknown_layout_is_rejected (test_nocpu_performance.PerformanceTests) ... ok
+test_address_mismatch_is_rejected (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_busy_does_not_submit (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_connection_loss_is_ambiguous_and_not_retried (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_device_error_is_preserved (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_invalid_request_never_submits (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_malformed_completed_reply_is_rejected_without_replay (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_overrun_is_ambiguous_and_not_retried (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_pending_reply_then_completion_uses_one_rpc_and_one_submission (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_rpc_timeout_is_ambiguous_and_not_retried (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+test_timeout_does_not_replay_start (test_nocpu_rpc_batch.BatchedMailboxTests) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 1.547s
+
+OK

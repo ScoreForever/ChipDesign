@@ -1,0 +1,20 @@
+[
+  {
+    "candidate": "latest_diag75",
+    "max_tran_real_nets": 49,
+    "max_tran_real_terms": 237,
+    "worst_transition_violation_ns": -1.04
+  },
+  {
+    "candidate": "latest_diag75_drvfix",
+    "max_tran_real_nets": 5,
+    "max_tran_real_terms": 25,
+    "worst_transition_violation_ns": -1.015
+  },
+  {
+    "candidate": "latest_diag75_drvfix2",
+    "max_tran_real_nets": 0,
+    "max_tran_real_terms": 0,
+    "worst_transition_violation_ns": 0.0
+  }
+]

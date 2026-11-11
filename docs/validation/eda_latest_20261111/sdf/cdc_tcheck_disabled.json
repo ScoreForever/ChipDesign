@@ -1,0 +1,11 @@
+{
+  "instances": [
+    "i_host.\\ack_sync_reg[0]",
+    "i_host.\\req_sync_reg[0]",
+    "i_host.\\sys_reset_sync_reg[0]",
+    "i_host.\\sys_reset_sync_reg[1]",
+    "i_host.\\tck_reset_sync_reg[0]",
+    "i_host.\\tck_reset_sync_reg[1]"
+  ],
+  "reason": "asynchronous capture stages of the JTAG/core synchronizers"
+}

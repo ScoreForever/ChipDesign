@@ -1,0 +1,13 @@
+{
+  "evidence_files_verified": 827,
+  "physical_exports_verified": 8,
+  "sdf_input_hashes_verified": true,
+  "sdf_cases_passed": 3,
+  "functional_programs_passed": {
+    "rtl_full": 85,
+    "rtl_macro_waveoff": 85
+  },
+  "pdf_pages": 13,
+  "pdf_sha256": "0dc1ee2a5ea9ed86c3abe497e60d37995d57d7bf1c1665a82ea4732cfc332503",
+  "scope": "Prototype policy checks only. Raw DRC and LVS deviations remain recorded; no foundry signoff."
+}
