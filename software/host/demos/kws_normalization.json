@@ -1,0 +1,7 @@
+{
+  "mean": -10.067411316276045,
+  "std": 49.48280330057606,
+  "training_clips": 36921,
+  "dataset": "Speech Commands v0.02",
+  "archive_sha256": "af14739ee7dc311471de98f5f9d2c9191b18aedfe957f4a6ff791c709868ff58"
+}

@@ -1,19 +1,14 @@
 """Draw a digit and classify it with the ABI 5 MNIST model."""
 
-import json
-from pathlib import Path
-import time
 import tkinter as tk
 from tkinter import ttk
 
 from PIL import Image, ImageDraw
 
+from demos.inference import InferenceSession
 from demos.window import ACCENT, BACKGROUND, BORDER, DRAWING, ERROR, MUTED, PANEL, TEXT
-from nocpu_jtag import JtagTransport, Npu, TclRpc
-from npu_program import Package, reference
 
 
-MODEL = Path(__file__).resolve().parents[2] / "zoo" / "pretrained" / "mnist_l"
 SIDE = 360
 BRUSH = 19
 IDLE_MS = 450
@@ -43,49 +38,9 @@ def prepare(image, scale):
     return frame, values
 
 
-class MnistSession:
-    """Accessed only by the shared worker, apart from the immutable input scale."""
-
-    def __init__(self, args):
-        self.args = args
-        self.package = Package.load(MODEL / "c8")
-        self.scale = self.package.manifest["metadata"]["input_scale"]
-        self.rpc = None
-        self.npu = None
-        self.model = None
-
-    def connect(self):
-        self.close()
-        if self.args.backend == "reference":
-            self.model = json.loads((MODEL / "model.json").read_text(encoding="utf-8"))
-            return
-        rpc = TclRpc(self.args.host, self.args.port, timeout=6)
-        try:
-            npu = Npu(JtagTransport(rpc))
-            npu.load_model(self.package)
-        except (OSError, RuntimeError, ValueError):
-            rpc.close()
-            raise
-        self.rpc, self.npu = rpc, npu
-
-    def infer(self, values):
-        started = time.perf_counter()
-        if self.args.backend == "reference":
-            scores = reference(self.model, values)[self.model["nodes"][-1]["output"]]
-        else:
-            scores = self.npu.infer_values(values)
-        elapsed = (time.perf_counter() - started) * 1000
-        return max(range(len(scores)), key=scores.__getitem__), elapsed
-
-    def close(self):
-        if self.rpc is not None:
-            self.rpc.close()
-        self.rpc = self.npu = None
-
-
 class Demo(tk.Frame):
     def __init__(self, parent, app):
-        self.session = MnistSession(app.args)
+        self.session = InferenceSession(app.args, "mnist_l")
         super().__init__(parent, bg=BACKGROUND)
         self.worker = app.worker
         self.image = Image.new("L", (SIDE, SIDE))
@@ -95,7 +50,7 @@ class Demo(tk.Frame):
         self.future = self.pending = None
         self.revision = 0
         self.ready = False
-        self.source = "FPGA · JTAG" if app.args.backend == "fpga" else "软件参考 · INT4"
+        self.source = self.session.source
 
         app.label(self, "手写数字识别", 24, bold=True).pack(anchor="w")
         app.label(self, "写下一个 0–9 的数字，停笔后自动识别。", fg=MUTED).pack(

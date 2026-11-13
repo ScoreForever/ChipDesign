@@ -20,7 +20,7 @@
 
 ## 实现顺序与验收
 
-手写数字 Demo 的启动方式见 [桌面 Demo 使用说明](../software/host/demos/README.md)。
+手写数字和语音关键词 Demo 的启动方式见 [桌面 Demo 使用说明](../software/host/demos/README.md)。
 
 1. 用 [主机驱动](../software/host/nocpu_jtag.py) 打通画板和麦克风，切换场景时装模型，同一场景内复用驻留模型。展示板端预测、片上周期与主机往返耗时。
 2. 用带标注的原始 ECG 与 HAR 记录打通预处理到 FPGA，并保留样本回放以便复现。HAR 随后接手机 IMU，先验收固定佩戴下的站立、坐、步行，再验收楼梯与躺卧。

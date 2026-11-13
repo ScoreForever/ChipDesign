@@ -1,0 +1,5 @@
+# Python dependencies for the MNIST and keyword-spotting desktop demos.
+Pillow>=9.1
+numpy>=1.20
+scipy
+sounddevice

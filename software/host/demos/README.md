@@ -1,10 +1,12 @@
 # ChipDesign 桌面 Demo
 
-在仓库根目录运行。界面需要带 Tkinter 的 Python 和 Pillow。Windows 上可用包含 Tcl/Tk 的 Python，Ubuntu / WSLg 上可安装 `python3-tk`。
+在仓库根目录安装手写和语音 Demo 共用的 Python 依赖。
 
 ```sh
-python -m pip install Pillow
+python -m pip install -r software/host/demos/requirements.txt
 ```
+
+界面需要带 Tkinter 的 Python。Windows 上可用包含 Tcl/Tk 的 Python，Ubuntu / WSLg 上可安装 `python3-tk`。模型训练依赖见 [模型库依赖清单](../../zoo/requirements.txt)。
 
 ## FPGA 手写数字识别
 
@@ -25,10 +27,25 @@ python software/host/demo.py mnist
 
 遇到连接错误时，检查板卡和 OpenOCD 后点「重新连接」。若报告超时或状态不确定，先按 [主机协议说明](../README.md#对照与错误处理) 确认板端状态，必要时在板卡空闲时执行 `python software/host/nocpu_jtag.py reset`，再重新连接。
 
+## FPGA 语音关键词识别
+
+Linux / WSLg 的麦克风录音还需要系统 PortAudio 库，例如 Ubuntu 的 `libportaudio2`。
+
+```sh
+python software/host/demo.py kws
+```
+
+点击「录音 1 秒」，说出 `yes`、`no`、`up` 或 `down`。也可以打开 16 位 PCM WAV，程序使用音频的第一秒，较短的输入补零。主机将音频转换成 16 kHz 单声道、提取 49×10 MFCC 并归一化，随后将 245 字节 INT4 特征送板。界面显示声音波形、预测词和推理往返时间。
+
+直接复用现成的 `kws_l` ABI 5 包。模型输出 10 个词及 unknown、silence，界面只有在预测为四个目标词之一时显示对应动作。归一化常数随 Demo 提供，运行时无需下载训练集或训练模型。
+
+归一化常数按 [训练数据加载流程](../../zoo/data.py) 复算，使用 36,921 段训练音频和训练时每批 4,096 段共用的 80 dB 动态范围截断。实时推理按单段录音计算截断值。复核的 14 条发布黄金样本在使用训练批次截断时量化值逐项一致，使用单段截断时预测类别一致。
+
 ## 无板预览
 
 ```sh
 python software/host/demo.py mnist --backend reference
+python software/host/demo.py kws --backend reference
 ```
 
 软件参考模式运行同一模型的整数参考实现，界面标记为「软件参考 · INT4」。

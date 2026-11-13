@@ -6,6 +6,7 @@ from importlib import import_module
 
 DEMOS = {
     "mnist": ("手写数字识别", "在画板上写一个数字，停笔后查看识别结果。", "demos.mnist"),
+    "kws": ("语音关键词识别", "用麦克风说出 yes、no、up 或 down。", "demos.kws"),
 }
 
 
