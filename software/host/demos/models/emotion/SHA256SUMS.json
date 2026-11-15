@@ -1,0 +1,9 @@
+{
+  "c8/manifest.json": "05df81be0bc271649d15b7fef87bf7002fae18097ca56a0f8607b1a487b5312b",
+  "c8/model.bin": "0fa5ffa7a296097361a524be34cec42dd18cc0d1616ca1600ea09b55e7474307",
+  "golden.json": "a8f34b5b9eefbe6d3ef587bbcc299c3e0fdd28d9a3194edb85b3aef7d4d5c3c8",
+  "model.json": "860763d8fee5048ef2c1fd756ec5add30d1243a8edf1651c50ac79d47c5fbbed",
+  "qat_state.pt": "878ca9fa18e4ca7dac285d6b63f65c7140ecb527b5e82d82553e2079a25858ae",
+  "train.log": "06274ede3a9a11e82ce46899e4bd615a5d080c0a7b687ef100055fb7c38fd944",
+  "training_result.json": "b0225744bbdb964824d771fa17e0ffb0afdf98cc063cf546bfda672377781b97"
+}

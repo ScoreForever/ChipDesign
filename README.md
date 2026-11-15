@@ -15,6 +15,7 @@
 24 项全局性能计数器保留；主机根据能力寄存器判断调试功能是否可用。
 
 - [架构与实现边界](docs/ARCHITECTURE.md)
+- [六场景桌面 Demo 与无板运行](software/host/demos/README.md) · [2026-11-16 软件验收](docs/DEMO_SOFTWARE_20261116.md)
 - [模型格式、命令协议及主机使用](docs/CPU_LESS_CONTROL.md)
 - [INT4 v2 最终设计报告](docs/INT4_V2_REPORT.md)
 - [分层验证与复现](docs/VALIDATION_FLOW.md)

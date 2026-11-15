@@ -1,0 +1,35 @@
+{
+  "started_utc": "2026-11-15T16:26:20.636325+00:00",
+  "backend": "reference",
+  "passed": true,
+  "kind": "input_inference",
+  "runs": [
+    {
+      "demo": "mnist",
+      "sample": "digit.png",
+      "expected": null,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "eb033840228a1b86a5e2e7ea2c3e487c9b5af402e2f02b3dbf7caf1e26510df2",
+      "input_sha256": "c6ae0c2c45833d19c1fd425673e323a1efc37888ad1eeb48e1c56bc0c5b67ccf",
+      "scores": [
+        -133,
+        434,
+        -108,
+        -176,
+        -101,
+        -93,
+        -139,
+        -148,
+        -197,
+        -29
+      ],
+      "elapsed_ms": 162.2577999951318,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 1
+    }
+  ],
+  "errors": [],
+  "fpga_validated": false
+}

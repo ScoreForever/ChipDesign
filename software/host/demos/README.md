@@ -1,6 +1,19 @@
 # ChipDesign 桌面 Demo
 
-在仓库根目录安装手写和语音 Demo 共用的 Python 依赖。
+统一入口现在包含手写、语音、ECG、HAR、人脸框选和表情分类六个页面。以下命令均从仓库根目录运行。
+使用 Python 3.10+；无板软件验收见 [2026-11-16 交付记录](../../../docs/DEMO_SOFTWARE_20261116.md)。
+
+```sh
+python software/host/demo.py --list
+python software/host/demo.py --backend reference
+python software/host/demo.py --self-test --output build/demo_check.json
+```
+
+`--self-test` 默认使用软件整数参考，逐项核对六个场景的 80 个发布输入的完整 INT32 输出。
+它不打开窗口、不访问摄像头/麦克风、不下载数据，也不需要 torch。输出必须是新文件。
+`--backend fpga` 明确选择 JTAG；连接失败不会自动改用软件结果，超时不会自动重放 START。
+
+安装运行依赖：
 
 ```sh
 python -m pip install -r software/host/demos/requirements.txt
@@ -49,6 +62,129 @@ python software/host/demo.py kws --backend reference
 ```
 
 软件参考模式运行同一模型的整数参考实现，界面标记为「软件参考 · INT4」。
+
+## ECG 与 HAR 回放
+
+```sh
+python software/host/demo.py ecg --backend reference
+python software/host/demo.py har --backend reference
+```
+
+两个页面默认加载仓库中已量化的黄金输入，支持单条识别、下一条、暂停/连续回放和保存 JSON。
+页面显示标签、波形、全部原始类别分数和主机耗时；FPGA 模式另外读取完成任务的片上周期。
+分数不是概率。软件参考不会生成板端周期。
+
+需要原始数据时显式下载（约 63 MB；不会在打开页面时自动下载）：
+
+```sh
+python software/host/demos/fetch_assets.py signals
+```
+
+ECG 点「打开 MIT-BIH」，选择 `build/demo_data/mitdb/100.hea`，同目录保留 `.dat` 和 `.atr`。
+按标注 R 峰取 `[R-96:R+160]`、两点平均到 128 点，再按每拍总体标准差归一化和 INT4 量化，
+与 `software/zoo/data.py` 一致。仅接受 360 Hz；每次最多读 200 拍。回放间隔遵循相邻 R 峰时间，
+后端较慢时顺延。显示 AAMI N/S/V/F/Q 五类，属于工程演示。
+
+HAR 点「打开 UCI HAR」，选择 `build/demo_data/uci_har.zip`，也可选择原始 UCI 数据 zip。
+直接读官方 test split 的九轴窗口，顺序是 body_acc xyz、body_gyro xyz、total_acc xyz，
+输入按时间优先排列为 128×9。归一化常数从全部 7352 个训练窗口复算，不使用测试集统计。
+16 个发布黄金窗口已从原始 test 文件逐元素复核。官方窗口之间可能跨参与者，回放不表示连续现场记录。
+
+复算归一化常数需训练环境的 torch：
+
+```sh
+python software/host/demos/prepare_signals.py build/demo_data/uci_har.zip --output build/har_stats.json
+```
+
+## 手机 IMU 采集与 HAR
+
+启动一个只写新 CSV 的本机接收端：
+
+```sh
+python software/host/demos/phone_capture.py --output build/phone_session.csv
+```
+
+Android USB 调试环境可先执行 `adb reverse tcp:8765 tcp:8765`，再在手机浏览器打开终端输出的 localhost URL。
+局域网接入时用 `--bind 0.0.0.0 --cert server.pem --key server.key`；将输出 URL 的主机部分换为电脑局域网地址，
+使用手机已信任、包含该地址的 HTTPS 证书。传感器 API 要求安全上下文；程序不会绕过浏览器证书或权限检查。
+令牌只供本次采集使用。手机页面点击「开始采集」才请求传感器权限，点击停止后结束采集。
+
+在电脑 HAR 页面点「跟随手机 CSV」，选择接收端输出文件；也可用「导入手机 CSV」回放已结束的采集。
+CSV 列为 `time_s,ax,ay,az,gx,gy,gz`，单位分别是秒、m/s²（含重力）和 rad/s。
+接收端将浏览器的 beta/gamma/alpha 角速度换为 xyz rad/s；检查令牌、同源、包长度、数值和时间戳，
+拒绝重复/倒序包，不把缺失数据默认为零。
+
+前端对齐到 50 Hz，经过中值/20 Hz 低通、0.3 Hz 重力分离，构造九路输入。
+窗口 2.56 秒，50% 重叠；加滤波预热后首窗约 3.1 秒。跟随模式仅保留最近 40 秒，并显示最新完整窗口，避免积压旧任务。
+可用 `--imu-rotation rotation.json` 提供从手机到训练腰部坐标的右手 3×3 正交旋转矩阵。
+必须固定佩戴方向。手机前端是近似实现，尚未与 UCI 的原始采集系统或参与者实测校准，不能套用数据集准确率。
+
+## 人脸框选与表情分类
+
+先下载小型 YuNet 模型（约 233 kB，校验 SHA-256）：
+
+```sh
+python software/host/demos/fetch_assets.py yunet
+python software/host/demo.py face
+python software/host/demo.py face --face-mode npu --backend reference
+python software/host/demo.py emotion --backend reference
+```
+
+`face` 默认完全在电脑用 YuNet 框脸，不访问 FPGA。`--face-mode npu` 使用本次训练的 INT4 近景检测头；
+NPU 输出 4×4×5 个 INT32 网格值，电脑解码候选框、执行 NMS，并将 letterbox 坐标映射回原图。
+检测模型与表情模型分页面加载，不会假定两个模型同时驻留。
+
+表情页面先由 YuNet 找最大人脸并裁剪，再用 NPU/整数参考输出七类表情分数。
+无人脸时不执行分类；每次只处理一个人脸。支持打开图片与手动启停摄像头，
+不会在启动页面时自动采集。`--camera-index` 可选择设备，`--yunet` 可指定本地 ONNX 路径。
+
+两份 INT4 包、训练日志、QAT 权重、黄金输入和哈希在 [models/](models/README.md)。
+表情模型 FER2013 PrivateTest 为 **54.53%（3589 张）**；检测模型在受控近景裁剪评估中 precision **49.51%**、recall **52.22%**、F1 **50.83%**（IoU≥0.5）。
+它们是可运行的实验模型，识别效果尚不够稳定，均未完成现场参与者或 FPGA 实板验收。
+默认电脑 YuNet 与实验 NPU 检测的指标不可混用。
+
+## 无窗口输入与证据记录
+
+```sh
+python software/host/demo.py ecg --input build/demo_data/mitdb/100.hea --limit 16 --backend reference --output build/ecg_raw.json
+python software/host/demo.py har --input build/demo_data/uci_har.zip --limit 16 --backend reference --output build/har_raw.json
+python software/host/demo.py kws --input command.wav --backend reference --output build/command.json
+python software/host/demo.py mnist --input digit.png --backend reference --output build/digit.json
+python software/host/demo.py face --input photo.jpg --output build/host_face.json
+python software/host/demo.py emotion --input photo.jpg --backend reference --output build/expression.json
+```
+
+也支持各模型 `golden.json` 或打包 INT4 `.bin`；JSON 有期望输出时检查每个 INT32 值。
+空图像、非法窗口或黄金不一致会返回非零状态。MNIST 图片按四角亮度判断是否反色，再使用画板的同一预处理。
+报告的 `passed` 代表本次操作/黄金比较成功，不能作为现场识别准确率或全套板卡签核。
+
+任一页面可加 `--log build/demo_events.jsonl`：逐次保存输入 packed hex、模型哈希、输出分数、后端和时序，便于之后用固定输入对照实板。
+推理往返不包括模型加载、采集或预处理；板端周期另一次被动读取，读取耗时单列 `counter_ms`。
+图片 headless 报告的 `total_ms` 包括该调用的冷加载；GUI 同页面则复用模型。
+
+## 测试与模型重训
+
+```sh
+python -m unittest discover -s software/tests -p test_demos.py -v
+python software/host/demo.py --self-test --output build/demo_check_new.json
+python software/zoo/check_golden.py
+```
+
+训练依赖单独安装；GPU 可选择 CUDA 版 PyTorch。训练不会在启动 GUI 时执行。
+
+```sh
+python -m pip install -r software/zoo/requirements-demo.txt
+python software/host/demos/fetch_assets.py fer
+python software/host/demos/fetch_assets.py wider
+python software/zoo/train_demo_vision.py emotion --fp-epochs 80 --qat-epochs 35 --output build/retrained_demo
+python software/zoo/train_demo_vision.py face --fp-epochs 55 --qat-epochs 30 --output build/retrained_demo
+python software/zoo/check_demo_models.py
+```
+
+训练输出必须是新目录；可用 `--vision-models build/retrained_demo` 在 GUI/CLI 选择新包。
+训练循环用独立验证划分选 checkpoint，报告保留测试指标和实际数据范围。
+公共数据下载固定版本并验证文件哈希；数据集、摄像头图片、手机采集和构建文件不提交。
+数据来源与引用见 [模型说明](models/README.md)。
 
 ## 添加 Demo
 

@@ -1,0 +1,346 @@
+{
+  "started_utc": "2026-11-15T16:24:54.667375+00:00",
+  "backend": "reference",
+  "passed": true,
+  "kind": "input_inference",
+  "runs": [
+    {
+      "demo": "har",
+      "sample": "UCI test #0",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "a9891d9fde0ddae9ac4a8574ca8fafe4443b3cf7c0bf4734b57ba991b69bebe4",
+      "scores": [
+        -214,
+        -299,
+        -196,
+        -49,
+        604,
+        -344
+      ],
+      "elapsed_ms": 81.18740003556013,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #1",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "dfae440376cb2a291e52b09a52c04ce01a9c8bf68d880c6d5881cd2a3cb0d47a",
+      "scores": [
+        -250,
+        -161,
+        -218,
+        -55,
+        536,
+        -305
+      ],
+      "elapsed_ms": 80.00050002010539,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #2",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "8de2f1b92b163744acc26888731d4a2e30c0574f9db38b98f6f281610df142f2",
+      "scores": [
+        -245,
+        -184,
+        -195,
+        -27,
+        515,
+        -306
+      ],
+      "elapsed_ms": 81.02729998063296,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #3",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "a98d1f2496c2fdf3d02f6836eb51639456d76a8a09498eecc7ff193df829c3dc",
+      "scores": [
+        -245,
+        -167,
+        -190,
+        -39,
+        490,
+        -288
+      ],
+      "elapsed_ms": 79.84180003404617,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #4",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 81.15129999350756,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #5",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 80.22480004001409,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #6",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 79.16079997085035,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #7",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 78.62739998381585,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #8",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 78.92770000034943,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #9",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 82.24850002443418,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #10",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 78.94959999248385,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #11",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 79.33559996308759,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #12",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 80.5813999613747,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #13",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 79.01689998107031,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #14",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "e9521be511665b33f366e90ec972dc5927f45db50d421187d1077bd0a0f7c232",
+      "scores": [
+        -244,
+        -162,
+        -184,
+        -42,
+        497,
+        -293
+      ],
+      "elapsed_ms": 79.11869999952614,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    },
+    {
+      "demo": "har",
+      "sample": "UCI test #15",
+      "expected": 4,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "d5a6288a0c7236d16b0a762a248df184d76edf2faa9db7a248d9d072e6eca6ba",
+      "scores": [
+        -238,
+        -176,
+        -202,
+        -16,
+        497,
+        -315
+      ],
+      "elapsed_ms": 80.21640003426,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 4
+    }
+  ],
+  "errors": [],
+  "fpga_validated": false
+}

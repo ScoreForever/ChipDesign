@@ -6,36 +6,13 @@ from tkinter import ttk
 from PIL import Image, ImageDraw
 
 from demos.inference import InferenceSession
+from demos.mnist_input import prepare
 from demos.window import ACCENT, BACKGROUND, BORDER, DRAWING, ERROR, MUTED, PANEL, TEXT
 
 
 SIDE = 360
 BRUSH = 19
 IDLE_MS = 450
-
-
-def prepare(image, scale):
-    """Fit ink into a 20-pixel box and center its intensity in a 28-pixel frame."""
-    bounds = image.getbbox()
-    if bounds is None:
-        return None
-    ink = image.crop(bounds)
-    ratio = 20 / max(ink.size)
-    ink = ink.resize(tuple(max(1, round(side * ratio)) for side in ink.size),
-                     Image.Resampling.LANCZOS)
-    pixels = list(ink.tobytes())
-    mass = sum(pixels)
-    if not mass:
-        return None
-    cx = sum((index % ink.width) * value for index, value in enumerate(pixels)) / mass
-    cy = sum((index // ink.width) * value for index, value in enumerate(pixels)) / mass
-    x = min(28 - ink.width, max(0, round(13.5 - cx)))
-    y = min(28 - ink.height, max(0, round(13.5 - cy)))
-    frame = Image.new("L", (28, 28))
-    frame.paste(ink, (x, y))
-    values = [max(-8, min(7, round((pixel / 255 * 2 - 1) / scale)))
-              for pixel in frame.tobytes()]
-    return frame, values
 
 
 class Demo(tk.Frame):
@@ -86,6 +63,8 @@ class Demo(tk.Frame):
         self.digit.pack()
         self.latency = app.label(result, "", 10, fg=MUTED)
         self.latency.pack(pady=(0, 3))
+        self.scores = app.label(result, "", 10, fg=MUTED, wraplength=275, justify="left")
+        self.scores.pack()
 
         input_panel = tk.Frame(details, bg=PANEL, padx=16, pady=12,
                                highlightbackground=BORDER, highlightthickness=1)
@@ -124,6 +103,7 @@ class Demo(tk.Frame):
         self.pending = None
         self.digit.config(text="—")
         self.latency.config(text="")
+        self.scores.config(text="")
         self.update_preview()
         if self.ready:
             self.status.config(text="书写中", fg=MUTED)
@@ -159,6 +139,7 @@ class Demo(tk.Frame):
         self.update_preview()
         self.digit.config(text="—")
         self.latency.config(text="")
+        self.scores.config(text="")
         if self.ready:
             self.status.config(text="等待书写", fg=MUTED)
 
@@ -211,6 +192,9 @@ class Demo(tk.Frame):
             digit, elapsed = result
             self.digit.config(text=str(digit))
             self.latency.config(text=f"推理往返  {elapsed:.0f} ms")
+            self.latency.config(text=result.timing_text(), wraplength=275)
+            self.scores.config(text="INT32 分数（非概率）：\n" + " · ".join(
+                f"{i}: {score}" for i, score in enumerate(result.scores)))
             self.status.config(text="识别完成", fg=MUTED)
         self.send_pending()
 

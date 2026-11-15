@@ -1,0 +1,22 @@
+test_malformed_or_out_of_range_reply_is_rejected (test_nocpu_jtag_transport.JtagScanTests.test_malformed_or_out_of_range_reply_is_rejected) ... ok
+test_packet_above_64_bits_uses_three_hex_fields (test_nocpu_jtag_transport.JtagScanTests.test_packet_above_64_bits_uses_three_hex_fields) ... ok
+test_zero_poll_and_space_separated_reply (test_nocpu_jtag_transport.JtagScanTests.test_zero_poll_and_space_separated_reply) ... ok
+test_busy_does_not_read_bank (test_nocpu_performance.PerformanceTests.test_busy_does_not_read_bank) ... ok
+test_changed_job_is_discarded (test_nocpu_performance.PerformanceTests.test_changed_job_is_discarded) ... ok
+test_named_bank_and_no_mutating_commands (test_nocpu_performance.PerformanceTests.test_named_bank_and_no_mutating_commands) ... ok
+test_unknown_layout_is_rejected (test_nocpu_performance.PerformanceTests.test_unknown_layout_is_rejected) ... ok
+test_address_mismatch_is_rejected (test_nocpu_rpc_batch.BatchedMailboxTests.test_address_mismatch_is_rejected) ... ok
+test_busy_does_not_submit (test_nocpu_rpc_batch.BatchedMailboxTests.test_busy_does_not_submit) ... ok
+test_connection_loss_is_ambiguous_and_not_retried (test_nocpu_rpc_batch.BatchedMailboxTests.test_connection_loss_is_ambiguous_and_not_retried) ... ok
+test_device_error_is_preserved (test_nocpu_rpc_batch.BatchedMailboxTests.test_device_error_is_preserved) ... ok
+test_invalid_request_never_submits (test_nocpu_rpc_batch.BatchedMailboxTests.test_invalid_request_never_submits) ... ok
+test_malformed_completed_reply_is_rejected_without_replay (test_nocpu_rpc_batch.BatchedMailboxTests.test_malformed_completed_reply_is_rejected_without_replay) ... ok
+test_overrun_is_ambiguous_and_not_retried (test_nocpu_rpc_batch.BatchedMailboxTests.test_overrun_is_ambiguous_and_not_retried) ... ok
+test_pending_reply_then_completion_uses_one_rpc_and_one_submission (test_nocpu_rpc_batch.BatchedMailboxTests.test_pending_reply_then_completion_uses_one_rpc_and_one_submission) ... ok
+test_rpc_timeout_is_ambiguous_and_not_retried (test_nocpu_rpc_batch.BatchedMailboxTests.test_rpc_timeout_is_ambiguous_and_not_retried) ... ok
+test_timeout_does_not_replay_start (test_nocpu_rpc_batch.BatchedMailboxTests.test_timeout_does_not_replay_start) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 0.104s
+
+OK

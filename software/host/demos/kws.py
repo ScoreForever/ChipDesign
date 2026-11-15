@@ -80,6 +80,8 @@ class Demo(tk.Frame):
         self.action.pack()
         self.latency = app.label(result, "", 10, fg=MUTED)
         self.latency.pack(pady=(8, 0))
+        self.scores = app.label(result, "", 10, fg=MUTED, wraplength=300, justify="left")
+        self.scores.pack(pady=(8, 0))
 
         self.status = app.label(self, "", 10, fg=MUTED, justify="left", wraplength=690)
         self.status.pack(anchor="w", pady=(12, 5))
@@ -117,6 +119,7 @@ class Demo(tk.Frame):
         self.word.config(text="—")
         self.action.config(text="")
         self.latency.config(text="")
+        self.scores.config(text="")
         self.envelope = None
         self.draw_waveform()
         self.run(lambda: self.prepare_clip(capture), self.submit_clip, status)
@@ -149,7 +152,9 @@ class Demo(tk.Frame):
         label = self.session.metadata["classes"][index]
         self.word.config(text={"unknown": "未识别", "silence": "静音"}.get(label, label))
         self.action.config(text=TARGETS.get(label, "等待目标词"))
-        self.latency.config(text=f"推理往返  {elapsed:.0f} ms")
+        self.latency.config(text=result.timing_text(), wraplength=300)
+        self.scores.config(text="INT32 分数（非概率）：\n" + " · ".join(
+            f"{k}: {v}" for k, v in zip(self.session.metadata["classes"], result.scores)))
         self.status.config(text="识别完成")
         self.set_controls(True)
 

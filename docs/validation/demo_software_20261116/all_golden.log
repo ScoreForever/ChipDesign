@@ -1,0 +1,7 @@
+mnist: 16 inputs checked
+kws: 16 inputs checked
+ecg: 16 inputs checked
+har: 16 inputs checked
+face: 8 inputs checked
+emotion: 8 inputs checked
+PASS: C:\Users\Lenovo\.codex\worktrees\demo-software\ChipDesign\docs\validation\demo_software_20261116\all_golden.json

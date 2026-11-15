@@ -52,8 +52,21 @@ class DemoWindow:
                                command=self.show_picker)
         self.back.pack(side="right")
         tk.Frame(root, height=1, bg=BORDER).pack(fill="x")
-        self.content = tk.Frame(root, bg=BACKGROUND, padx=28, pady=20)
-        self.content.pack(fill="both", expand=True)
+        viewport = tk.Frame(root, bg=BACKGROUND)
+        viewport.pack(fill="both", expand=True)
+        self.scroller = tk.Canvas(viewport, bg=BACKGROUND, highlightthickness=0)
+        scrollbar = ttk.Scrollbar(viewport, orient="vertical", command=self.scroller.yview)
+        scrollbar.pack(side="right", fill="y")
+        self.scroller.pack(side="left", fill="both", expand=True)
+        self.scroller.configure(yscrollcommand=scrollbar.set)
+        self.content = tk.Frame(self.scroller, bg=BACKGROUND, padx=28, pady=20)
+        self.content_window = self.scroller.create_window((0, 0), window=self.content, anchor="nw")
+        self.content.bind("<Configure>", lambda _: self.scroller.configure(scrollregion=self.scroller.bbox("all")))
+        self.scroller.bind("<Configure>", lambda event: self.scroller.itemconfigure(self.content_window, width=event.width))
+        root.bind_all("<MouseWheel>", lambda event: self.scroller.yview_scroll(-int(event.delta / 120), "units"))
+        root.bind_all("<Button-4>", lambda _: self.scroller.yview_scroll(-1, "units"))
+        root.bind_all("<Button-5>", lambda _: self.scroller.yview_scroll(1, "units"))
+        root.geometry(f"{min(980,root.winfo_screenwidth()-60)}x{min(740,root.winfo_screenheight()-80)}")
         root.protocol("WM_DELETE_WINDOW", self.close)
         self.show_picker()
 
@@ -67,22 +80,25 @@ class DemoWindow:
         self.page = page
         self.page.pack(fill="both", expand=True)
         self.root.update_idletasks()
-        self.root.minsize(max(780, self.root.winfo_reqwidth()),
-                          max(590, self.root.winfo_reqheight()))
+        self.scroller.yview_moveto(0)
 
     def show_picker(self):
         self.back.state(["disabled"])
         page = tk.Frame(self.content, bg=BACKGROUND)
         self.replace_page(page)
         self.label(page, "选择 Demo", 25, bold=True).pack(anchor="w", pady=(8, 20))
-        for key, (title, description, _) in self.demos.items():
-            row = tk.Frame(page, bg=PANEL, padx=20, pady=17,
+        grid = tk.Frame(page, bg=BACKGROUND)
+        grid.pack(fill="both", expand=True)
+        for col in (0, 1):
+            grid.columnconfigure(col, weight=1, uniform="cards")
+        for index, (key, (title, description, _)) in enumerate(self.demos.items()):
+            row = tk.Frame(grid, bg=PANEL, padx=16, pady=15,
                            highlightbackground=BORDER, highlightthickness=1)
-            row.pack(fill="x", pady=(0, 12))
-            ttk.Button(row, text="打开", style="DemoPrimary.TButton",
-                       command=lambda name=key: self.open_demo(name)).pack(side="right")
+            row.grid(row=index // 2, column=index % 2, sticky="nsew", padx=(0, 8), pady=(0, 12))
             self.label(row, title, 14, bold=True).pack(anchor="w")
-            self.label(row, description, fg=MUTED).pack(anchor="w", pady=(4, 0))
+            self.label(row, description, fg=MUTED, wraplength=310, justify="left").pack(anchor="w", pady=(4, 14))
+            ttk.Button(row, text="打开", style="DemoPrimary.TButton",
+                       command=lambda name=key: self.open_demo(name)).pack(anchor="e")
 
     def open_demo(self, name):
         title, _, module = self.demos[name]
