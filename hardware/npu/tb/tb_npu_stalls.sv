@@ -18,7 +18,7 @@ module tb_npu_stalls;
  .memory_idle(memory_idle),.memory_flush(memory_flush));
  reg [31:0] lfsr=32'h120319;
  integer mt=-1,at=-1,i,reads=0,writes=0;reg [15:0] saved_m,saved_a;
- reg executing=0;
+ reg executing=0,validating=0;
  // Independent pin-level scoreboard: count memory events at their actual
  // handshakes, without using the monitor's sampled event registers.
  integer ticks=0,mreq=0,mrsp=0,areq=0,arsp=0,mstall=0,astall=0;
@@ -76,7 +76,9 @@ module tb_npu_stalls;
    for(i=0;i<8;i=i+1)ad[i*4+:4]<=act[(saved_a+i)&16383];arv<=1;at<=-1;
   end
   if(wv && wr)begin
-   if(!executing || wa>=16384)$fatal(1,"write outside run/bounds");
+   // Validation may only write its provenance records, one word per record.
+   if(validating ? (wm!==8'hff || wa[2:0]!=0 || wa>=8*(cfg[1]+1)) : (!executing || wa>=16384))
+    $fatal(1,"write outside run/bounds or provenance scratch");
    for(i=0;i<8;i=i+1)if(wm[i])act[wa+i]<=wd[i*4+:4];writes<=writes+1;
   end
  end
@@ -85,9 +87,12 @@ module tb_npu_stalls;
   if(!$value$plusargs("DATA=%s",dir))$fatal(1,"DATA required");
   $readmemh({dir,"/config.hex"},cfg);$readmemh({dir,"/model.hex"},model,0,cfg[0]/4-1);
   $readmemh({dir,"/input.hex"},input_data,0,cfg[3]-1);$readmemh({dir,"/gold.hex"},gold,0,cfg[5]-1);
-  for(i=0;i<cfg[3];i=i+1)begin act[(cfg[2]+i)*2]=input_data[i][3:0];act[(cfg[2]+i)*2+1]=input_data[i][7:4];end
-  repeat(4)@(negedge clk);rst=0;validate=1;@(negedge clk);validate=0;
+  repeat(4)@(negedge clk);rst=0;validating=1;validate=1;@(negedge clk);validate=0;
   wait(vd);if(!vok || error)$fatal(1,"stalled validation error %0d op=%0d",error,error_op);
+  if(!memory_idle)$fatal(1,"validation published before provenance writes drained");
+  validating=0;
+  // As through the controller, input is loaded only after validation.
+  for(i=0;i<cfg[3];i=i+1)begin act[(cfg[2]+i)*2]=input_data[i][3:0];act[(cfg[2]+i)*2+1]=input_data[i][7:4];end
   @(negedge clk);executing=1;run=1;@(negedge clk);run=0;
   wait(done);repeat(2)@(negedge clk);if(error)$fatal(1,"stalled execution error");
   if(dut.perf_counters[0*32+:32]!==ticks || dut.perf_counters[1*32+:32]!==mreq ||

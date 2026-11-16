@@ -7,7 +7,7 @@ module npu_command_controller #(
  input wire clk_i,rst_ni,input wire cmd_valid_i,output wire cmd_ready_o,
  input wire [7:0] cmd_op_i,input wire [31:0] cmd_addr_i,cmd_data_i,
  output reg rsp_valid_o,input wire rsp_ready_i,output reg [4:0] rsp_error_o,output reg [31:0] rsp_data_o,
- output wire irq_o,running_o,output reg core_reset_o,output wire validate_o,run_o,
+ output wire irq_o,running_o,act_owner_o,output reg core_reset_o,output wire validate_o,run_o,
  input wire core_ready_i,core_busy_i,validation_done_i,validation_ok_i,done_i,
  input wire [4:0] core_error_i,input wire [7:0] core_error_op_i,
  input wire [31:0] cycles_i,issues_i,model_reads_i,act_reads_i,act_writes_i,
@@ -56,6 +56,9 @@ module npu_command_controller #(
  assign cmd_ready_o=state==IDLE && !rsp_valid_o && !core_reset_o;
  assign irq_o=done || faulted; assign validate_o=commit_ok; assign run_o=start_ok;
  assign running_o=job_active;
+ // The core owns the activation port while running and while validation keeps
+ // provenance records there; the host cannot issue commands in VWAIT.
+ assign act_owner_o=job_active || state==VWAIT;
  assign model_we_o=model_write; assign model_addr_o=model_count; assign model_data_o=data;
  assign act_we_o=input_write; assign act_addr_o=input_base_o+input_count; assign act_data_o=data;
  assign act_flush_o=state==IFLUSH;

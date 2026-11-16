@@ -73,6 +73,7 @@ IR=0x12 Capture 报告。主机 `write_block`/`read_block` 用突发传送模型
 
 MODEL_BEGIN 后先写完 0x10..0x24 六个配置及 0x64 输入 dtype，再从模型 offset=0 顺序写完整模型。
 开始模型数据传输后配置不可再改；MODEL_COMMIT 会等待全部描述符/参数检查结束才应答。
+MODEL_COMMIT 预验证时把来源记录写入激活区字节 `[0, 4*(op_count+1))`（每条一个 32-bit word），会覆盖该范围的旧内容；应答前等待这些写入落地。输入只能在提交成功后写入，START 不再重复来源检查（错误码 21 只在 MODEL_COMMIT 出现）。
 INPUT_BEGIN 后从输入基址顺序写入，最后一个 word 不足 4 B 的部分按长度屏蔽。
 WRITE 成功代表存储已按握手接收数据；INPUT_COMMIT 等待部分word和在途写入全部提交。
 硬件每层结束及最终完成前也会等待激活存储排空，done/ACK不会早于结果写入完成。
