@@ -11,8 +11,11 @@ import urllib.request
 
 
 def digest_file(path):
+    digest = hashlib.sha256()
     with Path(path).open("rb") as handle:
-        return hashlib.file_digest(handle, "sha256").hexdigest()
+        while block := handle.read(1024 * 1024):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def fetch(url, path, expected=None):

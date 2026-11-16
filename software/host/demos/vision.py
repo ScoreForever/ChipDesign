@@ -81,9 +81,12 @@ def decode_faces(scores, metadata, size, threshold=None):
 class YuNet:
     def __init__(self, path):
         import cv2
-        if not Path(path).is_file():
+        path = Path(path)
+        if not path.is_file():
             raise ValueError("缺少 YuNet 模型。先运行 demos/fetch_assets.py yunet，或通过 --yunet 指定文件。")
-        self.detector = cv2.FaceDetectorYN.create(str(path), "", (320,320), .8, .3, 5000)
+        # Read with Python so Windows paths containing non-ASCII characters work.
+        model = np.frombuffer(path.read_bytes(), dtype=np.uint8)
+        self.detector = cv2.FaceDetectorYN.create("onnx", model, (), (320, 320), .8, .3, 5000)
 
     def detect(self, image):
         frame, transform = letterbox(image,320)
