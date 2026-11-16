@@ -27,7 +27,7 @@ module tb_npu_program;
 `ifdef JTAG_TEST
  reg tck=1,tms=1,tdi=0;wire tdo;
  my_soc_top dut(.clk_i(clk),.rst_ni(rst_n),.tck_i(tck),.tms_i(tms),.td_i(tdi),.td_o(tdo),.irq_o(irq));
- wire event_valid=dut.i_control.aw && dut.i_control.i_npu.w_ready;
+ wire event_valid=dut.i_control.aw && dut.i_control.i_npu.w_ready && !dut.i_control.i_npu.checking;
  wire [15:0] event_addr=dut.i_control.wa;
  wire [31:0] event_data=dut.i_control.wd;
  wire [7:0] event_mask=dut.i_control.wm;
@@ -88,7 +88,8 @@ module tb_npu_program;
  npu_control_subsystem #(.COLS(C)) dut(.clk_i(clk),.rst_ni(rst_n),.cmd_valid_i(cv),.cmd_ready_o(cr),
   .cmd_op_i(op),.cmd_addr_i(addr),.cmd_data_i(data),.rsp_valid_o(rv),.rsp_ready_i(rr),
   .rsp_error_o(err),.rsp_data_o(rd),.irq_o(irq));
- wire event_valid=dut.aw && dut.i_npu.w_ready;wire [15:0] event_addr=dut.wa;
+ // Golden events are execution writes; validation provenance records are checked separately.
+ wire event_valid=dut.aw && dut.i_npu.w_ready && !dut.i_npu.checking;wire [15:0] event_addr=dut.wa;
  wire [31:0] event_data=dut.wd;wire [7:0] event_mask=dut.wm;
  task exchange;
  reg [31:0] saved;reg [4:0] saved_error;
@@ -251,6 +252,15 @@ module npu_protocol_checker;
    $fatal(1,"CHK activation read %h inside model image (base %h)",`CHK_CORE.a_addr,model_base);
   if(running && `CHK_CORE.w_valid && `CHK_CORE.w_ready && {1'b0,`CHK_CORE.w_addr}>=model_base)
    $fatal(1,"CHK activation write %h inside model image (base %h)",`CHK_CORE.w_addr,model_base);
+  // --- validation provenance scratch: whole words below 4*(op_count+1) bytes ---
+  if(`CHK_SUB.act_owner && !running && `CHK_CORE.a_valid && `CHK_CORE.a_ready &&
+     (`CHK_CORE.a_addr[2:0]!=0 || `CHK_CORE.a_addr>=8*(`CHK_CORE.op_count+1)))
+   $fatal(1,"CHK validation read %h outside provenance scratch",`CHK_CORE.a_addr);
+  if(`CHK_SUB.act_owner && !running && `CHK_CORE.w_valid && `CHK_CORE.w_ready &&
+     (`CHK_CORE.w_addr[2:0]!=0 || `CHK_CORE.w_mask!==8'hff || `CHK_CORE.w_addr>=8*(`CHK_CORE.op_count+1)))
+   $fatal(1,"CHK validation write %h/%h outside provenance scratch",`CHK_CORE.w_addr,`CHK_CORE.w_mask);
+  if(`CHK_CORE.validation_done && !`CHK_SUB.act_idle)
+   $fatal(1,"CHK validation published before provenance writes drained");
   // --- dual-macro side port (A) ---
   if(`CHK_ST.side_fire && `CHK_ST.sram_en && `CHK_ST.main_bank==`CHK_ST.side_bank)
    $fatal(1,"CHK side and main port access the same macro in one cycle");

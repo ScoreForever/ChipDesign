@@ -2,6 +2,10 @@
 // ABI 5.0 INT4 descriptor sequencer and shared seven-operator backend.
 // No model geometry, layer index or output class count is hardwired.
 // Model RAM is immutable while validating/running. Descriptors/model use byte addresses; activation ports use nibble addresses.
+// Validation uses activation bytes [0, 4*(op_count+1)) as provenance scratch,
+// so input must be loaded after validation. Execution relies on the validated
+// provenance result: the descriptors and configuration cannot change between
+// a successful validation and a run without invalidating the model.
 module npu_program_core #(
     parameter ACT_BYTES=8192, MODEL_BYTES=8192, COLS=8, ROWS=8, SHARED_MODEL=0,
 `ifdef NPU_TILE
@@ -77,7 +81,9 @@ module npu_program_core #(
     reg [15:0] mul_a,mul_b;
     wire [31:0] mul_p=mul_a*mul_b;
     reg lookup_done;
-    wire scan_done,source_known,source2_known;
+    wire scan_done,source_known,source2_known,lookup_busy;
+    wire lookup_rd_valid,lookup_rsp_valid,lookup_wr_valid; wire [7:0] lookup_rd_index,lookup_wr_index;
+    wire [31:0] lookup_wr_data;
     wire [15:0] src_end=src+src_span[15:0],src2_end=src2+src_span[15:0];
     wire [15:0] dst_end=dst+dst_span[15:0];
     wire [15:0] input_first=input_base<<1,input_end=(input_base+input_bytes)<<1;
@@ -110,16 +116,23 @@ module npu_program_core #(
     integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam;
     reg basic_bad,shape_bad,range_bad;
     wire output_bad=pc==op_count-1 && (dst!=(output_base<<1) || dst_span!=(output_bytes<<1));
-    wire lookup_save=state==CHECK && lookup_done && source_known && source2_known && !output_bad;
-    wire lookup_seed=state==IDLE && (validate || run);
-    wire lookup_start=state==CHECK && !lookup_done && !shape_bad && !range_bad;
+    // Provenance is checked only while validating; a run repeats no lookup.
+    wire lookup_save=checking && state==CHECK && lookup_done && source_known && source2_known && !output_bad;
+    wire lookup_seed=state==IDLE && validate;
+    wire lookup_start=checking && state==CHECK && !lookup_done && !shape_bad && !range_bad;
+    // Validation must not publish its result while record writes are queued.
+    wire validation_drained=!lookup_busy && memory_idle;
     (* keep_hierarchy = "yes" *) npu_tensor_lookup #(.MAX_OPS(MAX_OPS)) i_tensor_lookup (
         .clk(clk),.rst(rst),.seed(lookup_seed),.start(lookup_start),.save(lookup_save),.pc(pc),
         .input_i32(input_i32),.input_first(input_first),.input_end(input_end),
         .src_i32(src32),.src(src),.src_end(src_end),.add_op(op==ADD),.src2(src2),.src2_end(src2_end),
         .dst_i32(dst32),.dst(dst),.dst_end(dst_end),
-        .done(scan_done),.source_known(source_known),.source2_known(source2_known)
+        .done(scan_done),.source_known(source_known),.source2_known(source2_known),.busy(lookup_busy),
+        .rd_valid(lookup_rd_valid),.rd_ready(a_ready),.rd_index(lookup_rd_index),
+        .rd_rsp_valid(lookup_rsp_valid),.rd_data(a_data),
+        .wr_valid(lookup_wr_valid),.wr_ready(w_ready),.wr_index(lookup_wr_index),.wr_data(lookup_wr_data)
     );
+    assign lookup_rsp_valid=checking && a_rsp_valid;
     always @* begin
         basic_bad=fetch_bad || d[0][7:0]<CONV || d[0][7:0]>ADD ||
             ih==0 || iw==0 || ic==0 || ic>MAX_K || oc==0 || oc>256 ||
@@ -256,7 +269,8 @@ module npu_program_core #(
     reg [7:0] write_mask[0:WRITE_DEPTH-1];
     reg [2:0] write_head,write_tail;
     reg [3:0] write_count;
-    wire write_fire=w_valid && w_ready;
+    wire core_w_valid=state==EXECUTE && write_count!=0;
+    wire write_fire=core_w_valid && w_ready;
     // Use registered occupancy to reserve space. Same-cycle write_ready
     // would feed SRAM arbitration back into the postprocessor's FIFO write.
     wire post_credit={1'b0,write_count}+rq_pending<WRITE_DEPTH;
@@ -295,10 +309,11 @@ module npu_program_core #(
     wire write_two=q_enable ? rq_pair : lane1_valid;
     wire [15:0] write_at=q_enable ? rq_addr : post_addr;
     wire write_tail_pad=dst_pixels[0] && channels[0] && write_at+write_two==packed_tail_addr;
-    assign w_valid=state==EXECUTE && write_count!=0;
-    assign w_addr=write_addr[write_head];
-    assign w_data=write_data[write_head];
-    assign w_mask=write_mask[write_head];
+    // Validation (lookup records) and execution never own the write port together.
+    assign w_valid=core_w_valid || lookup_wr_valid;
+    assign w_addr=checking ? {5'd0,lookup_wr_index,3'd0} : write_addr[write_head];
+    assign w_data=checking ? lookup_wr_data : write_data[write_head];
+    assign w_mask=checking ? 8'hff : write_mask[write_head];
 
     // Gather one address-consecutive subset per read. Irregular channel
     // groups may cross kernel rows: consume each subset once instead of
@@ -571,6 +586,8 @@ module npu_program_core #(
                 a_valid=|gather_mask;
             end else if(!mac_op && estate==1) begin a_valid=1; end
         end
+        // Validation never executes, so the provenance scan owns the read port.
+        if(checking) begin a_valid=lookup_rd_valid; a_addr={5'd0,lookup_rd_index,3'd0}; end
     end
 
     // Setup operand select for the shared multiplier (see astep).
@@ -626,7 +643,8 @@ module npu_program_core #(
         (element_pos==dst_pixels && estate==0 && slot_busy==0 && rq_pending==0 && !rq_valid));
     // A partial write-combining word must reach physical SRAM before the next
     // channel tile/layer can reuse its address, or before done is published.
-    assign memory_flush=state==EXECUTE && compute_drained;
+    assign memory_flush=(state==EXECUTE && compute_drained) ||
+        (checking && (state==FAILED || (state==NEXT && pc==op_count-1)));
     wire drained=compute_drained && memory_idle;
 
     // Passive one-cycle sampled monitoring; no feedback into datapath control.
@@ -822,9 +840,10 @@ module npu_program_core #(
                     if(!lookup_done) begin
                         if(shape_bad) fail(3);
                         else if(range_bad) fail(4);
-                        else state<=LOOKUP_WAIT;
+                        else if(checking) state<=LOOKUP_WAIT;
+                        else lookup_done<=1;
                     end
-                    else if(!source_known || !source2_known) fail(5);
+                    else if(checking && (!source_known || !source2_known)) fail(5);
                     else if(output_bad) fail(3);
                     else begin
                         oct<=0; param_channel<=0;
@@ -1127,72 +1146,100 @@ module npu_program_core #(
                     end
                 end
                 NEXT: if(pc==op_count-1) begin
-                    if(checking) begin validation_done<=1; validation_ok<=1; end
-                    else done<=1;
-                    state<=IDLE;
+                    if(!checking) begin done<=1; state<=IDLE; end
+                    else if(validation_drained) begin validation_done<=1; validation_ok<=1; state<=IDLE; end
                 end else begin pc<=pc+1'b1; fetch_word<=0; state<=FREQ; end
-                FAILED: begin
-                    if(checking) begin validation_done<=1; validation_ok<=0; end
-                    else done<=1;
-                    state<=IDLE;
-                end
+                FAILED: if(!checking) begin done<=1; state<=IDLE; end
+                    else if(validation_drained) begin validation_done<=1; validation_ok<=0; state<=IDLE; end
                 default: state<=IDLE;
             endcase
         end
     end
     // TILE output positions share one weight load: 16 (psum 16xCOLSx18 FF) or 8.
     initial if((COLS!=8) || (TILE!=16 && TILE!=8) || MAX_K<1 || MAX_K>1024 ||
-        (ROWS!=8) || MAX_OPS<1 || MAX_OPS>128 || PSUM_BITS<18 || ACT_BYTES<64 || ACT_BYTES>16384)
+        (ROWS!=8) || MAX_OPS<1 || MAX_OPS>128 || PSUM_BITS<18 || ACT_BYTES<64 || ACT_BYTES>16384 ||
+        ACT_BYTES<4*(MAX_OPS+1))
         $fatal(1,"unsupported program-core geometry");
 endmodule
 
 // Sequential tensor provenance check. Entry zero is the input and each
 // accepted descriptor writes pc+1, so a scan only visits initialized entries.
+// Tensor provenance records for descriptor validation, kept in activation
+// SRAM instead of a standard-cell array. Record i occupies the 32-bit word at
+// activation byte 4*i (nibble 8*i): {valid,i32,last[14:0],base[14:0]}, where
+// last=end-1. Validated nibble ranges end at or below 32768, so base and last
+// fit 15 bits. The activation region holds no live data while validating; the
+// host loads input only after validation succeeds.
+// One SRAM write is in flight at a time and no read is issued while a write
+// waits, so every read observes all earlier record updates. done is raised
+// only after the scan's own writes have been accepted.
 module npu_tensor_lookup #(parameter MAX_OPS=128) (
     input wire clk,rst,seed,start,save,
     input wire [7:0] pc,
     input wire input_i32,src_i32,dst_i32,add_op,
     input wire [15:0] input_first,input_end,src,src_end,src2,src2_end,dst,dst_end,
-    output reg done,source_known,source2_known
+    output reg done,source_known,source2_known,
+    output wire busy,
+    output wire rd_valid, input wire rd_ready, output wire [7:0] rd_index,
+    input wire rd_rsp_valid, input wire [31:0] rd_data,
+    output reg wr_valid, input wire wr_ready, output reg [7:0] wr_index, output reg [31:0] wr_data
 );
-    localparam ADDR_BITS=$clog2(MAX_OPS+1);
-    // One input record plus MAX_OPS descriptor outputs; do not round 129 entries up to 256.
-    (* ram_style = "distributed" *) reg [33:0] records[0:MAX_OPS];
-    reg [33:0] record;
+    localparam S_IDLE=0,S_READ=1,S_WAIT=2,S_EVAL=3,S_FINISH=4;
+    reg [2:0] state;
+    reg [31:0] record;
     reg [7:0] index;
-    reg active,have_record;
-    wire [15:0] record_base=record[15:0],record_end=record[31:16];
-    wire record_valid=record[33],record_i32=record[32];
+    wire record_valid=record[31],record_i32=record[30];
+    wire [15:0] record_base={1'b0,record[14:0]};
+    wire [15:0] record_end={1'b0,record[29:15]}+16'd1;
     wire overlap=record_valid && dst<record_end && record_base<dst_end;
-    wire write_enable=seed || save || (active && have_record && overlap);
-    wire [ADDR_BITS-1:0] address=seed ? 8'd0 : save ? pc+8'd1 : index;
-    wire [33:0] write_record=seed ? {1'b1,input_i32,input_end,input_first} :
-        save ? {1'b1,dst_i32,dst_end,dst} : {1'b0,record[32:0]};
-    always @(posedge clk) begin
-        if(!rst && write_enable) records[address]<=write_record;
-        if(active && !have_record) record<=records[address];
-    end
+    function automatic [31:0] pack(input i32,input [15:0] first,input [15:0] last_exclusive);
+        reg [15:0] last;
+        begin last=last_exclusive-16'd1; pack={1'b1,i32,last[14:0],first[14:0]}; end
+    endfunction
+    assign busy=state!=S_IDLE || wr_valid;
+    assign rd_valid=state==S_READ && !wr_valid;
+    assign rd_index=index;
     always @(posedge clk) begin
         if(rst) begin
-            active<=0; have_record<=0; done<=0; index<=0;
+            state<=S_IDLE; index<=0; record<=0; done<=0;
             source_known<=0; source2_known<=0;
+            wr_valid<=0; wr_index<=0; wr_data<=0;
         end else begin
             done<=0;
+            if(wr_valid && wr_ready) wr_valid<=0;
+            // seed/save/start arrive only when no write is pending (seed opens a
+            // new validation, save follows done, start follows a descriptor fetch).
+            if(seed) begin
+                wr_valid<=1; wr_index<=0; wr_data<=pack(input_i32,input_first,input_end);
+            end else if(save) begin
+                wr_valid<=1; wr_index<=pc+8'd1; wr_data<=pack(dst_i32,dst,dst_end);
+            end
             if(start) begin
-                active<=1; have_record<=0; index<=0;
+                state<=S_READ; index<=0;
                 source_known<=0; source2_known<=!add_op;
-            end else if(active) begin
-                have_record<=!have_record;
-                if(have_record) begin
+            end else case(state)
+                S_READ: if(rd_valid && rd_ready) state<=S_WAIT;
+                S_WAIT: if(rd_rsp_valid) begin record<=rd_data; state<=S_EVAL; end
+                S_EVAL: begin
                     if(record_valid && record_i32==src_i32 && src>=record_base && src_end<=record_end)
                         source_known<=1;
                     if(record_valid && !record_i32 && src2>=record_base && src2_end<=record_end)
                         source2_known<=1;
-                    if(index==pc) begin active<=0; done<=1; end
-                    else index<=index+1'b1;
+                    // Invalidate records the new output overwrites.
+                    if(overlap) begin
+                        wr_valid<=1; wr_index<=index; wr_data<={1'b0,record[30:0]};
+                    end
+                    if(index==pc) state<=S_FINISH;
+                    else begin index<=index+1'b1; state<=S_READ; end
                 end
-            end
+                S_FINISH: if(!wr_valid) begin done<=1; state<=S_IDLE; end
+                default: state<=S_IDLE;
+            endcase
         end
     end
+`ifndef SYNTHESIS
+    always @(posedge clk) if(!rst && (seed || save) && wr_valid && !(wr_ready))
+        $fatal(1,"tensor lookup record write issued while a write is pending");
+`endif
 endmodule
 

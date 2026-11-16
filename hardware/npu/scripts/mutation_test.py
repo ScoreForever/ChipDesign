@@ -31,6 +31,7 @@ RA1SHD = ['--macro-model', 'hardware/npu/tb/ra1shd_functional_model.sv']
 FPGA = ['--define', 'CHIPDESIGN_FPGA_MEM']
 JTAG = 'hardware/soc/rtl/control/npu_jtag_transport.sv'
 ARRAY = 'hardware/npu/rtl/npu_mac_array.sv'
+CTRL = 'hardware/soc/rtl/control/npu_command_controller.sv'
 CDC = ['CDC']   # run verification/fpga/cdc/run_cdc_limits.py --quick on the mutated transport
 UDR_OLD = "                UDR: if (ir == 'h12 && dr[71:64] != 0) begin\n                    if (pending) overrun <= 1;\n                    else begin"
 UDR_NEW = "                UDR: if (ir == 'h12 && dr[71:64] != 0) begin\n                    begin"
@@ -93,6 +94,22 @@ MUTANTS = [
      'R1 row-skew stage enabled one edge early'),
     ('r04', ARRAY, 'wire active = in_valid || (|valid_pipe);', 'wire active = |valid_pipe;', [],
      'R1 pipeline control gated off on the first issue of a burst'),
+    # SRAM-backed provenance lookup: records live in activation SRAM during validation.
+    ('l01', CORE, 'if(overlap) begin', 'if(1\'b0) begin', [],
+     'Lookup never invalidates records an output overwrites (stale source accepted)'),
+    ('l02', CORE, "wire [15:0] record_end={1'b0,record[29:15]}+16'd1;", "wire [15:0] record_end={1'b0,record[29:15]};", [],
+     'Lookup decodes the stored inclusive last nibble as an exclusive end (range off by one)'),
+    ('l03', CORE, 'S_FINISH: if(!wr_valid) begin', 'S_FINISH: begin', [],
+     'Lookup reports done while its invalidation write is still waiting'),
+    ('l04', CORE, 'assign rd_valid=state==S_READ && !wr_valid;', 'assign rd_valid=state==S_READ;', [],
+     'Lookup reads a record while an earlier record write is not yet accepted (RAW hazard)'),
+    ('l05', CORE, 'else if(validation_drained) begin validation_done<=1; validation_ok<=1; state<=IDLE; end',
+     'else begin validation_done<=1; validation_ok<=1; state<=IDLE; end', [],
+     'Validation published before provenance writes drain (host input can race them)'),
+    ('l06', CORE, 'else if(checking && (!source_known || !source2_known)) fail(5);',
+     'else if(1\'b0) fail(5);', [], 'Validation ignores the provenance result (unknown source accepted)'),
+    ('l07', CTRL, 'assign act_owner_o=job_active || state==VWAIT;', 'assign act_owner_o=job_active;', [],
+     'Activation port not handed to the core during validation (record traffic blocked)'),
     # CDC mailbox. c01/c02 shorten a synchronizer: invisible to zero-delay functional
     # simulation by construction; they document that the static CDC audit is mandatory.
     ('c01', JTAG, 'if (req_sync[1] != req_seen && !cmd_valid_o && !waiting_reply) begin',

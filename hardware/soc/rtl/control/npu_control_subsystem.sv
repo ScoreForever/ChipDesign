@@ -7,7 +7,7 @@ module npu_control_subsystem #(
  output wire rsp_valid_o,input wire rsp_ready_i,output wire [4:0] rsp_error_o,
  output wire [31:0] rsp_data_o,output wire irq_o
 );
- wire core_reset,validate,run,ready,busy,vdone,vok,done,running;
+ wire core_reset,validate,run,ready,busy,vdone,vok,done,running,act_owner;
  // Only synchronously changing registers may drive inferred RAM controls.
  reg rst;
  always @(posedge clk_i) rst<=!rst_ni || core_reset;
@@ -33,7 +33,7 @@ module npu_control_subsystem #(
   .clk_i(clk_i),.rst_ni(rst_ni),.cmd_valid_i(cmd_valid_i),.cmd_ready_o(cmd_ready_o),
   .cmd_op_i(cmd_op_i),.cmd_addr_i(cmd_addr_i),.cmd_data_i(cmd_data_i),
   .rsp_valid_o(rsp_valid_o),.rsp_ready_i(rsp_ready_i),.rsp_error_o(rsp_error_o),.rsp_data_o(rsp_data_o),
-  .irq_o(irq_o),.running_o(running),.core_reset_o(core_reset),.validate_o(validate),.run_o(run),
+  .irq_o(irq_o),.running_o(running),.act_owner_o(act_owner),.core_reset_o(core_reset),.validate_o(validate),.run_o(run),
   .core_ready_i(ready),.core_busy_i(busy),.validation_done_i(vdone),.validation_ok_i(vok),.done_i(done),
   .core_error_i(error),.core_error_op_i(error_op),.cycles_i(cycles),.issues_i(issues),
   .model_reads_i(model_reads),.act_reads_i(act_reads),.act_writes_i(act_writes),
@@ -44,18 +44,18 @@ module npu_control_subsystem #(
   .output_base_o(output_base),.output_bytes_o(output_bytes),.op_count_o(op_count),.input_i32_o(input_i32),
   .model_we_o(mw),.model_addr_o(mwa),.model_data_o(mwd),.model_ready_i(mready),
   .act_we_o(host_aw),.act_addr_o(host_wa),.act_data_o(host_wd),.act_mask_o(host_wm),
-  .act_write_ready_i(act_write_ready && !running),.act_idle_i(act_idle),.act_flush_o(host_flush),
+  .act_write_ready_i(act_write_ready && !act_owner),.act_idle_i(act_idle),.act_flush_o(host_flush),
   .read_valid_o(host_ar),.read_ready_i(host_arr),.read_addr_o(host_ra),
-  .read_rsp_valid_i(arv && !running),.read_rsp_ready_o(host_rsp_ready),.read_data_i(act_data));
- assign host_arr=arr && !running;
+  .read_rsp_valid_i(arv && !act_owner),.read_rsp_ready_o(host_rsp_ready),.read_data_i(act_data));
+ assign host_arr=arr && !act_owner;
  npu_shared_store #(.BYTES(ACT_BYTES)) i_activation (
   .clk(clk_i),.rst(rst),
   .model_bytes(model_bytes),.model_write(mw),.model_write_ready(mready),.model_write_addr(mwa),.model_write_data(mwd),
-  .model_read(mv),.model_read_ready(mr),.model_read_addr(ma),.model_rsp_valid(mrv),.model_rsp_data(md),.read_valid(running ? av : host_ar),.read_ready(arr),.read_addr(running ? aa : (host_ra<<1)),
-  .rsp_valid(arv),.rsp_ready(running ? 1'b1 : host_rsp_ready),.rsp_data(act_data),
-  .write_valid(running ? aw : host_aw),.write_addr(running ? wa : (host_wa<<1)),
-  .write_data(running ? wd : host_wd),.write_mask(running ? wm : {{2{host_wm[3]}},{2{host_wm[2]}},{2{host_wm[1]}},{2{host_wm[0]}}}),
-  .write_ready(act_write_ready),.flush(running ? core_flush : host_flush),.idle(act_idle));
+  .model_read(mv),.model_read_ready(mr),.model_read_addr(ma),.model_rsp_valid(mrv),.model_rsp_data(md),.read_valid(act_owner ? av : host_ar),.read_ready(arr),.read_addr(act_owner ? aa : (host_ra<<1)),
+  .rsp_valid(arv),.rsp_ready(act_owner ? 1'b1 : host_rsp_ready),.rsp_data(act_data),
+  .write_valid(act_owner ? aw : host_aw),.write_addr(act_owner ? wa : (host_wa<<1)),
+  .write_data(act_owner ? wd : host_wd),.write_mask(act_owner ? wm : {{2{host_wm[3]}},{2{host_wm[2]}},{2{host_wm[1]}},{2{host_wm[0]}}}),
+  .write_ready(act_write_ready),.flush(act_owner ? core_flush : host_flush),.idle(act_idle));
  npu_program_core #(.ACT_BYTES(ACT_BYTES),.MODEL_BYTES(MODEL_BYTES),.COLS(COLS),.MAX_OPS(MAX_OPS),.MAX_K(MAX_K),.SHARED_MODEL(1)) i_npu (
   .clk(clk_i),.rst(rst),.validate(validate),.run(run),.ready(ready),.busy(busy),
   .model_bytes(model_bytes),.input_base(input_base),.input_bytes(input_bytes),
@@ -66,7 +66,7 @@ module npu_control_subsystem #(
   .trace_clear(trace_clear),.trace_active(trace_active),.trace_sample(trace_sample),
   .trace_events(trace_events),.trace_descriptor(trace_descriptor),
   .m_valid(mv),.m_ready(mr),.m_addr(ma),.m_rsp_valid(mrv),.m_rsp_ready(),.m_data(md),
-  .a_valid(av),.a_ready(arr && running),.a_addr(aa),.a_rsp_valid(arv && running),.a_rsp_ready(),.a_data(act_data),
-  .w_valid(aw),.w_ready(act_write_ready && running),.w_addr(wa),.w_data(wd),.w_mask(wm),
+  .a_valid(av),.a_ready(arr && act_owner),.a_addr(aa),.a_rsp_valid(arv && act_owner),.a_rsp_ready(),.a_data(act_data),
+  .w_valid(aw),.w_ready(act_write_ready && act_owner),.w_addr(wa),.w_data(wd),.w_mask(wm),
   .memory_flush(core_flush),.memory_idle(act_idle));
 endmodule
