@@ -2,6 +2,7 @@
 
 import math
 from pathlib import Path
+import time
 
 import numpy as np
 from PIL import Image
@@ -104,3 +105,31 @@ def face_crop(image, box):
     if bounds[2] <= bounds[0] or bounds[3] <= bounds[1]:
         raise ValueError("人脸裁剪框无效")
     return image.crop(bounds)
+
+
+def infer_image(image, mode, detector, get_session, *, capture_ms=None):
+    """Run the same vision pipeline for a desktop frame or a CLI image."""
+    if mode == "npu":
+        session = get_session()
+        started = time.perf_counter()
+        frame, transform = letterbox(image, 32)
+        values = prepare_image(frame, session.scale)
+        preprocess_ms = (time.perf_counter() - started) * 1000
+        prediction = session.infer(values, capture_ms=capture_ms, preprocess_ms=preprocess_ms)
+        boxes = decode_faces(prediction.scores, session.metadata, (32, 32))
+        return unmap_boxes(boxes, transform, image.size), prediction, preprocess_ms
+
+    started = time.perf_counter()
+    boxes = detector.detect(image)
+    preprocess_ms = (time.perf_counter() - started) * 1000
+    if mode != "emotion" or not boxes:
+        return boxes, None, preprocess_ms
+
+    session = get_session()
+    started = time.perf_counter()
+    box = max(boxes, key=lambda b: (b[2]-b[0]) * (b[3]-b[1]))
+    side = session.package.manifest["tensors"]["input"]["shape"][0]
+    values = prepare_image(face_crop(image, box), session.scale, size=side)
+    preprocess_ms += (time.perf_counter() - started) * 1000
+    prediction = session.infer(values, capture_ms=capture_ms, preprocess_ms=preprocess_ms)
+    return [box], prediction, preprocess_ms

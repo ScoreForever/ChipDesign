@@ -6,23 +6,25 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import shutil
 import sys
 import tempfile
 import threading
 import subprocess
 from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import numpy as np
 from PIL import Image
 
 HOST=Path(__file__).resolve().parents[1]/'host'
 sys.path.insert(0,str(HOST))
-from demos.inference import InferenceSession
-from demos.phone_capture import CaptureServer
-from demos.signals import AXES, golden_samples, har_stats, phone_windows, prepare_ecg, prepare_har
-from demos.vision import decode_faces, face_crop, letterbox, unmap_boxes
+from demos.inference import InferenceSession, Prediction
+from demos.phone_capture import CaptureServer, PAGE
+from demos.runner import run
+from demos.signals import AXES, golden_samples, har_stats, phone_csv, phone_windows, prepare_ecg, prepare_har
+from demos.vision import decode_faces, face_crop, infer_image, letterbox, unmap_boxes
 from demos.mnist_input import prepare as prepare_digit
 from demos.kws_audio import one_second, mfcc
 
@@ -97,8 +99,48 @@ class Frontends(unittest.TestCase):
         with self.assertRaises(ValueError):
             phone_windows(t*3,acc,gyro,.455)
 
+    def test_phone_follow_resumes_after_gap_and_ignores_partial_tail(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'live.csv'
+            with path.open('w', newline='') as handle:
+                writer = csv.writer(handle)
+                writer.writerow(('time_s', 'ax', 'ay', 'az', 'gx', 'gy', 'gz'))
+                writer.writerows((i * .02, 0, 0, 9.80665, 0, 0, 0) for i in range(170))
+                writer.writerows((i * .02 + .16, 0, 0, 9.80665, 0, 0, 0) for i in range(170, 400))
+            with self.assertRaisesRegex(ValueError, '100 ms'):
+                phone_csv(path, .455)
+            with path.open('a') as handle:
+                handle.write('8.16,0,0')
+            with self.assertRaisesRegex(ValueError, 'CSV'):
+                phone_csv(path, .455)
+            samples = phone_csv(path, .455, live=True)
+            self.assertGreater(samples[0].timestamp, 170 * .02 + .16)
+            self.assertIsNotNone(samples[0].preprocess_ms)
+            self.assertEqual(len(samples), 2)
+
 
 class Sessions(unittest.TestCase):
+    def test_demo_reports_transfer_and_compute_wait_with_the_production_driver(self):
+        from hardware.npu.scripts.run_program_regression import Recorder
+        from npu_program import encode_tensor
+
+        session = InferenceSession(args('fpga'), 'ecg')
+        sample = golden_samples('ecg')[0]
+        transport = Recorder(session.package, encode_tensor(sample.expected_scores, 'i32'))
+        transport.regs[0x38] = 500
+        with patch('demos.inference.TclRpc'), patch('demos.inference.JtagTransport', return_value=transport):
+            session.connect()
+            try:
+                prediction = session.infer(sample.values)
+            finally:
+                session.close()
+        self.assertEqual(list(prediction.scores), sample.expected_scores)
+        self.assertEqual(prediction.cycles, 500)
+        self.assertGreater(prediction.transfer_ms, 0)
+        self.assertGreater(prediction.compute_wait_ms, 0)
+        self.assertLessEqual(prediction.transfer_ms + prediction.compute_wait_ms, prediction.elapsed_ms)
+        self.assertEqual(sum(row.startswith('07 ') for row in transport.rows), 1)
+
     def test_published_model_files_match_release_hashes(self):
         for name in ('face','emotion'):
             directory=HOST/'demos/models'/name
@@ -164,6 +206,22 @@ class Sessions(unittest.TestCase):
 
 
 class FaceGeometry(unittest.TestCase):
+    def test_shared_emotion_pipeline_uses_largest_face_and_loads_on_demand(self):
+        image = Image.new('RGB', (160, 80))
+        detector = Mock()
+        detector.detect.return_value = []
+        get_session = Mock()
+        self.assertEqual(infer_image(image, 'emotion', detector, get_session)[:2], ([], None))
+        get_session.assert_not_called()
+        detector.detect.return_value = [[0, 0, 20, 20, .99], [20, 0, 80, 60, .9]]
+        session = get_session.return_value
+        session.scale = .25
+        session.package.manifest = {'tensors': {'input': {'shape': [40, 40, 1]}}}
+        boxes, prediction, timing = infer_image(image, 'emotion', detector, get_session, capture_ms=2)
+        self.assertEqual(boxes, [detector.detect.return_value[1]])
+        self.assertIs(prediction, session.infer.return_value)
+        session.infer.assert_called_once_with([-4] * 1600, capture_ms=2, preprocess_ms=timing)
+
     def test_dense_box_decode_and_bad_output(self):
         head=np.zeros((4,4,5));head[...,0]=-20
         head[1,2]=[8,.5,.5,.4,.4]
@@ -188,6 +246,13 @@ class FaceGeometry(unittest.TestCase):
 
 
 class PhoneCapture(unittest.TestCase):
+    @unittest.skipUnless(shutil.which('node'), 'Node is required to exercise the browser script')
+    def test_browser_restart_waits_for_the_previous_upload_queue(self):
+        script = PAGE.split('<script>', 1)[1].split('</script>', 1)[0]
+        result = subprocess.run(['node', str(Path(__file__).with_name('check_demo_phone_capture.js'))],
+                                input=script, encoding='utf-8', capture_output=True, timeout=15)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_real_http_auth_ordering_and_atomic_bad_packet(self):
         with tempfile.TemporaryDirectory() as directory:
             path=Path(directory)/'capture.csv'
@@ -217,6 +282,32 @@ class PhoneCapture(unittest.TestCase):
 
 
 class Headless(unittest.TestCase):
+    @patch('demos.runner.make_session')
+    def test_fpga_validation_requires_every_vector_from_every_demo(self, make_session):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ('mnist', 'face'):
+                model = root / name
+                model.mkdir()
+                frames = [dict(index=i, input=[i], output=[i]) for i in range(2)]
+                (model / 'golden.json').write_text(json.dumps(dict(frames=frames)), encoding='utf-8')
+            def make(args, name):
+                return SimpleNamespace(directory=root / name, connect=lambda: None, close=lambda: None,
+                                       infer=lambda values, **_: Prediction(tuple(values), 1),
+                                       package=SimpleNamespace(image=b'model'))
+            make_session.side_effect = make
+            demos = {'mnist': None, 'face': None}
+            for i, (name, limit, complete) in enumerate((('mnist', 1, False), ('mnist', 2, False),
+                                                        (None, 1, False), (None, 2, True))):
+                with self.subTest(name=name, limit=limit):
+                    options = SimpleNamespace(input=None, output=root / f'report{i}.json', self_test=True,
+                                              backend='fpga', demo=name, limit=limit)
+                    self.assertTrue(run(options, demos))
+                    report = json.loads(options.output.read_text(encoding='utf-8'))
+                    self.assertEqual(report['fpga_validated'], complete)
+                    self.assertEqual(report['golden_complete'], complete)
+                    self.assertEqual(report['golden_coverage']['mnist'], dict(expected=2, checked=limit))
+
     def test_wrong_golden_fails_and_existing_report_is_preserved(self):
         frame=golden_samples('ecg')[0]
         with tempfile.TemporaryDirectory() as directory:

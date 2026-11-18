@@ -27,8 +27,9 @@ class Sample:
     expected: int | None = None
     expected_scores: list | None = None
     timestamp: float | None = None
-    preprocess_ms: float = 0.0
+    preprocess_ms: float | None = None
     details: dict = field(default_factory=dict)
+    capture_ms: float | None = None
 
 
 def quantize(signal, scale):
@@ -118,9 +119,15 @@ def har_dataset(path, scale, limit=200):
         labels = np.atleast_1d(load("test/y_test.txt")).astype(int) - 1
         if windows.shape[1:] != (128, 9) or len(windows) != len(labels) or ((labels < 0) | (labels > 5)).any():
             raise ValueError("UCI 测试数据形状或类别错误")
-        return [Sample(f"UCI test #{i}", prepare_har(w, scale), w, int(y),
-                       details={"source": "UCI HAR official test split", "sample_rate": 50})
-                for i, (w, y) in enumerate(zip(windows, labels))]
+        stats = har_stats()
+        samples = []
+        for i, (window, label) in enumerate(zip(windows, labels)):
+            started = time.perf_counter()
+            values = prepare_har(window, scale, stats)
+            samples.append(Sample(f"UCI test #{i}", values, window, int(label),
+                                  preprocess_ms=(time.perf_counter() - started) * 1000,
+                                  details={"source": "UCI HAR official test split", "sample_rate": 50}))
+        return samples
     finally:
         if archive:
             archive.close()
@@ -136,13 +143,14 @@ def open_uci_zip(path):
     return archive
 
 
-def phone_windows(timestamps, acceleration, gyro, scale, *, rotation=None):
+def phone_windows(timestamps, acceleration, gyro, scale, *, rotation=None, live=False):
     """6-axis phone SI data -> 50 Hz, body/total acceleration (g), gyro (rad/s).
 
     The fixed rotation maps phone axes to waist-mounted training axes. This
     approximation must be validated on participants; it is not the UCI frontend.
     """
     from scipy.signal import butter, medfilt, sosfiltfilt
+    started = time.perf_counter()
     t = np.asarray(timestamps, dtype=float)
     acc, gyr = np.asarray(acceleration, dtype=float), np.asarray(gyro, dtype=float)
     if t.ndim != 1 or len(t) < 128 or acc.shape != (len(t), 3) or gyr.shape != acc.shape:
@@ -150,13 +158,22 @@ def phone_windows(timestamps, acceleration, gyro, scale, *, rotation=None):
     if not np.isfinite(t).all() or not np.isfinite(acc).all() or not np.isfinite(gyr).all():
         raise ValueError("手机输入包含非有限数值")
     dt = np.diff(t)
-    if (dt <= 0).any() or dt.max() > 0.1 or np.median(dt) > 0.025:
+    if (dt <= 0).any():
+        raise ValueError("手机时间戳须递增")
+    gaps = np.flatnonzero(dt > 0.1)
+    if live and gaps.size:
+        # Restart the filter warm-up at the first sample after the last gap.
+        start = gaps[-1] + 1
+        t, acc, gyr, dt = t[start:], acc[start:], gyr[start:], dt[start:]
+    if (dt > 0.1).any() or (dt.size and np.median(dt) > 0.025):
         raise ValueError("时间戳须递增、采样至少 40 Hz，且不能有超过 100 ms 的缺口")
     transform = np.eye(3) if rotation is None else np.asarray(rotation, dtype=float)
     if transform.shape != (3, 3) or not np.allclose(transform @ transform.T, np.eye(3), atol=1e-5) or not np.isclose(np.linalg.det(transform), 1, atol=1e-5):
         raise ValueError("轴映射必须是右手正交旋转矩阵")
     grid = np.arange(t[0], t[-1], 1 / 50)
     if len(grid) < 153:
+        if live and gaps.size:
+            raise ValueError("断流后正在积累连续采样，需要约 3.1 秒")
         raise ValueError("手机输入至少需要 3.1 秒，包含滤波预热")
     raw = np.column_stack((acc @ transform.T / 9.80665, gyr @ transform.T))
     aligned = np.stack([np.interp(grid, t, raw[:, c]) for c in range(6)], axis=1)
@@ -164,22 +181,30 @@ def phone_windows(timestamps, acceleration, gyro, scale, *, rotation=None):
     total, gyro_out = filtered[:, :3], filtered[:, 3:]
     gravity = sosfiltfilt(butter(3, 0.3, fs=50, output="sos"), total, axis=0)
     channels = np.column_stack((total - gravity, gyro_out, total)).astype(np.float32)
+    stats = har_stats()
+    filter_ms = (time.perf_counter() - started) * 1000
     samples = []
     for at in range(25, len(grid) - 127, 64):
-        w = channels[at:at + 128]
-        samples.append(Sample(f"手机 · {grid[at] - grid[0]:.2f} s", prepare_har(w, scale), w,
-                              timestamp=float(grid[at]), details={"source": "phone approximation; participant validation pending", "sample_rate": 50}))
+        started = time.perf_counter()
+        window = channels[at:at + 128]
+        values = prepare_har(window, scale, stats)
+        samples.append(Sample(f"手机 · {grid[at] - grid[0]:.2f} s", values, window,
+                              timestamp=float(grid[at]),
+                              preprocess_ms=filter_ms + (time.perf_counter() - started) * 1000,
+                              details={"source": "phone approximation; participant validation pending", "sample_rate": 50}))
     return samples
 
 
-def phone_csv(path, scale, rotation=None):
+def phone_csv(path, scale, rotation=None, *, live=False):
     with Path(path).open(encoding="utf-8-sig", newline="") as handle:
-        # Keep only the last 40 s for a live capture; no unbounded filter input.
-        rows = list(deque(csv.DictReader(handle),maxlen=2000))
+        # The writer may still be completing the last line when we poll.
+        lines = (line for line in handle if line.endswith(("\r", "\n"))) if live else handle
+        rows = list(deque(csv.DictReader(lines), maxlen=2000))
     try:
         values = np.array([[float(r[k]) for k in ("time_s", "ax", "ay", "az", "gx", "gy", "gz")] for r in rows])
-    except (KeyError, ValueError) as exc:
+    except (KeyError, TypeError, ValueError) as exc:
         raise ValueError("手机 CSV 需要 time_s,ax,ay,az,gx,gy,gz；单位 s、m/s²、rad/s") from exc
     if not len(rows):
         raise ValueError("手机 CSV 没有数据")
-    return phone_windows(values[:, 0], values[:, 1:4], values[:, 4:7], scale, rotation=rotation)
+    return phone_windows(values[:, 0], values[:, 1:4], values[:, 4:7], scale,
+                         rotation=rotation, live=live)

@@ -9,7 +9,7 @@ from tkinter import filedialog, ttk
 from PIL import Image, ImageDraw, ImageOps
 
 from demos.inference import InferenceSession
-from demos.vision import MODEL_ROOT, YuNet, decode_faces, face_crop, letterbox, prepare_image, unmap_boxes
+from demos.vision import MODEL_ROOT, YuNet, infer_image
 from demos.window import ACCENT, BACKGROUND, DRAWING, ERROR, MUTED, PANEL
 
 
@@ -113,8 +113,10 @@ class CameraDemo(tk.Frame):
         if path:
             self.stop_camera()
             def job():
+                started = time.perf_counter()
                 with Image.open(path) as image:
-                    return self.process(ImageOps.exif_transpose(image).convert("RGB"))
+                    frame = ImageOps.exif_transpose(image).convert("RGB")
+                return self.process(frame, (time.perf_counter() - started) * 1000)
             self.run(job,self.show_result,"正在处理图片")
 
     def start_camera(self):
@@ -132,36 +134,24 @@ class CameraDemo(tk.Frame):
         self.run(job,self.show_result,"正在打开摄像头")
 
     def read_camera(self):
+        started = time.perf_counter()
         ok,frame=self.capture.read()
         if not ok:
             raise OSError("无法读取摄像头画面")
-        return self.process(Image.fromarray(frame[:,:,::-1]))
+        capture_ms = (time.perf_counter() - started) * 1000
+        return self.process(Image.fromarray(frame[:,:,::-1]), capture_ms)
 
-    def process(self,image):
+    def process(self, image, capture_ms):
         started=time.perf_counter()
-        prediction=None
-        if self.mode=="npu":
-            frame,transform=letterbox(image,32)
-            values=prepare_image(frame,self.session.scale)
-            preprocess_ms=(time.perf_counter()-started)*1000
-            prediction=self.session.infer(values)
-            boxes=unmap_boxes(decode_faces(prediction.scores,self.session.metadata,(32,32)),transform,image.size)
-        else:
-            boxes=self.detector.detect(image)
-            preprocess_ms=(time.perf_counter()-started)*1000
+        boxes, prediction, preprocess_ms = infer_image(
+            image, self.mode, self.detector, lambda: self.session, capture_ms=capture_ms
+        )
         label=f"检测到 {len(boxes)} 张人脸"
-        if self.mode=="emotion" and boxes:
-            box=max(boxes,key=lambda b:(b[2]-b[0])*(b[3]-b[1]))
-            crop=face_crop(image,box)
-            before=time.perf_counter()
-            side = self.session.package.manifest['tensors']['input']['shape'][0]
-            values=prepare_image(crop,self.session.scale,size=side)
-            preprocess_ms+=(time.perf_counter()-before)*1000
-            prediction=self.session.infer(values)
+        if self.mode=="emotion" and prediction is not None:
             label=EMOTIONS.get(self.session.metadata['classes'][prediction.index],"未知")
-            boxes=[box]
         record=dict(task=self.name,mode=self.mode,backend="host" if self.mode=="host" else self.app.args.backend,
-                    boxes=boxes,label=label,preprocess_ms=preprocess_ms,total_ms=(time.perf_counter()-started)*1000,
+                    boxes=boxes,label=label,capture_ms=capture_ms,preprocess_ms=preprocess_ms,
+                    total_ms=capture_ms+(time.perf_counter()-started)*1000,
                     prediction=None if prediction is None else prediction.to_dict())
         marked=image.copy()
         draw=ImageDraw.Draw(marked)
@@ -185,7 +175,8 @@ class CameraDemo(tk.Frame):
             self.scores.config(text="无人脸时不执行表情分类" if self.mode=="emotion" else "")
         source="电脑 · YuNet" if self.mode=="host" else self.session.source
         self.latency.config(text=source+" · "+(prediction.timing_text() if prediction else f"主机处理 {record['total_ms']:.1f} ms"))
-        self.status.config(text=f"采集后处理合计 {record['total_ms']:.1f} ms · 预处理/检测 {record['preprocess_ms']:.1f} ms" +
+        self.status.config(text=f"采集/读取 {record['capture_ms']:.1f} ms · "
+                           f"预处理/检测 {record['preprocess_ms']:.1f} ms · 合计 {record['total_ms']:.1f} ms" +
                            (" · 实验模型，尚未现场验收" if self.mode != 'host' else ""))
         self.records.append(record)
         # Bound memory during long live demonstrations.

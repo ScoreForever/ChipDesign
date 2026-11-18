@@ -3,7 +3,7 @@ on:
   push:
     branches: ['demo', 'demo-software']
   pull_request:
-    paths: ['software/host/demo.py', 'software/host/demos/**', 'software/tests/test_demos.py', 'software/zoo/qat.py', '.github/workflows/demo.yml']
+    paths: ['software/host/demo.py', 'software/host/demos/**', 'software/host/npu_e2e.py', 'software/tests/test_demos.py', 'software/tests/check_demo_phone_capture.js', 'software/zoo/qat.py', '.github/workflows/demo.yml']
   workflow_dispatch:
 permissions:
   contents: read

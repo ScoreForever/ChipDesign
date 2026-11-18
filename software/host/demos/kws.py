@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import time
 import tkinter as tk
 from tkinter import filedialog, ttk
 import wave
@@ -125,15 +126,19 @@ class Demo(tk.Frame):
         self.run(lambda: self.prepare_clip(capture), self.submit_clip, status)
 
     def prepare_clip(self, capture):
+        started = time.perf_counter()
         samples, rate = capture()
+        captured = time.perf_counter()
         audio = one_second(samples, rate)
         values = quantize(mfcc(audio), self.mean, self.std, self.session.scale).ravel().tolist()
-        return abs(audio.reshape(100, -1)).max(axis=1), values
+        timing = dict(capture_ms=(captured - started) * 1000,
+                      preprocess_ms=(time.perf_counter() - captured) * 1000)
+        return abs(audio.reshape(100, -1)).max(axis=1), values, timing
 
     def submit_clip(self, clip):
-        self.envelope, values = clip
+        self.envelope, values, timing = clip
         self.draw_waveform()
-        self.run(lambda: self.session.infer(values), self.show_result, "正在推理")
+        self.run(lambda: (self.session.infer(values, **timing), timing), self.show_result, "正在推理")
 
     def draw_waveform(self):
         canvas = self.waveform
@@ -147,15 +152,16 @@ class Demo(tk.Frame):
                 peak = min(float(value), 1) * (center - 5)
                 canvas.create_line(x, center - peak, x, center + peak, fill=ACCENT, width=2)
 
-    def show_result(self, result):
-        index, elapsed = result
-        label = self.session.metadata["classes"][index]
+    def show_result(self, completed):
+        result, timing = completed
+        label = self.session.metadata["classes"][result.index]
         self.word.config(text={"unknown": "未识别", "silence": "静音"}.get(label, label))
         self.action.config(text=TARGETS.get(label, "等待目标词"))
         self.latency.config(text=result.timing_text(), wraplength=300)
         self.scores.config(text="INT32 分数（非概率）：\n" + " · ".join(
             f"{k}: {v}" for k, v in zip(self.session.metadata["classes"], result.scores)))
-        self.status.config(text="识别完成")
+        self.status.config(text=f"采集/读取 {timing['capture_ms']:.1f} ms · "
+                           f"预处理 {timing['preprocess_ms']:.1f} ms")
         self.set_controls(True)
 
     def finish(self, callback):
