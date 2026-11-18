@@ -52,11 +52,12 @@ def power(path):
         m = re.search(r'(?m)^' + re.escape(label) + r'\s+' + num_re + r'\s+' + num_re + r'\s+' + num_re + r'\s+' + num_re, text)
         if m:
             groups[key] = float(m[4]) * default_scale
-    if groups:
-        result['macro_mw'] = groups.get('macro_mw', 0.0)
-        result['sequential_mw'] = groups.get('sequential_mw', 0.0)
-        result['combinational_mw'] = groups.get('combinational_mw', 0.0)
-        result['io_mw'] = groups.get('io_mw', 0.0)
+    if 'macro_mw' in groups:
+        result['macro_mw'] = groups['macro_mw']
+    for key in ('sequential_mw', 'combinational_mw', 'io_mw'):
+        if key in groups:
+            result[key] = groups[key]
+    if 'clock_comb_mw' in groups or 'clock_seq_mw' in groups:
         result['clock_mw'] = groups.get('clock_comb_mw', 0.0) + groups.get('clock_seq_mw', 0.0)
     result['activity_percent'] = None
     if 'total_mw' not in result:
