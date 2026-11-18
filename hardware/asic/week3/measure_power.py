@@ -123,10 +123,18 @@ def main():
              '+define+BUSY_PROBE=dut.'+busy,'+neg_tchk','-ignr_warnmax','SDFNEP','-ignr_warnmax','SDFNET',
              *[libs[k] for k in ('std_verilog','io_verilog','macro_verilog')],
              cand/'outputs/simulation.v',HERE/'tb_fullchip_power.sv'],out,'elaboration.log')
+    prior_hashes = {}
+    prior_path = out/'power_summary.json'
+    if args.summarize_existing and prior_path.is_file():
+        prior_data = json.loads(prior_path.read_text())
+        for item in prior_data.get('workloads', []):
+            if item.get('name') and item.get('vcd_sha256'):
+                prior_hashes[item['name']] = item['vcd_sha256']
     rows = []
     for name in models:
         directory = out/name
         vcd = directory/'activity.vcd'
+        hash_file = directory/'vcd.sha256'
         if not args.summarize_existing:
             directory.mkdir()
             (directory/'commands.txt').write_text(workload(name))
@@ -139,7 +147,15 @@ def main():
         if not window or not cycles or 'PNR_OPT_JTAG_PASS' not in log:
             raise RuntimeError('Missing simulation evidence: '+name)
         row = dict(zip(('busy_ns','irq_ns','dt_ns','core_edges','nominal_ns'),map(float,window.groups())))
-        vcd_hash = sha256_file(vcd) if vcd.is_file() else ''
+        if vcd.is_file():
+            vcd_hash = sha256_file(vcd)
+            hash_file.write_text(vcd_hash + '\n')
+        elif args.summarize_existing and hash_file.is_file() and hash_file.read_text().strip():
+            vcd_hash = hash_file.read_text().strip()
+        elif args.summarize_existing and name in prior_hashes:
+            vcd_hash = prior_hashes[name]
+        else:
+            raise RuntimeError(f'Missing VCD and recorded SHA-256 for {name}; refusing to overwrite provenance')
         row.update(name=name,npu_cycles=int(cycles[1]),vcd_sha256=vcd_hash)
         if row['core_edges']<row['npu_cycles'] or row['dt_ns']<=0:
             raise RuntimeError('Invalid inference window')
@@ -154,7 +170,7 @@ def main():
         for name, row in [('vectorless',None)]+[(r['name'],r) for r in rows]:
             if row:
                 script += ['read_activity_file -reset',f'read_activity_file -format VCD -scope tb_fullchip_power.dut -start {row["busy_ns"]}ns -end {row["irq_ns"]}ns {tcl(out/name/"activity.vcd")}']
-            script += [f'report_power -view func_tt_io -outfile power_{name}.rpt', f'catch {{report_power -view func_tt_io -cell_type macro -outfile power_{name}_macro.rpt}}']
+            script += [f'report_power -view func_tt_io -outfile power_{name}.rpt']
         script += ['puts WEEK3_POWER_DONE','exit']
         (inv/'power.tcl').write_text('\n'.join(script)+'\n')
         log = run(['innovus','-no_gui','-files',inv/'power.tcl'],inv,'console.log')
@@ -163,6 +179,8 @@ def main():
     if 'WEEK3_POWER_DONE' not in log:
         raise RuntimeError('Innovus did not finish')
     baseline = power(inv/'power_vectorless.rpt')
+    if 'macro_mw' not in baseline:
+        raise RuntimeError('Missing macro power breakdown for vectorless baseline')
     inv_log = (inv/'console.log').read_text(errors='replace')
     for row in rows:
         parsed = power(inv/f'power_{row["name"]}.rpt')
@@ -178,12 +196,9 @@ def main():
         macro_rpt = inv/f'power_{row["name"]}_macro.rpt'
         if 'macro_mw' not in parsed:
             if macro_rpt.is_file():
-                try:
-                    parsed['macro_mw'] = power(macro_rpt)['total_mw']
-                except ValueError:
-                    parsed['macro_mw'] = 0.0
+                parsed['macro_mw'] = power(macro_rpt)['total_mw']
             else:
-                parsed['macro_mw'] = 0.0
+                raise RuntimeError(f'Missing macro power breakdown for {row["name"]}')
         row.update(parsed)
         row['energy_uJ'] = row['total_mw']*row['dt_ns']*1e-6
         if not args.keep_vcd and (out/row['name']/'activity.vcd').is_file():
