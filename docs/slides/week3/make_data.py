@@ -349,7 +349,12 @@ def main():
     (OUT / 'jtag_rows.tex').write_text(''.join(jl), encoding='utf-8')
     N['RpcModels'] = str(len(e2e))
     N['RpcSpMin'], N['RpcSpMax'] = f'{min(sp):.1f}', f'{max(sp):.1f}'
-    N['RpcPipe'] = str(e2e[0]['rpc_counts']['pipeline']['load_rpcs'] + e2e[0]['rpc_counts']['pipeline']['infer_rpcs'])
+    pipe_loads = {r_['rpc_counts']['pipeline']['load_rpcs'] for r_ in e2e}
+    pipe_infers = {r_['rpc_counts']['pipeline']['infer_rpcs'] for r_ in e2e}
+    assert len(pipe_loads) == 1 and len(pipe_infers) == 1
+    N['RpcPipeLoad'] = str(next(iter(pipe_loads)))
+    N['RpcPipeInfer'] = str(next(iter(pipe_infers)))
+    N['RpcPipe'] = str(next(iter(pipe_loads)) + next(iter(pipe_infers)))
     N['RpcMsPer'] = grab(r'([\d.]+) ms/RPC', e2e[0]['rpc_latency_assumption'], 'e2e_timing.json')[1]
     anc = {r_['protocol']: r_ for r_ in jload(JT / 'ecg_1mhz_anchor.json')}
     N['AnchorTck'] = f"{1e3 / anc['burst']['tck_ns']:.0f}"

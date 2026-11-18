@@ -93,8 +93,8 @@
       \textcolor{peking_gray}{软件参考，无实板}};
     \node[card=oiorange, text width=2.92cm, minimum height=3.35cm, anchor=north west, right=of a.north east, anchor=north west] (b) {%
       {\footnotesize\textbf{PR \#18 · JTAG Single-RPC}}\\[3pt]
-      load / infer 各合并为 1 次 RPC\\
-      \NRpcModels{} 个模型共 \NRpcPipe{} 次 RPC\\
+      每模型 load \NRpcPipeLoad{} + infer \NRpcPipeInfer{} 次 RPC\\
+      \NRpcModels{} 个模型均减至 \NRpcPipe{} 次\\
       估计主机往返 \hl{\NRpcSpMin--\NRpcSpMax$\times$}\\
       TclRpc fail-closed\\[2pt]
       \textcolor{peking_gray}{按 \NRpcMsPer{} ms/RPC \mbox{历史值估计}}};
@@ -370,7 +370,7 @@
         \input{data/power_plot.tex}
       \end{axis}
     \end{tikzpicture}\par
-    \snote{vectorless 高估真实负载 \NVlessOverMin--\NVlessOverMax$\times$。}
+    \snote{vectorless 估计为这 \NPwN{} 个 VCD 窗口功耗估计的 \NVlessOverMin--\NVlessOverMax$\times$。}
     \column{0.48\textwidth}
     {\scriptsize
     \begin{tabular}{@{}lrrrr@{}}
