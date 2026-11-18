@@ -38,9 +38,13 @@ def input_samples(args, session):
     if args.demo=="kws" and suffix==".wav":
         from demos.kws_audio import read_pcm,one_second,mfcc,quantize
         stats=json.loads(Path(__file__).with_name("kws_normalization.json").read_text())
-        audio=one_second(*read_pcm(str(path)))
+        started = time.perf_counter()
+        samples, rate = read_pcm(str(path))
+        captured = time.perf_counter()
+        audio=one_second(samples, rate)
         values=quantize(mfcc(audio),stats['mean'],stats['std'],session.scale).ravel().tolist()
-        return [Sample(path.name,values,audio)]
+        return [Sample(path.name, values, audio, capture_ms=(captured - started) * 1000,
+                       preprocess_ms=(time.perf_counter() - captured) * 1000)]
     if args.demo=="mnist":
         from PIL import Image,ImageOps
         from demos.mnist_input import prepare
@@ -58,31 +62,28 @@ def input_samples(args, session):
 
 def vision_input(args):
     from PIL import Image,ImageOps
-    from demos.vision import YuNet,prepare_image,letterbox,decode_faces,unmap_boxes,face_crop
+    from demos.vision import YuNet, infer_image
+    started = time.perf_counter()
     with Image.open(args.input) as source:
         image=ImageOps.exif_transpose(source).convert('RGB')
-    prediction=None
-    session=None
-    started=time.perf_counter()
+    capture_ms = (time.perf_counter() - started) * 1000
+    mode = args.face_mode if args.demo == 'face' else 'emotion'
+    session = None
+
+    def connect():
+        nonlocal session
+        session = make_session(args, args.demo)
+        session.connect()
+        return session
+
     try:
-        if args.demo=='face' and args.face_mode=='npu':
-            session=make_session(args,'face')
-            session.connect()
-            frame,transform=letterbox(image,32)
-            prediction=session.infer(prepare_image(frame,session.scale))
-            boxes=unmap_boxes(decode_faces(prediction.scores,session.metadata,(32,32)),transform,image.size)
-        else:
-            boxes=YuNet(args.yunet).detect(image)
-            if args.demo=='emotion' and boxes:
-                session=make_session(args,'emotion')
-                session.connect()
-                box=max(boxes,key=lambda b:(b[2]-b[0])*(b[3]-b[1]))
-                side=session.package.manifest['tensors']['input']['shape'][0]
-                prediction=session.infer(prepare_image(face_crop(image,box),session.scale,size=side))
-                boxes=[box]
-        return dict(task=args.demo,mode=args.face_mode if args.demo=='face' else 'emotion',
-                    backend='host' if args.demo=='face' and args.face_mode=='host' else args.backend,
-                    boxes=boxes,total_ms=(time.perf_counter()-started)*1000,
+        detector = YuNet(args.yunet) if mode != 'npu' else None
+        boxes, prediction, preprocess_ms = infer_image(
+            image, mode, detector, connect, capture_ms=capture_ms
+        )
+        return dict(task=args.demo,mode=mode,backend='host' if mode=='host' else args.backend,
+                    boxes=boxes,capture_ms=capture_ms,preprocess_ms=preprocess_ms,
+                    total_ms=(time.perf_counter()-started)*1000,
                     prediction=prediction.to_dict() if prediction else None,
                     label=session.metadata['classes'][prediction.index] if prediction and args.demo=='emotion' else None)
     finally:
@@ -96,6 +97,10 @@ def run(args, demos):
     with args.output.open('x',encoding='utf-8') as handle:
         report=dict(started_utc=datetime.now(timezone.utc).isoformat(),backend=args.backend,passed=False,
                     kind='golden_exact' if args.self_test else 'input_inference',runs=[],errors=[],fpga_validated=False)
+        coverage = {}
+        if args.self_test:
+            report['golden_coverage'] = coverage
+            report['golden_complete'] = False
         try:
             if args.input and args.demo in ('face','emotion') and args.input.suffix.lower() not in ('.json','.bin'):
                 if args.demo=='face' and args.face_mode=='host':
@@ -110,16 +115,21 @@ def run(args, demos):
                         session.connect()
                         if args.self_test:
                             golden=json.loads((session.directory/'golden.json').read_text(encoding='utf-8'))
+                            coverage[name] = dict(expected=len(golden['frames']), checked=0)
                             samples=[Sample(str(f['index']),f['input'],None,f.get('label'),f['output']) for f in golden['frames'][:args.limit]]
                         else:
                             samples=input_samples(args,session)
                         if not samples:
                             raise ValueError('没有输入窗口')
                         for sample in samples:
-                            prediction=session.infer(sample.values)
+                            prediction=session.infer(sample.values, capture_ms=sample.capture_ms,
+                                                     preprocess_ms=sample.preprocess_ms)
                             exact=list(prediction.scores)==sample.expected_scores if sample.expected_scores is not None else None
+                            if args.self_test and exact is not None:
+                                coverage[name]['checked'] += 1
                             report['runs'].append(dict(demo=name,sample=sample.name,expected=sample.expected,
-                                                       exact=exact,preprocess_ms=sample.preprocess_ms,
+                                                       exact=exact,capture_ms=sample.capture_ms,
+                                                       preprocess_ms=sample.preprocess_ms,
                                                        model_sha256=hashlib.sha256(session.package.image).hexdigest(),
                                                        input_sha256=hashlib.sha256(bytes(v&255 for v in sample.values)).hexdigest(),
                                                        **prediction.to_dict()))
@@ -132,7 +142,11 @@ def run(args, demos):
                         if session:
                             session.close()
             report['passed']=bool(report['runs']) and not report['errors']
-            report['fpga_validated']=report['passed'] and args.backend=='fpga' and args.self_test
+            if args.self_test:
+                report['golden_complete'] = coverage.keys() == demos.keys() and all(
+                    item['expected'] > 0 and item['checked'] == item['expected'] for item in coverage.values()
+                )
+                report['fpga_validated'] = report['passed'] and report['golden_complete'] and args.backend == 'fpga'
         except Exception as exc:
             report['errors'].append(f'{type(exc).__name__}: {exc}')
         finally:

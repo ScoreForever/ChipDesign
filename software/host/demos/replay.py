@@ -163,8 +163,8 @@ class ReplayDemo(tk.Frame):
         path = self.follow_path
         def job():
             try:
-                # Bound memory/filter cost during a long capture. Keep timestamps.
-                samples = phone_csv(path,self.session.scale,getattr(self.app.args,'imu_rotation',None))
+                samples = phone_csv(path, self.session.scale, getattr(self.app.args, 'imu_rotation', None),
+                                    live=True)
                 return samples, None
             except (OSError,ValueError) as exc:
                 return [], str(exc)
@@ -220,7 +220,9 @@ class ReplayDemo(tk.Frame):
         if not self.ready or self.future is not None:
             return
         self.run_started = time.perf_counter()
-        self.run(lambda: self.session.infer(self.samples[self.index].values), self.show_result, "正在推理")
+        sample = self.samples[self.index]
+        self.run(lambda: self.session.infer(sample.values, preprocess_ms=sample.preprocess_ms),
+                 self.show_result, "正在推理")
 
     def show_result(self, result):
         sample = self.samples[self.index]
@@ -229,7 +231,9 @@ class ReplayDemo(tk.Frame):
         self.scores.config(text="原始 INT32 分数（非概率）：\n" + "  ·  ".join(
             f"{label}: {score}" for label, score in zip(self.session.metadata["classes"], result.scores)))
         self.latency.config(text=f"{self.session.source} · {result.timing_text()}")
-        self.status.config(text=f"预处理 {sample.preprocess_ms:.2f} ms" +
+        preprocess = (f"预处理 {sample.preprocess_ms:.2f} ms" if sample.preprocess_ms is not None
+                      else "已量化输入")
+        self.status.config(text=preprocess +
                            (" · 黄金输出逐项一致" if exact else " · 黄金输出不一致" if exact is False else " · 无逐位黄金输出"),
                            fg=ERROR if exact is False else MUTED)
         self.records.append(dict(model=self.name, backend=self.app.args.backend, sample=sample.name,

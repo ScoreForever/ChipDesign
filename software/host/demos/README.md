@@ -107,7 +107,7 @@ python software/host/demos/phone_capture.py --output build/phone_session.csv
 Android USB 调试环境可先执行 `adb reverse tcp:8765 tcp:8765`，再在手机浏览器打开终端输出的 localhost URL。
 局域网接入时用 `--bind 0.0.0.0 --cert server.pem --key server.key`；将输出 URL 的主机部分换为电脑局域网地址，
 使用手机已信任、包含该地址的 HTTPS 证书。传感器 API 要求安全上下文；程序不会绕过浏览器证书或权限检查。
-令牌只供本次采集使用。手机页面点击「开始采集」才请求传感器权限，点击停止后结束采集。
+令牌只供本次采集使用。手机页面点击「开始采集」才请求传感器权限，停止后会先发送已采集的数据，再开放下一轮。
 
 在电脑 HAR 页面点「跟随手机 CSV」，选择接收端输出文件；也可用「导入手机 CSV」回放已结束的采集。
 CSV 列为 `time_s,ax,ay,az,gx,gy,gz`，单位分别是秒、m/s²（含重力）和 rad/s。
@@ -115,7 +115,8 @@ CSV 列为 `time_s,ax,ay,az,gx,gy,gz`，单位分别是秒、m/s²（含重力�
 拒绝重复/倒序包，不把缺失数据默认为零。
 
 前端对齐到 50 Hz，经过中值/20 Hz 低通、0.3 Hz 重力分离，构造九路输入。
-窗口 2.56 秒，50% 重叠；加滤波预热后首窗约 3.1 秒。跟随模式仅保留最近 40 秒，并显示最新完整窗口，避免积压旧任务。
+窗口 2.56 秒，50% 重叠；加滤波预热后首窗约 3.1 秒。跟随模式处理最近 2,000 行，并显示最新完整窗口。
+遇到超过 100 ms 的时间戳缺口时，跟随模式会从断点后重新积累连续窗口。导入 CSV 时仍会报告缺口。
 可用 `--imu-rotation rotation.json` 提供从手机到训练腰部坐标的右手 3×3 正交旋转矩阵。
 必须固定佩戴方向。手机前端是近似实现，尚未与 UCI 的原始采集系统或参与者实测校准，不能套用数据集准确率。
 
@@ -157,10 +158,15 @@ python software/host/demo.py emotion --input photo.jpg --backend reference --out
 也支持各模型 `golden.json` 或打包 INT4 `.bin`；JSON 有期望输出时检查每个 INT32 值。
 空图像、非法窗口或黄金不一致会返回非零状态。MNIST 图片按四角亮度判断是否反色，再使用画板的同一预处理。
 报告的 `passed` 代表本次操作/黄金比较成功，不能作为现场识别准确率或全套板卡签核。
+自测报告中的 `golden_coverage` 列出各场景的向量总数和实际比对数。全部场景的全部向量均完成比对时，`golden_complete` 为 true。
+只有 FPGA 后端完成完整黄金自测且所有输出一致时，`fpga_validated` 才为 true。
 
 任一页面可加 `--log build/demo_events.jsonl`：逐次保存输入 packed hex、模型哈希、输出分数、后端和时序，便于之后用固定输入对照实板。
 推理往返不包括模型加载、采集或预处理；板端周期另一次被动读取，读取耗时单列 `counter_ms`。
-图片 headless 报告的 `total_ms` 包括该调用的冷加载；GUI 同页面则复用模型。
+FPGA 后端另记录 `transfer_ms`（输入、结果与相关协议操作）和 `compute_wait_ms`（启动到主机观察到完成）。
+相机和 KWS 记录采集或读取时间 `capture_ms` 及推理前处理时间 `preprocess_ms`。
+HAR 记录窗口预处理耗时，手机窗口的耗时包含本批次共享的对齐和滤波。
+图片 headless 报告的 `total_ms` 包含文件读取和冷加载。GUI 同页面复用模型。
 
 ## 测试与模型重训
 

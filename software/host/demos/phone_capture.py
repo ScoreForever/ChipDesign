@@ -27,13 +27,80 @@ p{line-height:1.7}#status{white-space:pre-wrap;color:#90ecd2}</style>
 <button id="start">开始采集</button><button id="stop" disabled>停止</button><p id="status">尚未采集</p>
 <script>
 const token=new URLSearchParams(location.search).get('token');
-let active=false,buffer=[],count=0,timer,chain=Promise.resolve();
+let active=false,failed=false,buffer=[],count=0,timer,chain=Promise.resolve();
 const status=document.querySelector('#status');
-function end(){active=false;clearInterval(timer);removeEventListener('devicemotion',sample);document.querySelector('#stop').disabled=true;document.querySelector('#start').disabled=false}
-function flush(){if(!buffer.length)return;let batch=buffer;buffer=[];chain=chain.then(async()=>{let r=await fetch('/samples',{method:'POST',headers:{'Content-Type':'application/json','X-Demo-Token':token},body:JSON.stringify(batch)});if(!r.ok)throw Error(await r.text());count+=batch.length;status.textContent=`已保存 ${count} 点\n将电脑端 HAR 页面设为跟随这个 CSV。`}).catch(e=>{end();status.textContent='采集停止：'+e.message;throw e});chain.catch(()=>{})}
-function sample(e){if(!active)return;const a=e.accelerationIncludingGravity,g=e.rotationRate;if(!a||!g||[a.x,a.y,a.z,g.beta,g.gamma,g.alpha].some(v=>v==null||!Number.isFinite(v))){end();status.textContent='设备未提供完整的加速度和角速度';return}buffer.push([e.timeStamp/1000,a.x,a.y,a.z,g.beta*Math.PI/180,g.gamma*Math.PI/180,g.alpha*Math.PI/180]);if(buffer.length>300){end();status.textContent='采集过载，请重新开始';buffer=[]}}
-document.querySelector('#start').onclick=async()=>{try{if(!isSecureContext)throw Error('请使用 HTTPS 或 USB localhost 连接');if(typeof DeviceMotionEvent==='undefined')throw Error('此浏览器没有 DeviceMotion');if(DeviceMotionEvent.requestPermission&&await DeviceMotionEvent.requestPermission()!=='granted')throw Error('没有获得传感器权限');buffer=[];chain=Promise.resolve();active=true;count=0;document.querySelector('#start').disabled=true;document.querySelector('#stop').disabled=false;addEventListener('devicemotion',sample);timer=setInterval(flush,500);status.textContent='采集中；至少保持 3 秒';}catch(e){status.textContent=e.message}};
-document.querySelector('#stop').onclick=()=>{end();flush();chain.then(()=>status.textContent+= '\\n已停止').catch(()=>{})};
+const start=document.querySelector('#start'), stop=document.querySelector('#stop');
+function end(){
+  active=false;
+  clearInterval(timer);
+  removeEventListener('devicemotion',sample);
+  stop.disabled=true;
+}
+function flush(){
+  if(!buffer.length)return;
+  const batch=buffer;
+  buffer=[];
+  chain=chain.then(async()=>{
+    if(failed)return;
+    const request=new AbortController();
+    const timeout=setTimeout(()=>request.abort(),10000);
+    try{
+      const r=await fetch('/samples',{method:'POST',headers:{'Content-Type':'application/json','X-Demo-Token':token},body:JSON.stringify(batch),signal:request.signal});
+      if(!r.ok)throw Error(await r.text());
+    }finally{
+      clearTimeout(timeout);
+    }
+    count+=batch.length;
+    if(active)status.textContent='已保存 '+count+' 点\\n将电脑端 HAR 页面设为跟随这个 CSV。';
+  }).catch(error=>{
+    failed=true;
+    buffer=[];
+    end();
+    status.textContent='采集停止：'+error.message;
+    // Wait for batches already queued behind the failed request.
+    void chain.then(()=>{start.disabled=false});
+  });
+}
+async function finish(message){
+  end();
+  flush();
+  await chain;
+  if(!failed)status.textContent=message+'，已保存 '+count+' 点';
+  start.disabled=false;
+}
+function sample(e){
+  if(!active)return;
+  const a=e.accelerationIncludingGravity,g=e.rotationRate;
+  if(!a||!g||[a.x,a.y,a.z,g.beta,g.gamma,g.alpha].some(v=>v==null||!Number.isFinite(v))){
+    void finish('设备未提供完整的加速度和角速度');
+    return;
+  }
+  buffer.push([e.timeStamp/1000,a.x,a.y,a.z,g.beta*Math.PI/180,g.gamma*Math.PI/180,g.alpha*Math.PI/180]);
+  if(buffer.length>300){
+    buffer=[];
+    void finish('采集过载，请重新开始');
+  }
+}
+start.onclick=async()=>{
+  if(start.disabled)return;
+  start.disabled=true;
+  try{
+    if(!isSecureContext)throw Error('请使用 HTTPS 或 USB localhost 连接');
+    if(typeof DeviceMotionEvent==='undefined')throw Error('此浏览器没有 DeviceMotion');
+    if(DeviceMotionEvent.requestPermission&&await DeviceMotionEvent.requestPermission()!=='granted')throw Error('没有获得传感器权限');
+    failed=false;
+    active=true;
+    count=0;
+    stop.disabled=false;
+    addEventListener('devicemotion',sample);
+    timer=setInterval(flush,500);
+    status.textContent='采集中；至少保持 3.1 秒';
+  }catch(error){
+    status.textContent=error.message;
+    start.disabled=false;
+  }
+};
+stop.onclick=()=>finish('已停止');
 </script></html>"""
 
 
