@@ -1,0 +1,118 @@
+{
+  "corners": [
+    {
+      "corner": "ss125",
+      "mode": "setup",
+      "wns": "-16.772",
+      "start": "i_control/i_npu/d_reg[0][0]/Q",
+      "end": "i_control/i_activation_i_store_g_bank[0].i_sram/WEN[0]",
+      "arrival": "32.041",
+      "required": "15.268",
+      "tns_2000": "-13337.958",
+      "violating_endpoints_2000": "2000"
+    },
+    {
+      "corner": "ss125",
+      "mode": "hold",
+      "wns": "0.458",
+      "start": "i_control/i_npu/i_requant/out_data_reg[3]/Q",
+      "end": "i_control/i_npu/write_data_reg[5][3]/D",
+      "arrival": "2.794",
+      "required": "2.336",
+      "tns_2000": "0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "tt25",
+      "mode": "setup",
+      "wns": "0.628",
+      "start": "i_control/i_npu/d_reg[0][0]/Q",
+      "end": "i_control/i_activation_i_store_cache_data_reg[7][7]/D",
+      "arrival": "20.083",
+      "required": "20.711",
+      "tns_2000": "0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "tt25",
+      "mode": "hold",
+      "wns": "0.231",
+      "start": "i_control/i_activation_i_store_cache_data_reg[15][22]/Q",
+      "end": "i_control/i_activation_i_store_high_word_reg[22]/D",
+      "arrival": "1.627",
+      "required": "1.396",
+      "tns_2000": "0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ff0",
+      "mode": "setup",
+      "wns": "4.568",
+      "start": "i_control/i_npu/d_reg[0][0]/Q",
+      "end": "i_control/i_activation_i_store_cache_data_reg[7][7]/D",
+      "arrival": "15.885",
+      "required": "20.453",
+      "tns_2000": "0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ff0",
+      "mode": "hold",
+      "wns": "0.097",
+      "start": "i_control/i_activation_i_store_cache_data_reg[12][22]/Q",
+      "end": "i_control/i_activation_i_store_high_word_reg[22]/D",
+      "arrival": "1.186",
+      "required": "1.090",
+      "tns_2000": "0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ffm40",
+      "mode": "setup",
+      "wns": "5.363",
+      "start": "i_control/i_npu/d_reg[0][0]/Q",
+      "end": "i_control/i_activation_i_store_cache_data_reg[7][7]/D",
+      "arrival": "15.063",
+      "required": "20.426",
+      "tns_2000": "0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ffm40",
+      "mode": "hold",
+      "wns": "0.081",
+      "start": "i_control/i_npu/d_reg[2][0]/Q",
+      "end": "i_control/i_npu/element_addr_reg[1]/SI",
+      "arrival": "1.134",
+      "required": "1.053",
+      "tns_2000": "0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "SS125_DERATED",
+      "mode": "setup",
+      "wns": "0.234",
+      "start": "i_host/ack_toggle_reg/Q",
+      "end": "i_host/ack_sync_reg[0]/D",
+      "arrival": "2.305",
+      "required": "2.539",
+      "tns_2000": "NA",
+      "violating_endpoints_2000": "NA"
+    },
+    {
+      "corner": "SS125_DERATED",
+      "mode": "hold",
+      "wns": "0.458",
+      "start": "i_control/i_npu/i_requant/out_data_reg[3]/Q",
+      "end": "i_control/i_npu/write_data_reg[5][3]/D",
+      "arrival": "2.794",
+      "required": "2.336",
+      "tns_2000": "NA",
+      "violating_endpoints_2000": "NA"
+    }
+  ],
+  "cdc_rows": 452,
+  "sram_rows": 8,
+  "rc_note": "Typical captable only, temperature scaled; no RC process corners",
+  "passed": true
+}
