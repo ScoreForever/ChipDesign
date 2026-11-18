@@ -1,18 +1,20 @@
-# FPGA 验证
+# CPU/GDB历史验证（2026-10-20）
 
-当前无 CPU NPU 的构建、JTAG 和板测入口见 [No-CPU 板测流程](NOCPU_BOARD_CHECK.md)。
+> 历史CPU SoC归档。正文中的“当前”“main”和通过结论均指当时的源码快照，不适用于现行无CPU NPU。旧命令需在对应历史checkout中复现，不应直接用于当前工程。当前验证入口见 [No-CPU板测流程](../../NOCPU_BOARD_CHECK.md) 和 [人工签核表](../../SIGNOFF_CHECKLIST.md)。
+
+当前无 CPU NPU 的构建、JTAG 和板测入口见 [No-CPU 板测流程](../../NOCPU_BOARD_CHECK.md)。
 
 ## 2026-10-20 历史 CPU/GDB 工作流
 
 下面的命令和结果记录对应早期 CPU SoC。复现时请使用 [清理前的 Git 快照](https://github.com/ScoreForever/ChipDesign/tree/8d475b26306ec9b6103fbcf622a5dde6504d6db2) 中的脚本和相应历史硬件。
 
-> 2026-10-20 后续修复见 [CDC 与门禁修复记录](../../docs/FPGA_CDC_CLOSURE_20261020.md)。
-> 当前执行器要求 schema=3、同次构建的 `build_identity.json` 和有效外部IO路径审计。使用 `build/fpga_jtag_io_20261020_r2/`；schema=1/2旧证据仅供历史追溯。新约束在[已声明的短线接口模型](../../docs/JTAG_IO_TIMING.md)内关闭TIMING-18；物理传播/TMS输出包络尚非实测保证。
+> 2026-10-20 后续修复见 [CDC 与门禁修复记录](FPGA_CDC_CLOSURE_20261020.md)。
+> 当前执行器要求 schema=3、同次构建的 `build_identity.json` 和有效外部IO路径审计。使用 `build/fpga_jtag_io_20261020_r2/`；schema=1/2旧证据仅供历史追溯。新约束在[已声明的短线接口模型](../../../../docs/JTAG_IO_TIMING.md)内关闭TIMING-18；物理传播/TMS输出包络尚非实测保证。
 
 本工作流把“生成向量 → 明确烧写对象 → CPU/GDB → RTL/板上比对 → 复位恢复 → 实现审计 → 汇总门禁”串起来。
 这是有限的定向和随机回归，不提供 RTL 穷尽证明。任何阶段失败、文件哈希变化、缺失用例都不能签核；功能通过也不能自动豁免 CDC。
 
-最新外部IO版本的[结果汇总](results/2026-10-20-jtag-io/report.md)和[机器汇总](results/2026-10-20-jtag-io/report.json)单独保存。此前[CDC修复版](results/2026-10-20-cdc/report.md)与[最初历史快照](results/2026-10-20/report.md)保持原样。完整证据在本机build目录，未随Git发布。
+最新外部IO版本的[结果汇总](../../results/2026-10-20-jtag-io/report.md)和[机器汇总](../../results/2026-10-20-jtag-io/report.json)单独保存。此前[CDC修复版](../../results/2026-10-20-cdc/report.md)与[最初历史快照](../../results/2026-10-20/report.md)保持原样。完整证据在本机build目录，未随Git发布。
 
 当前验证对象：以 `main` 提交 `9d25b0965ba4c190c4ec352d4f4b9b5b5920273b` 为基线，加本地 CDC 复位/约束修复，以及 **TCK → J5 第21脚 / H16**。
 TDI18、TDO19、TMS20、GND33/34、VREF35/36；第17脚留空。系统50MHz，TCK约束1MHz，测试适配器500kHz。
@@ -33,11 +35,11 @@ $dcp = 'build/fpga_jtag_io_20261020_r2/route.dcp'
 $hash = 'd45dc5ee146f71a7247886d1eba462391ea139ba0de283db4d85122af848e368'
 
 ./verification/fpga/run.ps1 -Stage Prepare -Output $out -Soak 100
-./verification/fpga/run.ps1 -Stage Program -Output $out -Bitstream $bit -BitstreamSha256 $hash -CableSerial '1234-tulA'
+./verification/fpga/run.ps1 -Stage Program -Output $out -Bitstream $bit -BitstreamSha256 $hash -CableSerial '<FPGA_CABLE_ID>'
 ```
 
 烧写使用同目录 `summary.md` 的构建验收结果，检查器件、DONE和CRC，生成 `deployment.json`；它是烧写命令和文件身份记录，不等价于配置帧逐位回读证明。
-独立终端中先转发外部FT232H并运行OpenOCD。USB BUSID需先用 `UsbList` 获取；本机此前为1-3。
+独立终端中先转发外部FT232H并运行OpenOCD。USB BUSID需先用 `UsbList` 获取；本机此前使用过一个临时 BUSID。
 
 ```powershell
 ./scripts/lab6/lab6.ps1 -Action UsbList
@@ -95,7 +97,7 @@ PowerShell遇到非0会抛错并停止。通过外部接口设计模型时`physi
 重读已有结果可执行：
 
 ```powershell
-& 'C:/Users/Lenovo/.conda/envs/ai_env/python.exe' verification/fpga/report.py --output build/fpga_validation_jtag_io_20261020
+& '<WINDOWS_PYTHON>' verification/fpga/report.py --output build/fpga_validation_jtag_io_20261020
 ```
 
 ## 实现签核状态
@@ -105,5 +107,5 @@ PowerShell遇到非0会抛错并停止。通过外部接口设计模型时`physi
 3. 已关闭异步时钟组切断DMI最大延迟的问题：现按data/req/ack六组端点约束并检查实际路径，全部满足20ns上限；保留75条CDC-15握手结构告警可见，不等于协议形式证明。
 4. `TIMING-18`已在声明的FT232H短线接口模型内归零：外部min/max及等价参考边沿、按键/LED分类均被审计。≤30cm直连、传播0..5ns、TMS输出包络等条件保留为假设；换线缆/适配器/采样边沿必须重建模型。
 
-后续修复仍应闭环：修复 → 新bit/dcp → 新烧写记录 → 全量工作流 → CDC/时序复审。测试本身的剩余缺口见[测试审查](../../docs/FPGA_TEST_REVIEW_20261020.md)。
+后续修复仍应闭环：修复 → 新bit/dcp → 新烧写记录 → 全量工作流 → CDC/时序复审。测试本身的剩余缺口见[测试审查](FPGA_TEST_REVIEW_20261020.md)。
 尚未开展形式证明/等价检查、完整CPU ISA符合性、功能/代码覆盖率收敛、布局后时序仿真、温压/电气裕量、物理按键/PLL丢锁测试及真实语音数据准确率。有限回归通过不能替代这些验证。

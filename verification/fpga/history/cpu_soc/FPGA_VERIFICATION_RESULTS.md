@@ -1,18 +1,20 @@
 # FPGA 分层验证结果与边界
 
-> 下文为CDC修复前的历史基线。最新结果见[JTAG时序处理记录](JTAG_IO_TIMING.md)与[机器汇总](../verification/fpga/results/2026-10-20-jtag-io/report.json)，CDC修复经过见[历史记录](FPGA_CDC_CLOSURE_20261020.md)，剩余测试问题见[审查记录](FPGA_TEST_REVIEW_20261020.md)。旧告警不再代表当前网表。
+> 历史CPU SoC归档。正文中的“当前”“main”和通过结论均指当时的源码快照，不适用于现行无CPU NPU。旧命令需在对应历史checkout中复现，不应直接用于当前工程。当前验证入口见 [No-CPU板测流程](../../NOCPU_BOARD_CHECK.md) 和 [人工签核表](../../SIGNOFF_CHECKLIST.md)。
+
+> 下文为CDC修复前的历史基线。最新结果见[JTAG时序处理记录](../../../../docs/JTAG_IO_TIMING.md)与[机器汇总](../../results/2026-10-20-jtag-io/report.json)，CDC修复经过见[历史记录](FPGA_CDC_CLOSURE_20261020.md)，剩余测试问题见[审查记录](FPGA_TEST_REVIEW_20261020.md)。旧告警不再代表当前网表。
 
 2026-10-20，验证对象为 `main@9d25b09` 加本地 TCK H16/J5第21脚约束，50MHz。
 本次未改 CPU/NPU/JTAG RTL。比特流 SHA256：`015e93fa87080f09380b687ffbdc8c5923483fc7e443555280c049a12e02a316`。
 
 **功能回归通过；完整实现签核尚未通过。**
-正式证据在 `build/fpga_validation_20261020_v2/`，入口为[工作流说明](../verification/fpga/CPU_GDB_HISTORY.md)、[PowerShell分阶段执行器](../verification/fpga/run.ps1)。
-[机器汇总](../verification/fpga/results/2026-10-20/report.json)和[可读汇总](../verification/fpga/results/2026-10-20/report.md)由证据校验器生成，不靠人工修改PASS字段。
+正式证据在 `build/fpga_validation_20261020_v2/`，入口为[工作流说明](CPU_GDB_HISTORY.md)、[PowerShell分阶段执行器](https://github.com/ScoreForever/ChipDesign/blob/8d475b26306ec9b6103fbcf622a5dde6504d6db2/verification/fpga/run.ps1)。
+[机器汇总](../../results/2026-10-20/report.json)和[可读汇总](../../results/2026-10-20/report.md)由证据校验器生成，不靠人工修改PASS字段。
 仓库保存此次汇总快照；完整日志、固件、原始读回及源码快照保留在本地上述build目录，不随Git发布。汇总记录的是当时验证的main提交，后续发布提交不改变该验证对象。
 
 | 验证项 | 本次结果 |
 |---|---|
-| 真实烧写 | 指定板载下载线1234-tulA、xc7a35t，DONE=1，CRC_ERROR=0；烧写记录绑定manifest |
+| 真实烧写 | 指定板载下载线<FPGA_CABLE_ID>、xc7a35t，DONE=1，CRC_ERROR=0；烧写记录绑定manifest |
 | CPU JTAG/GDB | 真实连接、BootROM、SRAM、寄存器与addi单步通过 |
 | 板上推理 | 43组、190次，所有8个输出与独立整数golden逐位一致 |
 | 固件检查 | 26,365项，包括非法参数、忙时拒绝、错误恢复、DONE/性能状态 |

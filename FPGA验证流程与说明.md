@@ -39,7 +39,7 @@ FPGA验证通过后，可以作为流片前功能验证的一部分；ASIC侧的
 | `nocpu_e2e_timing.py`、`npu_e2e.py` | 实板部署与推理链路耗时 | 主机分阶段计时、golden输出和硬件性能计数 |
 | `nocpu_evidence_check.py` | 已保存的自动板测证据 | 重读文件、重算哈希、核对用例完整性，不重新访问硬件 |
 
-上述脚本均通过现行无CPU路径工作。`CPU_GDB_HISTORY.md` 中的CPU单步、固件、DMA和CPU中断寄存器检查属于历史架构，不是当前签核项目。当前RTL仍有 `irq_o=done || faulted`，表示完成或故障通知；这不意味着设计中存在CPU。RTL测试台可以直接观察IRQ，实际JTAG主机通常查询状态寄存器确认结果。
+上述脚本均通过现行无CPU路径工作。[CPU/GDB历史归档](verification/fpga/history/cpu_soc/README.md)中的CPU单步、固件、DMA和CPU中断寄存器检查属于历史架构，不是当前签核项目。当前RTL仍有 `irq_o=done || faulted`，表示完成或故障通知；这不意味着设计中存在CPU。RTL测试台可以直接观察IRQ，实际JTAG主机通常查询状态寄存器确认结果。
 
 ## 二、验证平台与两路时钟
 

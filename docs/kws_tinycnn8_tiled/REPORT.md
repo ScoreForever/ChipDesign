@@ -2,7 +2,7 @@
 
 > 2026-10-14：本文为此前调度实验记录，周期数和通过结果限定于当时的源码/参数。
 > 当前main的GAP核、MMIO参数缺口及Flat软件差异见 [当前架构](../ARCHITECTURE.md)，
-> 最新FPGA结构与验证记录见 [FPGA_DRC_CLOSURE.md](../FPGA_DRC_CLOSURE.md)。
+> 最新FPGA结构与验证记录见 [FPGA_DRC_CLOSURE.md](../../verification/fpga/history/cpu_soc/FPGA_DRC_CLOSURE.md)。
 
 ## 核心结论
 

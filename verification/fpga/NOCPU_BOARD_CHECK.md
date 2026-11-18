@@ -8,7 +8,7 @@
 
 ```powershell
 python hardware/npu/scripts/run_program_regression.py --output build/nocpu_rtl_manual
-python hardware/fpga/scripts/build_nocpu.py --vivado-root D:/Project/Vivado/2025.2/Vivado --output build/nocpu_manual_build --jobs 4 --mhz 50 --implement
+python hardware/fpga/scripts/build_nocpu.py --vivado-root <VIVADO_ROOT> --output build/nocpu_manual_build --jobs 4 --mhz 50 --implement
 ```
 
 输出目录必须是新目录；按机器调整 Vivado 路径。查看仿真结果及同次构建的 `summary.md`、布线/时序、CDC、外部 I/O、未约束路径和 DRC 报告，记录未关闭问题。不要把生成 bitstream 等同于时序或实板通过。
@@ -65,7 +65,7 @@ python verification/fpga/board/nocpu_board_check.py `
 - 在安全条件下安排物理复位、断电重配、TCK 暂停、长时间连续运行及必要的电气测试；不得将协议 RESET 等同于物理按键复位。
 - 汇总各阶段结论与尚未测试项目。通过本 smoke test 不代表这些补充项目、物理时序裕量或完整板级签核通过。
 
-旧 CPU/GDB 流程及其证据见 [2026-10-20 历史验证记录](CPU_GDB_HISTORY.md)。
+旧 CPU/GDB 流程及其证据见 [2026-10-20 历史验证记录](history/cpu_soc/CPU_GDB_HISTORY.md)。
 
 ## 6. 扩展实板自动回归（Windows）
 

@@ -1,8 +1,10 @@
 # main 分支 EGo1 构建与板上验证
 
+> 历史CPU SoC归档。正文中的“当前”“main”和通过结论均指当时的源码快照，不适用于现行无CPU NPU。旧命令需在对应历史checkout中复现，不应直接用于当前工程。当前验证入口见 [No-CPU板测流程](../../NOCPU_BOARD_CHECK.md) 和 [人工签核表](../../SIGNOFF_CHECKLIST.md)。
+
 日期：2026-10-20。当前结论：**比特流生成、烧写、CPU JTAG 和 GDB 验证全部通过。**
 
-后续扩展验证已加入非零模型、DMA、量化边界、CPU IRQ、整片SRAM、复位及RTL比对，见[验证工作流](../verification/fpga/CPU_GDB_HISTORY.md)和[最新结果](../verification/fpga/results/2026-10-20/report.md)。
+后续扩展验证已加入非零模型、DMA、量化边界、CPU IRQ、整片SRAM、复位及RTL比对，见[验证工作流](CPU_GDB_HISTORY.md)和[最新结果](../../results/2026-10-20/report.md)。
 上述“通过”描述构建和连通性；**不表示完整RTL功能/实现签核**。扩展审计发现JTAG复位跨域和CDC/IO约束问题，最终报告单独列出阻塞项。
 
 ## 最终可用配置：TCK 改接 J5 第21脚
@@ -63,7 +65,7 @@ GDB实测：
 - 布线后 WNS `+0.712 ns`、TNS `0.000 ns`、WHS `+0.015 ns`。
 - LUT `13,879 / 20,800`（66.73%），FF `11,255 / 41,600`，BRAM36 2，DSP 41。
 - 配置/BRAM 专项 DRC 无违例；完整 DRC 无 Error / Critical Warning。
-- 通过板载下载线 `1234-tulA` 烧写 `xc7a35t_0`；DONE 内部信号和管脚均为 1，CRC_ERROR 为 0。
+- 通过板载下载线 `<FPGA_CABLE_ID>` 烧写 `xc7a35t_0`；DONE 内部信号和管脚均为 1，CRC_ERROR 为 0。
 
 比特流：`build/lab6_main_20261020/fpga_top.bit`。
 SHA-256：
@@ -76,7 +78,7 @@ e43807f24caede4218a15e404b0d7fb0d25dbb3eb3e3dc0953b3e12fd997cc1b
 
 ## 原E15配置的 JTAG 定位（历史）
 
-外部 FT232H `0403:6014`，序列号 `210512180081`，BUSID `1-3`，已转发到 Ubuntu WSL。
+外部 FT232H `0403:6014`，序列号 `<FT232H_SERIAL>`，BUSID `<BUSID>`，已转发到 Ubuntu WSL。
 USB 节点的 `plugdev` 权限正常，OpenOCD 可以打开下载器。
 
 烧写后 OpenOCD 在 10 kHz 下扫描得到 `all zeroes`、IR capture `0x00`，没有识别出 CPU TAP。
@@ -96,8 +98,8 @@ FT232H 内部 64 字节 MPSSE 回环通过，说明 USB/MPSSE 收发可用；它
 应识别 RISC-V Debug Module、`XLEN=32`，并能 halt。随后从 WSL 执行准备好的 GDB 检查：
 
 ```bash
-/opt/xpack-riscv-none-elf-gcc-13.2.0-2/bin/riscv-none-elf-gdb -q -nx -batch \
-  -x /mnt/d/IWS/Advanced_SoC/ChipDesign/build/lab6_main_20261020/verify_cpu.gdb
+<RISCV_TOOLCHAIN>/bin/riscv-none-elf-gdb -q -nx -batch \
+  -x <WORKSPACE>/build/lab6_main_20261020/verify_cpu.gdb
 ```
 
 该脚本已在H16最终配置上执行通过，包含 BootRAM 读取、SRAM 读写、寄存器设置、单步执行，

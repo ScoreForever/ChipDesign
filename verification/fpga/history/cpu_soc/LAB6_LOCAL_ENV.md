@@ -1,5 +1,7 @@
 # Lab 6 本地环境
 
+> 历史CPU SoC归档。正文中的“当前”“main”和通过结论均指当时的源码快照，不适用于现行无CPU NPU。旧命令需在对应历史checkout中复现，不应直接用于当前工程。当前验证入口见 [No-CPU板测流程](../../NOCPU_BOARD_CHECK.md) 和 [人工签核表](../../SIGNOFF_CHECKLIST.md)。
+
 配置日期：2026-10-20。依据[课程 Lab 6](https://full-stack-ai-chip.tianyuj.com/lab-6/)配置。当前分支已按用户要求切换到 `main`（CV32E40P SoC）。
 
 板上验证已完成：本机将 **TCK 改接 J5 第21脚/H16**，第17脚留空；TDI18、TDO19、TMS20不变。
@@ -10,17 +12,17 @@
 
 | 工具 | 位置 / 设置 | 验证 |
 |---|---|---|
-| Vivado 2025.2 | `D:\AMDDesignTools\2025.2\Vivado` | 能启动；识别 `xc7a35tcsg324-1` |
+| Vivado 2025.2 | `<VIVADO_ROOT>` | 能启动；识别 `xc7a35tcsg324-1` |
 | Clocking Wizard 6.0 | 100 MHz 输入、50 MHz 输出、locked 开、reset 关 | 实际创建 IP 通过 |
-| ModelSim SE-64 2019.2 | `C:\modeltech64_2019.2\win64` | 实际编译、仿真通过，Errors=0 |
-| WSL 3.0.3 / kernel 6.18.54.1 | 发行版 `Ubuntu`，Ubuntu 24.04.3，WSL2，用户 `enovo` | 可运行 Linux 工具 |
-| usbipd-win 5.3.0 | `C:\Program Files\usbipd-win\usbipd.exe` | 服务和设备查询正常 |
-| RISC-V OpenOCD 0.12.0+dev-04406 | `/usr/local/bin/openocd`，启用 FTDI | 驱动与 RISC-V 目标注册检查通过 |
-| xPack RISC-V GCC 13.2.0-2 / GDB 13.2 | `/opt/xpack-riscv-none-elf-gcc-13.2.0-2` | GDB 可启动，支持 RV32 |
+| ModelSim SE-64 2019.2 | `<MODELSIM_ROOT>` | 实际编译、仿真通过，Errors=0 |
+| WSL 3.0.3 / kernel 6.18.54.1 | 发行版 `Ubuntu`，Ubuntu 24.04.3，WSL2，用户 `<WSL_USER>` | 可运行 Linux 工具 |
+| usbipd-win 5.3.0 | `<USBIPD_ROOT>` | 服务和设备查询正常 |
+| RISC-V OpenOCD 0.12.0+dev-04406 | `<OPENOCD_PATH>`，启用 FTDI | 驱动与 RISC-V 目标注册检查通过 |
+| xPack RISC-V GCC 13.2.0-2 / GDB 13.2 | `<RISCV_TOOLCHAIN>` | GDB 可启动，支持 RV32 |
 
 Vivado 与 ModelSim 已在 PATH 中。启动脚本会自动寻找 Vivado，并为当前进程设置 `XILINX_VIVADO`。
 usbipd 安装后的旧终端不一定能立刻刷新 PATH，脚本同时支持从默认安装目录寻找它。
-WSL 的 `RISCV` 和 PATH 在 `/etc/profile.d/lab6-riscv.sh` 中配置；Bash、Zsh 启动文件追加了加载语句，原文件有 `.lab6-backup-*` 备份。
+WSL 的 `RISCV` 和 PATH 在 `<RISCV_ENV_FILE>` 中配置；Bash、Zsh 启动文件追加了加载语句，原文件有 `.lab6-backup-*` 备份。
 仅为 `0403:6014` 增加 udev 规则，允许现有 `plugdev` 组成员访问下载器。该 Ubuntu 使用 WSL init；已启动 udev，`Attach` 入口也会检查并启动它。
 
 ## 使用
@@ -88,14 +90,14 @@ CPU 模式使用 3333 端口；无 CPU 模式使用 OpenOCD Tcl RPC 的 6666 端
 OpenOCD 复用已有[课程指定源码仓库](https://github.com/riscv-collab/riscv-openocd)，提交 `10b7a647da03cb64fd25db76261712c388ad6468`。
 该仓库已经归档，RISC-V 支持现已并入上游；本次使用现有源码以保持课程配置一致。
 原 checkout 是 CRLF，已通过 `normalize_openocd.py` 转回原始 LF 并确认无源码 diff。
-编译日志在 WSL `/tmp/lab6-openocd-{bootstrap,configure,build,install}.log`。
+编译日志在 WSL `<OPENOCD_BUILD_LOGS>`。
 
 安装依赖包括 `build-essential libftdi1-dev libusb-1.0-0-dev autoconf automake libtool texinfo pkg-config libjim-dev libhidapi-dev libcapstone-dev usbutils`。
-构建使用 `./bootstrap`、`./configure --enable-ftdi --prefix=/usr/local`、`make -j8`；安装和终端环境配置记录于 `scripts/lab6/configure_wsl.sh`。
+构建使用 `./bootstrap`、`./configure --enable-ftdi --prefix=<OPENOCD_PREFIX>`、`make -j8`；安装和终端环境配置记录于历史工作区脚本。
 
 ## 接入硬件后的检查（2026-10-20）
 
-已识别外部 FT232H：`0403:6014`，本次 BUSID 为 `1-3`，序列号 `210512180081`。
+已识别外部 FT232H：`0403:6014`，本次 BUSID 需现场查询，序列号 `<FT232H_SERIAL>`。
 已完成管理员 bind 和 WSL attach，Windows 状态为 Attached；Ubuntu 中识别为 FT232H，USB 节点权限为 root:plugdev 0660，普通用户可访问。
 首次 attach 后内核枚举存在短暂延迟，启动脚本已加入等待。
 10 kHz 扫描日志：`build/lab6_env_check/jtag_scan.log`，当前返回 all ones。

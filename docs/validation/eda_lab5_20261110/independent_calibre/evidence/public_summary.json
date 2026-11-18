@@ -1,0 +1,54 @@
+{
+  "scope": "Public summary of the independent ABI 5.0 ASIC rerun; raw EDA workspaces and licensed design files are intentionally omitted.",
+  "source_commit": "aa778875eed49ada6b7b36bf10b1c0cdce2ad3c9",
+  "physical_overlay": [
+    "hardware/asic/optimize/route.tcl",
+    "hardware/asic/optimize/wirebond_keepout.tcl",
+    "hardware/asic/optimize/test_wirebond_keepout.py"
+  ],
+  "configuration": {
+    "abi": "5.0",
+    "array": "8x8",
+    "core_clock_mhz": 50,
+    "jtag_clock_mhz": 1,
+    "die_um": [1940.4, 1940.4],
+    "sram_macros": 2
+  },
+  "timing": {
+    "setup_wns_ns": 0.444,
+    "hold_wns_ns": 0.022,
+    "setup_tns_ns": 0.0,
+    "hold_tns_ns": 0.0,
+    "scope": "TT condition and the WB-fixed PnR export; final filled geometry still needs independent RC extraction and STA/SDF."
+  },
+  "physical_checks": {
+    "calibre_drc_teaching_scope": "pass",
+    "lvs": "CORRECT",
+    "antenna_violations": 0,
+    "wirebond_violations": 0,
+    "erc": {
+      "status": "manual_review_required",
+      "hierarchies": 7,
+      "expanded_results": 977
+    }
+  },
+  "sdf": {
+    "status": "pass_with_documented_narrow_acceptance",
+    "jtag_commands": 41,
+    "accepted_time0_input_pad_conflicts": 5,
+    "timing_checks_disabled_for_async_reset_capture": 36,
+    "annotated_checks": 90764,
+    "scope": "The accepted diagnostics are preserved in the local EDA archive; this is not a complete tapeout signoff."
+  },
+  "signoff": {
+    "formal_tapeout_signoff": false,
+    "remaining": [
+      "ERC manual review",
+      "multi-corner STA",
+      "final filled-geometry RC extraction and STA/SDF",
+      "IR/EM analysis",
+      "DFT review",
+      "formal package/manual acceptance"
+    ]
+  }
+}

@@ -2,26 +2,19 @@
 
 流程依据：[课程 Lab 5：Signoff & Tapeout](https://full-stack-ai-chip.tianyuj.com/lab-5/)。本轮目标为整合后 ABI 5.0、8×8 NPU，不使用旧 CPU 或 ABI 4 的版图冒充当前结果。
 
+## 独立重跑与 Calibre 跟进
+
+[独立重跑与 Calibre 验证报告](independent_calibre/README.md)：已完成 `aa77887` 全新综合／PnR／SDF，并修复首轮发现的 7 处 WB 间距错误。最终 die 1.9404 × 1.9404 mm，修复版 setup/hold +0.444/+0.022 ns；Calibre DRC 按四类教学口径通过、LVS CORRECT、天线 62 项／0、WB 64 项／0。ERC 保留 7 层次／977 展开结果待人工评审；尚非完整流片签核。最终输入哈希、原始报告和复现脚本见链接。
+
 ## 面积优化最新进展
 
 [面积优化代码对应的验证报告](area_optimization/AREA_OPTIMIZATION_STATUS.md)：综合标准单元面积降低 22.48%，die 1.9404 × 1.9404 mm；一轮 Innovus 布线及 ECO 后 setup/hold +0.487/+0.050 ns，CDC 和严格 SDF 验证通过。原始报告、回归摘要、源文件哈希及实际复现脚本见同目录。独立重跑及最终 Calibre/多角/DFT/人工签核尚未完成。以下环境与面积阻塞记录描述原始基线，不代表优化候选的当前状态。
 
 ## 环境已配置
 
-连接：`ssh soc`。工艺：`/lec/pdk/tsmc180`；课程规则：`/lec/lab5/layout`；工具与课程环境：`/opt/eda/env.sh`、`/lec/eda.env`。只建立项目级环境，不改共享工具、工艺库或旧工程。
+使用课程 EDA 节点、授权 PDK/SRAM 视图和项目级环境；不改共享工具、工艺库或旧工程。具体服务器路径和登录方式不随公开仓库发布。
 
-当前 PnR/Lab 5 工程根目录：
-
-```text
-/home/s2400012892/chip-fullstack-2026/ChipDesign_abi5_20261110_8c16462
-```
-
-在服务器开启新终端后：
-
-```bash
-source ~/chip-fullstack-2026/ChipDesign_abi5_20261110_8c16462/env.sh
-cd "$CHIPDESIGN_ROOT"
-```
+在授权 EDA 节点中，应先加载课程工具环境，再进入全新隔离的项目工作目录；具体环境变量和路径由课程环境提供。
 
 Genus 综合在先前的 `ChipDesign_abi5_20261110_7fd9789` 冻结目录执行。两份快照的生产 RTL 完全相同，见 [哈希清单](production_rtl_sha256.json)。后者保留原综合过程；新目录仅在 RTL/约束、库、完成凭据、交付物哈希、时钟与 CDC 核对通过后导入原网表，绝不重写网表冒充新综合。
 
@@ -35,9 +28,9 @@ Genus 综合在先前的 `ChipDesign_abi5_20261110_7fd9789` 冻结目录执行�
 | V2LVS 小模块转换 | PASS |
 | Calibre 2022.3 DRC 引擎／许可证 | PASS；只执行环境专用的 1 条规则，不是芯片 DRC |
 | PrimeTime / Formality 实际许可证与启动 | PASS；只做环境探测，非设计时序／等价性结论 |
-| 项目 OA 映射／规则工作副本 | 已准备，规则引用 `/lec`，无错误的 `/home/almalinux` 项目路径 |
+| 项目 OA 映射／规则工作副本 | 已准备；规则与库路径留在授权 EDA 环境 |
 
-原始数据见 [环境清单](environment/environment_manifest.json)、[输入预检](environment/preflight.json)、[Seal Ring 只读检查](environment/seal_source_inspection.log)。工艺规则和库文件仅保存在服务器私有工程中，未加入仓库。
+原始环境检查保留在授权 EDA 工程；工艺规则和库文件仅保存在服务器私有工程中，未加入公开仓库。
 
 ## 综合与面积分析
 

@@ -21,6 +21,8 @@ set_interactive_constraint_modes {}
 optDesign -postCTS -setup -outDir postcts_setup
 optDesign -postCTS -hold -outDir postcts_hold
 saveDesign cts.enc
+source $here/wirebond_keepout.tcl
+add_wirebond_keepouts [llength $pads]
 setAttribute -net VDDPST -skip_routing true
 setAttribute -net VSSPST -skip_routing true
 setNanoRouteMode -routeWithTimingDriven true -routeDesignRouteClockNetsFirst true -drouteFixAntenna true

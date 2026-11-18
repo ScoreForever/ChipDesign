@@ -1,0 +1,42 @@
+{
+  "scope": "Public summary of ABI 5.0 FPGA-oriented RTL and CDC prevalidation; no Vivado routed build or board result is claimed.",
+  "base_commit": "aa778875eed49ada6b7b36bf10b1c0cdce2ad3c9",
+  "configuration": {
+    "abi": "5.0",
+    "array_cols": 8,
+    "trace": false,
+    "target_clock_mhz": 50,
+    "required_setup_wns_ns": 0.344,
+    "required_hold_wns_ns": 0.0
+  },
+  "rtl_validation": {
+    "memory_program_cases": 85,
+    "negative_categories": 19,
+    "production_models": 7,
+    "production_inferences": 14,
+    "production_vs_trace_enabled_all_24_counters_equal": true,
+    "dynamic_cdc_phase_rate_cases": [100, 32]
+  },
+  "model_cycles": {
+    "ecg": [13989, 13989],
+    "fashion_cnn": [36016, 36016],
+    "gtsrb_l": [79756, 79756],
+    "har": [15826, 15821],
+    "kws_l": [72006, 72003],
+    "kws_m": [73716, 73713],
+    "mnist_l": [30836, 30836]
+  },
+  "dynamic_cdc": {
+    "ordinary_sweeps_passed": 100,
+    "burst_sweeps_passed": 32,
+    "scope": "simulation only"
+  },
+  "not_run": [
+    "Vivado routed build",
+    "FPGA timing and static CDC review",
+    "bitstream programming",
+    "board inference",
+    "board CDC and recovery"
+  ],
+  "conclusion": "RTL and dynamic CDC prevalidation passed within the stated scope; this record is not an FPGA implementation or board signoff."
+}

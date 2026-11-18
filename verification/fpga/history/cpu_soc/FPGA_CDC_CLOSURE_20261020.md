@@ -1,6 +1,8 @@
 # FPGA CDC 与证据门禁修复（2026-10-20）
 
-> 本文保留CDC修复阶段的历史记录。后续JTAG外部IO问题已按[短线接口模型](JTAG_IO_TIMING.md)补齐约束；最新源码使用schema=3。旧报告保持不变。
+> 历史CPU SoC归档。正文中的“当前”“main”和通过结论均指当时的源码快照，不适用于现行无CPU NPU。旧命令需在对应历史checkout中复现，不应直接用于当前工程。当前验证入口见 [No-CPU板测流程](../../NOCPU_BOARD_CHECK.md) 和 [人工签核表](../../SIGNOFF_CHECKLIST.md)。
+
+> 本文保留CDC修复阶段的历史记录。后续JTAG外部IO问题已按[短线接口模型](../../../../docs/JTAG_IO_TIMING.md)补齐约束；最新源码使用schema=3。旧报告保持不变。
 
 新实现：`build/fpga_cdc_closure_20261020_r2/`。CPU/NPU 算法未改；JTAG 外部复位增加独立 TCK 域同步释放，保持 ndmreset 不复位调试传输。同步链标记 ASYNC_REG；TCK LED 同样使用同步释放复位。
 
@@ -14,9 +16,9 @@
 
 旧 schema=1 证据及已发布汇总保持历史用途，不迁移或补填新凭证。新版报告器会明确拒绝旧证据，必须生成新验证目录。
 
-新验证目录为 `build/fpga_validation_cdc_20261020/`。新bit SHA256 为 `daf0bdd6f7e264864b3203330848f612f1e13afe50e39d5b875673977f237929`，经下载线1234-tulA烧写，DONE=1、CRC_ERROR=0。GDB检查、新bit的43组/190次板上推理、6种整片SRAM模式、6轮复位恢复（3轮打断持续任务，复位后12次推理）全部通过；NPU回归7单元/21组/33,936次逐元素比较及7项SoC结构回归通过。USB/IP枚举不一致通过重新附加同一FT232H解决，OpenOCD验证结束后CPU保持halt。
+新验证目录为 `build/fpga_validation_cdc_20261020/`。新bit SHA256 为 `daf0bdd6f7e264864b3203330848f612f1e13afe50e39d5b875673977f237929`，经下载线<FPGA_CABLE_ID>烧写，DONE=1、CRC_ERROR=0。GDB检查、新bit的43组/190次板上推理、6种整片SRAM模式、6轮复位恢复（3轮打断持续任务，复位后12次推理）全部通过；NPU回归7单元/21组/33,936次逐元素比较及7项SoC结构回归通过。USB/IP枚举不一致通过重新附加同一FT232H解决，OpenOCD验证结束后CPU保持halt。
 
 尚未关闭 TIMING-18 的外部 IO 时序假设，完整签核应继续 BLOCKED。没有用任意 IO delay 数字或 waiver 消除该问题。
 
-最终schema=2验收目录：`build/fpga_validation_cdc_20261020_r3/`。恢复WSL USB附加与OpenOCD后，重新完成43组板上测试、6种SRAM模式、6轮复位及独立实现审计。最终报告证据校验通过，functional=PASS、physical=BLOCKED，唯一自动签核阻塞为TIMING-18；WNS +0.758ns、WHS +0.013ns。[最新报告快照](../verification/fpga/results/2026-10-20-cdc/report.md)与[机器汇总](../verification/fpga/results/2026-10-20-cdc/report.json)随源码发布。
+最终schema=2验收目录：`build/fpga_validation_cdc_20261020_r3/`。恢复WSL USB附加与OpenOCD后，重新完成43组板上测试、6种SRAM模式、6轮复位及独立实现审计。最终报告证据校验通过，functional=PASS、physical=BLOCKED，唯一自动签核阻塞为TIMING-18；WNS +0.758ns、WHS +0.013ns。[最新报告快照](../../results/2026-10-20-cdc/report.md)与[机器汇总](../../results/2026-10-20-cdc/report.json)随源码发布。
 新版证据单元检查5项通过，已存在的停TCK/未决事务专项仿真日志为Errors=0。测试入口集成及其他覆盖缺口见[测试审查](FPGA_TEST_REVIEW_20261020.md)，这些缺口不会因CDC关键告警清零而自动关闭。

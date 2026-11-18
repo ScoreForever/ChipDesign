@@ -1,0 +1,106 @@
+{
+  "base_commit": "aa778875eed49ada6b7b36bf10b1c0cdce2ad3c9",
+  "source_hashes_rechecked": true,
+  "fpga_memory_program_cases": 85,
+  "negative_categories": [
+    "opcode",
+    "reserved",
+    "old_abi",
+    "wrong_cols",
+    "stride",
+    "shape",
+    "model_overlap",
+    "destination",
+    "source",
+    "shift",
+    "dw_channels",
+    "pool_window",
+    "add_src2_overlap",
+    "add_fused_pool",
+    "u4_int32",
+    "dw_on_fc",
+    "pool1d_unfused",
+    "last_descriptor",
+    "lifecycle"
+  ],
+  "production_trace_off_models": 7,
+  "production_inferences": 14,
+  "production_vs_trace_enabled_all_24_counters_equal": true,
+  "cdc_dynamic_phase_rate_cases": [
+    100,
+    32
+  ],
+  "vivado_routed_build": "NOT_RUN",
+  "fpga_timing_and_static_cdc": "NOT_RUN",
+  "board_programming": "NOT_RUN",
+  "board_validation": "NOT_RUN",
+  "blocking_condition": "the remote Windows/Vivado build host was unavailable; no usable Vivado was available in the checked server environment",
+  "required_gate": {
+    "mhz": 50,
+    "cols": 8,
+    "abi": "5.0",
+    "trace": false,
+    "min_setup_wns_ns": 0.344,
+    "setup_tns_ns": 0,
+    "min_hold_wns_ns": 0,
+    "cdc": "fresh matching routed build, exact 109 endpoints, no unreviewed findings"
+  },
+  "models": [
+    {
+      "case": "packaged_ecg_c8_f1_j0",
+      "cycles": [
+        13989,
+        13989
+      ],
+      "checked_write_events": 10794
+    },
+    {
+      "case": "packaged_fashion_cnn_c8_f1_j0",
+      "cycles": [
+        36016,
+        36016
+      ],
+      "checked_write_events": 6324
+    },
+    {
+      "case": "packaged_gtsrb_l_c8_f1_j0",
+      "cycles": [
+        79756,
+        79756
+      ],
+      "checked_write_events": 28686
+    },
+    {
+      "case": "packaged_har_c8_f1_j0",
+      "cycles": [
+        15826,
+        15821
+      ],
+      "checked_write_events": 7244
+    },
+    {
+      "case": "packaged_kws_l_c8_f1_j0",
+      "cycles": [
+        72006,
+        72003
+      ],
+      "checked_write_events": 42072
+    },
+    {
+      "case": "packaged_kws_m_c8_f1_j0",
+      "cycles": [
+        73716,
+        73713
+      ],
+      "checked_write_events": 45064
+    },
+    {
+      "case": "packaged_mnist_l_c8_f1_j0",
+      "cycles": [
+        30836,
+        30836
+      ],
+      "checked_write_events": 17332
+    }
+  ]
+}

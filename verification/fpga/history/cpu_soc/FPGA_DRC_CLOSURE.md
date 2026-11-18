@@ -1,5 +1,7 @@
 # FPGA DRC 修正与自动检查（2026-10-14）
 
+> 历史CPU SoC归档。正文中的“当前”“main”和通过结论均指当时的源码快照，不适用于现行无CPU NPU。旧命令需在对应历史checkout中复现，不应直接用于当前工程。当前验证入口见 [No-CPU板测流程](../../NOCPU_BOARD_CHECK.md) 和 [人工签核表](../../SIGNOFF_CHECKLIST.md)。
+
 > 历史配置说明：本文资源/周期/DRC证据属于7569a43的GAP配置。PR #5合并后默认
 > 核为融合Flat，保留SRAM/AXI和约束修复，但须重新综合验证，不能沿用这些PPA数字。
 > 原GAP容量测试现已适配为`tb_tinycnn8_capacity`。

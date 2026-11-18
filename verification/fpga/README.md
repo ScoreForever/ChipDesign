@@ -24,14 +24,13 @@ JTAG TCK 对端到端时间的实板扫描见 [2026-11-11 频率实验](results/
 | [cdc/](cdc/) | 实际 TAP 与突发握手 testbench、已布线 CDC 报告复核脚本、门禁单元检查 |
 | [evidence/](evidence/) | 读取板测文件重算哈希及逐字节比对；另含历史完整数据集的离线审计 |
 | [fixtures/](fixtures/) | CDC 门禁的固定反例输入 |
-| [history/](history/) | 旧版复现工具及其适用范围 |
+| [history/](history/) | 历史工具与架构归档；不属于当前签核流程 |
 | [results/](results/) | 按日期保存的原始证据与历史报告 |
 
 ### 历史证据索引
 
 | 范围 | 归档 |
 |---|---|
-| CPU/GDB、外部 I/O 和早期 CDC | [历史工作流](CPU_GDB_HISTORY.md)、[初次结果](results/2026-10-20/report.md)、[CDC 追加](results/2026-10-20-cdc/report.md)、[I/O 追加](results/2026-10-20-jtag-io/report.md) |
 | ABI 3.0 FPGA 实现及实板自动回归 | [11 月 1 日基线](results/2026-11-01-no-cpu-int4/report.md) |
 | 11 月 1 日镜像的追加验证 | [CDC 仿真与结构复核](results/2026-11-02-cdc-review/report.md)、[停 TCK 与复位](results/2026-11-02-cdc-board/report.md)、[忙时按键与断电重配](results/2026-11-02-physical-followup/report.md) |
 | ABI 4.0 FPGA | [实现与实板自动回归](results/2026-11-04-int4-v2/report.md)、[七模型 112 帧实板结果](results/2026-11-04-int4-v2/zoo_supplement/report.md) |

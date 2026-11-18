@@ -43,3 +43,41 @@ software/train/runs/
 
 # Isolated local development checkouts
 .worktrees/
+
+# Local generated exports and duplicate experiment output
+/main.pdf
+/output/pdf/
+/output/npu-area/
+
+# Licensed EDA workspaces and raw physical-design databases
+**/evidence/**/work/
+**/*.gds
+**/*.gds.gz
+**/*.cdl
+**/*.def
+**/*.lef
+**/*.lib
+**/*.db
+**/*.spi
+**/*.captable
+**/*.spef
+**/*.sdf
+
+# Generated per-case FPGA logs and local replay worktrees
+/docs/validation/fpga_after_eda_20261110/evidence/rtl_fpga/
+/docs/validation/fpga_after_eda_20261110/evidence/rtl_production_replay/
+/docs/validation/fpga_after_eda_20261110/evidence/cdc_dynamic/
+/docs/validation/fpga_after_eda_20261110/evidence/connection_retries.json
+/docs/validation/fpga_after_eda_20261110/evidence/production_replay.log
+/docs/validation/fpga_after_eda_20261110/reproduction/
+
+# EDA replay scripts and raw result trees depend on private licensed workspaces
+/docs/validation/eda_lab5_20261110/independent_calibre/reproduction/
+/docs/validation/eda_lab5_20261110/independent_calibre/archive_all_sha256.json
+/docs/validation/eda_lab5_20261110/independent_calibre/evidence/final_wb_fixed/
+/docs/validation/eda_lab5_20261110/independent_calibre/evidence/first_final_wb_failed/
+/docs/validation/eda_lab5_20261110/independent_calibre/evidence/independent_comparison.json
+/docs/validation/eda_lab5_20261110/independent_calibre/evidence/pnr/
+/docs/validation/eda_lab5_20261110/independent_calibre/evidence/synthesis/
+/docs/validation/eda_lab5_20261110/independent_calibre/local_checks.json
+/docs/validation/fpga_after_eda_20261110/archive_sha256.json
