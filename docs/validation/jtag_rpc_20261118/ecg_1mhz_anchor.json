@@ -1,0 +1,146 @@
+[
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 35,
+    "infer_rpcs": 17,
+    "estimated_rpc_ms": 208.0
+   },
+   "legacy": {
+    "load_rpcs": 67,
+    "infer_rpcs": 35,
+    "estimated_rpc_ms": 408.0
+   }
+  },
+  "load_rpcs": 35,
+  "infer_rpcs": 17,
+  "estimated_rpc_ms": 208.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "ecg",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 1000.0,
+  "compute_cycles": 13247,
+  "model_bytes": 3908,
+  "input_bytes": 64,
+  "output_bytes": 20,
+  "commands": 27,
+  "burst_scans": 995,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 38202,
+    "sim_ns": 38202000
+   },
+   "model_commit": {
+    "tck": 242,
+    "sim_ns": 242000
+   },
+   "input_upload": {
+    "tck": 1028,
+    "sim_ns": 1028000
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 473000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 406,
+    "sim_ns": 406000
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 473000
+   }
+  },
+  "total_tck": 42903
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 992,
+    "infer_rpcs": 28,
+    "estimated_rpc_ms": 4080.0
+   },
+   "legacy": {
+    "load_rpcs": 2976,
+    "infer_rpcs": 84,
+    "estimated_rpc_ms": 12240.0
+   }
+  },
+  "load_rpcs": 992,
+  "infer_rpcs": 28,
+  "estimated_rpc_ms": 4080.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "ecg",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 1000.0,
+  "compute_cycles": 13247,
+  "model_bytes": 3908,
+  "input_bytes": 64,
+  "output_bytes": 20,
+  "commands": 1022,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 1386000
+   },
+   "model_upload": {
+    "tck": 227535,
+    "sim_ns": 227535000
+   },
+   "model_commit": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "input_upload": {
+    "tck": 3927,
+    "sim_ns": 3927000
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 231000
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 462000
+   },
+   "output_readout": {
+    "tck": 1155,
+    "sim_ns": 1155000
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 462000
+   }
+  },
+  "total_tck": 235851
+ }
+]

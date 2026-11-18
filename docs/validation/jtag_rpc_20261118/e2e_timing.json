@@ -1,0 +1,1010 @@
+[
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 35,
+    "infer_rpcs": 17,
+    "estimated_rpc_ms": 208.0
+   },
+   "legacy": {
+    "load_rpcs": 67,
+    "infer_rpcs": 35,
+    "estimated_rpc_ms": 408.0
+   }
+  },
+  "load_rpcs": 35,
+  "infer_rpcs": 17,
+  "estimated_rpc_ms": 208.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "ecg",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 13247,
+  "model_bytes": 3908,
+  "input_bytes": 64,
+  "output_bytes": 20,
+  "commands": 27,
+  "burst_scans": 995,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 38202,
+    "sim_ns": 611232
+   },
+   "model_commit": {
+    "tck": 858,
+    "sim_ns": 13728
+   },
+   "input_upload": {
+    "tck": 1028,
+    "sim_ns": 16448
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 7568
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 133760
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 422,
+    "sim_ns": 6752
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 7568
+   }
+  },
+  "total_tck": 43535
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 992,
+    "infer_rpcs": 28,
+    "estimated_rpc_ms": 4080.0
+   },
+   "legacy": {
+    "load_rpcs": 2976,
+    "infer_rpcs": 84,
+    "estimated_rpc_ms": 12240.0
+   }
+  },
+  "load_rpcs": 992,
+  "infer_rpcs": 28,
+  "estimated_rpc_ms": 4080.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "ecg",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 13247,
+  "model_bytes": 3908,
+  "input_bytes": 64,
+  "output_bytes": 20,
+  "commands": 1022,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 227535,
+    "sim_ns": 3640560
+   },
+   "model_commit": {
+    "tck": 847,
+    "sim_ns": 13552
+   },
+   "input_upload": {
+    "tck": 3927,
+    "sim_ns": 62832
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 133760
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 1155,
+    "sim_ns": 18480
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 7392
+   }
+  },
+  "total_tck": 236467
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 51,
+    "infer_rpcs": 18,
+    "estimated_rpc_ms": 276.0
+   },
+   "legacy": {
+    "load_rpcs": 83,
+    "infer_rpcs": 36,
+    "estimated_rpc_ms": 476.0
+   }
+  },
+  "load_rpcs": 51,
+  "infer_rpcs": 18,
+  "estimated_rpc_ms": 276.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "fashion_cnn",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 35765,
+  "model_bytes": 8104,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 27,
+  "burst_scans": 2131,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 77015,
+    "sim_ns": 1232240
+   },
+   "model_commit": {
+    "tck": 396,
+    "sim_ns": 6336
+   },
+   "input_upload": {
+    "tck": 4062,
+    "sim_ns": 64992
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 7568
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 358940
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 647,
+    "sim_ns": 10352
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 7568
+   }
+  },
+  "total_tck": 85145
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 2041,
+    "infer_rpcs": 115,
+    "estimated_rpc_ms": 8624.0
+   },
+   "legacy": {
+    "load_rpcs": 6123,
+    "infer_rpcs": 345,
+    "estimated_rpc_ms": 25872.0
+   }
+  },
+  "load_rpcs": 2041,
+  "infer_rpcs": 115,
+  "estimated_rpc_ms": 8624.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "fashion_cnn",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 35765,
+  "model_bytes": 8104,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 2158,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 469854,
+    "sim_ns": 7517664
+   },
+   "model_commit": {
+    "tck": 385,
+    "sim_ns": 6160
+   },
+   "input_upload": {
+    "tck": 22869,
+    "sim_ns": 365904
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 358936
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 2310,
+    "sim_ns": 36960
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 7392
+   }
+  },
+  "total_tck": 498421
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 50,
+    "infer_rpcs": 24,
+    "estimated_rpc_ms": 296.0
+   },
+   "legacy": {
+    "load_rpcs": 82,
+    "infer_rpcs": 42,
+    "estimated_rpc_ms": 496.0
+   }
+  },
+  "load_rpcs": 50,
+  "infer_rpcs": 24,
+  "estimated_rpc_ms": 296.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "gtsrb_l",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 78990,
+  "model_bytes": 7736,
+  "input_bytes": 2048,
+  "output_bytes": 172,
+  "commands": 27,
+  "burst_scans": 2486,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 73611,
+    "sim_ns": 1177776
+   },
+   "model_commit": {
+    "tck": 781,
+    "sim_ns": 12496
+   },
+   "input_upload": {
+    "tck": 19380,
+    "sim_ns": 310080
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 7568
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 791186
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 2132,
+    "sim_ns": 34112
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 7568
+   }
+  },
+  "total_tck": 98929
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 1949,
+    "infer_rpcs": 562,
+    "estimated_rpc_ms": 10044.0
+   },
+   "legacy": {
+    "load_rpcs": 5847,
+    "infer_rpcs": 1686,
+    "estimated_rpc_ms": 30132.0
+   }
+  },
+  "load_rpcs": 1949,
+  "infer_rpcs": 562,
+  "estimated_rpc_ms": 10044.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "gtsrb_l",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 78990,
+  "model_bytes": 7736,
+  "input_bytes": 2048,
+  "output_bytes": 172,
+  "commands": 2513,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 448602,
+    "sim_ns": 7177632
+   },
+   "model_commit": {
+    "tck": 770,
+    "sim_ns": 12320
+   },
+   "input_upload": {
+    "tck": 118503,
+    "sim_ns": 1896048
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 791184
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 9933,
+    "sim_ns": 158928
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 7392
+   }
+  },
+  "total_tck": 580811
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 36,
+    "infer_rpcs": 19,
+    "estimated_rpc_ms": 220.0
+   },
+   "legacy": {
+    "load_rpcs": 68,
+    "infer_rpcs": 37,
+    "estimated_rpc_ms": 420.0
+   }
+  },
+  "load_rpcs": 36,
+  "infer_rpcs": 19,
+  "estimated_rpc_ms": 220.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "har",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 15357,
+  "model_bytes": 4216,
+  "input_bytes": 576,
+  "output_bytes": 24,
+  "commands": 27,
+  "burst_scans": 1201,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 41051,
+    "sim_ns": 656816
+   },
+   "model_commit": {
+    "tck": 550,
+    "sim_ns": 8800
+   },
+   "input_upload": {
+    "tck": 5764,
+    "sim_ns": 92224
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 7568
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 154858
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 467,
+    "sim_ns": 7472
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 7568
+   }
+  },
+  "total_tck": 50857
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 1069,
+    "infer_rpcs": 157,
+    "estimated_rpc_ms": 4904.0
+   },
+   "legacy": {
+    "load_rpcs": 3207,
+    "infer_rpcs": 471,
+    "estimated_rpc_ms": 14712.0
+   }
+  },
+  "load_rpcs": 1069,
+  "infer_rpcs": 157,
+  "estimated_rpc_ms": 4904.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "har",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 15357,
+  "model_bytes": 4216,
+  "input_bytes": 576,
+  "output_bytes": 24,
+  "commands": 1228,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 245322,
+    "sim_ns": 3925152
+   },
+   "model_commit": {
+    "tck": 539,
+    "sim_ns": 8624
+   },
+   "input_upload": {
+    "tck": 33495,
+    "sim_ns": 535920
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 154858
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 7392
+   }
+  },
+  "total_tck": 283745
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 50,
+    "infer_rpcs": 17,
+    "estimated_rpc_ms": 268.0
+   },
+   "legacy": {
+    "load_rpcs": 82,
+    "infer_rpcs": 35,
+    "estimated_rpc_ms": 468.0
+   }
+  },
+  "load_rpcs": 50,
+  "infer_rpcs": 17,
+  "estimated_rpc_ms": 268.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "kws_l",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 71318,
+  "model_bytes": 7896,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 27,
+  "burst_scans": 2045,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 75091,
+    "sim_ns": 1201456
+   },
+   "model_commit": {
+    "tck": 704,
+    "sim_ns": 11264
+   },
+   "input_upload": {
+    "tck": 2730,
+    "sim_ns": 43680
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 7568
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 714468
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 737,
+    "sim_ns": 11792
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 7568
+   }
+  },
+  "total_tck": 82287
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 1989,
+    "infer_rpcs": 81,
+    "estimated_rpc_ms": 8280.0
+   },
+   "legacy": {
+    "load_rpcs": 5967,
+    "infer_rpcs": 243,
+    "estimated_rpc_ms": 24840.0
+   }
+  },
+  "load_rpcs": 1989,
+  "infer_rpcs": 81,
+  "estimated_rpc_ms": 8280.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "kws_l",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 71318,
+  "model_bytes": 7896,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 2072,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 457842,
+    "sim_ns": 7325472
+   },
+   "model_commit": {
+    "tck": 693,
+    "sim_ns": 11088
+   },
+   "input_upload": {
+    "tck": 14553,
+    "sim_ns": 232848
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 714466
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 2772,
+    "sim_ns": 44352
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 7392
+   }
+  },
+  "total_tck": 478863
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 49,
+    "infer_rpcs": 17,
+    "estimated_rpc_ms": 264.0
+   },
+   "legacy": {
+    "load_rpcs": 81,
+    "infer_rpcs": 35,
+    "estimated_rpc_ms": 464.0
+   }
+  },
+  "load_rpcs": 49,
+  "infer_rpcs": 17,
+  "estimated_rpc_ms": 264.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "kws_m",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 72935,
+  "model_bytes": 7632,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 27,
+  "burst_scans": 1979,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 72649,
+    "sim_ns": 1162384
+   },
+   "model_commit": {
+    "tck": 781,
+    "sim_ns": 12496
+   },
+   "input_upload": {
+    "tck": 2730,
+    "sim_ns": 43680
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 7568
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 730638
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 737,
+    "sim_ns": 11792
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 7568
+   }
+  },
+  "total_tck": 79922
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 1923,
+    "infer_rpcs": 81,
+    "estimated_rpc_ms": 8016.0
+   },
+   "legacy": {
+    "load_rpcs": 5769,
+    "infer_rpcs": 243,
+    "estimated_rpc_ms": 24048.0
+   }
+  },
+  "load_rpcs": 1923,
+  "infer_rpcs": 81,
+  "estimated_rpc_ms": 8016.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "kws_m",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 72935,
+  "model_bytes": 7632,
+  "input_bytes": 245,
+  "output_bytes": 48,
+  "commands": 2006,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 442596,
+    "sim_ns": 7081536
+   },
+   "model_commit": {
+    "tck": 770,
+    "sim_ns": 12320
+   },
+   "input_upload": {
+    "tck": 14553,
+    "sim_ns": 232848
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 730640
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 2772,
+    "sim_ns": 44352
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 7392
+   }
+  },
+  "total_tck": 463694
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 38,
+    "infer_rpcs": 18,
+    "estimated_rpc_ms": 224.0
+   },
+   "legacy": {
+    "load_rpcs": 70,
+    "infer_rpcs": 36,
+    "estimated_rpc_ms": 424.0
+   }
+  },
+  "load_rpcs": 38,
+  "infer_rpcs": 18,
+  "estimated_rpc_ms": 224.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "mnist_l",
+  "protocol": "burst",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 30184,
+  "model_bytes": 4688,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 27,
+  "burst_scans": 1277,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 45417,
+    "sim_ns": 726672
+   },
+   "model_commit": {
+    "tck": 704,
+    "sim_ns": 11264
+   },
+   "input_upload": {
+    "tck": 4062,
+    "sim_ns": 64992
+   },
+   "start": {
+    "tck": 473,
+    "sim_ns": 7568
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 303130
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 647,
+    "sim_ns": 10352
+   },
+   "ack": {
+    "tck": 473,
+    "sim_ns": 7568
+   }
+  },
+  "total_tck": 53855
+ },
+ {
+  "rpc_counts": {
+   "pipeline": {
+    "load_rpcs": 2,
+    "infer_rpcs": 2,
+    "estimated_rpc_ms": 16.0
+   },
+   "batched": {
+    "load_rpcs": 1187,
+    "infer_rpcs": 115,
+    "estimated_rpc_ms": 5208.0
+   },
+   "legacy": {
+    "load_rpcs": 3561,
+    "infer_rpcs": 345,
+    "estimated_rpc_ms": 15624.0
+   }
+  },
+  "load_rpcs": 1187,
+  "infer_rpcs": 115,
+  "estimated_rpc_ms": 5208.0,
+  "rpc_latency_assumption": "4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)",
+  "model": "mnist_l",
+  "protocol": "wordwise",
+  "rpc_mode": "batched",
+  "tck_ns": 16.0,
+  "compute_cycles": 30184,
+  "model_bytes": 4688,
+  "input_bytes": 392,
+  "output_bytes": 40,
+  "commands": 1304,
+  "burst_scans": 0,
+  "phases": {
+   "capabilities": {
+    "tck": 1386,
+    "sim_ns": 22176
+   },
+   "model_upload": {
+    "tck": 272580,
+    "sim_ns": 4361280
+   },
+   "model_commit": {
+    "tck": 693,
+    "sim_ns": 11088
+   },
+   "input_upload": {
+    "tck": 22869,
+    "sim_ns": 365904
+   },
+   "start": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "compute": {
+    "tck": 231,
+    "sim_ns": 303132
+   },
+   "status_poll": {
+    "tck": 462,
+    "sim_ns": 7392
+   },
+   "output_readout": {
+    "tck": 2310,
+    "sim_ns": 36960
+   },
+   "ack": {
+    "tck": 462,
+    "sim_ns": 7392
+   }
+  },
+  "total_tck": 301455
+ }
+]

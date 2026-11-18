@@ -49,6 +49,24 @@ class TimedTransport:
             raise AttributeError(name)
         return getattr(self.transport, name)
 
+    def pipeline_load_model(self, reg_pairs, image_words, burst=True):
+        if self.timer.name is not None:
+            self.timer.mark('model_upload')
+        return self.transport.pipeline_load_model(reg_pairs, image_words, burst=not self.wordwise)
+
+    def pipeline_infer(self, frame_words, expected_in_bytes, timeout=10, burst=True):
+        active=self.timer.name is not None
+        if active: self.timer.mark('input_upload')
+        start=self.timer.clock()
+        result,wait_ms=self.transport.pipeline_infer(frame_words, expected_in_bytes, timeout=timeout, burst=not self.wordwise)
+        end=self.timer.clock()
+        if active:
+            wait_ns=min(max(0,int(wait_ms*1e6)),end-start)
+            self.timer.samples.append(dict(phase='input_upload',wall_ns=end-self.timer.at-wait_ns))
+            self.timer.name='completion_poll'
+            self.timer.at=end-wait_ns
+        return result,wait_ms
+
     def exchange(self, op, addr=0, data=0):
         if self.timer.name is not None:
             phase = {Op.MODEL_BEGIN: 'model_upload', Op.MODEL_COMMIT: 'model_commit',
