@@ -33,22 +33,43 @@ class TclRpc:
     def __init__(self, host='127.0.0.1', port=6666, timeout=5):
         self.socket=socket.create_connection((host,port),timeout)
         self.socket.settimeout(timeout)
-        self.buffer=b''
+        self.timeout = timeout
+        self.buffer = b''
+        self._poisoned = False
+        self._closed = False
 
-    def execute(self, command):
-        self.socket.sendall(command.encode('ascii')+b'\x1a')
-        while b'\x1a' not in self.buffer:
-            block=self.socket.recv(4096)
-            if not block:
-                raise ConnectionError('OpenOCD closed Tcl RPC connection')
-            self.buffer+=block
-            if len(self.buffer)>1_000_000:
-                raise ConnectionError('oversized Tcl RPC response')
-        result,self.buffer=self.buffer.split(b'\x1a',1)
-        return result.decode('utf-8').strip()
+    def execute(self, command, timeout=None):
+        if self._poisoned or self._closed:
+            raise ConnectionError('Tcl RPC connection is closed')
+        duration = self.timeout if timeout is None else timeout
+        deadline = time.monotonic() + duration
+        try:
+            self.socket.settimeout(max(0.001, deadline - time.monotonic()))
+            self.socket.sendall(command.encode('ascii') + b'\x1a')
+            while b'\x1a' not in self.buffer:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError('Tcl RPC deadline expired')
+                self.socket.settimeout(remaining)
+                block = self.socket.recv(4096)
+                if not block:
+                    raise ConnectionError('OpenOCD closed Tcl RPC connection')
+                self.buffer += block
+                if len(self.buffer) > 1_000_000:
+                    raise ConnectionError('oversized Tcl RPC response')
+                if b'\x1a' not in self.buffer and time.monotonic() >= deadline:
+                    raise TimeoutError('Tcl RPC deadline expired')
+            result, self.buffer = self.buffer.split(b'\x1a', 1)
+            return result.decode('utf-8').strip()
+        except (OSError, UnicodeDecodeError):
+            self._poisoned = True
+            self.close()
+            raise
 
     def close(self):
-        self.socket.close()
+        if not self._closed:
+            self._closed = True
+            self.socket.close()
 
 
 # Execute the existing mailbox handshake inside OpenOCD, without removing
@@ -57,6 +78,117 @@ class TclRpc:
 _EXCHANGE_TCL = r"""
 proc chipdesign_scan_v5 {tap data addr op} {
     drscan $tap 32 $data 32 $addr 8 $op -endstate IDLE
+}
+proc chipdesign_checked_v5 {tap timeout_ms op addr data} {
+    set r [chipdesign_exchange_v5 $tap $op $addr $data $timeout_ms]
+    if {[lindex $r 0] ne "OK"} { error $r }
+    if {[llength $r] != 4} { error "BAD_REPLY $r" }
+    foreach field [lrange $r 1 3] pattern {{^[0-9a-fA-F]{1,8}$} {^[0-9a-fA-F]{1,8}$} {^[0-9a-fA-F]{1,2}$}} {
+        if {![regexp $pattern $field]} { error "BAD_REPLY $r" }
+    }
+    set status [expr "0x[lindex $r 3]"]
+    if {($status & 0x20) || ($status & 0xc0) != 0x80} { error "BAD_REPLY $r" }
+    if {[expr "0x[lindex $r 2]"] != $addr} { error "ADDR_MISMATCH $addr $r" }
+    set code [expr {$status & 31}]
+    if {$code} { error "NPU_ERR $code $op $addr" }
+    return [format 0x%08x [expr {"0x[lindex $r 1]" & 0xffffffff}]]
+}
+proc chipdesign_reads_v5 {tap timeout_ms addrs} {
+    if {[catch {
+    set vals {}
+    foreach addr $addrs { lappend vals [chipdesign_checked_v5 $tap $timeout_ms 0x01 $addr 0x0] }
+    return "OK [join $vals]"
+    } err]} { return $err }
+}
+proc chipdesign_check_scan_fields_v5 {reply} {
+    if {[llength $reply] != 3} { error "BAD_REPLY $reply" }
+    foreach field $reply pattern {{^(0x)?[0-9a-fA-F]{1,8}$} {^(0x)?[0-9a-fA-F]{1,8}$} {^(0x)?[0-9a-fA-F]{1,2}$}} {
+        if {![regexp $pattern $field]} { error "BAD_REPLY $reply" }
+    }
+}
+proc chipdesign_wblock_v5 {tap timeout_ms burst addr words} {
+    if {![llength $words]} { return }
+    chipdesign_checked_v5 $tap $timeout_ms 0x02 $addr [lindex $words 0]
+    if {$burst && [llength $words] > 1} {
+        irscan $tap 0x13 -endstate IDLE
+        foreach v [lrange $words 1 end] {
+            set w [format 0x%08x [expr {$v & 0xffffffff}]]
+            drscan $tap 32 $w -endstate IDLE
+        }
+        irscan $tap 0x12 -endstate IDLE
+        set chk [chipdesign_scan_v5 $tap 0x0 0x0 0x0]
+        chipdesign_check_scan_fields_v5 $chk
+        if {[expr "0x[string map {0x {}} [lindex $chk 2]]"] & 0x20} { error BURST_FAULT }
+    } else {
+        set i 1
+        foreach v [lrange $words 1 end] {
+            chipdesign_checked_v5 $tap $timeout_ms 0x02 [format 0x%08x [expr {($addr+4*$i) & 0xffffffff}]] $v
+            incr i
+        }
+    }
+}
+proc chipdesign_rblock_v5 {tap timeout_ms burst addr count} {
+    if {$count <= 0} { return {} }
+    set first_hex [chipdesign_checked_v5 $tap $timeout_ms 0x01 $addr 0x0]
+    if {$burst && $count > 1} {
+        irscan $tap 0x14 -endstate IDLE
+        set _r {}
+        for {set i 1} {$i < $count} {incr i} { lappend _r [drscan $tap 32 0]; runtest 4 }
+        irscan $tap 0x12 -endstate IDLE
+        set last [chipdesign_scan_v5 $tap 0x0 0x0 0x0]
+        chipdesign_check_scan_fields_v5 $last
+        if {[expr "0x[string map {0x {}} [lindex $last 2]]"] & 0x20} { error BURST_FAULT }
+        set vals [concat [list $first_hex] [lrange $_r 1 end] [list [lindex $last 0]]]
+        set result [list $first_hex]
+        foreach v [lrange $vals 1 end] {
+            if {![regexp {^(0x)?[0-9a-fA-F]{1,8}$} $v]} { error BAD_REPLY }
+            regsub {^0x} $v {} v
+            lappend result [format 0x%08x [expr {"0x$v" & 0xffffffff}]]
+        }
+        return $result
+    }
+    set vals [list $first_hex]
+    for {set i 1} {$i < $count} {incr i} {
+        lappend vals [chipdesign_checked_v5 $tap $timeout_ms 0x01 [format 0x%08x [expr {($addr+4*$i) & 0xffffffff}]] 0x0]
+    }
+    return $vals
+}
+proc chipdesign_load_v5 {tap timeout_ms burst regs_flat image_words} {
+    if {[catch {
+    chipdesign_checked_v5 $tap $timeout_ms 0x03 0 0
+    foreach {addr data} $regs_flat { chipdesign_checked_v5 $tap $timeout_ms 0x02 $addr $data }
+    chipdesign_wblock_v5 $tap $timeout_ms $burst 0x10000 $image_words
+    chipdesign_checked_v5 $tap $timeout_ms 0x04 0 0
+    return OK
+    } err]} { return $err }
+}
+proc chipdesign_infer_v5 {tap cmd_timeout_ms infer_timeout_ms burst expected_in_bytes frame_words} {
+    if {[catch {
+    set in_base [chipdesign_checked_v5 $tap $cmd_timeout_ms 1 0x18 0]
+    set in_bytes [chipdesign_checked_v5 $tap $cmd_timeout_ms 1 0x1c 0]
+    if {$in_bytes != $expected_in_bytes} { return "IN_LEN $in_bytes" }
+    chipdesign_checked_v5 $tap $cmd_timeout_ms 5 0 0
+    chipdesign_wblock_v5 $tap $cmd_timeout_ms $burst [format 0x%08x [expr {(0x20000+$in_base) & 0xffffffff}]] $frame_words
+    chipdesign_checked_v5 $tap $cmd_timeout_ms 6 0 0
+    set t0 [clock milliseconds]
+    chipdesign_checked_v5 $tap $cmd_timeout_ms 7 0 0
+    while {1} {
+        set s [chipdesign_checked_v5 $tap $cmd_timeout_ms 1 4 0]
+        if {$s & 64} {
+            set err [chipdesign_checked_v5 $tap $cmd_timeout_ms 1 8 0]
+            set op [chipdesign_checked_v5 $tap $cmd_timeout_ms 1 0x34 0]
+            return "NPU_FAULT $err $op"
+        }
+        if {$s & 8} { break }
+        if {[clock milliseconds] >= $t0+$infer_timeout_ms} { return INFER_TIMEOUT }
+        after 1
+    }
+    set wait_ms [expr {[clock milliseconds]-$t0}]
+    set base [chipdesign_checked_v5 $tap $cmd_timeout_ms 1 0x20 0]
+    set bytes [chipdesign_checked_v5 $tap $cmd_timeout_ms 1 0x24 0]
+    set words [chipdesign_rblock_v5 $tap $cmd_timeout_ms $burst [format 0x%08x [expr {(0x20000+$base) & 0xffffffff}]] [expr {($bytes+3)/4}]]
+    return "OK $wait_ms $bytes [join $words]"
+    } err]} { return $err }
 }
 proc chipdesign_exchange_v5 {tap op addr data timeout_ms} {
     set previous [chipdesign_scan_v5 $tap 0x0 0x0 0x0]
@@ -81,12 +213,62 @@ class JtagTransport:
             raise ValueError('invalid TAP name')
         self.rpc,self.tap,self.timeout=rpc,tap,timeout
         self.batch_rpc=batch_rpc
+        self.supports_pipeline_rpc=bool(batch_rpc)
         if batch_rpc:
             reply=self.rpc.execute(_EXCHANGE_TCL)
             # Jim Tcl returns the procedure name; Tcl commonly returns empty.
             if reply not in ('', 'chipdesign_exchange_v5'):
                 raise RuntimeError(f'OpenOCD mailbox helper failed: {reply}')
         self.rpc.execute(f'irscan {tap} 0x12 -endstate IDLE')
+
+    @staticmethod
+    def _hexlist(values):
+        values=list(values)
+        if any(not 0 <= int(v) < 2**32 for v in values):
+            raise ValueError('word outside uint32 range')
+        return '{'+' '.join(f'0x{int(v):08x}' for v in values)+'}'
+
+    def _pipeline(self, command, timeout=None):
+        try:
+            reply=self.rpc.execute(command, timeout=timeout)
+        except (TimeoutError, ConnectionError) as exc:
+            raise type(exc)('JTAG RPC failed; operation may have executed') from exc
+        fields=reply.split()
+        token=fields[0] if fields else ''
+        if token=='OK': return fields[1:]
+        if token=='IN_LEN': raise ValueError(f'expected {int(fields[1],0)} input bytes')
+        if token=='NPU_FAULT': raise RuntimeError(f'NPU fault {int(fields[1],0)}, operator {int(fields[2],0)}')
+        if token=='NPU_ERR':
+            code,op,addr=(int(v,0) for v in fields[1:])
+            raise RuntimeError(f"NPU error {code}: {ERRORS.get(code, 'unknown')} (op={op}, address=0x{addr:x})")
+        if token=='BUSY': raise RuntimeError('JTAG mailbox is occupied')
+        if token in ('TIMEOUT','INFER_TIMEOUT'): raise TimeoutError(f'{reply}; operation may have executed')
+        raise RuntimeError(f'{reply or "unexpected reply"}; operation may have executed')
+
+    @staticmethod
+    def _words(fields):
+        try:
+            words=[int(v,16) for v in fields]
+            if any(not 0<=v<2**32 for v in words): raise ValueError()
+            return words
+        except ValueError as exc:
+            raise RuntimeError('BAD_REPLY invalid uint32 output; operation may have executed') from exc
+
+    def read_words_batch(self, addrs):
+        return self._words(self._pipeline(f'chipdesign_reads_v5 {self.tap} {max(1,int(self.timeout*1000))} {self._hexlist(addrs)}'))
+
+    def pipeline_load_model(self, reg_pairs, image_words, burst=True):
+        self._pipeline(f'chipdesign_load_v5 {self.tap} {max(1,int(self.timeout*1000))} {int(burst)} {self._hexlist(v for pair in reg_pairs for v in pair)} {self._hexlist(image_words)}', max(self.timeout*2,10.0))
+
+    def pipeline_infer(self, frame_words, expected_in_bytes, timeout=10, burst=True):
+        fields=self._pipeline(f'chipdesign_infer_v5 {self.tap} {max(1,int(self.timeout*1000))} {max(1,int(timeout*1000))} {int(burst)} {expected_in_bytes} {self._hexlist(frame_words)}', max(self.timeout,timeout)+max(2.0,self.timeout))
+        try:
+            wait_ms=int(fields[0]); out_bytes=int(fields[1],0)
+            words=self._words(fields[2:])
+            if out_bytes<0 or len(words)!=(out_bytes+3)//4: raise ValueError()
+        except (ValueError,IndexError) as exc:
+            raise RuntimeError('BAD_REPLY output length; operation may have executed') from exc
+        return b''.join(v.to_bytes(4,'little') for v in words)[:out_bytes],wait_ms
 
     def scan(self, packet):
         # OpenOCD defaults unprefixed numbers to decimal. Use explicit hexadecimal
@@ -290,12 +472,24 @@ class Npu:
     def load_model(self,package):
         m=package.manifest
         # All host checks happen before MODEL_BEGIN invalidates the old model.
-        caps={r:self.read(r) for r in (0x50,0x54,0x58,0x5c,0x60,0x6c)}
+        pipeline=getattr(self.transport,'supports_pipeline_rpc',False)
+        regs=(0x50,0x54,0x58,0x5c,0x60,0x6c)
+        caps=dict(zip(regs,self.transport.read_words_batch(regs))) if pipeline else {r:self.read(r) for r in regs}
         if caps[0x6c]!=NUMERIC_FORMAT or m.get('numeric_format')!=NUMERIC_FORMAT or m.get('packing')!='low_nibble_first':
             raise ValueError('requires packed INT4 / INT32 / Q15 model format')
         if m['abi']!=ABI or m.get('rows')!=(caps[0x58]>>16) or m['cols']!=(caps[0x58]&65535):raise ValueError('ABI/array mismatch; recompile package')
         if len(package.image)!=m['model_bytes'] or len(package.image)%4 or len(package.image)>caps[0x54]:raise ValueError('model capacity/length')
         if not 0<m['op_count']<=caps[0x60] or (m['activation_peak']>caps[0x50] or any(t['base']+t['bytes']>caps[0x50]-len(package.image) for t in m['tensors'].values())):raise ValueError('program/activation capacity')
+        if pipeline:
+            pairs=list(zip(range(0x10,0x28,4),(m[k] for k in ('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes'))))
+            pairs.append((0x64,int(m['input_dtype']=='i32')))
+            try:
+                self.transport.pipeline_load_model(pairs,[int.from_bytes(package.image[o:o+4],'little') for o in range(0,len(package.image),4)])
+            except Exception:
+                self.__dict__.pop('manifest',None)
+                raise
+            self.manifest=dict(m)
+            return
         self.command(Op.MODEL_BEGIN)
         for reg,key in zip(range(0x10,0x28,4),('model_bytes','op_count','input_base','input_bytes','output_base','output_bytes')):
             self.write(reg,m[key])
@@ -309,7 +503,17 @@ class Npu:
         if len(values)!=m['input_elements']:raise ValueError('input element count')
         return decode_tensor(self.infer(encode_tensor(values,m['input_dtype']),timeout),m['output_dtype'],m['output_elements'])
     def infer(self,frame,timeout=10):
-        frame=bytes(frame);base=self.read(0x18);length=self.read(0x1c)
+        frame=bytes(frame)
+        if getattr(self.transport,'supports_pipeline_rpc',False):
+            m=getattr(self,'manifest',None)
+            if m and len(frame)==m['input_bytes'] and m['input_dtype'] in ('i4','u4') and m['input_elements']%2 and frame[-1]&0xf0:
+                raise ValueError('nonzero INT4 input padding nibble')
+            words=[int.from_bytes(frame[o:o+4].ljust(4,b'\0'),'little') for o in range(0,len(frame),4)]
+            result,_wait_ms=self.transport.pipeline_infer(words,len(frame),timeout=timeout)
+            if m and len(result)!=m['output_bytes']: raise ValueError('output length mismatch')
+            self.command(Op.ACK)
+            return result
+        base=self.read(0x18);length=self.read(0x1c)
         if len(frame)!=length:raise ValueError(f'expected {length} input bytes')
         m=getattr(self,'manifest',None)
         if m and m['input_dtype'] in ('i4','u4') and m['input_elements']%2 and frame[-1]&0xf0:

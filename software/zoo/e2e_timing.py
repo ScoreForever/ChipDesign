@@ -102,7 +102,27 @@ def run_case(out, image, name, model, frame, burst, tck_ns):
         phases[PHASES[i]] = dict(tck=k1 - k0, sim_ns=t1 - t0)
     scans = sum(1 for r in rec.rows if r[:2] in ('80', '81')) if burst else 0
     commands = sum(1 for r in rec.rows if r[:2] not in ('f0', 'f1', 'f2', '80', '81'))
-    return dict(model=name, protocol='burst' if burst else 'legacy', tck_ns=tck_ns, compute_cycles=cycles,
+    def rpc_count(rows):
+        commands=sum(r[:2] not in ('f0','f1','f2','80','81') for r in rows)
+        transfers=0
+        for code in ('80','81'):
+            n=0
+            for r in rows+['']:
+                if r[:2]==code: n+=1
+                elif n:
+                    transfers+=3+(n+63)//64
+                    n=0
+        return commands+transfers
+    split=next(i for i,r in enumerate(rec.rows) if r.startswith('f2 0 00000003'))
+    load_rpcs=rpc_count(rec.rows[1:split])
+    infer_rpcs=rpc_count(rec.rows[split:-2])
+    counts={mode:dict(load_rpcs=l,infer_rpcs=i,estimated_rpc_ms=4.0*(l+i))
+            for mode,l,i in (('pipeline',2,2),('batched',load_rpcs,infer_rpcs),
+                             ('legacy',load_rpcs+2*sum(r[:2] not in ('f0','f1','f2','80','81') for r in rec.rows[1:split]),
+                              infer_rpcs+2*sum(r[:2] not in ('f0','f1','f2','80','81') for r in rec.rows[split:-2])))}
+    return dict(rpc_counts=counts, load_rpcs=load_rpcs, infer_rpcs=infer_rpcs,
+                estimated_rpc_ms=4.0*(load_rpcs+infer_rpcs),
+                rpc_latency_assumption="4.0 ms/RPC historical OpenOCD baseline estimate (not measured on EGo1 board)", model=name, protocol='burst' if burst else 'wordwise', rpc_mode='batched', tck_ns=tck_ns, compute_cycles=cycles,
                 model_bytes=m['model_bytes'], input_bytes=m['input_bytes'], output_bytes=m['output_bytes'],
                 commands=commands, burst_scans=scans, phases=phases, total_tck=marks[-1][2] - marks[0][2])
 
@@ -115,7 +135,6 @@ def main():
     ap.add_argument('--tck-ns', type=float, default=1000)
     ap.add_argument('--jobs', type=int, default=16)
     args = ap.parse_args()
-    import torch
     from concurrent.futures import ThreadPoolExecutor
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -128,6 +147,7 @@ def main():
         run_dir = args.runs / spec if (args.runs / spec / 'model.json').exists() else Path(spec)
         model = json.loads((run_dir / 'model.json').read_text())
         if (run_dir / 'test_frames.pt').exists():
+            import torch
             frame = torch.load(run_dir / 'test_frames.pt')['frames'][0].flatten().tolist()
         else:
             frame = json.loads((run_dir / 'golden.json').read_text())['frames'][0]['input']
