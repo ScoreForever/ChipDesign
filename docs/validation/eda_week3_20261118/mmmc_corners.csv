@@ -1,0 +1,11 @@
+corner,mode,wns,start,end,arrival,required,tns_2000,violating_endpoints_2000
+ss125,setup,-16.772,i_control/i_npu/d_reg[0][0]/Q,i_control/i_activation_i_store_g_bank[0].i_sram/WEN[0],32.041,15.268,-13337.958,2000
+ss125,hold,0.458,i_control/i_npu/i_requant/out_data_reg[3]/Q,i_control/i_npu/write_data_reg[5][3]/D,2.794,2.336,0,0
+tt25,setup,0.628,i_control/i_npu/d_reg[0][0]/Q,i_control/i_activation_i_store_cache_data_reg[7][7]/D,20.083,20.711,0,0
+tt25,hold,0.231,i_control/i_activation_i_store_cache_data_reg[15][22]/Q,i_control/i_activation_i_store_high_word_reg[22]/D,1.627,1.396,0,0
+ff0,setup,4.568,i_control/i_npu/d_reg[0][0]/Q,i_control/i_activation_i_store_cache_data_reg[7][7]/D,15.885,20.453,0,0
+ff0,hold,0.097,i_control/i_activation_i_store_cache_data_reg[12][22]/Q,i_control/i_activation_i_store_high_word_reg[22]/D,1.186,1.090,0,0
+ffm40,setup,5.363,i_control/i_npu/d_reg[0][0]/Q,i_control/i_activation_i_store_cache_data_reg[7][7]/D,15.063,20.426,0,0
+ffm40,hold,0.081,i_control/i_npu/d_reg[2][0]/Q,i_control/i_npu/element_addr_reg[1]/SI,1.134,1.053,0,0
+SS125_DERATED,setup,0.234,i_host/ack_toggle_reg/Q,i_host/ack_sync_reg[0]/D,2.305,2.539,NA,NA
+SS125_DERATED,hold,0.458,i_control/i_npu/i_requant/out_data_reg[3]/Q,i_control/i_npu/write_data_reg[5][3]/D,2.794,2.336,NA,NA

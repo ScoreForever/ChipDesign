@@ -1,0 +1,165 @@
+{
+  "analysis": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/week3/run_week3_eda.py",
+      "--out-dir",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda",
+      "--only-analysis"
+    ],
+    "elapsed_seconds": 2.662070899270475,
+    "peak_rss_kib": 142144,
+    "passed": true
+  },
+  "area_breakdown": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/optimize/area_breakdown.py",
+      "--netlist",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/synthesis/mapped.v",
+      "--lib",
+      "/lec/pdk/tsmc180/tcb018gbwp7t_290a/TSMCHOME/digital/Front_End/timing_power_noise/NLDM/tcb018gbwp7t_270a/tcb018gbwp7ttc.lib",
+      "--lib",
+      "/lec/lab4/soc_cv32e40p_template_pnr-stu/src/macro/RA1SHD_2048x32M8/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib",
+      "--output",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/area_breakdown.json"
+    ],
+    "elapsed_seconds": 1.3488635970279574,
+    "peak_rss_kib": 70784,
+    "passed": true
+  },
+  "mmmc": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/week3/run_mmmc_closure.py",
+      "--candidate",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/candidates/diag70_h25",
+      "--out-dir",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/week3_mmmc"
+    ],
+    "elapsed_seconds": 2041.1032473417,
+    "peak_rss_kib": 2036924,
+    "passed": true
+  },
+  "postlayout": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/optimize/postlayout.py",
+      "--candidate",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/candidates/diag70_h25"
+    ],
+    "elapsed_seconds": 64.58419575821608,
+    "peak_rss_kib": 252004,
+    "passed": true
+  },
+  "power": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/week3/measure_power.py",
+      "--candidate",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/candidates/diag70_h25",
+      "--out-dir",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/week3_power"
+    ],
+    "elapsed_seconds": 1335.5463435631245,
+    "peak_rss_kib": 9600136,
+    "passed": true,
+    "elapsed_seconds_sim_plus_innovus": 1320.0,
+    "note": "Xcelium elaboration+5x SDF/VCD sims + Innovus Voltus report_power succeeded on first run (~22m); re-summarized with measure_power.py --summarize-existing after regex header fix."
+  },
+  "preflight": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/optimize/flow.py",
+      "preflight",
+      "--output",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda",
+      "--clock-gating",
+      "--cols",
+      "8"
+    ],
+    "elapsed_seconds": 0.44108066242188215,
+    "peak_rss_kib": 41068,
+    "passed": true
+  },
+  "render_views": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1800x1800x24",
+      "innovus",
+      "-files",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/docs/validation/eda_latest_20261111/reproduction/render_views.tcl"
+    ],
+    "elapsed_seconds": 72.11350614670664,
+    "peak_rss_kib": 2122304,
+    "passed": true
+  },
+  "screenshots": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1800x1800x24",
+      "innovus",
+      "-files",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/week3/screenshots_week3.tcl"
+    ],
+    "elapsed_seconds": 31.13692646007985,
+    "peak_rss_kib": 2250468,
+    "passed": true
+  },
+  "signoff": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/optimize/signoff.py",
+      "--candidate",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda/candidates/diag70_h25"
+    ],
+    "elapsed_seconds": 153.03452231455594,
+    "peak_rss_kib": 682644,
+    "passed": true
+  },
+  "synth": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/optimize/flow.py",
+      "synth",
+      "--output",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda",
+      "--clock-gating",
+      "--cols",
+      "8"
+    ],
+    "elapsed_seconds": 1067.094838344492,
+    "peak_rss_kib": 1443380,
+    "passed": true
+  },
+  "trial": {
+    "command": [
+      "/opt/eda/Mentor/aok_cal_2022.3_17.8/pkgs/icv_python/asp/bin/python3.8",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/src/hardware/asic/optimize/flow.py",
+      "trial",
+      "--output",
+      "/home/s2400012709/chip-fullstack-2026/eda_week3_20261118/eda",
+      "--clock-gating",
+      "--cols",
+      "8",
+      "--name",
+      "diag70_h25",
+      "--layout",
+      "diagonal_facing",
+      "--utilization",
+      "0.70",
+      "--halo",
+      "26",
+      "--congestion",
+      "--hold-target",
+      "0.25"
+    ],
+    "elapsed_seconds": 1513.4983983933926,
+    "peak_rss_kib": 3613032,
+    "passed": true
+  }
+}
