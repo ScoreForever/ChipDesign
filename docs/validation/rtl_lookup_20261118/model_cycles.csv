@@ -1,0 +1,15 @@
+memory_config,define,model,case,model_bytes,activation_peak_bytes,cold_cycles_before,cold_cycles_after,cold_cycle_delta,cold_cycle_pct,warm_cycles_before,warm_cycles_after,warm_cycle_delta,warm_cycle_pct,writes_before,writes_after,checked_write_events_before,checked_write_events_after
+behavioral,none,ecg,packaged_ecg_c8_f1_j0,3908,1600,13442,13247,-195,-1.4507,13442,13247,-195,-1.4507,5397,5397,10794,10794
+behavioral,none,fashion_cnn,packaged_fashion_cnn_c8_f1_j0,8104,2744,35800,35765,-35,-0.0978,35800,35765,-35,-0.0978,3162,3162,6324,6324
+behavioral,none,gtsrb_l,packaged_gtsrb_l_c8_f1_j0,7736,8192,79110,78990,-120,-0.1517,79110,78990,-120,-0.1517,14343,14343,28686,28686
+behavioral,none,har,packaged_har_c8_f1_j0,4216,2624,15426,15357,-69,-0.4473,15421,15358,-63,-0.4085,3622,3622,7244,7244
+behavioral,none,kws_l,packaged_kws_l_c8_f1_j0,7896,6248,71420,71318,-102,-0.1428,71417,71318,-99,-0.1386,21036,21036,42072,42072
+behavioral,none,kws_m,packaged_kws_m_c8_f1_j0,7632,5248,73081,72935,-146,-0.1998,73078,72935,-143,-0.1957,22532,22532,45064,45064
+behavioral,none,mnist_l,packaged_mnist_l_c8_f1_j0,4688,3528,30304,30184,-120,-0.396,30304,30184,-120,-0.396,8666,8666,17332,17332
+fpga_mem,CHIPDESIGN_FPGA_MEM,ecg,packaged_ecg_c8_f1_j0,3908,1600,13989,13794,-195,-1.394,13989,13794,-195,-1.394,5397,5397,10794,10794
+fpga_mem,CHIPDESIGN_FPGA_MEM,fashion_cnn,packaged_fashion_cnn_c8_f1_j0,8104,2744,36016,35981,-35,-0.0972,36016,35981,-35,-0.0972,3162,3162,6324,6324
+fpga_mem,CHIPDESIGN_FPGA_MEM,gtsrb_l,packaged_gtsrb_l_c8_f1_j0,7736,8192,79756,79636,-120,-0.1505,79756,79636,-120,-0.1505,14343,14343,28686,28686
+fpga_mem,CHIPDESIGN_FPGA_MEM,har,packaged_har_c8_f1_j0,4216,2624,15826,15757,-69,-0.436,15821,15758,-63,-0.3982,3622,3622,7244,7244
+fpga_mem,CHIPDESIGN_FPGA_MEM,kws_l,packaged_kws_l_c8_f1_j0,7896,6248,72006,71904,-102,-0.1417,72003,71904,-99,-0.1375,21036,21036,42072,42072
+fpga_mem,CHIPDESIGN_FPGA_MEM,kws_m,packaged_kws_m_c8_f1_j0,7632,5248,73716,73570,-146,-0.1981,73713,73570,-143,-0.194,22532,22532,45064,45064
+fpga_mem,CHIPDESIGN_FPGA_MEM,mnist_l,packaged_mnist_l_c8_f1_j0,4688,3528,30836,30716,-120,-0.3892,30836,30716,-120,-0.3892,8666,8666,17332,17332
