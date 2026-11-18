@@ -1,0 +1,136 @@
+{
+  "base_commit": "fe167b15ca477b5a4227deb66fa2919eb6d2babe",
+  "python": "3.12.15 | packaged by conda-forge | (main, Oct 13 2026, 16:44:09) [MSC v.1944 64 bit (AMD64)]",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "fpga_available": false,
+  "fpga_validated": false,
+  "checks": {
+    "demo_tests": {
+      "passed": true,
+      "exit_code": 0,
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "software/tests",
+        "-p",
+        "test_demos.py",
+        "-v"
+      ]
+    },
+    "jtag_tests": {
+      "passed": true,
+      "exit_code": 0,
+      "command": [
+        "python",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "software/tests",
+        "-p",
+        "test_nocpu*.py",
+        "-v"
+      ]
+    },
+    "all_golden": {
+      "passed": true,
+      "exit_code": 0,
+      "command": [
+        "python",
+        "software/host/demo.py",
+        "--self-test",
+        "--output",
+        "C:\\Users\\Lenovo\\.codex\\worktrees\\demo-software\\ChipDesign\\docs\\validation\\demo_software_20261116\\all_golden.json"
+      ]
+    },
+    "existing_golden": {
+      "passed": true,
+      "exit_code": 0,
+      "command": [
+        "python",
+        "software/zoo/check_golden.py"
+      ]
+    },
+    "checkpoint_export": {
+      "passed": true,
+      "exit_code": 0,
+      "command": [
+        "python",
+        "software/zoo/check_demo_models.py"
+      ]
+    },
+    "face_host": {
+      "passed": true,
+      "exit_code": 0,
+      "command": [
+        "python",
+        "software/host/demo.py",
+        "face",
+        "--input",
+        "build/demo_validation/public_face.png",
+        "--output",
+        "C:\\Users\\Lenovo\\.codex\\worktrees\\demo-software\\ChipDesign\\docs\\validation\\demo_software_20261116\\face_host.json"
+      ]
+    },
+    "blank_face": {
+      "passed": true,
+      "exit_code": 0,
+      "command": [
+        "python",
+        "software/host/demo.py",
+        "face",
+        "--input",
+        "build/demo_validation/blank.png",
+        "--output",
+        "C:\\Users\\Lenovo\\.codex\\worktrees\\demo-software\\ChipDesign\\docs\\validation\\demo_software_20261116\\blank_face.json"
+      ]
+    }
+  },
+  "golden_frames": 80,
+  "golden_complete_outputs_equal": 80,
+  "existing_zoo_frames": 112,
+  "gui_checks": [
+    "six-scene picker",
+    "ECG exact prediction and navigation",
+    "HAR exact prediction, navigation and scrolling",
+    "YuNet page initializes without starting camera"
+  ],
+  "not_tested": [
+    "FPGA",
+    "camera capture",
+    "microphone capture",
+    "physical phone IMU",
+    "participant accuracy"
+  ],
+  "source_sha256": {
+    "software/host/demo.py": "3882ca6540507a1bf213284cb0a021270e060ff9507b8adde1ab78166bcaa9f2",
+    "software/tests/test_demos.py": "1fcac997bfe58eb115ba6e0b01b82c29083c3b0d058f1980f736f837df727a80",
+    "software/zoo/qat.py": "c66ab1ea959c4b62b1e256efda3fb5fedf04e431dbcf150091c5677bc0cfe0c0",
+    "software/zoo/train_demo_vision.py": "98ce5d38e7f1071fbf7a149454d41a5c6d8d1d4a245ea17b9d83e7af11c3e545",
+    "software/zoo/check_demo_models.py": "95ae162e14cbbbe4a903381b6da47bb3777965bc1e976b7e468ce7babd3c45b5",
+    "software/host/demos/camera.py": "9b3ddee87f6f222544803ea52e6f8964240d5f840d45534cfe8ea55ee1c4320a",
+    "software/host/demos/ecg.py": "b2c1408af8abf458eddea37918224dd00e79282deb40e07215557a6d09264d00",
+    "software/host/demos/emotion.py": "7eefdace6210bd37a99963c2bcd0ce66e4a185401f7fb40e6b1aa57a4c237c22",
+    "software/host/demos/face.py": "a26f7a62506c66a7e512bca8e4b1f3ddabf0a960868da390b14d05a68c9b3c32",
+    "software/host/demos/fetch_assets.py": "ff3c7c38a48ba1d1bd521d3ffb49133d04f52c008cbdbfa25857281a13a2db85",
+    "software/host/demos/har.py": "33335898d593ccefb55620ef2e79ffea64e226b1fba7291f11d77888e97ebedc",
+    "software/host/demos/inference.py": "6c46c23d606db36d9e386b873278432b1f4e8ce9c44220c393c3e1d15d0d19cb",
+    "software/host/demos/kws.py": "5127ebf923a4b5b5826c32ae30f3756460aa603b43759b3c2dae594ec57160bc",
+    "software/host/demos/kws_audio.py": "5be9b306e0ee5c0b78b287141ad4604f30389236edede3b69f14b90a99db4ad7",
+    "software/host/demos/mnist.py": "85d32d6ed58e01af45e468a3d79023f2dcd62e5a45bd86f6010714227c73d60c",
+    "software/host/demos/mnist_input.py": "66694f93140f815dd8cdf51480cea308f00319d564272dfcd517708bac3295e4",
+    "software/host/demos/phone_capture.py": "d3b10cb8e4961ec7df74dfe592d0bfd6edcbf380d0f349042e0d87bb12c27d29",
+    "software/host/demos/prepare_signals.py": "3a8dbda9e761d9323f958d70f4a775037ee7c9632e0ad8153bc152c38dc73355",
+    "software/host/demos/replay.py": "59c056d4289526b742d99163cb02ce34143cfc23f186df4eb5f1f1ef7df0fa6b",
+    "software/host/demos/runner.py": "c44e3a629b8779fa9675c9004b003f235cb4edf159738e98807c2986672c2328",
+    "software/host/demos/signals.py": "ffbe3e4a0c8b995f266dd642e78ea77742dec2b5bf0732557d139e7184615f10",
+    "software/host/demos/vision.py": "b7992b5643c2299bd789c9af5921381cb9933bb4c9c8dbaa9b4b8a0947464cb0",
+    "software/host/demos/window.py": "05ec06686b05e214d953ccbbe15febf9bef5c6729e3ffaf04c75bda3e444df22"
+  },
+  "demo_unit_tests": 13,
+  "jtag_unit_tests": 17,
+  "source_hash_format": "SHA-256 of UTF-8 / LF text; same program after Git line-ending normalization"
+}

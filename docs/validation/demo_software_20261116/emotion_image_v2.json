@@ -1,0 +1,41 @@
+{
+  "started_utc": "2026-11-15T16:26:55.639954+00:00",
+  "backend": "reference",
+  "passed": true,
+  "kind": "input_inference",
+  "runs": [
+    {
+      "task": "emotion",
+      "mode": "emotion",
+      "backend": "reference",
+      "boxes": [
+        [
+          136.40890502929688,
+          172.9908905029297,
+          414.93060302734375,
+          582.86572265625,
+          0.9230536818504333
+        ]
+      ],
+      "total_ms": 714.276599988807,
+      "prediction": {
+        "scores": [
+          140,
+          -271,
+          -308,
+          233,
+          -191,
+          -617,
+          -216
+        ],
+        "elapsed_ms": 667.1891000005417,
+        "cycles": null,
+        "counter_ms": 0.0,
+        "index": 3
+      },
+      "label": "happy"
+    }
+  ],
+  "errors": [],
+  "fpga_validated": false
+}

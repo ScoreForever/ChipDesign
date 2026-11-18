@@ -1,0 +1,29 @@
+name: Desktop demo software
+on:
+  push:
+    branches: ['demo', 'demo-software']
+  pull_request:
+    paths: ['software/host/demo.py', 'software/host/demos/**', 'software/tests/test_demos.py', 'software/zoo/qat.py', '.github/workflows/demo.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.12'}
+      - run: python -m pip install -r software/host/demos/requirements.txt
+      - run: python -m unittest discover -s software/tests -p test_demos.py -v
+      - run: python software/host/demo.py --self-test --output build/demo_ci.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: demo-offline-${{ matrix.os }}
+          path: build/demo_ci.json

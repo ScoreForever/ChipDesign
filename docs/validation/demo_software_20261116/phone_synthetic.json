@@ -1,0 +1,73 @@
+{
+  "started_utc": "2026-11-15T16:27:16.439820+00:00",
+  "backend": "reference",
+  "passed": true,
+  "kind": "input_inference",
+  "runs": [
+    {
+      "demo": "har",
+      "sample": "手机 · 0.50 s",
+      "expected": null,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "5d4058063437faa04ab3bfd5336d429f0191c26ac1d404462e1e3885409feefc",
+      "scores": [
+        -125,
+        -183,
+        -182,
+        -139,
+        -156,
+        617
+      ],
+      "elapsed_ms": 82.27499999338761,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 5
+    },
+    {
+      "demo": "har",
+      "sample": "手机 · 1.78 s",
+      "expected": null,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "5d4058063437faa04ab3bfd5336d429f0191c26ac1d404462e1e3885409feefc",
+      "scores": [
+        -125,
+        -183,
+        -182,
+        -139,
+        -156,
+        617
+      ],
+      "elapsed_ms": 79.26689996384084,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 5
+    },
+    {
+      "demo": "har",
+      "sample": "手机 · 3.06 s",
+      "expected": null,
+      "exact": null,
+      "preprocess_ms": 0.0,
+      "model_sha256": "355f5ec44272f44e9e744bf3ab0375ea461cca4b6b7334eebbd5920cdcc10cb8",
+      "input_sha256": "5d4058063437faa04ab3bfd5336d429f0191c26ac1d404462e1e3885409feefc",
+      "scores": [
+        -125,
+        -183,
+        -182,
+        -139,
+        -156,
+        617
+      ],
+      "elapsed_ms": 83.25229998445138,
+      "cycles": null,
+      "counter_ms": 0.0,
+      "index": 5
+    }
+  ],
+  "errors": [],
+  "fpga_validated": false
+}

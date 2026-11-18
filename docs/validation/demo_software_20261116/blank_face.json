@@ -1,0 +1,19 @@
+{
+  "started_utc": "2026-11-15T16:38:01.921146+00:00",
+  "backend": "host",
+  "passed": true,
+  "kind": "input_inference",
+  "runs": [
+    {
+      "task": "face",
+      "mode": "host",
+      "backend": "host",
+      "boxes": [],
+      "total_ms": 35.938600020017475,
+      "prediction": null,
+      "label": null
+    }
+  ],
+  "errors": [],
+  "fpga_validated": false
+}

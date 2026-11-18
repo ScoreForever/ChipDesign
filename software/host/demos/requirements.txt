@@ -1,0 +1,7 @@
+# Desktop inference only; training uses ../../zoo/requirements-demo.txt.
+Pillow>=9.1
+numpy>=1.24
+scipy>=1.10
+sounddevice
+wfdb>=4.1
+opencv-python-headless>=4.9,<5

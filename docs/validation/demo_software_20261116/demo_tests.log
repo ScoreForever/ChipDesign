@@ -1,0 +1,18 @@
+test_dense_box_decode_and_bad_output (test_demos.FaceGeometry.test_dense_box_decode_and_bad_output) ... ok
+test_letterbox_preserves_coordinates_and_clips_padding (test_demos.FaceGeometry.test_letterbox_preserves_coordinates_and_clips_padding) ... ok
+test_digit_blank_multistroke_and_centering (test_demos.Frontends.test_digit_blank_multistroke_and_centering) ... ok
+test_ecg_matches_training_formula (test_demos.Frontends.test_ecg_matches_training_formula) ... ok
+test_har_time_major_axis_order_and_train_stats (test_demos.Frontends.test_har_time_major_axis_order_and_train_stats) ... ok
+test_phone_window_size_units_and_rejections (test_demos.Frontends.test_phone_window_size_units_and_rejections) ... ok
+test_wav_frontend_shape_resampling_and_finite_silence (test_demos.Frontends.test_wav_frontend_shape_resampling_and_finite_silence) ... ok
+test_wrong_golden_fails_and_existing_report_is_preserved (test_demos.Headless.test_wrong_golden_fails_and_existing_report_is_preserved) ... ok
+test_real_http_auth_ordering_and_atomic_bad_packet (test_demos.PhoneCapture.test_real_http_auth_ordering_and_atomic_bad_packet) ... ok
+test_connect_failure_closes_socket (test_demos.Sessions.test_connect_failure_closes_socket) ... ok
+test_fpga_residency_and_timeout_are_not_replayed (test_demos.Sessions.test_fpga_residency_and_timeout_are_not_replayed) ... ok
+test_integer_golden_and_no_fabricated_cycles (test_demos.Sessions.test_integer_golden_and_no_fabricated_cycles) ... ok
+test_published_model_files_match_release_hashes (test_demos.Sessions.test_published_model_files_match_release_hashes) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.695s
+
+OK

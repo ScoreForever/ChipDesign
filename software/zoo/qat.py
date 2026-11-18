@@ -87,10 +87,11 @@ class Layer(nn.Module):
             cout = cin if self.dw else spec['out']
             self.conv = nn.Conv2d(cin, cout, (kh, kw), tuple(spec.get('s', [1, 1])), 0,
                                   groups=cin if self.dw else 1, bias=True)
-            self.bn = nn.BatchNorm2d(cout)
+            self.last = spec.get('last', False)
+            self.bn = None if self.last else nn.BatchNorm2d(cout)
             self.cout = cout
         elif t == 'fc':
-            self.fc = nn.Linear(cin, spec['out'])
+            self.fc = nn.Linear(cin * spec.get('spatial', 1), spec['out'])
             self.last = spec.get('last', False)
             self.bn = None if self.last else nn.BatchNorm1d(spec['out'])
             self.cout = spec['out']
@@ -101,7 +102,7 @@ class Layer(nn.Module):
         # Averages of post-ReLU tensors are non-negative: quantize them like ReLU outputs.
         if t == 'gap' or (t == 'pool' and spec.get('kind') == 'avg'):
             relu = spec.get('relu', True)
-        if t == 'fc' and spec.get('last', False):
+        if t in ('conv', 'fc') and spec.get('last', False):
             self.aq = None
         elif t in ('conv', 'fc', 'gap', 'add') or (t == 'pool' and spec.get('kind') == 'avg'):
             self.aq = ActQuant(0 if relu else -8, RELU_MAX if relu else 7)
@@ -127,7 +128,7 @@ class Layer(nn.Module):
             scale = int_scale(mod.weight)
             # The final FC emits INT32 logits compared by argmax, so all its
             # rows must share one scale; elsewhere Requant absorbs per-row scales.
-            if t == 'fc' and self.last:
+            if self.spec.get('last', False):
                 scale = scale.max().view(1)
             self.wscale = nn.Parameter(scale)
 
@@ -275,6 +276,12 @@ def export(net, name='model', metadata=None):
             if layer.dw:
                 node['groups'] = layer.cout
             nodes.append(node)
+            if spec.get('last', False):
+                # A dense detection head emits INT32 values in one shared scale.
+                cur = out
+                cur_scale *= float(ws.flatten()[0])
+                layer.export_tensor = (cur, cur_scale)
+                continue
             out_scale = float(layer.aq.scale.detach().abs())
             cur = requant_node(out, [cur_scale * float(s) for s in ws], out_scale, layer.relu, layer.cout)
             pool = spec.get('pool')
@@ -316,6 +323,7 @@ def export(net, name='model', metadata=None):
                               weights=wq.tolist(), bias=bias.tolist()))
             if layer.last:
                 cur = out
+                cur_scale *= float(ws.flatten()[0])
             else:
                 out_scale = float(layer.aq.scale.detach().abs())
                 cur = requant_node(out, [cur_scale * float(s) for s in ws], out_scale, layer.relu, layer.cout)
@@ -334,6 +342,8 @@ def export(net, name='model', metadata=None):
         layer.export_tensor = (cur, cur_scale)
     model = dict(input=dict(name='input', shape=[h, w, c], dtype='i4'), nodes=nodes,
                  metadata=dict(name=name, input_scale=s_in, **(metadata or {})))
+    if metadata and metadata.get('task') == 'face_detection':
+        model['metadata']['output_scale'] = cur_scale
     return model
 
 

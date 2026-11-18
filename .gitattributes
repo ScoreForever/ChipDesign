@@ -1,1 +1,6 @@
 *.sh text eol=lf
+software/host/demo.py text eol=lf
+software/tests/test_demos.py text eol=lf
+software/zoo/qat.py text eol=lf
+software/zoo/train_demo_vision.py text eol=lf
+software/zoo/check_demo_models.py text eol=lf

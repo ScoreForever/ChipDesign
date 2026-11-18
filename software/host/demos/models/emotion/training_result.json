@@ -1,0 +1,101 @@
+{
+  "task": "emotion",
+  "seed": 17,
+  "device": "cuda",
+  "evaluation": {
+    "accuracy": 0.5452772378921509,
+    "samples": 3589
+  },
+  "hardware": {
+    "c8": {
+      "model_bytes": 6460,
+      "activation_peak": 7488,
+      "op_count": 4
+    },
+    "bit_exact_frames": 8
+  },
+  "split_counts": {
+    "train": 28709,
+    "val": 3589,
+    "test": 3589
+  },
+  "source_images": {
+    "splits": "FER2013 train/publicTest/privateTest; standard 7-class label order"
+  },
+  "seconds": 136.1838264465332,
+  "args": {
+    "task": "emotion",
+    "data": "C:\\Users\\Lenovo\\.codex\\worktrees\\demo-software\\ChipDesign\\build\\demo_data",
+    "output": "C:\\Users\\Lenovo\\.codex\\worktrees\\demo-software\\ChipDesign\\software\\host\\demos\\models",
+    "fp_epochs": "80",
+    "qat_epochs": "35",
+    "seed": "17",
+    "train_count": "8000",
+    "val_count": "1000"
+  },
+  "fpga_validated": false,
+  "participant_validated": false,
+  "dataset_sources": {
+    "fer": {
+      "repository": "Aaryan333/fer2013_train_publicTest_privateTest",
+      "revision": "da8d1643649c86bfc2cffba5b744b51fdf329212"
+    },
+    "wider": {
+      "repository": "CUHK-CSE/wider_face",
+      "revision": "db171f1b7fedf4d3453e81297ff02f9915356d19"
+    },
+    "uci_har.zip": {
+      "sha256": "c00b803081a5c797cd5e4b83700a9810b38d53d9d84e01917e090e1fdbc81031",
+      "bytes": 61005872
+    },
+    "mitdb\\100.hea": {
+      "sha256": "60ebc904c7bf3e04d142638d3fd5c903e8dc9f10f1ea3264e07926aa089ee75e",
+      "bytes": 143
+    },
+    "mitdb\\100.dat": {
+      "sha256": "b2ea3c250e56e48f4b7b90697832b8ecd1afa1e0bb31f2dcfea4ed6e1075a639",
+      "bytes": 1950000
+    },
+    "mitdb\\100.atr": {
+      "sha256": "8d8a5349fb16638ebbf649f1779d12e96d91b736b2aafe59db43719ae583d471",
+      "bytes": 4558
+    },
+    "yunet.onnx": {
+      "sha256": "8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4",
+      "bytes": 232589
+    },
+    "fer\\privateTest-00000-of-00001-4b8a0715cf1b7560.parquet": {
+      "sha256": "e0b74317d8d3defc79961a297a651e23ee8b0785669484a258e7a389be1fcea0",
+      "bytes": 13360240
+    },
+    "fer\\publicTest-00000-of-00001-f41bb7384b8aad6e.parquet": {
+      "sha256": "e9efe94c45b5af29ec2825abb8f0bf3583450edb915b2c6ab6d5566afbffc5a1",
+      "bytes": 13347727
+    },
+    "fer\\train-00000-of-00001-5eab84e1c6a2fc27.parquet": {
+      "sha256": "b1c4bee933d41947d7d67648a54f3877de9365703f40117e0d59495c8eb6647a",
+      "bytes": 106477215
+    },
+    "wider\\WIDER_train.zip": {
+      "sha256": "e23b76129c825cafae8be944f65310b2e1ba1c76885afe732f179c41e5ed6d59",
+      "bytes": 1465602149
+    },
+    "wider\\WIDER_val.zip": {
+      "sha256": "f9efbd09f28c5d2d884be8c0eaef3967158c866a593fc36ab0413e4b2a58a17a",
+      "bytes": 362752168
+    },
+    "wider\\wider_face_split.zip": {
+      "sha256": "c7561e4f5e7a118c249e0a5c5c902b0de90bbf120d7da9fa28d99041f68a8a5c",
+      "bytes": 3591642
+    }
+  },
+  "training_source_sha256": {
+    "software\\zoo\\train_demo_vision.py": "98ce5d38e7f1071fbf7a149454d41a5c6d8d1d4a245ea17b9d83e7af11c3e545",
+    "software\\zoo\\qat.py": "116e65543726867691b0ec6458a41f0fe28c44c097a64ab840cb24b6b2790db3"
+  },
+  "export_source_sha256_lf": {
+    "software/zoo/qat.py": "c66ab1ea959c4b62b1e256efda3fb5fedf04e431dbcf150091c5677bc0cfe0c0",
+    "software/zoo/train_demo_vision.py": "98ce5d38e7f1071fbf7a149454d41a5c6d8d1d4a245ea17b9d83e7af11c3e545"
+  },
+  "export_verification": "Saved QAT state re-exported to the exact published model.json and c8/model.bin; text canonically LF for publication"
+}

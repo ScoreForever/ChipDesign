@@ -1,0 +1,14 @@
+{
+  "face": {
+    "passed": true,
+    "model_sha256": "9ac8cb1e3e3ea552f054ee54b473e607cffce150291f73bc51f9562926d36ee8",
+    "model_bytes": 6068,
+    "torch": "2.6.0+cu124"
+  },
+  "emotion": {
+    "passed": true,
+    "model_sha256": "0fa5ffa7a296097361a524be34cec42dd18cc0d1616ca1600ea09b55e7474307",
+    "model_bytes": 6460,
+    "torch": "2.6.0+cu124"
+  }
+}
