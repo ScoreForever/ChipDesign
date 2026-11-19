@@ -140,6 +140,7 @@ def sec_asic(N):
     N['MmmcActPct'] = f"{pct(act1, pm['active_standard_area_um2']):+.2f}"
     N['MmmcWirePct'] = f"{pct(wl1, pm['wire_length_um']):+.2f}"
     N['MmmcInstDelta'] = f"{nm['active_standard_instances'] - pm['active_standard_instances']:+,}"
+    N['MmmcVsFfStatus'] = '仍低于 FF 基线' if (act1 < act0 and wl1 < wl0 and vp1 < vp0) else '高于 FF 基线'
     N['ZeroRtl'] = '零 RTL 修改' if re.search(r'\bzero-RTL\b', readme) else 'RTL 已修改'
     N['StaTool'] = grab(r'(PrimeTime|OpenSTA) TT STA', readme, 'README (STA tool)')[1]
     m = grab(r'over-constrained high-effort synthesis at `([\d.]+) ns`', readme, 'README (synthesis over-constraint)')
@@ -186,6 +187,8 @@ def sec_asic(N):
     geo_pass = sum(bool(v) for v in checks.values())
     N['GeoPass'], N['GeoTotal'] = str(geo_pass), str(len(checks))
     N['GeoStatus'] = '通过' if geo_pass == len(checks) else '存在失败'
+    mpins = [r_ for r_ in (W3 / 'macro_pins.tsv').read_text(encoding='utf-8').splitlines() if r_.strip()]
+    N['SramPinStatus'] = '顶层 SRAM 引脚零新增' if (checks.get('macro_pins') and len(mpins) == nm['macro_count'] == op['macro_count']) else '引脚数变化'
     l5 = jload(W3 / 'lab5_summary.json')
     N['DieSide'] = f"{l5['raw_die_bbox_um'][2]:.2f}"
     N['DieLimit'] = grab(r'`<= (\d+) µm` die limit', readme, 'README (die limit)')[1]
@@ -329,6 +332,7 @@ def sec_physical_signoff(N):
     )[1]
     assert int(N['ErcDesignDefects']) == 0
     N['ErcStatus'] = '审计' if (erc['status'] == 'manual_review_required' and int(N['ErcDesignDefects']) == 0) else '异常'
+    N['SrIsolationStatus'] = '隔离带未桥接' if (er['floating.psub_float']['hier_count'] == 1 and 'SR.S.1' not in drc['blocking'] and 'SR.S.1' not in cats) else '存在桥接异常'
     m3 = grab(
         r'\|\s*\*\*Total ERC\*\*\s*\|\s*\*\*`(\d+)\s*/\s*(\d+)`\*\*\s*\|\s*\*\*`(\d+)\s*/\s*(\d+)`\*\*\s*\|\s*\*\*`(\d+)`\*\*',
         dd,
@@ -407,6 +411,12 @@ def sec_mmmc(N):
     N['RcHoldBadge'] = BS + ('ok' if hold_ok else 'pending')
     N['RcHoldStatus'] = '0 违例' if hold_ok else '存在违例'
     N['RcHoldViol'] = str(sum(int(rc[c]['hold_viol']) for c in ('rc_m15_ffm40', 'rc_m20_ffm40')))
+    lo_p = round(100 * (float(rc['rc_p15_ss125']['rc_scale']) - 1))
+    lo_m = round(100 * (1 - float(rc['rc_m15_ffm40']['rc_scale'])))
+    hi_p = round(100 * (float(rc['rc_p20_ss125']['rc_scale']) - 1))
+    hi_m = round(100 * (1 - float(rc['rc_m20_ffm40']['rc_scale'])))
+    assert lo_p == lo_m and hi_p == hi_m
+    N['RcScaleLow'], N['RcScaleHigh'] = str(lo_p), str(hi_p)
     N['RcNote'] = esc(mm['rc_note'])
     N['RcScope'] = 'PDK 仅含 typical captable（温度缩放）' if 'Typical captable only' in mm['rc_note'] else esc(mm['rc_note'])
 
@@ -700,6 +710,7 @@ def sec_fpga(N):
     N['FpgaGtsrbInOneMs'], N['FpgaGtsrbInFiveMs'] = '%.2f' % rows_1m['gtsrb_l']['phases_ms']['input_upload'], '%.2f' % rows_5m['gtsrb_l']['phases_ms']['input_upload']
     N['FpgaGtsrbUpOneMs'], N['FpgaGtsrbUpFiveMs'] = '%.2f' % rows_1m['gtsrb_l']['upload_ms'], '%.2f' % rows_5m['gtsrb_l']['upload_ms']
     N['FpgaTckRatio'] = '%g' % (5000 / 1000)
+    N['FpgaFiveMhz'] = '%g' % (5000 / 1000)
     N['FpgaResFive'] = '%.2f' % res[5000]
     N['FpgaTckOutcome'] = '无净提速收益' if (res[5000] >= res[1000] and cold[5000] >= cold[1000]) else '存在净提速'
     assert all(tclm[m_]['model_bytes'] % 4 == 0 for m_ in order)

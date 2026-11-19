@@ -216,7 +216,7 @@
     \begin{itemize}\setlength{\itemsep}{2pt}
       \item 以顺序 SRAM 扫描替换 \NRecords×\NRecordBitsOld-bit 的 FF 表（占优化前 stdcell 面积的 \NLookupShareBefore\%）。
       \item 每条记录打包为 1 个 \NRecordWordBits-bit 字，存放于 Activation SRAM 字节区间 \texttt{[0, 4(op+1))}。
-      \item 复用现有 SRAM 读写端口，顶层 SRAM 引脚零新增。
+      \item 复用现有 SRAM 读写端口，\NSramPinStatus。
     \end{itemize}\par\vspace{7pt}
     \callout[peking]{\textbf{综合实测收益}：Lookup FF \NLookupFFBefore{} → \hl{\NLookupFFAfter}；模块面积 \NLookupAreaBefore{} → \hl{\NLookupAreaAfter{} kµm²}（\hl{\NLookupAreaPct\%}）。}
     \column{0.57\textwidth}
@@ -297,7 +297,7 @@
       \end{axis}
     \end{tikzpicture}\par\vspace{3pt}
     \snote{True-MMMC 流程：\texttt{ss125} \NSynOverPeriod{} ns 过约束综合 → \NCorePeriod{} ns 四角联合 P\&R + ECO；目标利用率 \NUtilPct\%，Hold 目标 \NHoldTarget{} ns。}
-    \snote{相对同 RTL 的 TT-only 网表：综合 stdcell \NMmmcSynPct\%，高驱动 MMMC 缓冲使布线后面积 \NMmmcActPct\%、线长 \NMmmcWirePct\%（\NMmmcInstDelta{} 实例）；仍低于 FF 基线。}
+    \snote{相对同 RTL 的 TT-only 网表：综合 stdcell \NMmmcSynPct\%，高驱动 MMMC 缓冲使布线后面积 \NMmmcActPct\%、线长 \NMmmcWirePct\%（\NMmmcInstDelta{} 实例）；\NMmmcVsFfStatus。}
     \column{0.53\textwidth}
     {\scriptsize\setlength{\tabcolsep}{3.5pt}
     \begin{tabular}{@{}lrr@{}}
@@ -367,7 +367,7 @@
       \item \texttt{ss125} Setup 由 \NSSBeforeSetup{} ns（\NSSBeforeViol{} 端点；降频闭合仅 \NSSBeforeFreq{} MHz）→ \hl{\NSSSetup{} ns（\NSSFreq{} MHz）}，提升 \hl{\NSSGainNs{} ns}，\hl{\NZeroRtl}；关键路径止于 \NSSEndSram{} \texttt{WEN}。
       \item 全部 \NMmmcCorners{} 个 corner \NAllMmmcShort，TNS = \NAllMmmcTns；最小 Hold \NHoldMin{} ns @ \texttt{\NHoldMinCorner}。
     \end{itemize}\par\vspace{3pt}
-    \callout[warnink]{\textbf{±15\%/±20\% RC 敏感度（典型 captable 缩放）}：\texttt{ffm40} \NRcMfifteenScale\%/\NRcMtwentyScale\% RC Hold 仍 \hl{\NRcMfifteenHold{} / \NRcMtwentyHold{} ns}（\NRcHoldStatus{} \NRcHoldBadge）；\texttt{ss125} \NRcPfifteenScale\%/\NRcPtwentyScale\% RC Setup 为 \NRcPfifteenWns{} / \NRcPtwentyWns{} ns（\NRcPfifteenFreq{} / \NRcPtwentyFreq{} MHz）。\NRcScope，待 foundry \texttt{Cmax}/\texttt{Cmin} 与 PGV 静态 IR 复核。}
+    \callout[warnink]{\textbf{±\NRcScaleLow\%/±\NRcScaleHigh\% RC 敏感度（典型 captable 缩放）}：\texttt{ffm40} \NRcMfifteenScale\%/\NRcMtwentyScale\% RC Hold 仍 \hl{\NRcMfifteenHold{} / \NRcMtwentyHold{} ns}（\NRcHoldStatus{} \NRcHoldBadge）；\texttt{ss125} \NRcPfifteenScale\%/\NRcPtwentyScale\% RC Setup 为 \NRcPfifteenWns{} / \NRcPtwentyWns{} ns（\NRcPfifteenFreq{} / \NRcPtwentyFreq{} MHz）。\NRcScope，待 foundry \texttt{Cmax}/\texttt{Cmin} 与 PGV 静态 IR 复核。}
     \column{0.49\textwidth}
     \textbf{SRAM 接口时序（\NSramCorners{} corner，ns）\quad\NSramBadge}\par\vspace{2pt}
     {\scriptsize\setlength{\tabcolsep}{2.5pt}
@@ -462,7 +462,7 @@
       \texttt{npvss49} & \NErcVssH & \NErcVssE & \\[1pt]
       \texttt{psub\_float} & \NErcPsubH & \NErcPsubE & \texttt{SR.S.1} 隔离带外侧 Seal Ring 衬底框架 \\ \bottomrule
     \end{tabularx}}\par\vspace{6pt}
-    \callout[passink]{\textbf{审计结论}：\hl{\NErcDesignDefects{} 个设计/核心/SRAM ERC 缺陷}；Seal Ring 前后 ERC delta=\NErcPrePostDelta{}（\NErcPreH{}→\NErcHier{} Hier.，\NErcPreE{}→\NErcExp{} Exp.）；\texttt{SR.S.1} 隔离带未桥接。}\par\vspace{3pt}
+    \callout[passink]{\textbf{审计结论}：\hl{\NErcDesignDefects{} 个设计/核心/SRAM ERC 缺陷}；Seal Ring 前后 ERC delta=\NErcPrePostDelta{}（\NErcPreH{}→\NErcHier{} Hier.，\NErcPreE{}→\NErcExp{} Exp.）；\texttt{SR.S.1} \NSrIsolationStatus。}\par\vspace{3pt}
     \callout[warnink]{\texttt{formal\_tapeout\_signoff=\NFormalTapeout}：vendor IO 与外框 ERC 条目保留，待 foundry 正式签核 waiver。}
   \end{columns}
 \end{frame}
@@ -472,7 +472,7 @@
 \section{主机 JTAG 优化与 FPGA 验证}
 
 \begin{frame}{EGo1 实板延迟分解：三步排除与双瓶颈归因}
-  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 \NFpgaExactStatus{} 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} 1 → \NFpgaTckRatio{} MHz（\NFpgaTckRatio× 提频）\NFpgaTckOutcome{}（驻留几何均值 \NFpgaRes{} → \NFpgaResFive{} ms；\texttt{ecg} \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms）；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
+  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 \NFpgaExactStatus{} 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} \NFpgaBestMhz{} → \NFpgaFiveMhz{} MHz（\NFpgaTckRatio× 提频）\NFpgaTckOutcome{}（驻留几何均值 \NFpgaRes{} → \NFpgaResFive{} ms；\texttt{ecg} \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms）；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
     \begin{tikzpicture}
