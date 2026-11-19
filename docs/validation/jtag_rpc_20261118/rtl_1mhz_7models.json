@@ -1,0 +1,431 @@
+{
+  "scope": "Directly measured 1000 ns (1.0 MHz TCK) Icarus Verilog RTL physical-JTAG wire simulations (all 7 pretrained models in burst IR 13h/14h mode + completed 1 MHz wordwise anchors) and 16 ns TCK matched wordwise-vs-burst TCK ratios from e2e_timing.json. Zero estimates or extrapolated times.",
+  "tck_ns": 1000.0,
+  "tck_mhz": 1.0,
+  "all_bit_exact": true,
+  "burst_models_completed": 7,
+  "wordwise_1mhz_anchors_completed": 2,
+  "models": [
+    {
+      "model": "ecg",
+      "model_bytes": 3908,
+      "input_bytes": 64,
+      "output_bytes": 20,
+      "compute_cycles": 13247,
+      "burst_ms": 42.903,
+      "burst_tck": 42903,
+      "burst_model_upload_ms": 38.202,
+      "burst_model_upload_pct": 89.0,
+      "burst_compute_ms": 0.231,
+      "burst_commands": 27,
+      "burst_scans": 995,
+      "phases_1mhz": {
+        "capabilities": {
+          "tck": 1386,
+          "sim_ns": 1386000
+        },
+        "model_upload": {
+          "tck": 38202,
+          "sim_ns": 38202000
+        },
+        "model_commit": {
+          "tck": 242,
+          "sim_ns": 242000
+        },
+        "input_upload": {
+          "tck": 1028,
+          "sim_ns": 1028000
+        },
+        "start": {
+          "tck": 473,
+          "sim_ns": 473000
+        },
+        "compute": {
+          "tck": 231,
+          "sim_ns": 231000
+        },
+        "status_poll": {
+          "tck": 462,
+          "sim_ns": 462000
+        },
+        "output_readout": {
+          "tck": 406,
+          "sim_ns": 406000
+        },
+        "ack": {
+          "tck": 473,
+          "sim_ns": 473000
+        }
+      },
+      "wordwise_1mhz_ms": 235.851,
+      "wire_speedup_1mhz_x": 5.5,
+      "tck_ratio_16ns": 5.43,
+      "wordwise_16ns_tck": 236467,
+      "burst_16ns_tck": 43535
+    },
+    {
+      "model": "fashion_cnn",
+      "model_bytes": 8104,
+      "input_bytes": 392,
+      "output_bytes": 40,
+      "compute_cycles": 35765,
+      "burst_ms": 85.158,
+      "burst_tck": 84955,
+      "burst_model_upload_ms": 77.015,
+      "burst_model_upload_pct": 90.4,
+      "burst_compute_ms": 0.434,
+      "burst_commands": 27,
+      "burst_scans": 2131,
+      "phases_1mhz": {
+        "capabilities": {
+          "tck": 1386,
+          "sim_ns": 1386000
+        },
+        "model_upload": {
+          "tck": 77015,
+          "sim_ns": 77015000
+        },
+        "model_commit": {
+          "tck": 242,
+          "sim_ns": 242000
+        },
+        "input_upload": {
+          "tck": 4062,
+          "sim_ns": 4062000
+        },
+        "start": {
+          "tck": 473,
+          "sim_ns": 473000
+        },
+        "compute": {
+          "tck": 231,
+          "sim_ns": 434460
+        },
+        "status_poll": {
+          "tck": 462,
+          "sim_ns": 462000
+        },
+        "output_readout": {
+          "tck": 611,
+          "sim_ns": 611000
+        },
+        "ack": {
+          "tck": 473,
+          "sim_ns": 473000
+        }
+      },
+      "wordwise_1mhz_ms": null,
+      "wire_speedup_1mhz_x": null,
+      "tck_ratio_16ns": 5.85,
+      "wordwise_16ns_tck": 498421,
+      "burst_16ns_tck": 85145
+    },
+    {
+      "model": "gtsrb_l",
+      "model_bytes": 7736,
+      "input_bytes": 2048,
+      "output_bytes": 172,
+      "compute_cycles": 78990,
+      "burst_ms": 98.858,
+      "burst_tck": 98222,
+      "burst_model_upload_ms": 73.611,
+      "burst_model_upload_pct": 74.5,
+      "burst_compute_ms": 0.867,
+      "burst_commands": 27,
+      "burst_scans": 2486,
+      "phases_1mhz": {
+        "capabilities": {
+          "tck": 1386,
+          "sim_ns": 1386000
+        },
+        "model_upload": {
+          "tck": 73611,
+          "sim_ns": 73611000
+        },
+        "model_commit": {
+          "tck": 242,
+          "sim_ns": 242000
+        },
+        "input_upload": {
+          "tck": 19380,
+          "sim_ns": 19380000
+        },
+        "start": {
+          "tck": 473,
+          "sim_ns": 473000
+        },
+        "compute": {
+          "tck": 231,
+          "sim_ns": 866710
+        },
+        "status_poll": {
+          "tck": 462,
+          "sim_ns": 462000
+        },
+        "output_readout": {
+          "tck": 1964,
+          "sim_ns": 1964000
+        },
+        "ack": {
+          "tck": 473,
+          "sim_ns": 473000
+        }
+      },
+      "wordwise_1mhz_ms": null,
+      "wire_speedup_1mhz_x": null,
+      "tck_ratio_16ns": 5.87,
+      "wordwise_16ns_tck": 580811,
+      "burst_16ns_tck": 98929
+    },
+    {
+      "model": "har",
+      "model_bytes": 4216,
+      "input_bytes": 576,
+      "output_bytes": 24,
+      "compute_cycles": 15357,
+      "burst_ms": 50.529,
+      "burst_tck": 50529,
+      "burst_model_upload_ms": 41.051,
+      "burst_model_upload_pct": 81.2,
+      "burst_compute_ms": 0.231,
+      "burst_commands": 27,
+      "burst_scans": 1201,
+      "phases_1mhz": {
+        "capabilities": {
+          "tck": 1386,
+          "sim_ns": 1386000
+        },
+        "model_upload": {
+          "tck": 41051,
+          "sim_ns": 41051000
+        },
+        "model_commit": {
+          "tck": 242,
+          "sim_ns": 242000
+        },
+        "input_upload": {
+          "tck": 5764,
+          "sim_ns": 5764000
+        },
+        "start": {
+          "tck": 473,
+          "sim_ns": 473000
+        },
+        "compute": {
+          "tck": 231,
+          "sim_ns": 231000
+        },
+        "status_poll": {
+          "tck": 462,
+          "sim_ns": 462000
+        },
+        "output_readout": {
+          "tck": 447,
+          "sim_ns": 447000
+        },
+        "ack": {
+          "tck": 473,
+          "sim_ns": 473000
+        }
+      },
+      "wordwise_1mhz_ms": 283.437,
+      "wire_speedup_1mhz_x": 5.61,
+      "tck_ratio_16ns": 5.58,
+      "wordwise_16ns_tck": 283745,
+      "burst_16ns_tck": 50857
+    },
+    {
+      "model": "kws_l",
+      "model_bytes": 7896,
+      "input_bytes": 245,
+      "output_bytes": 48,
+      "compute_cycles": 71318,
+      "burst_ms": 82.34,
+      "burst_tck": 81781,
+      "burst_model_upload_ms": 75.091,
+      "burst_model_upload_pct": 91.2,
+      "burst_compute_ms": 0.79,
+      "burst_commands": 27,
+      "burst_scans": 2045,
+      "phases_1mhz": {
+        "capabilities": {
+          "tck": 1386,
+          "sim_ns": 1386000
+        },
+        "model_upload": {
+          "tck": 75091,
+          "sim_ns": 75091000
+        },
+        "model_commit": {
+          "tck": 242,
+          "sim_ns": 242000
+        },
+        "input_upload": {
+          "tck": 2730,
+          "sim_ns": 2730000
+        },
+        "start": {
+          "tck": 473,
+          "sim_ns": 473000
+        },
+        "compute": {
+          "tck": 231,
+          "sim_ns": 789990
+        },
+        "status_poll": {
+          "tck": 462,
+          "sim_ns": 462000
+        },
+        "output_readout": {
+          "tck": 693,
+          "sim_ns": 693000
+        },
+        "ack": {
+          "tck": 473,
+          "sim_ns": 473000
+        }
+      },
+      "wordwise_1mhz_ms": null,
+      "wire_speedup_1mhz_x": null,
+      "tck_ratio_16ns": 5.82,
+      "wordwise_16ns_tck": 478863,
+      "burst_16ns_tck": 82287
+    },
+    {
+      "model": "kws_m",
+      "model_bytes": 7632,
+      "input_bytes": 245,
+      "output_bytes": 48,
+      "compute_cycles": 72935,
+      "burst_ms": 79.914,
+      "burst_tck": 79339,
+      "burst_model_upload_ms": 72.649,
+      "burst_model_upload_pct": 90.9,
+      "burst_compute_ms": 0.806,
+      "burst_commands": 27,
+      "burst_scans": 1979,
+      "phases_1mhz": {
+        "capabilities": {
+          "tck": 1386,
+          "sim_ns": 1386000
+        },
+        "model_upload": {
+          "tck": 72649,
+          "sim_ns": 72649000
+        },
+        "model_commit": {
+          "tck": 242,
+          "sim_ns": 242000
+        },
+        "input_upload": {
+          "tck": 2730,
+          "sim_ns": 2730000
+        },
+        "start": {
+          "tck": 473,
+          "sim_ns": 473000
+        },
+        "compute": {
+          "tck": 231,
+          "sim_ns": 806160
+        },
+        "status_poll": {
+          "tck": 462,
+          "sim_ns": 462000
+        },
+        "output_readout": {
+          "tck": 693,
+          "sim_ns": 693000
+        },
+        "ack": {
+          "tck": 473,
+          "sim_ns": 473000
+        }
+      },
+      "wordwise_1mhz_ms": null,
+      "wire_speedup_1mhz_x": null,
+      "tck_ratio_16ns": 5.8,
+      "wordwise_16ns_tck": 463694,
+      "burst_16ns_tck": 79922
+    },
+    {
+      "model": "mnist_l",
+      "model_bytes": 4688,
+      "input_bytes": 392,
+      "output_bytes": 40,
+      "compute_cycles": 30184,
+      "burst_ms": 53.505,
+      "burst_tck": 53357,
+      "burst_model_upload_ms": 45.417,
+      "burst_model_upload_pct": 84.9,
+      "burst_compute_ms": 0.379,
+      "burst_commands": 27,
+      "burst_scans": 1277,
+      "phases_1mhz": {
+        "capabilities": {
+          "tck": 1386,
+          "sim_ns": 1386000
+        },
+        "model_upload": {
+          "tck": 45417,
+          "sim_ns": 45417000
+        },
+        "model_commit": {
+          "tck": 242,
+          "sim_ns": 242000
+        },
+        "input_upload": {
+          "tck": 4062,
+          "sim_ns": 4062000
+        },
+        "start": {
+          "tck": 473,
+          "sim_ns": 473000
+        },
+        "compute": {
+          "tck": 231,
+          "sim_ns": 378650
+        },
+        "status_poll": {
+          "tck": 462,
+          "sim_ns": 462000
+        },
+        "output_readout": {
+          "tck": 611,
+          "sim_ns": 611000
+        },
+        "ack": {
+          "tck": 473,
+          "sim_ns": 473000
+        }
+      },
+      "wordwise_1mhz_ms": null,
+      "wire_speedup_1mhz_x": null,
+      "tck_ratio_16ns": 5.6,
+      "wordwise_16ns_tck": 301455,
+      "burst_16ns_tck": 53855
+    }
+  ],
+  "wordwise_1mhz_anchors": [
+    {
+      "model": "ecg",
+      "wordwise_ms": 235.851,
+      "burst_ms": 42.903,
+      "wire_speedup_x": 5.5,
+      "wordwise_tck": 235851,
+      "burst_tck": 42903,
+      "commands_wordwise": 1022,
+      "commands_burst": 27
+    },
+    {
+      "model": "har",
+      "wordwise_ms": 283.437,
+      "burst_ms": 50.529,
+      "wire_speedup_x": 5.61,
+      "wordwise_tck": 283437,
+      "burst_tck": 50529,
+      "commands_wordwise": 1228,
+      "commands_burst": 27
+    }
+  ]
+}
