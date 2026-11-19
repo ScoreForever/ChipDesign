@@ -339,19 +339,38 @@ def run_dummy_insertion(
 
 
 def parse_drc_rep(rep_path: Path) -> dict:
-    """Extract rule count, hierarchical total, expanded total, and per-rule counts from Calibre DRC.rep."""
+    """Extract and fail-closed reconcile rule counts and totals from a Calibre DRC.rep."""
     text = rep_path.read_text(errors='replace')
+    m_exec = re.search(r'^TOTAL DRC RuleChecks Executed:\s+(\d+)\s*$', text, re.M)
+    m_res = re.search(r'^TOTAL DRC Results Generated:\s+(\d+)\s*\((\d+)\)\s*$', text, re.M)
+    if not m_exec or not m_res:
+        raise RuntimeError(f'Malformed or incomplete Calibre DRC report (missing summary totals): {rep_path}')
+    rules_executed = int(m_exec.group(1))
+    total_hier = int(m_res.group(1))
+    total_expanded = int(m_res.group(2))
+    if rules_executed <= 0:
+        raise RuntimeError(f'Invalid Calibre DRC report (rules_executed={rules_executed}): {rep_path}')
+
     rules = {}
+    parsed_rule_lines = 0
     for m in re.finditer(r'^RULECHECK\s+(\S+)\s+\.+\s+TOTAL Result Count\s*=\s*(\d+)\s*\((\d+)\)', text, re.M):
+        parsed_rule_lines += 1
         hier, exp = int(m.group(2)), int(m.group(3))
         if hier or exp:
             rules[m.group(1)] = {'hier': hier, 'expanded': exp}
-    m_exec = re.search(r'TOTAL DRC RuleChecks Executed:\s+(\d+)', text)
-    m_res = re.search(r'TOTAL DRC Results Generated:\s+(\d+)\s*\((\d+)\)', text)
+    if parsed_rule_lines == 0:
+        raise RuntimeError(f'Malformed Calibre DRC report (no RULECHECK entries parsed): {rep_path}')
+    sum_hier = sum(v['hier'] for v in rules.values())
+    sum_exp = sum(v['expanded'] for v in rules.values())
+    if sum_hier != total_hier or sum_exp != total_expanded:
+        raise RuntimeError(
+            f'Unreconciled Calibre DRC totals in {rep_path}: '
+            f'parsed=({sum_hier}, {sum_exp}) vs summary=({total_hier}, {total_expanded})'
+        )
     return {
-        'rules_executed': int(m_exec.group(1)) if m_exec else 0,
-        'total_hier': int(m_res.group(1)) if m_res else sum(v['hier'] for v in rules.values()),
-        'total_expanded': int(m_res.group(2)) if m_res else sum(v['expanded'] for v in rules.values()),
+        'rules_executed': rules_executed,
+        'total_hier': total_hier,
+        'total_expanded': total_expanded,
         'nonzero_rules': rules,
     }
 
@@ -382,12 +401,12 @@ def run_drc(post_gds: Path, drc_src: Path, work_dir: Path, threads: int) -> dict
         'raw_total_expanded': parsed['total_expanded'],
         'accepted_teaching_categories': accepted,
         'blocking': blocking,
-        'passed': not blocking,
+        'passed': parsed['rules_executed'] > 0 and not blocking,
     }
 
 
 def run_simple_check(kind: str, post_gds: Path, deck_src: Path, work_dir: Path, threads: int, wirebond: bool = False) -> dict:
-    """Run Antenna or WireBond Calibre check and require 0 (0) results."""
+    """Run Antenna or WireBond Calibre check and require positive rules executed and 0 (0) results."""
     work_dir.mkdir(parents=True, exist_ok=True)
     text = deck_src.read_text(errors='replace')
     if wirebond:
@@ -408,22 +427,43 @@ def run_simple_check(kind: str, post_gds: Path, deck_src: Path, work_dir: Path, 
         'total_hier': parsed['total_hier'],
         'total_expanded': parsed['total_expanded'],
         'nonzero_rules': parsed['nonzero_rules'],
-        'passed': parsed['total_hier'] == 0 and parsed['total_expanded'] == 0,
+        'passed': parsed['rules_executed'] > 0 and parsed['total_hier'] == 0 and parsed['total_expanded'] == 0,
     }
 
 
 def parse_erc_sum(sum_path: Path) -> dict:
-    """Parse Calibre ERC summary report rule counts."""
+    """Parse and fail-closed reconcile Calibre ERC summary report rule counts."""
     text = sum_path.read_text(errors='replace')
+    if 'FAILED PATHCHK IN LAYER DERIVATION' in text:
+        raise RuntimeError(f'ERC PATHCHK failed during layer derivation in {sum_path}')
+    m_exec = re.search(r'^TOTAL ERC RuleChecks Executed:\s+(\d+)\s*$', text, re.M)
+    m_res = re.search(r'^TOTAL ERC RuleCheck Results Generated:\s+(\d+)\s*\((\d+)\)\s*$', text, re.M)
+    if not m_exec or not m_res:
+        raise RuntimeError(f'Malformed or incomplete Calibre ERC summary: {sum_path}')
+    rules_executed = int(m_exec.group(1))
+    total_hier = int(m_res.group(1))
+    total_expanded = int(m_res.group(2))
+    if rules_executed <= 0:
+        raise RuntimeError(f'Invalid Calibre ERC summary (rules_executed={rules_executed}): {sum_path}')
+
     rules = {}
     for m in re.finditer(r'^RULECHECK\s+(\S+)\s+\.+\s+TOTAL Result Count\s*=\s*(\d+)\s*\((\d+)\)', text, re.M):
         rules[m.group(1)] = {'hier': int(m.group(2)), 'expanded': int(m.group(3))}
-    m_exec = re.search(r'TOTAL ERC RuleChecks Executed:\s+(\d+)', text)
-    m_res = re.search(r'TOTAL ERC RuleCheck Results Generated:\s+(\d+)\s*\((\d+)\)', text)
+    if len(rules) != rules_executed:
+        raise RuntimeError(
+            f'ERC rule count mismatch in {sum_path}: parsed={len(rules)} vs executed={rules_executed}'
+        )
+    sum_hier = sum(v['hier'] for v in rules.values())
+    sum_exp = sum(v['expanded'] for v in rules.values())
+    if sum_hier != total_hier or sum_exp != total_expanded:
+        raise RuntimeError(
+            f'Unreconciled Calibre ERC totals in {sum_path}: '
+            f'parsed=({sum_hier}, {sum_exp}) vs summary=({total_hier}, {total_expanded})'
+        )
     return {
-        'rules_executed': int(m_exec.group(1)) if m_exec else len(rules),
-        'total_hier': int(m_res.group(1)) if m_res else sum(v['hier'] for v in rules.values()),
-        'total_expanded': int(m_res.group(2)) if m_res else sum(v['expanded'] for v in rules.values()),
+        'rules_executed': rules_executed,
+        'total_hier': total_hier,
+        'total_expanded': total_expanded,
         'nonzero_rules': {k: v for k, v in rules.items() if v['hier'] or v['expanded']},
     }
 
