@@ -379,6 +379,205 @@ class JtagTransport:
         return response
 
 
+def _ensure_libusb_backend():
+    """Wire bundled libusb_package into pyusb when system libusb is absent."""
+    import usb.backend.libusb1
+    if usb.backend.libusb1.get_backend() is not None:
+        return
+    try:
+        import libusb_package
+    except ImportError:
+        return
+    orig_get_backend = usb.backend.libusb1.get_backend
+    if getattr(orig_get_backend, '_chipdesign_libusb_wrapped', False):
+        return
+    def _wrapped_get_backend(find_library=None):
+        backend = orig_get_backend(find_library)
+        if backend is None and find_library is None:
+            backend = orig_get_backend(find_library=libusb_package.find_library)
+        return backend
+    _wrapped_get_backend._chipdesign_libusb_wrapped = True
+    usb.backend.libusb1.get_backend = _wrapped_get_backend
+
+
+class FtdiMpsseTransport(JtagTransport):
+    """Direct FT232H MPSSE transport; all scans start and finish in RTI."""
+    supports_pipeline_rpc = True
+
+    def __init__(self, url='ftdi://ftdi:232h/1', frequency=1_000_000, timeout=5.0, *, sys_clk_hz=50_000_000, burst_read_sys_cycles=24, expected_idcode=1, ftdi_dev=None, write_chunk_words=128, read_chunk_words=64):
+        import math
+        if min(frequency, sys_clk_hz, burst_read_sys_cycles, timeout, write_chunk_words, read_chunk_words) <= 0:
+            raise ValueError('frequencies, latency bound, timeout and chunk sizes must be positive')
+        self.timeout, self.batch_rpc = timeout, False
+        self.write_chunk_words, self.read_chunk_words = write_chunk_words, read_chunk_words
+        self.burst_read_sys_cycles = int(burst_read_sys_cycles)
+        self._closed = False
+        if ftdi_dev is None:
+            _ensure_libusb_backend()
+            from pyftdi.ftdi import Ftdi
+            ftdi_dev = Ftdi()
+            frequency = ftdi_dev.open_mpsse_from_url(url, frequency=frequency, initial=0x18, direction=0x1b)
+        self.ftdi = ftdi_dev
+        # Worst-case RTL idle/done read roundtrip in clk_sys (3 req_sync + 2 controller
+        # + up to 16 activation-store queue drain + 3 SRAM/reply = 24 cycles) plus 4 TCKs
+        # so ack_toggle crosses the 2-flop ack_sync chain and latches reply_data before next CDR.
+        self.idle_tcks = max(4, math.ceil(self.burst_read_sys_cycles * frequency / sys_clk_hz) + 4)
+        try:
+            self.ftdi.write_data(bytes([0x80, 0x18, 0x1b, 0x4b, 5, 0x1f]))
+            actual = self.read_idcode()
+            if expected_idcode is not None and actual != expected_idcode:
+                raise RuntimeError(f'JTAG IDCODE mismatch: 0x{actual:08x}')
+            self.irscan(0x12)
+        except Exception:
+            self.close()
+            raise
+
+    @staticmethod
+    def _tms(bits, count):
+        return bytes((0x4b, count-1, bits))
+
+    def _encode_scan(self, nbits, value, read=True, ir=False):
+        if nbits < 1 or value < 0 or value >= 1 << nbits:
+            raise ValueError('scan value outside bit range')
+        out = bytearray(self._tms(3 if ir else 1, 4 if ir else 3))
+        full, rem = divmod(nbits-1, 8)
+        if full:
+            # FTDI AN_108: 0x39 = clock bytes in(+ve)/out(-ve) LSB first; 0x19 = bytes out(-ve) LSB first.
+            out.extend((0x39 if read else 0x19, (full-1)&255, (full-1)>>8))
+            out.extend((value & ((1 << (8*full))-1)).to_bytes(full, 'little'))
+        if rem:
+            # FTDI AN_108: 0x3b = clock bits in(+ve)/out(-ve) LSB first; 0x1b = bits out(-ve) LSB first.
+            out.extend((0x3b if read else 0x1b, rem-1, (value >> (8*full)) & ((1 << rem) - 1)))
+        out.extend((0x6b if read else 0x4b, 0, ((value >> (nbits-1)) << 7) | 1))
+        out.extend(self._tms(1, 2))
+        return bytes(out)
+
+    def _read(self, size):
+        result = bytearray()
+        deadline = time.monotonic()+self.timeout
+        while len(result) < size:
+            result.extend(self.ftdi.read_data_bytes(size-len(result), 1))
+            if time.monotonic() >= deadline and len(result) < size:
+                raise TimeoutError('MPSSE USB response timed out; operation may have executed')
+        return result
+
+    @staticmethod
+    def _decode(raw, nbits):
+        full, rem = divmod(nbits-1, 8)
+        value = int.from_bytes(raw[:full], 'little')
+        if rem:
+            value |= (raw[full] >> (8-rem)) << (8*full)
+        return value | ((raw[-1] >> 7) << (nbits-1))
+
+    def irscan(self, ir_val):
+        self.ftdi.write_data(self._encode_scan(5, ir_val, False, True))
+
+    def drscan(self, nbits, value, read=True):
+        self.ftdi.write_data(self._encode_scan(nbits, value, read) + (b'\x87' if read else b''))
+        return self._decode(self._read((nbits-1)//8 + bool((nbits-1)%8) + 1), nbits) if read else None
+
+    def scan(self, packet):
+        return self.drscan(72, packet)
+
+    def read_idcode(self):
+        self.irscan(1)
+        return self.drscan(32, 0)
+
+    def burst_write(self, words):
+        words = list(words)
+        if not words: return
+        scans = [self._encode_scan(32, int(w)&0xffffffff, False) for w in words]
+        prefix = self._encode_scan(5, 0x13, False, True)
+        for i in range(0, len(scans), self.write_chunk_words):
+            self.ftdi.write_data(prefix + b''.join(scans[i:i+self.write_chunk_words]))
+            prefix = b''
+        self.burst_check()
+
+    def burst_read(self, count):
+        if count <= 0: return []
+        self.irscan(0x14)
+        values = []
+        idle = b''.join(self._tms(0, min(7, self.idle_tcks-i)) for i in range(0, self.idle_tcks, 7))
+        for i in range(0, count, self.read_chunk_words):
+            n = min(self.read_chunk_words, count-i)
+            self.ftdi.write_data((self._encode_scan(32, 0)+idle)*n+b'\x87')
+            raw = self._read(n*5)
+            values.extend(self._decode(raw[j:j+5], 32) for j in range(0, n*5, 5))
+        return values[1:]+[self.burst_check() & 0xffffffff]
+
+    def burst_check(self):
+        self.irscan(0x12)
+        deadline = time.monotonic() + self.timeout
+        while True:
+            response = self.scan(0)
+            status = response >> 64
+            if status & 0x20:
+                raise RuntimeError('JTAG burst fault: overrun')
+            if (status & 0xc0) == 0x80:
+                code = status & 31
+                if code:
+                    raise RuntimeError(f'JTAG burst fault: NPU error {code}: {ERRORS.get(code, "unknown")}')
+                return response
+            if time.monotonic() >= deadline:
+                raise TimeoutError('JTAG burst completion timed out; transfer state is uncertain')
+
+    def read_words_batch(self, addrs):
+        return [self.exchange(Op.READ, addr) for addr in addrs]
+
+    def _block(self, addr, words, burst):
+        words = list(words)
+        if not words: return
+        self.exchange(Op.WRITE, addr, words[0])
+        if burst and len(words) > 1: self.burst_write(words[1:])
+        else:
+            for i, word in enumerate(words[1:], 1): self.exchange(Op.WRITE, addr+4*i, word)
+
+    def pipeline_load_model(self, reg_pairs, image_words, burst=True):
+        self.exchange(Op.MODEL_BEGIN)
+        for addr, data in reg_pairs: self.exchange(Op.WRITE, addr, data)
+        self._block(0x10000, image_words, burst)
+        self.exchange(Op.MODEL_COMMIT)
+
+    def pipeline_infer(self, frame_words, expected_in_bytes, timeout=10, burst=True):
+        base, length = self.read_words_batch((0x18, 0x1c))
+        if length != expected_in_bytes: raise ValueError(f'expected {length} input bytes')
+        self.exchange(Op.INPUT_BEGIN)
+        self._block(0x20000+base, frame_words, burst)
+        self.exchange(Op.INPUT_COMMIT)
+        started = time.monotonic()
+        self.exchange(Op.START)
+        while True:
+            status = self.exchange(Op.READ, 4)
+            if status & 64: raise RuntimeError(f'NPU fault {self.exchange(Op.READ, 8)}, operator {self.exchange(Op.READ, 0x34)}')
+            if status & 8: break
+            if time.monotonic()-started >= timeout: raise TimeoutError('inference still active')
+            time.sleep(.001)
+        wait_ms = int((time.monotonic()-started)*1000)
+        base, length = self.read_words_batch((0x20, 0x24))
+        count = (length+3)//4
+        words = []
+        if count:
+            words = [self.exchange(Op.READ, 0x20000+base)]
+            words += self.burst_read(count-1) if burst else self.read_words_batch(0x20000+base+4*i for i in range(1,count))
+        return b''.join(w.to_bytes(4,'little') for w in words)[:length], wait_ms
+
+    def close(self):
+        self.ftdi.close()
+
+
+def create_transport(backend='openocd', *, host='127.0.0.1', port=6666, ftdi_url='ftdi://ftdi:232h/1', tck_khz=1000, timeout=5.0, batch_rpc=True):
+    if backend == 'mpsse':
+        transport = FtdiMpsseTransport(ftdi_url, tck_khz*1000, timeout)
+        return transport, transport.close
+    if backend != 'openocd': raise ValueError('unknown JTAG backend')
+    rpc = TclRpc(host, port, timeout)
+    try:
+        return JtagTransport(rpc, timeout=timeout, batch_rpc=batch_rpc), rpc.close
+    except Exception:
+        rpc.close()
+        raise
+
+
 def signed32(value):
     return value if value<2**31 else value-2**32
 
@@ -543,9 +742,12 @@ def main():
     p.add_argument('--pc',type=int,default=0);p.add_argument('--offset',type=int,default=0)
     p.add_argument('--trigger-slot',action='store_true');p.add_argument('--disable',action='store_true')
     p.add_argument('--period-ns',type=int,default=20)
-    args=p.parse_args();rpc=TclRpc(args.host,args.port)
+    p.add_argument('--backend', choices=['openocd','mpsse'], default='openocd')
+    p.add_argument('--ftdi-url', default='ftdi://ftdi:232h/1')
+    p.add_argument('--tck-khz', type=int, default=1000)
+    args=p.parse_args();transport, closer=create_transport(args.backend, host=args.host, port=args.port, ftdi_url=args.ftdi_url, tck_khz=args.tck_khz, batch_rpc=not args.legacy_rpc)
     try:
-        npu=Npu(JtagTransport(rpc,batch_rpc=not args.legacy_rpc))
+        npu=Npu(transport)
         if args.command=='status':print(json.dumps(npu.status(),indent=2))
         elif args.command=='perf':print(json.dumps(npu.performance(),indent=2))
         elif args.command=='trace-config':npu.configure_trace(args.pc,args.offset,args.trigger_slot,not args.disable)
@@ -587,5 +789,5 @@ def main():
         else:
             if not args.package or not args.input or not args.output:p.error('infer requires --package --input --output')
             npu.load_model(Package.load(args.package));args.output.write_bytes(npu.infer(args.input.read_bytes()))
-    finally:rpc.close()
+    finally:closer()
 if __name__=='__main__':main()
