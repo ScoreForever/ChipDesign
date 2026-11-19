@@ -434,6 +434,46 @@ class CompilerTilingTests(unittest.TestCase):
         with self.assertRaises(NotImplementedError):
             load_onnx_to_ir(helper.make_model(g_dil, opset_imports=[helper.make_opsetid('', 13)]))
 
+        g_avg_ceil = helper.make_graph(
+            [helper.make_node('AveragePool', ['x'], ['y'], kernel_shape=[2, 2], strides=[2, 2], ceil_mode=1)],
+            'avg_ceil',
+            [helper.make_tensor_value_info('x', TensorProto.FLOAT, [1, 2, 5, 5])],
+            [helper.make_tensor_value_info('y', TensorProto.FLOAT, [1, 2, 3, 3])],
+        )
+        with self.assertRaises(NotImplementedError):
+            load_onnx_to_ir(helper.make_model(g_avg_ceil, opset_imports=[helper.make_opsetid('', 13)]))
+
+        g_store = helper.make_graph(
+            [helper.make_node('MaxPool', ['x'], ['y'], kernel_shape=[2, 2], strides=[2, 2], storage_order=1)],
+            'max_storage',
+            [helper.make_tensor_value_info('x', TensorProto.FLOAT, [1, 2, 4, 4])],
+            [helper.make_tensor_value_info('y', TensorProto.FLOAT, [1, 2, 2, 2])],
+        )
+        with self.assertRaises(NotImplementedError):
+            load_onnx_to_ir(helper.make_model(g_store, opset_imports=[helper.make_opsetid('', 13)]))
+
+        # 2b) Squeeze of spatial dim on non-1x1 tensor feeding graph output / Conv MUST fail closed
+        g_bad_sq = helper.make_graph(
+            [helper.make_node('Squeeze', ['x', 'axes'], ['y'])],
+            'bad_squeeze',
+            [helper.make_tensor_value_info('x', TensorProto.FLOAT, [1, 4, 1, 3])],
+            [helper.make_tensor_value_info('y', TensorProto.FLOAT, [1, 4, 3])],
+            initializer=[numpy_helper.from_array(np.array([2], dtype=np.int64), 'axes')],
+        )
+        with self.assertRaises(NotImplementedError):
+            load_onnx_to_ir(helper.make_model(g_bad_sq, opset_imports=[helper.make_opsetid('', 13)]))
+
+        # 2c) _FullSramRecorder must read output words cleanly from upper SRAM (>= 0x22000, up to 0x24000)
+        from software.compiler.runtime import _FullSramRecorder
+        from software.host.nocpu_jtag import Op
+
+        class _FakePkg:
+            manifest = {'cols': 8, 'output_base': 8192}
+
+        rec = _FullSramRecorder(_FakePkg(), b'\x12\x34\x56\x78\x9a\xbc\xde\xf0')
+        self.assertEqual(rec.exchange(Op.READ, 0x20000 + 8192), 0x78563412)
+        self.assertEqual(rec.burst_read(1), [0xf0debc9a])
+
         # 3) Non-trivial spatial Reshape before Conv MUST fail closed (cannot silently alias!)
         w_conv = np.ones((2, 2, 1, 1), dtype=np.float32) * 0.5
         g_bad_reshape = helper.make_graph(

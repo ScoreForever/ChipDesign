@@ -108,6 +108,71 @@ class NpuBackend:
         return np.asarray(decoded_out, dtype=np.int64).reshape(m['output_shape'])
 
 
+class _FullSramRecorder:
+    """Host command recorder supporting the full 16 KB shared SRAM (`0x20000..0x24000`)."""
+
+    def __init__(self, pkg, output: bytes) -> None:
+        self.rows: list[str] = []
+        self.regs = {
+            0: abi.ABI, 0x50: 16384, 0x54: 8192,
+            0x58: (8 << 16) | pkg.manifest['cols'], 0x5c: 1024, 0x60: 128, 0x6c: 0x0f200404,
+        }
+        self.output = output
+        self.started = False
+        self.pkg = pkg
+        self.burst_addr = 0
+
+    def exchange(self, op, addr=0, data=0):
+        from nocpu_jtag import Op
+        value = 0
+        mask = 0xffffffff
+        if op == Op.WRITE and addr < 0x10000:
+            self.regs[addr] = data
+        if op == Op.START:
+            self.started = True
+            value = 1
+            mask = 0
+        if op == Op.READ:
+            if addr == 4:
+                if self.started:
+                    self.rows.append('f0 0 0 0 0 0')
+                    value = 10
+                    mask = 0x49
+                else:
+                    value = 2
+                    mask = 0
+            elif 0x20000 <= addr < 0x24000:
+                at = addr - 0x20000 - self.pkg.manifest['output_base']
+                chunk = self.output[at:at + 4]
+                value = int.from_bytes(chunk.ljust(4, b'\0'), 'little')
+                mask = (1 << (8 * len(chunk))) - 1
+            else:
+                value = self.regs.get(addr, 0)
+        if op == Op.ACK:
+            self.started = False
+        if op in (Op.READ, Op.WRITE):
+            self.burst_addr = addr + 4
+        self.rows.append(f'{int(op):02x} {addr:08x} {int(data) & 0xffffffff:08x} 00 {mask:08x} {value:08x}')
+        return value
+
+    def burst_write(self, words):
+        for w in words:
+            self.rows.append(f'80 {self.burst_addr:08x} {w & 0xffffffff:08x} 00 00000000 00000000')
+            self.burst_addr += 4
+
+    def burst_read(self, count):
+        values = []
+        for _ in range(count):
+            at = self.burst_addr - 0x20000 - self.pkg.manifest['output_base']
+            chunk = self.output[at:at + 4]
+            value = int.from_bytes(chunk.ljust(4, b'\0'), 'little')
+            mask = (1 << (8 * len(chunk))) - 1
+            self.rows.append(f'81 {self.burst_addr:08x} 0 00 {mask:08x} {value:08x}')
+            self.burst_addr += 4
+            values.append(value)
+        return values
+
+
 class RtlBackend:
     """Real Icarus Verilog (`iverilog` + `tb_npu_program.sv`) hardware RTL simulator backend."""
 
@@ -156,21 +221,73 @@ class RtlBackend:
             self.jtag_model_bytes += len(group.package.image)
 
     def infer_tile(self, group: ProgramGroup, input_hwc: np.ndarray) -> np.ndarray:
-        m = group.package.manifest
+        import re
+        from nocpu_jtag import Npu
+
+        pkg = group.package
+        m = pkg.manifest
         flat_in = np.asarray(input_hwc, dtype=np.int64).reshape(-1).tolist()
-        case = f't{self._case_idx:04d}_{group.program_id}'
+        case_dir = self.work_dir / f't{self._case_idx:04d}_{group.program_id}'
         self._case_idx += 1
-        # run_program_regression.simulate checks EVERY RTL activation write bit-for-bit against abi.reference!
-        row = self._reg.simulate(
-            self.work_dir, self.image, case, group.sub_model, flat_in, self._cols, True, False,
+        case_dir.mkdir(parents=True, exist_ok=True)
+
+        logical = abi.reference(group.sub_model, flat_in)
+        expected_vals = logical[group.sub_model['output']]
+        expected_bytes = abi.encode_tensor(expected_vals, m['output_dtype'])
+        in_bytes = abi.encode_tensor(flat_in, m['input_dtype'])
+
+        rec = _FullSramRecorder(pkg, expected_bytes)
+        host = Npu(rec)
+        host.load_model(pkg)
+        got_bytes = host.infer(in_bytes)
+        if got_bytes != expected_bytes:
+            raise AssertionError(f'RTL recorder mismatch on {group.program_id}')
+        rec.rows.extend(['01 00000038 0 0 0 0', '01 00000040 0 0 0 0'])
+        trace = case_dir / 'commands.txt'
+        trace.write_text('\n'.join(rec.rows) + '\n', encoding='utf-8')
+
+        # Build bit-exact per-write activation SRAM event list for tb_npu_program.sv
+        events: list[int] = []
+        cols = int(m['cols'])
+        for tensor, info in list(m['tensors'].items())[1:]:
+            values = logical[tensor]
+            channels = int(info['shape'][2])
+            wide = info['dtype'] == 'i32'
+            for oc in range(0, channels, cols):
+                for pos in range(len(values) // channels):
+                    width = min(cols, channels - oc)
+                    for lane in range(0, width, 1 if wide else 2):
+                        index = pos * channels + oc + lane
+                        address = int(info['base']) * 2 + index * (8 if wide else 1)
+                        if wide:
+                            events.append((address << 48) | (255 << 32) | (values[index] & 0xffffffff))
+                            continue
+                        count = 2 if lane + 1 < width else 1
+                        val = sum((values[index + i] & 15) << (4 * i) for i in range(count))
+                        wmask = (1 << count) - 1
+                        if len(values) % 2 and index + count - 1 == len(values) - 1:
+                            wmask = (wmask << 1) | 1
+                        events.append((address << 48) | (wmask << 32) | val)
+
+        event_file = case_dir / 'writes.hex'
+        event_file.write_text(''.join(f'{v:016x}\n' for v in events), encoding='utf-8')
+        log = self._reg.run(
+            ['vvp', self.image,
+             f'+TRACE={trace.relative_to(_ROOT).as_posix()}',
+             f'+EVENTS={event_file.relative_to(_ROOT).as_posix()}',
+             f'+EVENT_COUNT={len(events)}'],
+            case_dir / 'rtl.log',
         )
-        out_vals = abi.reference(group.sub_model, flat_in)[group.sub_model['output']]
+        if 'PASS program' not in log:
+            raise RuntimeError(f'RTL simulation failed on {group.program_id}:\n{log[-2000:]}')
+        metrics = re.findall(r'METRIC reg=([0-9a-f]+) value=(\d+)', log)
+        cycles = [int(v) for a, v in metrics if int(a, 16) == 0x38]
         self.tile_infers += 1
         self.jtag_input_bytes += m['input_bytes']
         self.jtag_output_bytes += m['output_bytes']
-        if 'cycles' in row and row['cycles']:
-            self.npu_cycles += int(row['cycles'][0])
-        return np.asarray(out_vals, dtype=np.int64).reshape(m['output_shape'])
+        if cycles:
+            self.npu_cycles += cycles[0]
+        return np.asarray(expected_vals, dtype=np.int64).reshape(m['output_shape'])
 
 
 def _extract_tile_input(src_arr: np.ndarray, call: TileCall) -> np.ndarray:
