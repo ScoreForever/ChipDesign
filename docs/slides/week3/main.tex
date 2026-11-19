@@ -517,8 +517,8 @@
     \column{0.48\textwidth}
     \textbf{Loopback 执行、诚实边界与剩余瓶颈}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item \textbf{本地 TCP + \texttt{tclsh} 仿真}（golden-output SRAM fixture，计算正确性已由 RTL 仿真独立验证）：\hl{\NRpcExactCount/\NRpcModels{}} \NRpcExactStatus，loopback 中位数 \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms}。\textbf{不含真实 USB/FT232H 延迟，不等同于实板墙钟加速比。}
-      \item \textbf{剩余瓶颈}：Single-RPC 未减少 \texttt{drscan} 总次数（仍为 \hl{\NRpcDrscanMin–\NRpcDrscanMax{} 次}）；若 OpenOCD 仍逐 \texttt{drscan} 同步刷新 USB，大头延迟仍在。
+      \item \textbf{本地 TCP + \texttt{tclsh} 仿真}（golden-output SRAM fixture，\NRtlWireExactNote）：\hl{\NRpcExactCount/\NRpcModels{}} \NRpcExactStatus，loopback 中位数 \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms}。\textbf{不含真实 USB/FT232H 延迟，不等同于实板墙钟加速比。}
+      \item \textbf{剩余瓶颈}：\NDrscanDeltaNote{} \texttt{drscan} 总次数（仍为 \hl{\NRpcDrscanMin–\NRpcDrscanMax{} 次}）；若 OpenOCD 仍逐 \texttt{drscan} 同步刷新 USB，大头延迟仍在。
       \item \textbf{Phase B}：纯主机侧 \texttt{pyftdi} MPSSE 批量 USB 后端（打包为 1–5 个 USB Bulk 包）或 OpenOCD \texttt{svf} 批处理；EGo1 实板复测 SRAM-lookup + Single-RPC。
     \end{itemize}
   \end{columns}

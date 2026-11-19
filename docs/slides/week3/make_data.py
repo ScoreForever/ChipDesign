@@ -785,6 +785,9 @@ def sec_rpc(N):
     exact_cnt = sum(bool(tc['batched']['exact'] and tc['pipeline']['exact']) for tc in tcl_rows.values())
     N['RpcExactCount'] = str(exact_cnt)
     N['RpcExactStatus'] = '传输一致' if (exact_cnt == len(order) and tcl['all_bit_exact']) else '存在差异'
+    N['RtlWireExactNote'] = '计算正确性已由 RTL 仿真独立验证' if rtl['all_bit_exact'] else 'RTL 仿真存在差异'
+    dr_eq = all(tc['batched']['total_drscans'] == tc['pipeline']['total_drscans'] for tc in tcl_rows.values())
+    N['DrscanDeltaNote'] = 'Single-RPC 未减少' if dr_eq else 'Single-RPC 改变了'
     N['RtlTckMhz'] = '%g' % rtl['tck_mhz']
     N['RtlBurstMsMin'], N['RtlBurstMsMax'] = '%.1f' % min(burst_ms), '%.1f' % max(burst_ms)
     N['RtlUpPctMin'], N['RtlUpPctMax'] = '%.1f' % min(up_pct), '%.1f' % max(up_pct)
