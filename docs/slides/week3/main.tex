@@ -167,7 +167,7 @@
       {\large\bfseries\color{peking} \NLookupAreaPct\%} {\scriptsize\color{muted} 查找表面积}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
         \item \NLookupFFBefore{} → \NLookupFFAfter{} 个 FF
-        \item \NRtlModels{} 模型 × \NRtlConfigs{} 配置 bit-exact
+        \item \NRtlModels{} 模型 × \NRtlConfigs{} 配置 \NRtlExactShort
         \item Lookup mutant 杀死 \NMutKilled/\NMutNew
       \end{itemize}
     \column{0.238\textwidth}
@@ -177,7 +177,7 @@
       {\large\bfseries\color{peking} \NSealSide\,µm} {\scriptsize\color{muted} 封环管芯}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
         \item TT \NCoreMHz{} MHz, \NMmmcCorners-Corner MMMC
-        \item DRC / nmLVS / ANT / WireBond 全通过
+        \item DRC / nmLVS / ANT / WireBond \NSignoffAllStatus
         \item ERC \NErcHier{} Hier. / \NErcExp{} Exp. 已逐项审计
       \end{itemize}
     \column{0.238\textwidth}
@@ -187,15 +187,15 @@
       {\large\bfseries\color{peking} \NRpcBatchedMax{} → \NRpcPipe} {\scriptsize\color{muted} 主机 RPC 次数}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
         \item RPC 实测减少 \NRpcSpMin–\NRpcSpMax×
-        \item \NRtlTckMhz{} MHz RTL + \NRpcExactCount/\NRpcModels{} TclRpc golden-output fixture 传输一致
+        \item \NRtlTckMhz{} MHz RTL + \NRpcExactCount/\NRpcModels{} TclRpc golden-output fixture \NRpcExactStatus
       \end{itemize}
     \column{0.238\textwidth}
       {\color{ink}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
       {\tiny\bfseries\color{muted} 04 · 应用}\\[2pt]
       {\small\bfseries\color{ink} 六场景套件}\\[5pt]
-      {\large\bfseries\color{peking} \NDemoGolden/\NDemoGoldenTotal} {\scriptsize\color{muted} INT32 bit-exact}\\[4pt]
+      {\large\bfseries\color{peking} \NDemoGolden/\NDemoGoldenTotal} {\scriptsize\color{muted} INT32 \NDemoExactStatus}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item \NDemoZoo/\NDemoZoo{} zoo 参考帧一致
+        \item \NDemoZoo/\NDemoZoo{} zoo 参考帧 \NDemoExactStatus
         \item \NDemoFixes{} 项运行时健壮性修复
       \end{itemize}
   \end{columns}\par\vspace{12pt}\callout[peking]{\textbf{核心主线}：以 SRAM 化 Lookup 释放面积（\hl{\NLookupAreaPct\%}），在统一 \texttt{postDummy.gds} 上完成 DRC / nmLVS / ANT / WireBond 签核与 ERC 审计，再以 Single-RPC 把主机 RPC 由 \NRpcBatchedMax{} 次压至 \NRpcPipe{} 次；Phase B 转向真 MMMC 与实板 USB 批量后端。}
@@ -257,7 +257,7 @@
       \tabinput{data/cycle_rows.tex}
       \bottomrule
     \end{tabular}}\par\vspace{5pt}
-    \snote{\NRtlRuns{} 次对比运行全部 bit-exact 写回一致；\NCycDeltaMin–\NCycDeltaMax{} 周期收益来自 \texttt{START} 时跳过 commit 重扫。\NRtlNeg{} 条负向生命周期检查通过。}
+    \snote{\NRtlRuns{} 次对比运行\NRtlExactStatus；\NCycDeltaMin–\NCycDeltaMax{} 周期收益来自 \texttt{START} 时跳过 commit 重扫。\NRtlNeg{} 条负向生命周期检查\NRtlNegStatus。}
     \column{0.44\textwidth}
     \textbf{完整回归门控}\par\vspace{3pt}
     {\scriptsize
@@ -336,7 +336,7 @@
     \textbf{物理架构与 DRC 闭合}
     \begin{itemize}\setlength{\itemsep}{2pt}
       \item 未封环管芯 \hl{\NDieSide{} µm} ≤ \NDieLimit{} µm 预算（\NDieAfter{} mm²；\NMacroCount× \texttt{RA1SHD\_2048x32M8}，\NMacroArea{} mm²）
-      \item Innovus 内部检查：\hl{\NGeoPass/\NGeoTotal} 通过
+      \item Innovus 内部检查：\hl{\NGeoPass/\NGeoTotal} \NGeoStatus
       \item \NPadCount{} 个 \texttt{PAD60LU\_OBV} CUP Pad：布线前施加 \NPadMargin{} µm M5/M6 路由与填充 Keepout
     \end{itemize}
     \column{0.48\textwidth}
@@ -356,16 +356,16 @@
     \begin{tabular}{@{}llrrl@{}}
       \toprule
       \textbf{Corner} & \textbf{时钟} & \textbf{Setup} & \textbf{Hold} & \\ \midrule
-      \texttt{tt25} & \NCoreMHz{} MHz & \NTTSetup & \NTTHoldW & \ok \\
-      \texttt{ff0} & \NCoreMHz{} MHz & \NFFzSetup & \NFFzHoldW & \ok \\
-      \texttt{ffm40} & \NCoreMHz{} MHz & \NFFmSetup & \NFFmHoldW & \ok \\
-      \rowcolor{surf}\texttt{ss125} & \NCoreMHz{} MHz & \hl{\NSSSetup} & \NSSHoldW & \pending \\
-      \rowcolor{surf}\texttt{SS125\_DERATED} & \NSSDPeriod{} ns / \NSSDFreq{} MHz & \textbf{\NSSDSetup} & \NSSDHoldW & \ok \\ \bottomrule
+      \texttt{tt25} & \NCoreMHz{} MHz & \NTTSetup & \NTTHoldW & \NTTBadge \\
+      \texttt{ff0} & \NCoreMHz{} MHz & \NFFzSetup & \NFFzHoldW & \NFFzBadge \\
+      \texttt{ffm40} & \NCoreMHz{} MHz & \NFFmSetup & \NFFmHoldW & \NFFmBadge \\
+      \rowcolor{surf}\texttt{ss125} & \NCoreMHz{} MHz & \hl{\NSSSetup} & \NSSHoldW & \NSSBadge \\
+      \rowcolor{surf}\texttt{SS125\_DERATED} & \NSSDPeriod{} ns / \NSSDFreq{} MHz & \textbf{\NSSDSetup} & \NSSDHoldW & \NSSDBadge \\ \bottomrule
     \end{tabular}}\par\vspace{3pt}
     \snote{\NMmmcCorners{} 个 PVT Corner 的最差负 Slack（WNS，单位 ns）。}\vspace{5pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item TT 与两个 FF corner 均在 \NCoreMHz{} MHz 下干净闭合（最小 Hold \NCleanHoldMin{} ns @ \texttt{\NCleanHoldMinCorner}）。
-      \item \texttt{ss125} 关键路径终止于 \NSSEndSram{} \texttt{WEN}（到达 \NSSArr{} vs. 要求 \NSSReq{} ns）；在 \NSSDFreq{} MHz 下干净闭合。
+      \item TT 与两个 FF corner 在 \NCoreMHz{} MHz 下\NCleanMmmcStatus（TNS = \NTTTns/\NFFzTns/\NFFmTns{} ns，最小 Hold \NCleanHoldMin{} ns @ \texttt{\NCleanHoldMinCorner}）。
+      \item \texttt{ss125} 在 \NCoreMHz{} MHz 下 TNS = \NSSTns{} ns（\NSSViol{} 端点，关键路径止于 \NSSEndSram{} \texttt{WEN}，到达 \NSSArr{} vs. 要求 \NSSReq{} ns）；降频至 \NSSDFreq{} MHz 后\NSSDStatus。
     \end{itemize}\par\vspace{5pt}
     \callout[warnink]{\textbf{RC 范围说明}：\texttt{\NRcNote}。综合/P\&R 以 TT 为目标；通过 MMMC 优化闭合 \texttt{ss125} 是 Phase B 首要任务。}
     \column{0.49\textwidth}
@@ -409,7 +409,7 @@
     \end{tabular}}\par\vspace{10pt}
     \callout[peking]{\textbf{融合 vs. 非融合 CNN}：执行从 \NUnfusedCyc{} 周期降至 \NFusedCyc{} 周期（\hl{\NFusionSpeed× 加速}）；单次推理能耗从 \NUnfusedE{} 降至 \hl{\NFusedE{} µJ}（\hl{−\NFusionSave\%}）。}\par\vspace{8pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item 从 SDF 门级仿真严格在 \texttt{busy → irq} 窗口内提取。
+      \item 从 SDF 门级仿真严格在 \texttt{busy → irq} 窗口内提取；动态功耗（internal+switching）\NPwDynMin–\NPwDynMax{} mW，静态漏电 \NPwLeakDisp{} mW（≤ \NPwLeakMaxPct\%）。
       \item \NPwAnnot.0\% Toggle 标注覆盖全部 \NPwN{} 个工作负载（TT corner，典型 RC）。
     \end{itemize}
   \end{columns}
@@ -443,10 +443,10 @@
     \begin{tabularx}{\linewidth}{@{}l c >{\raggedright\arraybackslash}X@{}}
       \toprule
       \textbf{引擎} & \textbf{状态} & \textbf{已验证签核证据} \\ \midrule
-      \textbf{DRC}+\texttt{CO.R.4} & \ok & 未屏蔽 \NDrcRules{} 规则，阻断=\hl{\NDrcBlocking}；IO \texttt{CO.R.4} PIMP 修复 \NCorFourBefore{} → \hl{\NCorFourAfter} \\[1pt]
-      \textbf{nmLVS} & \ok & 全 SRAM 非黑盒，严格 \NLvsStrictTol\% 容差：\NLvsErr{} IO \texttt{R(PR)}（最大 \NLvsMax\%）；\NLvsTol\% 容差下 \hl{\texttt{\NLvsStatus}} \\[1pt]
-      \textbf{Antenna} & \ok & \hl{\NAntHier{} Hier. / \NAntExp{} Exp.}，覆盖完整填充后管芯 \\[1pt]
-      \textbf{WireBond} & \ok & \hl{\NWbHier{} Hier. / \NWbExp{} Exp.}，覆盖全部 \NWbRules{} 规则与 \NPadCount{} 个 \texttt{PAD60LU\_OBV} \\[1pt]
+      \textbf{DRC}+\texttt{CO.R.4} & \NDrcBadge & 未屏蔽 \NDrcRules{} 规则，阻断=\hl{\NDrcBlocking}；IO \texttt{CO.R.4} PIMP 修复 \NCorFourBefore{} → \hl{\NCorFourAfter} \\[1pt]
+      \textbf{nmLVS} & \NLvsBadge & 全 SRAM 非黑盒，严格 \NLvsStrictTol\% 容差：\NLvsErr{} IO \texttt{R(PR)}（最大 \NLvsMax\%）；\NLvsTol\% 容差下 \hl{\texttt{\NLvsStatus}} \\[1pt]
+      \textbf{Antenna} & \NAntBadge & \hl{\NAntHier{} Hier. / \NAntExp{} Exp.}，覆盖完整填充后管芯 \\[1pt]
+      \textbf{WireBond} & \NWbBadge & \hl{\NWbHier{} Hier. / \NWbExp{} Exp.}，覆盖全部 \NWbRules{} 规则与 \NPadCount{} 个 \texttt{PAD60LU\_OBV} \\[1pt]
       \textbf{ERC} & 审计 & \NErcHier{} Hier. / \NErcExp{} Exp. 追溯至 vendor IO 子单元与外 Seal Ring \\ \bottomrule
     \end{tabularx}}\par\vspace{1pt}
     \centering\includegraphics[width=0.72\linewidth]{figs/11\_lab5\_cor4\_and\_erc\_audit.png}\par
@@ -471,7 +471,7 @@
 \section{主机 JTAG 优化与 FPGA 验证}
 
 \begin{frame}{EGo1 实板延迟分解：三步排除与双瓶颈归因}
-  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 bit-exact 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} 1 → \NFpgaTckRatio{} MHz（\NFpgaTckRatio× 提频）零收益：\texttt{ecg} 驻留 \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
+  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 \NFpgaExactStatus{} 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} 1 → \NFpgaTckRatio{} MHz（\NFpgaTckRatio× 提频）零收益：\texttt{ecg} 驻留 \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
     \begin{tikzpicture}
@@ -516,7 +516,7 @@
     \column{0.48\textwidth}
     \textbf{Loopback 执行、诚实边界与剩余瓶颈}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item \textbf{本地 TCP + \texttt{tclsh} 仿真}（golden-output SRAM fixture，计算正确性已由 RTL 仿真独立验证）：\hl{\NRpcExactCount/\NRpcModels{}} 传输往返一致，loopback 中位数 \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms}。\textbf{不含真实 USB/FT232H 延迟，不等同于实板墙钟加速比。}
+      \item \textbf{本地 TCP + \texttt{tclsh} 仿真}（golden-output SRAM fixture，计算正确性已由 RTL 仿真独立验证）：\hl{\NRpcExactCount/\NRpcModels{}} \NRpcExactStatus，loopback 中位数 \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms}。\textbf{不含真实 USB/FT232H 延迟，不等同于实板墙钟加速比。}
       \item \textbf{剩余瓶颈}：Single-RPC 未减少 \texttt{drscan} 总次数（仍为 \hl{\NRpcDrscanMin–\NRpcDrscanMax{} 次}）；若 OpenOCD 仍逐 \texttt{drscan} 同步刷新 USB，大头延迟仍在。
       \item \textbf{Phase B}：纯主机侧 \texttt{pyftdi} MPSSE 批量 USB 后端（打包为 1–5 个 USB Bulk 包）或 OpenOCD \texttt{svf} 批处理；EGo1 实板复测 SRAM-lookup + Single-RPC。
     \end{itemize}
@@ -542,9 +542,9 @@
     \column{0.33\textwidth}
     \textbf{软件参考闭合}\par\vspace{2pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item 固定输入 \hl{\NDemoGolden/\NDemoGoldenTotal}：bit-exact INT32 全输出匹配
-      \item zoo 参考 \NDemoZoo/\NDemoZoo{} 帧 bit-exact
-      \item \NDemoUnit{} 个演示 + \NDemoJtag{} 个 JTAG 单元测试通过
+      \item 固定输入 \hl{\NDemoGolden/\NDemoGoldenTotal}：INT32 全输出 \NDemoExactStatus
+      \item zoo 参考 \NDemoZoo/\NDemoZoo{} 帧 \NDemoExactStatus
+      \item \NDemoUnit{} 个演示 + \NDemoJtag{} 个 JTAG 单元测试\NDemoUnitStatus
     \end{itemize}
     \column{0.33\textwidth}
     \textbf{\NDemoFixes{} 项运行时健壮性修复}\par\vspace{2pt}
@@ -570,11 +570,11 @@
     {\scriptsize
     \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
       \toprule
-      \textbf{RTL} & SRAM 化 \texttt{npu\_tensor\_lookup}：面积 \NLookupAreaPct\%，\NMutKilled/\NMutNew{} mutant，\NRtlModels{} 模型 bit-exact \\[3pt]
-      \textbf{ASIC} & 统一 Single-GDS 流程：\NCoreMHz{} MHz TT/FF，SDF，LEC，\NPwAnnot\%-VCD 功耗（算子融合节能 \NFusionSave\%） \\[3pt]
-      \textbf{签核} & \NDbuPerUm{} DBU/µm \texttt{postDummy.gds}（\NSealSide{} µm）：未屏蔽 DRC，全 SRAM LVS，ANT，WireBond，ERC 审计 \\[3pt]
-      \textbf{主机} & \NRtlTckMhz{} MHz RTL + TCP/\texttt{tclsh} Single-RPC 仿真（\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPC；\NRpcExactCount/\NRpcModels{} golden-output fixture 传输一致） \\[3pt]
-      \textbf{演示} & 六场景主机套件：\NDemoGolden/\NDemoGoldenTotal{} bit-exact，\NDemoZoo/\NDemoZoo{} zoo 帧 \\ \bottomrule
+      \textbf{RTL} & SRAM 化 \texttt{npu\_tensor\_lookup}：面积 \NLookupAreaPct\%，\NMutKilled/\NMutNew{} mutant，\NRtlModels{} 模型 \NRtlExactShort \\[3pt]
+      \textbf{ASIC} & 统一 Single-GDS 流程：\NCoreMHz{} MHz TT/FF \NCleanMmmcStatus，SDF \NSdfStatus，LEC \texttt{\NLecVerified}，\NPwAnnot\%-VCD 功耗（算子融合节能 \NFusionSave\%） \\[3pt]
+      \textbf{签核} & \NDbuPerUm{} DBU/µm \texttt{postDummy.gds}（\NSealSide{} µm）：DRC / 全 SRAM LVS / ANT / WireBond \NSignoffAllStatus，ERC 审计 \\[3pt]
+      \textbf{主机} & \NRtlTckMhz{} MHz RTL + TCP/\texttt{tclsh} Single-RPC 仿真（\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPC；\NRpcExactCount/\NRpcModels{} golden-output fixture \NRpcExactStatus） \\[3pt]
+      \textbf{演示} & 六场景主机套件：\NDemoGolden/\NDemoGoldenTotal{} \NDemoExactStatus，\NDemoZoo/\NDemoZoo{} zoo 帧 \\ \bottomrule
     \end{tabularx}}
     \column{0.48\textwidth}
     \textbf{\color{peking}Phase B 工程计划与开放签核项}\par\vspace{4pt}

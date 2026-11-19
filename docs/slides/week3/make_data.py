@@ -168,7 +168,9 @@ def sec_asic(N):
     N['DeltaTicks'] = ','.join(k for k, _ in deltas)
 
     checks = jload(W3 / 'checks.json')
-    N['GeoPass'], N['GeoTotal'] = str(sum(bool(v) for v in checks.values())), str(len(checks))
+    geo_pass = sum(bool(v) for v in checks.values())
+    N['GeoPass'], N['GeoTotal'] = str(geo_pass), str(len(checks))
+    N['GeoStatus'] = '通过' if geo_pass == len(checks) else '存在失败'
     l5 = jload(W3 / 'lab5_summary.json')
     N['DieSide'] = f"{l5['raw_die_bbox_um'][2]:.2f}"
     N['DieLimit'] = grab(r'`<= (\d+) µm` Lab 4 die limit', readme, 'README (die limit)')[1]
@@ -238,6 +240,12 @@ def sec_physical_signoff(N):
     N['AntRules'], N['WbRules'] = str(ant['rules_executed']), str(wb['rules_executed'])
     N['AntHier'], N['AntExp'] = str(ant['total_hier']), str(ant['total_expanded'])
     N['WbHier'], N['WbExp'] = str(wb['total_hier']), str(wb['total_expanded'])
+    N['DrcBadge'] = BS + ('ok' if (drc['passed'] and not drc['blocking']) else 'pending')
+    N['LvsBadge'] = BS + ('ok' if relaxed['status'] == 'CORRECT' else 'pending')
+    N['AntBadge'] = BS + ('ok' if ant['passed'] else 'pending')
+    N['WbBadge'] = BS + ('ok' if wb['passed'] else 'pending')
+    all_so = drc['passed'] and not drc['blocking'] and relaxed['status'] == 'CORRECT' and ant['passed'] and wb['passed']
+    N['SignoffAllStatus'] = '全通过' if all_so else '存在未闭合项'
 
     erc = ck['erc']
     er = erc['rules']
@@ -315,10 +323,17 @@ def sec_mmmc(N):
     cor = {(c['corner'], c['mode']): c for c in rows(W3 / 'mmmc_corners.csv')}
     key = {'tt25': 'TT', 'ff0': 'FFz', 'ffm40': 'FFm', 'ss125': 'SS', 'SS125_DERATED': 'SSD'}
     for c, k in key.items():
-        N[k + 'Setup'] = sgn(float(cor[(c, 'setup')]['wns']))
-        N[k + 'HoldW'] = sgn(float(cor[(c, 'hold')]['wns']))
+        sw = float(cor[(c, 'setup')]['wns'])
+        hw = float(cor[(c, 'hold')]['wns'])
+        N[k + 'Setup'] = sgn(sw)
+        N[k + 'HoldW'] = sgn(hw)
+        N[k + 'Badge'] = BS + ('ok' if (sw >= 0 and hw >= 0) else 'pending')
+        raw_tns = cor[(c, 'setup')]['tns_2000']
+        N[k + 'Tns'] = '0' if raw_tns in ('0', '0.0', 'NA') else '{:,.1f}'.format(float(raw_tns))
     clean = ['tt25', 'ff0', 'ffm40']
-    assert all(float(cor[(c, m)]['wns']) >= 0 for c in clean for m in ('setup', 'hold'))
+    clean_ok = all(float(cor[(c, m)]['wns']) >= 0 for c in clean for m in ('setup', 'hold'))
+    assert clean_ok
+    N['CleanMmmcStatus'] = '均干净闭合' if clean_ok else '存在违例'
     hmin = min(clean, key=lambda c: float(cor[(c, 'hold')]['wns']))
     N['CleanHoldMin'] = sgn(float(cor[(hmin, 'hold')]['wns']))
     N['CleanHoldMinCorner'] = hmin
@@ -329,7 +344,9 @@ def sec_mmmc(N):
     N['SSEndSram'] = 'SRAM' if 'i_sram' in ss['end'] else esc(ss['end'])
     m = grab(r'SS125_DERATED` \(SS, 125 .C\) \| `([\d.]+) ns` \(`([\d.]+) MHz`', readme, 'README (SS125_DERATED period)')
     N['SSDPeriod'], N['SSDFreq'] = m[1], m[2]
-    assert float(N['SSDSetup']) > 0 and float(N['SSDHoldW']) > 0
+    ssd_ok = float(N['SSDSetup']) > 0 and float(N['SSDHoldW']) > 0
+    assert ssd_ok
+    N['SSDStatus'] = '干净闭合' if ssd_ok else '存在违例'
     N['RcNote'] = esc(mm['rc_note'])
 
     sram = rows(W3 / 'sram_interface_timing.csv')
@@ -411,7 +428,13 @@ def sec_power(N):
     N['FusionSpeed'] = '%.2f' % (f0['npu_cycles'] / f1['npu_cycles'])
     N['FusedMw'], N['UnfusedMw'] = '%.2f' % f1['total_mw'], '%.2f' % f0['total_mw']
     tot = [w['total_mw'] for w in pw['workloads']]
+    dyn = [w['internal_mw'] + w['switching_mw'] for w in pw['workloads']]
+    leak = [w['leakage_mw'] for w in pw['workloads']]
     N['VcdMin'], N['VcdMax'] = '%.2f' % min(tot), '%.2f' % max(tot)
+    N['PwDynMin'], N['PwDynMax'] = '%.2f' % min(dyn), '%.2f' % max(dyn)
+    N['PwLeakMin'], N['PwLeakMax'] = '%.4f' % min(leak), '%.4f' % max(leak)
+    N['PwLeakDisp'] = N['PwLeakMin'] if N['PwLeakMin'] == N['PwLeakMax'] else f"{N['PwLeakMin']}–{N['PwLeakMax']}"
+    N['PwLeakMaxPct'] = '%.2f' % max(100.0 * l_ / t_ for l_, t_ in zip(leak, tot))
     N['VlessRaw'] = '%.2f' % vl
     N['VlessOverMin'], N['VlessOverMax'] = '%.2f' % (vl / max(tot)), '%.2f' % (vl / min(tot))
 
@@ -423,7 +446,20 @@ def sec_rtl(N):
     N['RtlConfigs'] = str(len(prov['runs']))
     N['RtlNeg'] = str(len(prov['runs']['behavioral']['negative_checks_after']))
     mc = rows(RTL / 'model_cycles.csv')
-    assert all(r_['writes_before'] == r_['writes_after'] for r_ in mc)
+    rtl_exact = all(
+        r_['writes_before'] == r_['writes_after']
+        and r_['checked_write_events_before'] == r_['checked_write_events_after']
+        for r_ in mc
+    )
+    assert rtl_exact
+    N['RtlExactShort'] = 'bit-exact' if rtl_exact else 'MISMATCH'
+    N['RtlExactStatus'] = '全部 bit-exact 写回一致' if rtl_exact else '存在写回差异'
+    neg_ok = all(
+        run['negative_checks_before'] == run['negative_checks_after'] and len(run['negative_checks_after']) > 0
+        for run in prov['runs'].values()
+    )
+    assert neg_ok
+    N['RtlNegStatus'] = '全部通过' if neg_ok else '存在差异'
     N['RtlRuns'] = str(len(mc))
     d = [int(r_['cold_cycle_delta']) for r_ in mc]
     p = [float(r_['cold_cycle_pct']) for r_ in mc]
@@ -505,7 +541,9 @@ def sec_rtl(N):
 # <<SECTION:fpga>>
 def sec_fpga(N):
     audit = jload(FPGA / 'audit.json')
-    assert audit['fine']['passed'] and audit['coarse']['passed']
+    fpga_ok = bool(audit['fine']['passed'] and audit['coarse']['passed'])
+    assert fpga_ok
+    N['FpgaExactStatus'] = 'bit-exact' if fpga_ok else 'FAILED'
     N['FpgaCoarse'] = '{:,}'.format(audit['coarse']['inferences'])
     N['FpgaFine'] = '{:,}'.format(audit['fine']['inferences'])
     N['FpgaTotal'] = '{:,}'.format(audit['coarse']['inferences'] + audit['fine']['inferences'])
@@ -592,16 +630,16 @@ def sec_fpga(N):
     tclm = {m_['model']: m_ for m_ in jload(JT / 'tcl_tcp_sim.json')['models']}
     rows_5m = {r_['model']: r_ for r_ in ana['rows'] if r_['khz'] == 5000}
     assert set(rows_5m) == set(order) == set(tclm)
-    N['FpgaEcgOneMs'], N['FpgaEcgFiveMs'] = '%.1f' % rows_1m['ecg']['resident_ms'], '%.1f' % rows_5m['ecg']['resident_ms']
-    N['FpgaGtsrbInOneMs'], N['FpgaGtsrbInFiveMs'] = '%.1f' % rows_1m['gtsrb_l']['phases_ms']['input_upload'], '%.1f' % rows_5m['gtsrb_l']['phases_ms']['input_upload']
-    N['FpgaGtsrbUpOneMs'], N['FpgaGtsrbUpFiveMs'] = '%.1f' % rows_1m['gtsrb_l']['upload_ms'], '%.1f' % rows_5m['gtsrb_l']['upload_ms']
+    N['FpgaEcgOneMs'], N['FpgaEcgFiveMs'] = '%.2f' % rows_1m['ecg']['resident_ms'], '%.2f' % rows_5m['ecg']['resident_ms']
+    N['FpgaGtsrbInOneMs'], N['FpgaGtsrbInFiveMs'] = '%.2f' % rows_1m['gtsrb_l']['phases_ms']['input_upload'], '%.2f' % rows_5m['gtsrb_l']['phases_ms']['input_upload']
+    N['FpgaGtsrbUpOneMs'], N['FpgaGtsrbUpFiveMs'] = '%.2f' % rows_1m['gtsrb_l']['upload_ms'], '%.2f' % rows_5m['gtsrb_l']['upload_ms']
     N['FpgaTckRatio'] = '%g' % (5000 / 1000)
     assert all(tclm[m_]['model_bytes'] % 4 == 0 for m_ in order)
     mpw = [rows_1m[m_]['upload_ms'] / (tclm[m_]['model_bytes'] // 4) for m_ in order]
     N['FpgaUpMpwMin'], N['FpgaUpMpwMax'] = '%.2f' % min(mpw), '%.2f' % max(mpw)
     inw = lambda m_: -(-tclm[m_]['input_bytes'] // 4)
-    N['FpgaEcgInWords'], N['FpgaEcgInRpcMs'] = str(inw('ecg')), '%.1f' % rows_1m['ecg']['phases_ms']['input_upload']
-    N['FpgaKwsLInWords'], N['FpgaKwsLInRpcMs'] = str(inw('kws_l')), '%.1f' % rows_1m['kws_l']['phases_ms']['input_upload']
+    N['FpgaEcgInWords'], N['FpgaEcgInRpcMs'] = str(inw('ecg')), '%.2f' % rows_1m['ecg']['phases_ms']['input_upload']
+    N['FpgaKwsLInWords'], N['FpgaKwsLInRpcMs'] = str(inw('kws_l')), '%.2f' % rows_1m['kws_l']['phases_ms']['input_upload']
     N['FpgaGtsrbInWords'] = str(inw('gtsrb_l'))
     N['FpgaGtsrbInMpw'] = '%.2f' % (rows_1m['gtsrb_l']['phases_ms']['input_upload'] / inw('gtsrb_l'))
     drs = [tclm[m_]['pipeline']['total_drscans'] for m_ in order]
@@ -659,7 +697,9 @@ def sec_rpc(N):
     anchors = rtl['wordwise_1mhz_anchors']
     assert len(anchors) >= 2
     N['RpcModels'] = str(len(order))
-    N['RpcExactCount'] = str(sum(bool(tc['batched']['exact'] and tc['pipeline']['exact']) for tc in tcl_rows.values()))
+    exact_cnt = sum(bool(tc['batched']['exact'] and tc['pipeline']['exact']) for tc in tcl_rows.values())
+    N['RpcExactCount'] = str(exact_cnt)
+    N['RpcExactStatus'] = '传输一致' if (exact_cnt == len(order) and tcl['all_bit_exact']) else '存在差异'
     N['RtlTckMhz'] = '%g' % rtl['tck_mhz']
     N['RtlBurstMsMin'], N['RtlBurstMsMax'] = '%.1f' % min(burst_ms), '%.1f' % max(burst_ms)
     N['RtlUpPctMin'], N['RtlUpPctMax'] = '%.1f' % min(up_pct), '%.1f' % max(up_pct)
@@ -691,7 +731,10 @@ def sec_rpc(N):
 # <<SECTION:demo>>
 def sec_demo(N):
     s = jload(DEMO / 'summary.json')
-    assert all(c['passed'] for c in s['checks'].values())
+    demo_ok = all(c['passed'] for c in s['checks'].values())
+    assert demo_ok
+    N['DemoUnitStatus'] = '全部通过' if demo_ok else '存在失败'
+    N['DemoExactStatus'] = 'bit-exact' if (s['golden_complete_outputs_equal'] == s['golden_frames'] and demo_ok) else 'MISMATCH'
     N['DemoUnit'], N['DemoJtag'] = str(s['demo_unit_tests']), str(s['jtag_unit_tests'])
     N['DemoGolden'], N['DemoGoldenTotal'] = str(s['golden_complete_outputs_equal']), str(s['golden_frames'])
     assert s['golden_complete_outputs_equal'] == s['golden_frames']
