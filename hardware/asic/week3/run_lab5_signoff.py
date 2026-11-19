@@ -116,7 +116,7 @@ def inspect_gds(gds_path: Path, work_dir: Path) -> tuple[str, float, list[int]]:
     return m.group(1), float(m.group(2)), [int(m.group(i)) for i in range(3, 7)]
 
 
-def compute_sealring_box(bbox_dbu: list[int], dbu_per_um: int = 2000, max_outer_um: float = 1980.0) -> dict:
+def compute_sealring_box(bbox_dbu: list[int], dbu_per_um: int = 2000, max_outer_um: float = 1980.0, fixed_outer_um: float | None = None) -> dict:
     """Compute a centered integer-um Seal Ring reference box aligned to the 0.005 um grid."""
     bx0, by0, bx1, by1 = bbox_dbu
     die_w_um = (bx1 - bx0) / dbu_per_um
@@ -142,6 +142,25 @@ def compute_sealring_box(bbox_dbu: list[int], dbu_per_um: int = 2000, max_outer_
             rx0 += grid_dbu * 20
             rx1 = rx0 + span
         return rx0, rx1
+
+    if fixed_outer_um is not None:
+        grid = dbu_per_um // 200
+        scaled = fixed_outer_um * dbu_per_um
+        if (not math.isfinite(fixed_outer_um) or not 30 < fixed_outer_um <= max_outer_um + 1e-9
+                or grid <= 0 or scaled != round(scaled) or int(round(scaled)) % grid):
+            raise RuntimeError('Fixed sealed die must exceed 30 um, fit the limit and align to 0.005 um')
+        side_um = fixed_outer_um - 30.0
+        outer_um = fixed_outer_um
+        span = int(round(side_um * dbu_per_um))
+        def snap_origin(c_low, c_high):
+            if c_high - c_low > span:
+                raise RuntimeError('Raw unsealed die exceeds inner Seal Ring reference box')
+            low = math.ceil((c_high-span)/grid)*grid
+            high = math.floor(c_low/grid)*grid
+            if low > high:
+                raise RuntimeError('No grid-aligned reference box contains raw die')
+            origin = min(high, max(low, round((c_low+c_high-span)/2/grid)*grid))
+            return origin, origin+span
 
     rx0, rx1 = snap_origin(bx0, bx1)
     ry0, ry1 = snap_origin(by0, by1)
@@ -664,6 +683,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--cand-dir', '--candidate', type=Path, required=True)
     ap.add_argument('--out-dir', type=Path, required=True)
+    ap.add_argument('--fixed-sealed-die-um', type=float, default=None)
     ap.add_argument('--threads', type=int, default=32)
     ap.add_argument('--tsmc18-oa-dir', type=Path, default=None)
     ap.add_argument('--io-oa-dir', type=Path, default=DEFAULT_IO_OA)
@@ -692,7 +712,7 @@ def main() -> None:
     if top != 'my_soc_top' or abs(units - 0.0005) > 1e-9:
         raise RuntimeError(f'Unexpected candidate GDS header: top={top}, units={units}')
 
-    sr_box = compute_sealring_box(bbox_dbu, dbu_per_um=2000, max_outer_um=1980.0)
+    sr_box = compute_sealring_box(bbox_dbu, dbu_per_um=2000, max_outer_um=1980.0, fixed_outer_um=args.fixed_sealed_die_um)
     tsmc18_oa = resolve_tsmc18_oa(args.tsmc18_oa_dir)
     corner_gds, edge_gds = export_sealring_primitives(args.io_oa_dir.resolve(), tsmc18_oa, work / 'sealring')
     pimp_patch = verify_and_prepare_pimp_patch(raw_gds, work)
@@ -704,6 +724,11 @@ def main() -> None:
     dummy_info = run_dummy_insertion(
         predummy_gds, args.dummy_metal_deck, args.dummy_odpo_deck, postdummy_gds, work / 'dummy', args.threads
     )
+
+    _, _, actual_bbox_dbu = inspect_gds(postdummy_gds, work / 'dummy')
+    actual_size = [actual_bbox_dbu[2]-actual_bbox_dbu[0], actual_bbox_dbu[3]-actual_bbox_dbu[1]]
+    if args.fixed_sealed_die_um is not None and actual_size != [int(round(args.fixed_sealed_die_um*2000))]*2:
+        raise RuntimeError(f'Actual post-dummy size mismatch: {actual_size} DBU')
 
     wb_deck = extract_wirebond_deck(args.wb_zip, work / 'wb_deck')
     drc_res = run_drc(postdummy_gds, args.drc_deck, work / 'drc', args.threads)
@@ -749,7 +774,16 @@ def main() -> None:
         'formal_tapeout_signoff': False,
     }
 
+    delivery = out / 'delivery'
+    delivery.mkdir(exist_ok=True)
+    shutil.copy2(postdummy_gds, delivery / 'postDummy.gds')
+    shutil.copy2(lvs_res['netlist_cdl'], delivery / 'my_soc_top.cdl')
+    (delivery / 'final_inputs.sha256').write_text(''.join(
+        f'{sha256_file(delivery / name)}  {name}\n' for name in ('postDummy.gds', 'my_soc_top.cdl')))
+    lab5_summary['actual_postdummy_bbox_um'] = [v/2000 for v in actual_bbox_dbu]
+    lab5_summary['actual_postdummy_size_um'] = [v/2000 for v in actual_size]
     manifest = {
+        'delivery_sha256_file': 'final_inputs.sha256',
         'dbu_per_um': 2000,
         'candidate_name': cand.name,
         'private_server_sha256': {

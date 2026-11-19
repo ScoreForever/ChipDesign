@@ -1,0 +1,23 @@
+{
+  "source": "outputs/routed.def",
+  "def_units_per_um": 2000,
+  "die_bbox_um": [
+    0.0,
+    0.0,
+    1949.36,
+    1949.92
+  ],
+  "core_bbox_um": [
+    150.08,
+    151.76,
+    1799.28,
+    1798.16
+  ],
+  "core_width_um": 1649.2,
+  "core_height_um": 1646.4,
+  "core_area_um2": 2715242.88,
+  "site_name": "core7T",
+  "site_width_um": 0.56,
+  "site_height_um": 3.92,
+  "core_row_count": 420
+}

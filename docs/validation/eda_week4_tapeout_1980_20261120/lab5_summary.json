@@ -1,0 +1,223 @@
+{
+  "scope": "Same-source Lab 5 signoff on 2000-DBU postDummy.gds (Seal Ring + CO.R.4 IO PIMP fix + Dummy OD/PO & Metal M1-M6 + DRC + nmLVS + Antenna + WireBond + ERC)",
+  "topcell": "my_soc_top",
+  "dbu_per_um": 2000,
+  "raw_die_bbox_um": [
+    0.0,
+    0.0,
+    1949.36,
+    1949.92
+  ],
+  "sealring_ref_box_um": [
+    -0.32,
+    -0.04,
+    1949.68,
+    1949.96
+  ],
+  "sealed_outer_bbox_um": [
+    -15.32,
+    -15.04,
+    1964.68,
+    1964.96
+  ],
+  "sealed_die_um": [
+    1980.0,
+    1980.0
+  ],
+  "max_allowed_sealed_die_um": 1980.0,
+  "cor4_pimp_patch": {
+    "cell": "B776_POSTVDD2CDG",
+    "co_um": [
+      52.23,
+      72.13,
+      52.45,
+      72.35
+    ],
+    "already_covered": false,
+    "patch_pp_um": [
+      52.3,
+      52.91,
+      52.59,
+      73.795
+    ],
+    "patch_pp_2000dbu": [
+      104600,
+      105820,
+      105180,
+      147590
+    ],
+    "adjacent_np_wall_um": 52.59
+  },
+  "dummy_config": {
+    "thick_40k_m6": false,
+    "dmW_M6_um": 0.8,
+    "dmL_M6_um": 0.8,
+    "fill_layers": [
+      "M1",
+      "M2",
+      "M3",
+      "M4",
+      "M5",
+      "M6",
+      "DOD",
+      "DPO"
+    ],
+    "mixed_scheme_dummy_datatype": 1
+  },
+  "checks": {
+    "drc": {
+      "check": "drc",
+      "deck": "calibre.drc",
+      "rules_executed": 523,
+      "raw_total_hier": 2427,
+      "raw_total_expanded": 16935,
+      "accepted_teaching_categories": {
+        "ESD.24g": {
+          "hier": 30,
+          "expanded": 210
+        },
+        "ESD.25g": {
+          "hier": 2384,
+          "expanded": 16688
+        },
+        "LUP.3.3g_3.3V": {
+          "hier": 1,
+          "expanded": 7
+        },
+        "LUP.5.3g_3.3V": {
+          "hier": 10,
+          "expanded": 28
+        },
+        "MOM.R.2": {
+          "hier": 1,
+          "expanded": 1
+        },
+        "DRM.R.1": {
+          "hier": 1,
+          "expanded": 1
+        }
+      },
+      "blocking": {},
+      "passed": true
+    },
+    "lvs": {
+      "pr_0pct": {
+        "status": "INCORRECT",
+        "layout_ports": 12,
+        "source_ports": 12,
+        "errors": [
+          "Property errors."
+        ],
+        "property_error_count": 45,
+        "max_io_resistor_deviation_pct": 3.47,
+        "sample_deviations": [
+          {
+            "layout_ohm": 3404990.0,
+            "source_ohm": 3290710.0,
+            "diff_pct": 3.47
+          },
+          {
+            "layout_ohm": 787.162,
+            "source_ohm": 760.744,
+            "diff_pct": 3.47
+          },
+          {
+            "layout_ohm": 3404990.0,
+            "source_ohm": 3290710.0,
+            "diff_pct": 3.47
+          },
+          {
+            "layout_ohm": 787.162,
+            "source_ohm": 760.744,
+            "diff_pct": 3.47
+          },
+          {
+            "layout_ohm": 1375190.0,
+            "source_ohm": 1329040.0,
+            "diff_pct": 3.47
+          }
+        ],
+        "r_pr_tolerance_pct": 0.0
+      },
+      "pr_3_48pct": {
+        "status": "CORRECT",
+        "layout_ports": 12,
+        "source_ports": 12,
+        "errors": [],
+        "property_error_count": 0,
+        "max_io_resistor_deviation_pct": null,
+        "sample_deviations": [],
+        "r_pr_tolerance_pct": 3.48
+      },
+      "sram_blackboxed": false,
+      "sram_cell": "RA1SHD_2048x32M8",
+      "top_ports": [
+        "CLK_I",
+        "IRQ_O",
+        "POC",
+        "RST_NI",
+        "TCK_I",
+        "TD_I",
+        "TD_O",
+        "TMS_I",
+        "VDD",
+        "VDDPST",
+        "VSS",
+        "VSSPST"
+      ]
+    },
+    "antenna": {
+      "check": "ant",
+      "deck": "ant.drc",
+      "rules_executed": 62,
+      "total_hier": 0,
+      "total_expanded": 0,
+      "nonzero_rules": {},
+      "passed": true
+    },
+    "wirebond": {
+      "check": "wb",
+      "deck": "C18_WIRE_BOND_6M.19_1a1",
+      "rules_executed": 64,
+      "total_hier": 0,
+      "total_expanded": 0,
+      "nonzero_rules": {},
+      "passed": true
+    },
+    "erc": {
+      "rules_executed": 12,
+      "total_hier": 7,
+      "total_expanded": 977,
+      "rules": {
+        "mnpg": {
+          "hier_count": 4,
+          "expanded_count": 832
+        },
+        "floating.nxwell_float": {
+          "hier_count": 1,
+          "expanded_count": 72
+        },
+        "floating.psub_float": {
+          "hier_count": 1,
+          "expanded_count": 1
+        },
+        "npvss49": {
+          "hier_count": 1,
+          "expanded_count": 72
+        }
+      },
+      "status": "manual_review_required"
+    }
+  },
+  "formal_tapeout_signoff": false,
+  "actual_postdummy_bbox_um": [
+    -15.32,
+    -15.04,
+    1964.68,
+    1964.96
+  ],
+  "actual_postdummy_size_um": [
+    1980.0,
+    1980.0
+  ]
+}

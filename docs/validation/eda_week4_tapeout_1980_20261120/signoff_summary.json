@@ -1,0 +1,35 @@
+{
+  "artifacts_sha256": {
+    "outputs/chip.gds.gz": "29c6868c44b126ddc0b4ef5665c956ca0aeba73fa9a7b6d82dc4010efe078e6b",
+    "outputs/chip.lef": "0d8cecf910996668e4d64118cdeb08fd9a641c251ef050bc169e7f91934a5395",
+    "outputs/mapped.sdc": "bcc02137ef112e852ceb6edee398e47bf7b3f25ef70eaa40f1daca9003dce3b8",
+    "outputs/physical.v": "73d560429fdb91a24f4509b3d44f7e4b129cb19d40fa3982c62a3c438d694bf0",
+    "outputs/routed.def": "0e1264a943bdd42a977bde97800c1ff9468fbdc025eaf2f6457e2a4278e571b2",
+    "outputs/routed.sdf.gz": "442c1f57a876cb97f2113a8402df2ba06265f0c90e6a491e91dd34dc57f38375",
+    "outputs/routed.spef.gz": "095ccbbe3718a2394c4b7641af7ac0765a41d3237b92fea5476ee5d553af7790",
+    "outputs/simulation.v": "44cd86f27ac14ef5b9baeceabada39a27e47310fce37c28c2b3ec0602acfdab3"
+  },
+  "note": "TT corner only; M5/M6 fill only; no IR/EM, seal ring or chip-level ESD review",
+  "passed": true,
+  "results": {
+    "lec": {
+      "check": "lec",
+      "passed": true,
+      "succeeded": true,
+      "tool_status": "complete",
+      "verified": true
+    },
+    "sta": {
+      "black_boxes": [
+        "RA1SHD_2048x32M8..."
+      ],
+      "check": "sta",
+      "hold_wns_ns": 0.290397,
+      "passed": true,
+      "scope": "standard cells and IO; SRAM interface timing is checked by Innovus only",
+      "setup_wns_ns": 8.782676,
+      "tool_status": "complete",
+      "unannotated": false
+    }
+  }
+}
