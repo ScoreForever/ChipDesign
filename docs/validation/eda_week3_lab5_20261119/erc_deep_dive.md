@@ -27,42 +27,29 @@ Calibre nmLVS/ERC (`calibre.lvs`, `PRECISION 2000`, `RESOLUTION 2`, `LVS POWER N
 
 ### 1. `mnpg` (`4` Hierarchical / `832` Expanded) — Active ESD Power-Rail Clamps
 
-Calibre rule `mnpg` (`T1tndiff AND T2tndiff`) flags any non-RF NMOS whose source/drain diffusions connect directly to both a `POWER_NAME` net (`VDD` or `VDDPST`) and a `GROUND_NAME` net (`VSS` or `VSSPST`).
+Calibre rule `mnpg` flags any non-RF NMOS whose source and drain diffusions connect directly to both a `POWER_NAME` net (`VDD` or `VDDPST`) and a `GROUND_NAME` net (`VSS` or `VSSPST`).
 
-Inspecting the reference vendor IO SPICE library (`tpd018nv_1_2.spi`) and the chip's 35 IO pad instances (`PVDD1CDG: 8`, `PVDD2CDG: 4`, `PVDD2POC: 4`, `PVSS1CDG: 8`, `PVSS2CDG: 4`, `PDDW0204CDG: 7`):
+Cross-checking the chip's 35 IO pad instances (`PVDD1CDG: 8`, `PVDD2CDG: 4`, `PVDD2POC: 4`, `PVSS1CDG: 8`, `PVSS2CDG: 4`, `PDDW0204CDG: 7`) against the vendor IO library schematic topology:
 
 - **Core-rail ESD clamp (`PVDD1CDG`, `8` instances)**:
-  - Each `PVDD1CDG` instantiates `B776_POSTVDD1DGZ4` containing **`56` parallel big-FET NMOS fingers** (`M_68`–`M_123`, `W=24U`, `L=0.18U`) with drain on `VDD`, source/bulk on `VSS`, and gate driven by the RC trigger network (`R_67 = 1.329 MΩ` to `VDD` with inverter chain `M_0..M_23`, `M_39..M_66`):
-    ```spice
-    M_68 VDD NET_0 VSS VSS N W=24U L=0.18U
-    ```
+  - Each `PVDD1CDG` instantiates subcell `B776_POSTVDD1DGZ4`, which implements an RC-triggered active rail ESD clamp consisting of **`56` parallel big-FET NMOS fingers** spanning `VDD` to `VSS` with gate driven by an internal RC-delay inverter trigger stage.
   - Expanded count: `8 × 56 = 448` NMOS fingers (`2` hierarchical marker rows inside `B776_POSTVDD1DGZ4`, e.g., West pad `PVDD1CDG` at `Y ∈ [933.43, 934.73] µm`).
 - **I/O-rail ESD clamp (`PVDD2CDG` `4` instances + `PVDD2POC` `4` instances)**:
-  - Both cells instantiate `B776_POSTVDD2CDG` containing **`48` parallel 3.3V big-FET NMOS fingers** (`M_37`–`M_84` in `PVDD2CDG`, `M_38`–`M_85` in `PVDD2POC`, `W=24U`, `L=0.4U`) with drain on `VDDPST`, source/bulk on `VSSPST`, and RC trigger `R_3 = 3.291 MΩ`:
-    ```spice
-    M_37 VDDPST NET_5 VSSPST VSSPST ND W=24U L=0.4U
-    ```
+  - Both cells instantiate subcell `B776_POSTVDD2CDG`, which implements a 3.3V RC-triggered active rail ESD clamp consisting of **`48` parallel big-FET NMOS fingers** spanning `VDDPST` to `VSSPST`.
   - Expanded count: `(4 + 4) × 48 = 384` NMOS fingers (`2` hierarchical marker rows inside `B776_POSTVDD2CDG`, e.g., West pad `PVDD2CDG` at `Y ∈ [1417.125, 1418.675] µm`).
-- **Verification**: `448 + 384 = 832` — exact match to the single transistor finger. No DC short exists because the clamp gate (`NET_0` / `NET_5`) is actively held low at `VSS`/`VSSPST` under steady-state supply power. `0` standard-cell, SRAM, or routing transistors are flagged.
+- **Verification**: `448 + 384 = 832` — exact match to the single transistor finger. No DC short exists because the clamp gate is actively held low at `VSS`/`VSSPST` under steady-state supply power. `0` standard-cell, SRAM, or routing transistors are flagged.
 
 ### 2. `floating.nxwell_float` (`1 / 72`) & `npvss49` (`1 / 72`) — Ground-Rail Antiparallel ESD Diodes
 
 Calibre flags:
-- `floating.nxwell_float`: `no_power_path or direct_connect_ground` (`NET nxwell_float GROUND_NAME`)
-- `npvss49`: `NET ntap_not_var GROUND_NAME`
+- `floating.nxwell_float`: N-well regions lacking a power-net path or connected directly to a `GROUND_NAME` net (`VSS`/`VSSPST`).
+- `npvss49`: N-tap guard rings connected directly to a `GROUND_NAME` net (`VSS`/`VSSPST`).
 
 Both marker polygons overlap the exact same physical structure inside West `PVSS1CDG` (`X ∈ [1.575, 18.995] µm`, `Y ∈ [213.670, 219.760] µm`):
 
 - Each `PVSS1CDG` (`8` instances around the die) instantiates `9` `B776_PDIOVSS1CDG` subcell positions (`8 × 9 = 72` total diode units).
-- In `tpd018nv_1_2.spi`:
-  ```spice
-  .SUBCKT PVSS1CDG VSS
-  D_0 VSS VDDPST D1 AREA=668.486P
-  D_1 VSS VSSPST DP AREA=238.291P
-  D_2 VSSPST VSS DN AREA=238.291P
-  .ENDS PVSS1CDG
-  ```
-- `D_1` (`DP`) and `D_2` (`DN`) form the back-to-back ESD clamp diode pair between core ground `VSS` and I/O ground `VSSPST`. Because the N-well cathode and its N-tap ring (`B776_PDIOVSS1CDG`) are intentionally tied to a `GROUND_NAME` bus (`VSS`/`VSSPST`) rather than `VDD`/`VDDPST`, Calibre triggers both `floating.nxwell_float` (`72`) and `npvss49` (`72`) on the identical 72 diode islands.
+- Functionally, each `PVSS1CDG` pad contains an anti-parallel pair of ESD clamp diodes between core ground `VSS` and I/O ground `VSSPST` (alongside a reverse-biased protection diode from `VSS` to `VDDPST`).
+- Because the cathode N-well and its N-tap ring inside `B776_PDIOVSS1CDG` are intentionally tied to a `GROUND_NAME` bus (`VSS`/`VSSPST`) rather than `VDD`/`VDDPST`, Calibre triggers both `floating.nxwell_float` (`72`) and `npvss49` (`72`) on the identical 72 diode islands.
 - **Verification**: `8 × 9 = 72` — exact match. All core and SRAM N-wells are tied to `VDD`/`VDDPST` with zero floating N-well errors.
 
 ### 3. `floating.psub_float` (`1 / 1`) — Exterior Seal Ring & IO Perimeter Substrate

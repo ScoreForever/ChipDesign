@@ -50,7 +50,7 @@ All timing views are extracted on the routed database using typical captable wit
 | `ff0` (FF, 0 °C) | `20.0 ns` (`50.00 MHz`) | **`+4.529`** | **`+0.090`** | `0 / 0` |
 | `ffm40` (FF, -40 °C) | `20.0 ns` (`50.00 MHz`) | **`+5.327`** | **`+0.075`** | `0 / 0` |
 | `ss125` (SS, 125 °C) | `20.0 ns` (`50.00 MHz`) | `-16.779` | **`+0.458`** | `2000+ / 0` |
-| `SS125_DERATED` (SS, 125 °C) | `38.0 ns` (`26.32 MHz`) | **`+0.234`** | **`+0.458`** | `0 / 0` |
+| `SS125_DERATED` (SS, 125 °C) | `38.0 ns` (`26.32 MHz`) | **`+0.234`** | **`+0.458`** | `NA / NA` (not recorded; positive WNS) |
 
 - **SRAM Interface Timing** (`8` rows across 4 corners × 2 SRAM banks, [sram_interface_timing.csv](sram_interface_timing.csv)): `tt25` setup-to-SRAM `+0.784 / +0.891 ns`, hold-to-SRAM `+0.545 / +0.658 ns`, setup-from-SRAM `+4.445 / +4.371 ns`, hold-from-SRAM `+1.636 / +1.713 ns`.
 - **CDC Timing**: `452` rows audited across all 4 corners ([cdc_4corners.tsv](cdc_4corners.tsv)).

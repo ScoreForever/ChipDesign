@@ -27,11 +27,11 @@
     "netlist.cdl": "6b2fe0be04a068ec7ddffddbc5a939f519397ee1e9a540b58966f275e31502aa"
   },
   "public_artifacts_sha256": {
-    "README.md": "a1a387fc5757e8786b0a7ba60cd2fdb58668e39750ee9249396ba4fe04ddd9bc",
+    "README.md": "7d5964e4b94ecaf046e19f02680a436a301831cdd39d7cb016721155aaec94f0",
     "build_profile.json": "4f16dcc13a35e7cddf10c9b6536c3cec4ddbd59c1ec3a1ad6dc885b9135b9a85",
     "cdc_4corners.tsv": "7a0f2a9a6c5c1da20a80041044169006710fe9b039b71e71ffc4fa3de31363f6",
     "checks.json": "b451ec809a81ce68f32f28b04a1bbe8dd7e9e87c518a4842673e389566f2022c",
-    "erc_deep_dive.md": "747c224709beb6999fddb381f4e5184efadd7d93307a0c86a5a79d7db9a0cc17",
+    "erc_deep_dive.md": "cf8fa4623f5a3bfa0d65c4bd107c88a5cb07a11fd306cef67204eae5ac1fb1d9",
     "experiment.json": "23acc23e7d838d1d1cb8a4a2a218d198840913cb0ce5ac56b07ea150ab614cea",
     "final_erc_geometry.json": "4ab35402fbd064814955f1055b6df5f2c279066f0cf229b819d411d85bf49d9d",
     "images/10_lab5_wirebond_keepout_zoom.png": "3dd43c4ce3b81b8dd906554e1edf7b2bd1a37211364e0c49a180b1ef8c0ba618",
