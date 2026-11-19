@@ -20,6 +20,7 @@ from PIL import Image
 
 HOST=Path(__file__).resolve().parents[1]/'host'
 sys.path.insert(0,str(HOST))
+from demo import main as run_demo
 from demos.inference import InferenceSession, Prediction
 from demos.phone_capture import CaptureServer, PAGE
 from demos.runner import run
@@ -307,6 +308,44 @@ class Headless(unittest.TestCase):
                     self.assertEqual(report['fpga_validated'], complete)
                     self.assertEqual(report['golden_complete'], complete)
                     self.assertEqual(report['golden_coverage']['mnist'], dict(expected=2, checked=limit))
+
+    @patch('demos.vision.YuNet')
+    @patch('demos.inference.TclRpc')
+    @patch('demos.inference.Npu')
+    def test_face_defaults_to_fpga_and_does_not_fall_back(self, npu_type, rpc_type, yunet_type):
+        rpc_type.return_value.execute.return_value = ''
+        npu = npu_type.return_value
+        npu.infer_values.return_value = [-100, 0, 0, 0, 0] * 16
+        npu.read.return_value = 42
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            image = directory / 'face.png'
+            Image.new('RGB', (48, 32)).save(image)
+            command = ['demo.py', 'face', '--input', str(image), '--output']
+
+            result = directory / 'result.json'
+            with patch.object(sys, 'argv', command + [str(result)]), self.assertRaises(SystemExit) as exit_info:
+                run_demo()
+            self.assertEqual(exit_info.exception.code, 0)
+            report = json.loads(result.read_text(encoding='utf-8'))
+            self.assertEqual(report['backend'], 'fpga')
+            run, = report['runs']
+            self.assertEqual(run['mode'], 'npu')
+            self.assertEqual(run['prediction']['cycles'], 42)
+            npu.load_model.assert_called_once()
+            npu.infer_values.assert_called_once()
+
+            rpc_type.side_effect = ConnectionRefusedError('OpenOCD unavailable')
+            failure = directory / 'failure.json'
+            with patch.object(sys, 'argv', command + [str(failure)]), self.assertRaises(SystemExit) as exit_info:
+                run_demo()
+            self.assertEqual(exit_info.exception.code, 1)
+            report = json.loads(failure.read_text(encoding='utf-8'))
+            self.assertEqual(report['backend'], 'fpga')
+            self.assertEqual(report['runs'], [])
+            self.assertIn('ConnectionRefusedError', report['errors'][0])
+            yunet_type.assert_not_called()
+            npu.infer_values.assert_called_once()
 
     def test_wrong_golden_fails_and_existing_report_is_preserved(self):
         frame=golden_samples('ecg')[0]

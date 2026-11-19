@@ -21,6 +21,23 @@ python -m pip install -r software/host/demos/requirements.txt
 
 界面需要带 Tkinter 的 Python。Windows 上可用包含 Tcl/Tk 的 Python，Ubuntu / WSLg 上可安装 `python3-tk`。模型训练依赖见 [模型库依赖清单](../../zoo/requirements.txt)。
 
+## 在 Windows 手动烧录和运行
+
+1. 把 EGo1 的 `JTAG&UART` USB 和外接 FT232H 的 USB 都接到 Windows，保留 FT232H 到板上的 JTAG 接线。打开 Vivado Hardware Manager，选择 **Open Target → Auto Connect**。在板载配置线 `1234-tulA` 下右击 `xc7a35t_0`，选 **Program Device**，载入 ABI 5 的 `fpga_top.bit` 并点击 **Program**。配置断电后需要重下。镜像构建和接线见 [上板说明](../../../verification/fpga/NOCPU_BOARD_CHECK.md)。
+2. 首次配置时，解压 [xPack OpenOCD 的 Windows 发行包](https://xpack.github.io/dev-tools/openocd/install/)。如果外接 FT232H 仍使用 FTDI 串口驱动，在 [Zadig](https://zadig.akeo.ie/) 里点 **Options → List All Devices**，按 USB ID `0403:6014` 选中外接红盒子，将其驱动设为 **WinUSB**。板载配置线 `0403:6010` 保留原驱动。更换红盒子的驱动会影响使用原 FTDI D2XX 驱动的程序。
+3. 在 Windows PowerShell 的仓库根目录运行下列命令，把示例路径换成实际解压位置。确认日志出现 `npu.tap`、IDCODE `0x00000001` 和 Tcl 端口 `6666`，保持该窗口运行。
+
+   ```powershell
+   & 'D:\Project\OpenOCD\bin\openocd.exe' -f .\software\host\lab6_ft232h.cfg -f .\software\host\nocpu_openocd.cfg
+   ```
+
+4. 另开 Windows **Anaconda Prompt**，进入仓库根目录，启动原版入口并打开想演示的页面。
+
+   ```bat
+   conda activate ChipDesign
+   python .\software\host\demo.py
+   ```
+
 ## FPGA 手写数字识别
 
 烧录 ABI 5 INT4 的 FPGA 镜像并接好 NPU JTAG。用独立终端启动 OpenOCD，下例使用项目的 FT232H 配置。接线和镜像准备见 [上板说明](../../../verification/fpga/NOCPU_BOARD_CHECK.md)。
@@ -122,18 +139,21 @@ CSV 列为 `time_s,ax,ay,az,gx,gy,gz`，单位分别是秒、m/s²（含重力�
 
 ## 人脸框选与表情分类
 
-先下载小型 YuNet 模型（约 233 kB，校验 SHA-256）：
+```sh
+python software/host/demo.py face
+python software/host/demo.py face --backend reference
+```
+
+`face` 默认将 INT4 近景检测模型加载到 FPGA。它输出 4×4×5 个 INT32 网格值，电脑负责图像预处理、候选框解码、NMS 和坐标映射。界面显示「FPGA · JTAG」，推理完成后显示片上周期。板卡或 OpenOCD 不可用时显示连接错误。无板时可显式使用 `--backend reference` 在电脑上运行同一个 INT4 模型。
+检测模型与表情模型分页面加载，不会假定两个模型同时驻留。
+
+显式使用 `--face-mode host` 可选择电脑上的 YuNet。这个模式和表情页面都需要下载小型 YuNet 模型（约 233 kB，校验 SHA-256）。
 
 ```sh
 python software/host/demos/fetch_assets.py yunet
-python software/host/demo.py face
-python software/host/demo.py face --face-mode npu --backend reference
+python software/host/demo.py face --face-mode host
 python software/host/demo.py emotion --backend reference
 ```
-
-`face` 默认完全在电脑用 YuNet 框脸，不访问 FPGA。`--face-mode npu` 使用本次训练的 INT4 近景检测头；
-NPU 输出 4×4×5 个 INT32 网格值，电脑解码候选框、执行 NMS，并将 letterbox 坐标映射回原图。
-检测模型与表情模型分页面加载，不会假定两个模型同时驻留。
 
 表情页面先由 YuNet 找最大人脸并裁剪，再用 NPU/整数参考输出七类表情分数。
 无人脸时不执行分类；每次只处理一个人脸。支持打开图片与手动启停摄像头，
@@ -141,8 +161,7 @@ NPU 输出 4×4×5 个 INT32 网格值，电脑解码候选框、执行 NMS，�
 
 两份 INT4 包、训练日志、QAT 权重、黄金输入和哈希在 [models/](models/README.md)。
 表情模型 FER2013 PrivateTest 为 **54.53%（3589 张）**；检测模型在受控近景裁剪评估中 precision **49.51%**、recall **52.22%**、F1 **50.83%**（IoU≥0.5）。
-它们是可运行的实验模型，识别效果尚不够稳定，均未完成现场参与者或 FPGA 实板验收。
-默认电脑 YuNet 与实验 NPU 检测的指标不可混用。
+这两个实验模型的识别效果仍有限。INT4 框选适合脸占画面较大的近景，即使推理正常完成也可能没有检出框。
 
 ## 无窗口输入与证据记录
 
@@ -151,7 +170,8 @@ python software/host/demo.py ecg --input build/demo_data/mitdb/100.hea --limit 1
 python software/host/demo.py har --input build/demo_data/uci_har.zip --limit 16 --backend reference --output build/har_raw.json
 python software/host/demo.py kws --input command.wav --backend reference --output build/command.json
 python software/host/demo.py mnist --input digit.png --backend reference --output build/digit.json
-python software/host/demo.py face --input photo.jpg --output build/host_face.json
+python software/host/demo.py face --input photo.jpg --output build/fpga_face.json
+python software/host/demo.py face --face-mode host --input photo.jpg --output build/host_face.json
 python software/host/demo.py emotion --input photo.jpg --backend reference --output build/expression.json
 ```
 

@@ -32,8 +32,8 @@ class CameraDemo(tk.Frame):
         app.label(self, "表情分类" if name == "emotion" else "人脸框选", 24, bold=True).pack(anchor="w")
         source = "电脑 · YuNet" if self.mode == "host" else self.session.source
         description = "电脑检测裁脸 → INT4 表情分类；模型类别分数仅描述图像表情。" if name == "emotion" else (
-            "电脑 YuNet 框选；NPU 框选可用 --face-mode npu 切换。" if self.mode == "host" else
-            "INT4 近景人脸检测头输出网格候选，电脑解码并抑制重叠框。")
+            "使用电脑上的 YuNet 模型检测人脸。" if self.mode == "host" else
+            "INT4 模型输出人脸候选，电脑预处理图像、解码并筛除重叠框。")
         app.label(self, description, fg=MUTED).pack(anchor="w", pady=(4,12))
         self.preview = tk.Label(self, bg=DRAWING, width=1, height=1)
         self.preview.pack(fill="both", expand=True)
