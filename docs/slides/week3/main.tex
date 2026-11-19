@@ -351,7 +351,7 @@
     \column{0.32\textwidth}
     \scriptsize 以 \NDbuPerUm{} DBU/µm 原生绘制 Seal Ring，封装后外框 \hl{\NSealSide{} $\times$ \NSealSide{} µm} $\le$ \NSealLimit{} µm
     \column{0.32\textwidth}
-    \scriptsize 全芯片 \texttt{Dummy\_OD\_PO}（DOD / DPO）+ \texttt{Dummy\_Metal} M1--M6；M6 采用 \NDummyMsix{} $\times$ \NDummyMsix{} µm，\hl{M6.A.1 = 0}
+    \scriptsize 全芯片 \texttt{Dummy\_OD\_PO}（DOD / DPO）+ \texttt{Dummy\_Metal} M1--M6；M6 采用 \NDummyMsix{} $\times$ \NDummyMsix{} µm，\hl{M6.A.1 = \NDummyMsixViol}
     \column{0.32\textwidth}
     \scriptsize \NPadCount{} 个 PAD 周围保留 \hl{\NPadMargin{} µm} M5/M6 禁布间隙，Dummy 填充不侵入
   \end{columns}
@@ -365,12 +365,12 @@
     \textbf{引擎} & \textbf{规则集} & \textbf{结论} & \textbf{关键结果} \\ \midrule
     DRC & \texttt{calibre.drc}，\NDrcRules{} 项，不屏蔽任何规则 & \ok & 阻塞类 \hl{\NDrcBlocking}；原始 \NDrcHier{}（\NDrcExp）条全部属于课程认可的教学类别（IO 单元 ESD / LUP、\texttt{MOM.R.2}、\texttt{DRM.R.1}） \\[3pt]
     & \texttt{CO.R.4} 修复 & \ok & IO 单元 PIMP 精确补到与 NIMP 邻接：\texttt{CO.R.4} \NCorFourBefore{} $\to$ \hl{\NCorFourAfter} \\[3pt]
-    nmLVS & 完整 SRAM（不黑盒） & \ok & 严格 0\% 容差：\NLvsErr{} 条 IO 电阻 R(PR) 偏差，最大 \NLvsMax\%；按 \NLvsTol\% 容差 \hl{\texttt{\NLvsStatus}}，端口 \NLvsPorts/\NLvsPorts{} 匹配 \\[3pt]
+    nmLVS & 完整 SRAM（不黑盒） & \ok & 严格 \NLvsStrictTol\% 容差：\NLvsErr{} 条 IO 电阻 R(PR) 偏差，最大 \NLvsMax\%；按 \NLvsTol\% 容差 \hl{\texttt{\NLvsStatus}}，端口 \NLvsPorts/\NLvsPorts{} 匹配 \\[3pt]
     Antenna & \texttt{ant.drc}，\NAntRules{} 项 & \ok & \hl{\NAntHier{} (\NAntExp)} \\[3pt]
     WireBond & \texttt{C18\_WIRE\_BOND\_6M}，\NWbRules{} 项 & \ok & \hl{\NWbHier{} (\NWbExp)}，\NPadCount{} 个 PAD 均无违例 \\[3pt]
     ERC & \texttt{calibre.lvs}，\NErcRules{} 项 & 审计 & \NErcHier{}（\NErcExp）条全部定位到厂商 IO 单元或 Seal Ring 外框，见下页 \\ \bottomrule
   \end{tabularx}}\par\vspace{10pt}
-  \keybox{oiblue}{\textbf{口径}：DRC 的“通过”是不屏蔽规则、仅余课程认可教学类别；LVS 严格 0\% 为 \texttt{\NLvsStrictStatus}，差异全部是 IO 库 SPICE / GDS 版本间的电阻属性偏差（$<$ \NLvsTol\%），连接关系完全一致。}
+  \keybox{oiblue}{\textbf{口径}：DRC 的“通过”是不屏蔽规则、仅余课程认可教学类别；LVS 严格 \NLvsStrictTol\% 为 \texttt{\NLvsStrictStatus}，差异全部是 IO 库 SPICE / GDS 版本间的电阻属性偏差（$<$ \NLvsTol\%），连接关系完全一致。}
 \end{frame}
 
 \begin{frame}{Lab 5 ERC 晶体管级深度审计（\NErcHier{} / \NErcExp）}
@@ -389,7 +389,7 @@
       \texttt{npvss49} & \NErcVssH{} / \NErcVssE & \\[2pt]
       \texttt{psub\_float} & \NErcPsubH{} / \NErcPsubE & Seal Ring 外框衬底，位于 \texttt{SR.S.1} 隔离间隙之外 \\ \bottomrule
     \end{tabularx}}\par\vspace{8pt}
-    \keybox{oigreen}{\textbf{结论}：设计 / 核心 / SRAM 缺陷 \hl{0}；未加任何虚拟短接或伪地标签；Seal Ring 前后 ERC 计数不变。}\par\vspace{6pt}
+    \keybox{oigreen}{\textbf{结论}：设计 / 核心 / SRAM 缺陷 \hl{\NErcDesignDefects}；未加任何虚拟短接或伪地标签；Seal Ring 前后 ERC 计数不变。}\par\vspace{6pt}
     \keybox{oiorange}{\texttt{formal\_tapeout\_signoff = \NFormalTapeout}：残余项需 IO 库 / 代工厂签核方出具豁免。}
   \end{columns}
 \end{frame}

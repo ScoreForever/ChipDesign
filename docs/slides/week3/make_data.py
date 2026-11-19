@@ -186,6 +186,8 @@ def sec_lab5(N):
     N['DrcHier'] = '{:,}'.format(drc['raw_total_hier'])
     N['DrcExp'] = '{:,}'.format(drc['raw_total_expanded'])
     N['DrcBlocking'] = str(len(drc['blocking']))
+    N['DummyMsixViol'] = str(cats.get('M6.A.1', {}).get('hier', 0))
+    assert N['DummyMsixViol'] == '0' and 'M6.A.1' not in drc['blocking']
     N['CorFourAfter'] = str(cats.get('CO.R.4', {}).get('hier', 0))
     N['CorFourBefore'] = str(jload(W3 / 'signoff_summary.json')['results']['drc']['accepted']['CO.R.4']['count'])
 
@@ -197,6 +199,7 @@ def sec_lab5(N):
     N['LvsStrictStatus'], N['LvsStatus'] = strict['status'], relaxed['status']
     N['LvsErr'] = str(strict['property_error_count'])
     N['LvsMax'] = '%.2f' % strict['max_io_resistor_deviation_pct']
+    N['LvsStrictTol'] = '%.0f' % strict['r_pr_tolerance_pct']
     N['LvsTol'] = '%.2f' % relaxed['r_pr_tolerance_pct']
     assert strict['max_io_resistor_deviation_pct'] < relaxed['r_pr_tolerance_pct']
 
@@ -251,6 +254,12 @@ def sec_lab5(N):
     N['ErcVddTwoN'], N['ErcVddPocN'], N['ErcVddTwoF'] = str(v2n), str(vpn), str(v2f)
     N['ErcVddOneE'], N['ErcVddTwoE'] = str(v1n * v1f), str((v2n + vpn) * v2f)
     N['ErcVssN'], N['ErcVssD'] = str(vsn), str(vsd)
+    N['ErcDesignDefects'] = grab(
+        r'\*\*Design-level defect count\*\*:\s*\*\*`(\d+)`\*\*', dd, 'erc_deep_dive.md (design defects)'
+    )[1]
+    assert int(N['ErcDesignDefects']) == (
+        er['mnpg']['expanded_count'] - (v1n * v1f + (v2n + vpn) * v2f)
+    ) + (er['npvss49']['expanded_count'] - vsn * vsd) + (er['floating.psub_float']['expanded_count'] - 1)
 
 
 # <<SECTION:mmmc>>
