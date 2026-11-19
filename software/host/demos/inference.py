@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import time
 
-from nocpu_jtag import JtagTransport, Npu, TclRpc
+from nocpu_jtag import JtagTransport, Npu, TclRpc, FtdiMpsseTransport
 from npu_e2e import PhaseTimer, TimedTransport, measure
 from npu_program import Package, compile_model, encode_tensor, reference
 
@@ -66,9 +66,10 @@ class InferenceSession:
                 self.model = None
                 raise ValueError("model.json 与 FPGA 模型包不一致，请重新编译")
             return
-        rpc = TclRpc(self.args.host, self.args.port, timeout=6)
+        mpsse = getattr(self.args, "jtag_backend", "openocd") == "mpsse"
+        rpc = (FtdiMpsseTransport(getattr(self.args, "ftdi_url", "ftdi://ftdi:232h/1"), getattr(self.args, "tck_khz", 1000)*1000, timeout=6) if mpsse else TclRpc(self.args.host, self.args.port, timeout=6))
         try:
-            npu = Npu(TimedTransport(JtagTransport(rpc), self.timer))
+            npu = Npu(TimedTransport(rpc if mpsse else JtagTransport(rpc), self.timer))
             npu.load_model(self.package)
         except (OSError, RuntimeError, ValueError):
             rpc.close()

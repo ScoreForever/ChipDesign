@@ -19,6 +19,9 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("demo", nargs="?", choices=DEMOS, help="skip the demo picker")
     parser.add_argument("--host", default="127.0.0.1", help="OpenOCD Tcl RPC host")
+    parser.add_argument("--jtag-backend", choices=["openocd", "mpsse"], default="openocd")
+    parser.add_argument("--ftdi-url", default="ftdi://ftdi:232h/1")
+    parser.add_argument("--tck-khz", type=int, default=1000)
     parser.add_argument("--port", default=6666, type=int, help="OpenOCD Tcl RPC port")
     parser.add_argument("--backend", choices=("fpga", "reference"), default=None,
                         help="use FPGA via JTAG or the local integer reference")
