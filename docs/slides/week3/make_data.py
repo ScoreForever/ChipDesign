@@ -146,12 +146,12 @@ def sec_asic(N):
     N['NpuAreaPct'] = f'{pct(npu1, npu0):.2f}'
 
     deltas = [
-        ('Lookup Area', pct(la1, la0)),
-        ('Flip-Flops', pct(sq1, sq0)),
-        ('Wire Length', pct(wl1, wl0)),
-        ('Synth Stdcell', pct(std1, std0)),
-        ('Routed Active', pct(act1, act0)),
-        ('Vectorless Pwr', pct(vp1, vp0)),
+        ('查找表面积', pct(la1, la0)),
+        ('触发器数', pct(sq1, sq0)),
+        ('布线线长', pct(wl1, wl0)),
+        ('综合面积', pct(std1, std0)),
+        ('布线后面积', pct(act1, act0)),
+        ('无向量功耗', pct(vp1, vp0)),
     ]
     # Highlight the dominant lookup-area bar in PKU crimson and secondary reductions in steel blue
     first = deltas[:1]
@@ -396,7 +396,7 @@ def sec_power(N):
         + '};\n'
         + f'{BS}draw[ink, dashed, line width=0.8pt] (axis cs:-0.5,{vl:.2f}) -- (axis cs:{len(order) - 0.5:.1f},{vl:.2f});\n'
         + f'{BS}node[font={BS}tiny, text=ink, anchor=south east, inner sep=1.5pt] at (axis cs:{len(order) - 0.5:.1f},{vl:.2f}) '
-        + f'{{Vectorless ref: {vl:.2f} mW}};\n'
+        + f'{{无向量参考：{vl:.2f} mW}};\n'
     )
     (OUT / 'power_plot.tex').write_text(plot, encoding='utf-8')
     N['PowerTicks'] = ','.join(BS + 'texttt{' + esc(n) + '}' for n in order)
@@ -475,13 +475,13 @@ def sec_rtl(N):
     src = (ROOT / 'hardware/npu/scripts/mutation_test.py').read_text(encoding='utf-8')
     muts = re.findall(r"\('(l\d\d)', (CORE|CTRL),", src)
     en = {
-        'l01': 'Stale record not invalidated after tensor overwrite',
-        'l02': 'Record end-address off-by-one boundary error',
-        'l03': 'Done asserted before invalidate write accepted',
-        'l04': 'RAW hazard: read issued before prior write finishes',
-        'l05': 'Validation declared ready before writes drain',
-        'l06': 'Verification status ignored; uninitialized source allowed',
-        'l07': 'Activation port ownership withheld during VWAIT',
+        'l01': '张量覆写后旧记录未失效',
+        'l02': '记录结束地址 off-by-one 边界错误',
+        'l03': '失效写入被接受前即拉高 done',
+        'l04': 'RAW 冒险：前一次写未完成即发起读',
+        'l05': '写入未排空即宣布校验就绪',
+        'l06': '忽略校验状态，允许未初始化源张量',
+        'l07': 'VWAIT 期间未保持 Activation SRAM 端口所有权',
     }
     ids = sorted(i for i, _ in muts)
     assert ids == sorted(en), ids
@@ -587,6 +587,26 @@ def sec_fpga(N):
     N['FpgaColdMax'] = '{:,.0f}'.format(max(cold_vals))
     N['FpgaResMin'] = '%.1f' % min(res_vals)
     N['FpgaResMax'] = '%.1f' % max(res_vals)
+
+    # Root-cause attribution and 1 -> 5 MHz TCK evidence, all derived from analysis.json / tcl_tcp_sim.json
+    tclm = {m_['model']: m_ for m_ in jload(JT / 'tcl_tcp_sim.json')['models']}
+    rows_5m = {r_['model']: r_ for r_ in ana['rows'] if r_['khz'] == 5000}
+    assert set(rows_5m) == set(order) == set(tclm)
+    N['FpgaEcgOneMs'], N['FpgaEcgFiveMs'] = '%.1f' % rows_1m['ecg']['resident_ms'], '%.1f' % rows_5m['ecg']['resident_ms']
+    N['FpgaGtsrbInOneMs'], N['FpgaGtsrbInFiveMs'] = '%.1f' % rows_1m['gtsrb_l']['phases_ms']['input_upload'], '%.1f' % rows_5m['gtsrb_l']['phases_ms']['input_upload']
+    N['FpgaGtsrbUpOneMs'], N['FpgaGtsrbUpFiveMs'] = '%.1f' % rows_1m['gtsrb_l']['upload_ms'], '%.1f' % rows_5m['gtsrb_l']['upload_ms']
+    N['FpgaTckRatio'] = '%g' % (5000 / 1000)
+    assert all(tclm[m_]['model_bytes'] % 4 == 0 for m_ in order)
+    mpw = [rows_1m[m_]['upload_ms'] / (tclm[m_]['model_bytes'] // 4) for m_ in order]
+    N['FpgaUpMpwMin'], N['FpgaUpMpwMax'] = '%.2f' % min(mpw), '%.2f' % max(mpw)
+    inw = lambda m_: -(-tclm[m_]['input_bytes'] // 4)
+    N['FpgaEcgInWords'], N['FpgaEcgInRpcMs'] = str(inw('ecg')), '%.1f' % rows_1m['ecg']['phases_ms']['input_upload']
+    N['FpgaKwsLInWords'], N['FpgaKwsLInRpcMs'] = str(inw('kws_l')), '%.1f' % rows_1m['kws_l']['phases_ms']['input_upload']
+    N['FpgaGtsrbInWords'] = str(inw('gtsrb_l'))
+    N['FpgaGtsrbInMpw'] = '%.2f' % (rows_1m['gtsrb_l']['phases_ms']['input_upload'] / inw('gtsrb_l'))
+    drs = [tclm[m_]['pipeline']['total_drscans'] for m_ in order]
+    assert all(tclm[m_]['batched']['total_drscans'] == tclm[m_]['pipeline']['total_drscans'] for m_ in order)
+    N['RpcDrscanMin'], N['RpcDrscanMax'] = '{:,}'.format(min(drs)), '{:,}'.format(max(drs))
 
     summ = (FPGA / 'implementation/summary.md').read_text(encoding='utf-8')
     m = grab(r'WNS: ([\d.]+) ns; TNS: ([\d.]+) ns; WHS: ([\d.]+) ns', summ, 'implementation/summary.md timing')

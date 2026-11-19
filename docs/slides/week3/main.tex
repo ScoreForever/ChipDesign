@@ -8,6 +8,21 @@
 \setbeamertemplate{background canvas}{\color{white}\rule{\paperwidth}{\paperheight}}
 \usefonttheme{professionalfonts}
 \usepackage{fontspec}
+\usepackage{xeCJK}
+\xeCJKsetup{CJKmath=true}
+% CJK: Microsoft YaHei (TrueType collection) on Windows/WSL; PingFang SC on macOS; Noto Sans CJK SC on Linux. Never the ctex default serif.
+\IfFileExists{/mnt/c/Windows/Fonts/msyh.ttc}{%
+  \setCJKmainfont{msyh.ttc}[Path=/mnt/c/Windows/Fonts/,BoldFont=msyhbd.ttc,ItalicFont=msyh.ttc]%
+  \setCJKsansfont{msyh.ttc}[Path=/mnt/c/Windows/Fonts/,BoldFont=msyhbd.ttc,ItalicFont=msyh.ttc]%
+  \setCJKmonofont{msyh.ttc}[Path=/mnt/c/Windows/Fonts/,BoldFont=msyhbd.ttc,ItalicFont=msyh.ttc]%
+}{%
+  \IfFontExistsTF{PingFang SC}{%
+    \setCJKmainfont{PingFang SC}\setCJKsansfont{PingFang SC}\setCJKmonofont{PingFang SC}%
+  }{%
+    \setCJKmainfont{Noto Sans CJK SC}\setCJKsansfont{Noto Sans CJK SC}\setCJKmonofont{Noto Sans CJK SC}%
+  }%
+}
+\renewcommand{\CJKfamilydefault}{\CJKsfdefault}
 
 % Strictly TrueType (.ttf) sans-serif & monospace fonts for universal pdf.js rendering
 \IfFileExists{/mnt/c/Windows/Fonts/segoeui.ttf}{%
@@ -81,8 +96,8 @@
 \setbeamertemplate{itemize subitem}{\raisebox{0.18ex}{\tikz\draw[muted,line width=0.6pt] (0,0) circle (1.3pt);}}
 \setbeamertemplate{enumerate item}{\textbf{\color{peking}\insertenumlabel.}}
 
-\title[Full-Stack Chip Design \& Practice]{Full-Stack Chip Design \& Practice}
-\subtitle{Week 3 Progress: From Architecture \& RTL to Physical Signoff \& Host Acceleration}
+\title[先进芯片全栈设计与实践]{先进芯片全栈设计与实践\\[3pt]{\large Full-Stack Chip Design \& Practice}}
+\subtitle{第 3 周进展：从架构与 RTL 到物理签核（Signoff）与主机加速}
 \author[]{Ruijun He \quad Guoyi Zhang \quad Zhiyuan Zhao \quad Muyang Cheng}
 \institute{Peking University}
 \date{November 2026}
@@ -108,7 +123,7 @@
                    align=center, font=\scriptsize, inner sep=4pt, minimum height=0.95cm, text width=#1},
   issccbox/.default=1.8cm,
   issccarr/.style={-{Stealth[length=4.5pt,width=3.2pt]}, line width=0.75pt, draw=ink!80},
-  issccnote/.style={font=\tiny, fill=white, text=ink!85, inner sep=1.5pt},
+  issccnote/.style={font=\tiny, text=ink!85, inner sep=1pt, outer sep=2pt},
 }
 
 \pgfplotsset{
@@ -131,15 +146,7 @@
 \renewcommand{\arraystretch}{1.18}
 
 % Clean Minimalist Chapter Divider Slides
-\AtBeginSection[]{%
-  \begin{frame}
-    \vspace*{0.6cm}
-    {\scriptsize\bfseries\color{peking} PART 0\insertsectionnumber}\\[4pt]
-    {\Large\bfseries\color{ink}\insertsection}\\[6pt]
-    \rule{2.4cm}{1.6pt}\vspace{0.65cm}
-    \tableofcontents[sectionstyle=show/shaded,subsectionstyle=hide,subsubsectionstyle=hide]
-  \end{frame}
-}
+\AtBeginSection[]{}
 
 \begin{document}
 
@@ -151,131 +158,122 @@
 \end{frame}}
 
 % ===================================================================== 2 Overview
-\begin{frame}{Executive Overview: End-to-End Week 3 Progress}
+\begin{frame}{总览：第 3 周端到端进展}
   \begin{columns}[T,onlytextwidth]
     \column{0.238\textwidth}
       {\color{ink}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
-      {\tiny\bfseries\color{muted} 01 · ARCHITECTURE \& RTL}\\[2pt]
-      {\small\bfseries\color{ink} SRAM-Backed Lookup}\\[5pt]
-      {\large\bfseries\color{peking} \NLookupAreaPct\%} {\scriptsize\color{muted} lookup area}\\[4pt]
+      {\tiny\bfseries\color{muted} 01 · 架构与 RTL}\\[2pt]
+      {\small\bfseries\color{ink} SRAM 化 Lookup}\\[5pt]
+      {\large\bfseries\color{peking} \NLookupAreaPct\%} {\scriptsize\color{muted} 查找表面积}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item \NLookupFFBefore{} → \NLookupFFAfter{} FFs
-        \item \NRtlModels{} models × \NRtlConfigs{} configs exact
-        \item \NMutKilled/\NMutNew{} lookup mutants killed
+        \item \NLookupFFBefore{} → \NLookupFFAfter{} 个 FF
+        \item \NRtlModels{} 模型 × \NRtlConfigs{} 配置 bit-exact
+        \item Lookup mutant 杀死 \NMutKilled/\NMutNew
       \end{itemize}
     \column{0.238\textwidth}
       {\color{peking}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
-      {\tiny\bfseries\color{peking} 02 · UNIFIED SILICON SIGNOFF}\\[2pt]
-      {\small\bfseries\color{ink} Single-GDS Flow}\\[5pt]
-      {\large\bfseries\color{peking} \NSealSide\,µm} {\scriptsize\color{muted} sealed die}\\[4pt]
+      {\tiny\bfseries\color{peking} 02 · 统一 ASIC 签核}\\[2pt]
+      {\small\bfseries\color{ink} Single-GDS 流程}\\[5pt]
+      {\large\bfseries\color{peking} \NSealSide\,µm} {\scriptsize\color{muted} 封环管芯}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
         \item TT \NCoreMHz{} MHz, \NMmmcCorners-Corner MMMC
-        \item Full DRC / nmLVS / ANT / WB pass
-        \item ERC \NErcHier{} Hier. / \NErcExp{} Exp. audited
+        \item DRC / nmLVS / ANT / WireBond 全通过
+        \item ERC \NErcHier{} Hier. / \NErcExp{} Exp. 已逐项审计
       \end{itemize}
     \column{0.238\textwidth}
       {\color{ink}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
-      {\tiny\bfseries\color{muted} 03 · HOST \& FPGA}\\[2pt]
-      {\small\bfseries\color{ink} Single-RPC Pipeline}\\[5pt]
-      {\large\bfseries\color{peking} \NRpcBatchedMax{} → \NRpcPipe} {\scriptsize\color{muted} host RPCs}\\[4pt]
+      {\tiny\bfseries\color{muted} 03 · 主机与 FPGA}\\[2pt]
+      {\small\bfseries\color{ink} Single-RPC 流水线}\\[5pt]
+      {\large\bfseries\color{peking} \NRpcBatchedMax{} → \NRpcPipe} {\scriptsize\color{muted} 主机 RPC 次数}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item Measured \NRpcSpMin–\NRpcSpMax× RPC cut
-        \item \NRtlTckMhz{} MHz RTL + \NRpcExactCount/\NRpcModels{} TclRpc exact
-        \item Prior \abi{} FPGA breakdown
+        \item RPC 实测减少 \NRpcSpMin–\NRpcSpMax×
+        \item \NRtlTckMhz{} MHz RTL + \NRpcExactCount/\NRpcModels{} TclRpc golden-output fixture 传输一致
       \end{itemize}
     \column{0.238\textwidth}
       {\color{ink}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
-      {\tiny\bfseries\color{muted} 04 · APPLICATIONS}\\[2pt]
-      {\small\bfseries\color{ink} Six-Scene Suite}\\[5pt]
-      {\large\bfseries\color{peking} \NDemoGolden/\NDemoGoldenTotal} {\scriptsize\color{muted} INT32 exact}\\[4pt]
+      {\tiny\bfseries\color{muted} 04 · 应用}\\[2pt]
+      {\small\bfseries\color{ink} 六场景套件}\\[5pt]
+      {\large\bfseries\color{peking} \NDemoGolden/\NDemoGoldenTotal} {\scriptsize\color{muted} INT32 bit-exact}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item \NDemoZoo/\NDemoZoo{} zoo reference frames
-        \item \NDemoFixes{} runtime robustness fixes
-        \item Demo \NDemoUnit{} + JTAG \NDemoJtag{} unit tests
+        \item \NDemoZoo/\NDemoZoo{} zoo 参考帧一致
+        \item \NDemoFixes{} 项运行时健壮性修复
       \end{itemize}
-  \end{columns}\par\vspace{14pt}
-  \noindent{\scriptsize
-  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
-    \toprule
-    & \textbf{\color{ink}Verified in Week 3} & \textbf{\color{peking}Phase-B Engineering Targets} \\ \midrule
-    \textbf{ASIC} & Unified Single-GDS flow: Synthesis, P\&R (\NUtilPct\% util., \NPadCount-pad keepout), SDF, LEC, \NMmmcCorners-Corner MMMC, \NPwAnnot\%-VCD Power (\NFusionSave\% fusion gain), Seal Ring + Dummy + DRC/LVS/ANT/WB/ERC & Close \texttt{ss125} corner via MMMC-aware optimization (plus RTL pipeline stage if required); post-dummy RC/IR sensitivity; foundry ERC waiver \\[4pt]
-    \textbf{System} & Seven-model \NRtlTckMhz{} MHz RTL wire sim + live TCP/\texttt{tclsh} Single-RPC benchmark (\NRpcSpMin–\NRpcSpMax× RPC cut); six-scene host reference suite & Incremental EGo1 board re-flash for SRAM-lookup + Single-RPC bitstream; live MAX30102, MPU6050, camera, and microphone field validation \\ \bottomrule
-  \end{tabularx}}
+  \end{columns}\par\vspace{12pt}\callout[peking]{\textbf{核心主线}：以 SRAM 化 Lookup 释放面积（\hl{\NLookupAreaPct\%}），在统一 \texttt{postDummy.gds} 上完成 DRC / nmLVS / ANT / WireBond 签核与 ERC 审计，再以 Single-RPC 把主机 RPC 由 \NRpcBatchedMax{} 次压至 \NRpcPipe{} 次；Phase B 转向真 MMMC 与实板 USB 批量后端。}
 \end{frame}
 
 % ##################################################################### PART 01
-\section{Architecture \& RTL Verification}
+\section{架构与 RTL 验证}
 
-\begin{frame}{\texttt{npu\_tensor\_lookup} Migration from Flip-Flops to Activation SRAM}
+\begin{frame}{\texttt{npu\_tensor\_lookup}：从触发器迁移到 Activation SRAM}
   \begin{columns}[T,onlytextwidth]
     \column{0.40\textwidth}
-    \textbf{Design Rationale}
+    \textbf{设计动机}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Lookup provenance is queried only during \texttt{MODEL\_COMMIT} to verify every source tensor was previously written and not overwritten.
-      \item Activation SRAM holds no live activations during commit and is cleared before inference \texttt{START}.
+      \item Lookup 溯源记录仅在 \texttt{MODEL\_COMMIT} 阶段查询，用于校验每个源张量均已写入且未被覆盖。
+      \item commit 期间 Activation SRAM 不存放有效激活值，并在推理 \texttt{START} 前清空。
     \end{itemize}\par\vspace{5pt}
-    \textbf{Implementation}
+    \textbf{实现方案}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Replaced \NRecords×\NRecordBitsOld-bit FF table (\NLookupShareBefore\% of pre-opt stdcell area) with sequential SRAM scans.
-      \item Packed 1 record per \NRecordWordBits-bit word at activation SRAM byte range \texttt{[0, 4(op+1))}.
-      \item Reused existing SRAM read/write ports with zero added top-level SRAM pins.
+      \item 以顺序 SRAM 扫描替换 \NRecords×\NRecordBitsOld-bit 的 FF 表（占优化前 stdcell 面积的 \NLookupShareBefore\%）。
+      \item 每条记录打包为 1 个 \NRecordWordBits-bit 字，存放于 Activation SRAM 字节区间 \texttt{[0, 4(op+1))}。
+      \item 复用现有 SRAM 读写端口，顶层 SRAM 引脚零新增。
     \end{itemize}\par\vspace{7pt}
-    \callout[peking]{\textbf{Measured Synthesis Impact}: Lookup FFs \NLookupFFBefore{} → \hl{\NLookupFFAfter}; module area \NLookupAreaBefore{} → \hl{\NLookupAreaAfter{} kµm²} (\hl{\NLookupAreaPct\%}).}
+    \callout[peking]{\textbf{综合实测收益}：Lookup FF \NLookupFFBefore{} → \hl{\NLookupFFAfter}；模块面积 \NLookupAreaBefore{} → \hl{\NLookupAreaAfter{} kµm²}（\hl{\NLookupAreaPct\%}）。}
     \column{0.57\textwidth}
     \centering
-    \begin{tikzpicture}[node distance=0.55cm and 0.42cm]
-      \node[issccbox=1.65cm] (host) {Host JTAG\\Desc. + Model};
-      \node[issccbox=1.45cm, right=of host] (ctl) {Controller\\\texttt{VWAIT}};
-      \node[issccbox=2.45cm, right=of ctl, fill=surf, draw=peking, line width=1.0pt] (lk) {\textbf{\texttt{npu\_tensor\_lookup}}\\Sequential Scan FSM};
+    \begin{tikzpicture}[node distance=0.55cm and 0.85cm]
+      \node[issccbox=1.5cm] (host) {Host JTAG\\Desc. + Model};
+      \node[issccbox=1.3cm, right=of host] (ctl) {Controller\\\texttt{VWAIT}};
+      \node[issccbox=2.25cm, right=of ctl, fill=surf, draw=peking, line width=1.0pt] (lk) {\textbf{\texttt{npu\_tensor\_lookup}}\\Sequential Scan FSM};
       \node[issccbox=4.6cm, below=0.95cm of lk.south east, anchor=north east, fill=surf, draw=steel, line width=0.9pt, minimum height=1.1cm] (sram) {%
         \textbf{Activation SRAM (\texttt{RA1SHD})}\\[2pt]
         \tiny Record Space \texttt{[0, 4(op+1))} \quad|\quad Inference Activations};
-      \draw[issccarr] (host) -- node[issccnote, above]{commit} (ctl);
-      \draw[issccarr] (ctl) -- node[issccnote, above]{verify} (lk);
-      \draw[issccarr, steel] ([xshift=-7pt]lk.south) -- node[issccnote, left]{write} ([xshift=-7pt]lk.south |- sram.north);
-      \draw[issccarr, steel] ([xshift=11pt]lk.south |- sram.north) -- node[issccnote, right]{read} ([xshift=11pt]lk.south);
-      \draw[issccarr, dashed, peking] (ctl.south) -- node[issccnote, left]{\texttt{act\_owner\_o}} (ctl.south |- sram.north);
+      \draw[issccarr] (host) -- node[issccnote, above=2pt]{commit} (ctl);
+      \draw[issccarr] (ctl) -- node[issccnote, above=2pt]{verify} (lk);
+      \draw[issccarr, steel] ([xshift=-9pt]lk.south) -- node[issccnote, left=2pt]{write} ([xshift=-9pt]lk.south |- sram.north);
+      \draw[issccarr, steel] ([xshift=13pt]lk.south |- sram.north) -- node[issccnote, right=2pt]{read} ([xshift=13pt]lk.south);
+      \draw[issccarr, dashed, peking] (ctl.south) -- node[issccnote, left=2pt]{\texttt{act\_owner\_o}} (ctl.south |- sram.north);
     \end{tikzpicture}\par\vspace{10pt}
     {\scriptsize
     \begin{tabular}{@{}l l@{}}
       \toprule
-      \textbf{Ordering Invariant} & \textbf{Hazard Prevented} \\ \midrule
-      At most one SRAM write in flight & Read-after-write (RAW) hazard \\
-      No read issued while write stalls & Reading stale provenance record \\
-      \texttt{done} waits for last write accept & Host input overwrite vs. record write \\
-      Port ownership locked in \texttt{VWAIT} & Verification scan starvation \\ \bottomrule
+      \textbf{序关系不变量} & \textbf{防护的冒险} \\ \midrule
+      同一时刻至多 1 个 SRAM 写在途 & 写后读（RAW）冒险 \\
+      写停顿期间不发起读 & 读到过期溯源记录 \\
+      \texttt{done} 等待最后一次写被接受 & 主机输入覆写与记录写入冲突 \\
+      \texttt{VWAIT} 内锁定端口所有权 & 校验扫描被饿死 \\ \bottomrule
     \end{tabular}}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Matched-Baseline RTL Regression \& Mutation Coverage}
+\begin{frame}{同基线 RTL 回归与 Mutation 覆盖}
   \begin{columns}[T,onlytextwidth]
     \column{0.53\textwidth}
-    \textbf{Cold-Run Cycle Delta Across \NRtlModels{} Zoo Models}\par\vspace{3pt}
+    \textbf{\NRtlModels{} 个 zoo 模型冷运行周期变化量}\par\vspace{3pt}
     {\scriptsize\setlength{\tabcolsep}{3pt}
     \begin{tabular}{@{}lrrrr@{}}
       \toprule
-      \textbf{Model} & \textbf{Behavioral} & \textbf{Δ} & \textbf{\texttt{FPGA\_MEM}} & \textbf{Δ\%} \\ \midrule
+      \textbf{模型} & \textbf{行为级} & \textbf{Δ} & \textbf{\texttt{FPGA\_MEM}} & \textbf{Δ\%} \\ \midrule
       \tabinput{data/cycle_rows.tex}
       \bottomrule
     \end{tabular}}\par\vspace{5pt}
-    \snote{All \NRtlRuns{} matched runs match bit-exact writeback traces; \NCycDeltaMin–\NCycDeltaMax{} cycle gain comes from skipping commit rescan at \texttt{START}. \NRtlNeg{} negative lifecycle checks passed.}
+    \snote{\NRtlRuns{} 次对比运行全部 bit-exact 写回一致；\NCycDeltaMin–\NCycDeltaMax{} 周期收益来自 \texttt{START} 时跳过 commit 重扫。\NRtlNeg{} 条负向生命周期检查通过。}
     \column{0.44\textwidth}
-    \textbf{Full Regression Gate}\par\vspace{3pt}
+    \textbf{完整回归门控}\par\vspace{3pt}
     {\scriptsize
     \begin{tabular}{@{}lr@{}}
       \toprule
-      Behavioral program regression & \NRegBeh \\
-      \texttt{FPGA\_MEM} program regression & \NRegFpga \\
-      \texttt{RA1SHD} macro simulation & \NRegMacro \\
-      CDC boundary fuzz / sweep & \NCdcLimits \\
-      Baseline strict mutation suite & \NMutOld \\ \bottomrule
+      行为级程序回归 & \NRegBeh \\
+      \texttt{FPGA\_MEM} 程序回归 & \NRegFpga \\
+      \texttt{RA1SHD} 宏单元仿真 & \NRegMacro \\
+      CDC 边界模糊/扫描 & \NCdcLimits \\
+      基线严格 Mutation 套件 & \NMutOld \\ \bottomrule
     \end{tabular}}\par\vspace{7pt}
-    \textbf{New Lookup Mutants: \hl{\NMutKilled/\NMutNew{} Killed (\NMutKillPct\%)}}\par\vspace{3pt}
+    \textbf{新 Lookup Mutant：\hl{\NMutKilled/\NMutNew{} 已杀灭（\NMutKillPct\%）}}\par\vspace{3pt}
     {\tiny\setlength{\tabcolsep}{2.5pt}
     \begin{tabular}{@{}lll@{}}
       \toprule
-      \textbf{ID} & \textbf{Scope} & \textbf{Injected Fault} \\ \midrule
+      \textbf{ID} & \textbf{范围} & \textbf{注入故障} \\ \midrule
       \tabinput{data/mutants.tex}
       \bottomrule
     \end{tabular}}
@@ -283,326 +281,317 @@
 \end{frame}
 
 % ##################################################################### PART 02
-\section{Unified ASIC Implementation \& Physical Signoff}
+\section{统一 ASIC 实现与物理签核}
 
-\begin{frame}{Synthesis \& Post-Route Delta vs. FF-Lookup Baseline}
+\begin{frame}{综合与布线后相对 FF-Lookup 基线的变化}
   \begin{columns}[T,onlytextwidth]
     \column{0.44\textwidth}
     \centering
     \begin{tikzpicture}
       \begin{axis}[issccbar, xbar, width=0.95\linewidth, height=5.1cm, bar width=8pt, bar shift=0pt,
-          xmin=0, xmax=122, xlabel={Reduction vs. FF-Lookup Baseline (\%)},
+          xmin=0, xmax=122, xlabel={相对 FF-Lookup 基线降幅（\%）},
           symbolic y coords/.expand once=\NDeltaTicks, ytick/.expand once=\NDeltaTicks, y dir=reverse,
           nodes near coords={−\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}\%},
           nodes near coords style={font=\tiny, text=ink}, xmajorgrids, enlarge y limits=0.12]
         \input{data/delta_plot.tex}
       \end{axis}
     \end{tikzpicture}\par\vspace{3pt}
-    \snote{Single-GDS signoff flow: diagonal dual-SRAM floorplan, \NUtilPct\% target utilization, \NHoldTarget{} ns hold target.}
+    \snote{Single-GDS 签核流程：对角双 SRAM 平面规划，目标利用率 \NUtilPct\%，Hold 目标 \NHoldTarget{} ns。}
     \column{0.53\textwidth}
     {\scriptsize\setlength{\tabcolsep}{3.5pt}
     \begin{tabular}{@{}lrr@{}}
       \toprule
-      \textbf{Metric} & \textbf{FF Baseline} & \textbf{SRAM Lookup} \\ \midrule
-      \texttt{npu\_tensor\_lookup} FFs & \NLookupFFBefore & \hl{\NLookupFFAfter} \\
-      Lookup module area (kµm²) & \NLookupAreaBefore & \hl{\NLookupAreaAfter} \\
-      Synth stdcell area (mm²) & \NSynStdBefore & \NSynStdAfter \\
-      Synth sequential cells & \NSynSeqBefore & \NSynSeqAfter \\
-      Routed active stdcell (mm²) & \NActBefore & \NActAfter \\
-      Routed wire length (m) & \NWireBefore & \NWireAfter \\
-      Vectorless TT power (mW) & \NVlessBefore & \NVlessAfter \\ \bottomrule
+      \textbf{指标} & \textbf{FF 基线} & \textbf{SRAM Lookup} \\ \midrule
+      \texttt{npu\_tensor\_lookup} FF & \NLookupFFBefore & \hl{\NLookupFFAfter} \\
+      Lookup 模块面积（kµm²） & \NLookupAreaBefore & \hl{\NLookupAreaAfter} \\
+      综合 stdcell 面积（mm²） & \NSynStdBefore & \NSynStdAfter \\
+      综合时序单元数 & \NSynSeqBefore & \NSynSeqAfter \\
+      布线后有效 stdcell（mm²） & \NActBefore & \NActAfter \\
+      布线线长（m） & \NWireBefore & \NWireAfter \\
+      无向量 TT 功耗（mW） & \NVlessBefore & \NVlessAfter \\ \bottomrule
     \end{tabular}}\par\vspace{7pt}
-    \textbf{Post-Route Hierarchy Breakdown (kµm²)}\par\vspace{2pt}
+    \textbf{布线后层次面积分解（kµm²）}\par\vspace{2pt}
     {\scriptsize\setlength{\tabcolsep}{2.5pt}
     \begin{tabular}{@{}lrrrr@{}}
       \toprule
-      \textbf{Hierarchy} & \textbf{Before} & \textbf{After} & \textbf{Δ} & \textbf{Sequential} \\ \midrule
+      \textbf{层次} & \textbf{优化前} & \textbf{优化后} & \textbf{Δ} & \textbf{时序单元} \\ \midrule
       \tabinput{data/hier_rows.tex}
       \bottomrule
     \end{tabular}}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Physical Layout, \NPadCount-Pad Keepout \& Functional Closure}
+\begin{frame}{物理版图、\NPadCount-Pad Keepout 与功能闭合}
   \centering
   \begin{tabular}{@{}cccc@{}}
     \includegraphics[width=0.225\linewidth]{figs/1_placement.png} &
     \includegraphics[width=0.225\linewidth]{figs/5_all.png} &
     \includegraphics[width=0.225\linewidth]{figs/4b_m56_with_fill.png} &
     \includegraphics[width=0.225\linewidth]{figs/7_sram_diag_zoom.png} \\
-    \scriptsize Diagonal Dual-SRAM Floorplan & \scriptsize Full Signal Routing M1–M6 & \scriptsize M5/M6 Metal Fill & \scriptsize Diagonal SRAM Halo Channel
+    \scriptsize 对角双 SRAM 平面规划 & \scriptsize 全信号布线 M1–M6 & \scriptsize M5/M6 金属填充 & \scriptsize 对角 SRAM 间距通道
   \end{tabular}\par\vspace{10pt}
   \justifying
   \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
-    \textbf{Physical Architecture \& DRC Closure}
+    \textbf{物理架构与 DRC 闭合}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Unsealed die \hl{\NDieSide{} µm} ≤ \NDieLimit{} µm budget (\NDieAfter{} mm²; \NMacroCount× \texttt{RA1SHD\_2048x32M8}, \NMacroArea{} mm²)
-      \item Innovus internal checks: \hl{\NGeoPass/\NGeoTotal} clean
-      \item \NPadCount{} \texttt{PAD60LU\_OBV} CUP pads: \NPadMargin{} µm M5/M6 route \& fill keepout applied pre-routing
+      \item 未封环管芯 \hl{\NDieSide{} µm} ≤ \NDieLimit{} µm 预算（\NDieAfter{} mm²；\NMacroCount× \texttt{RA1SHD\_2048x32M8}，\NMacroArea{} mm²）
+      \item Innovus 内部检查：\hl{\NGeoPass/\NGeoTotal} 通过
+      \item \NPadCount{} 个 \texttt{PAD60LU\_OBV} CUP Pad：布线前施加 \NPadMargin{} µm M5/M6 路由与填充 Keepout
     \end{itemize}
     \column{0.48\textwidth}
-    \textbf{Post-Route Timing, SDF \& Equivalence}
+    \textbf{布线后时序、SDF 与等价性验证}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Post-layout SDF gate simulation: \hl{\NSdfStatus} (\NSdfCmds{} JTAG commands, \NSdfUnexpected{} unexpected warnings)
-      \item Formality LEC (RTL vs. routed netlist): \texttt{\NLecVerified}
-      \item OpenSTA TT stdcell+IO: setup \NStaSetup{} ns / hold \NStaHold{} ns; CTS/repair +\NCtsRepairArea{} kµm²
+      \item 布局后 SDF 门级仿真：\hl{\NSdfStatus}（\NSdfCmds{} 条 JTAG 指令，\NSdfUnexpected{} 个非预期告警）
+      \item Formality LEC（RTL vs. 布线网表）：\texttt{\NLecVerified}
+      \item OpenSTA TT stdcell+IO：Setup \NStaSetup{} ns / Hold \NStaHold{} ns；CTS/repair +\NCtsRepairArea{} kµm²
     \end{itemize}
   \end{columns}
 \end{frame}
 
-\begin{frame}{\NMmmcCorners-Corner MMMC STA, SRAM Interface \& \NCdcRows-Path CDC Closure}
+\begin{frame}{\NMmmcCorners-Corner MMMC STA、SRAM 接口与 \NCdcRows-Path CDC 闭合}
   \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
     {\scriptsize\setlength{\tabcolsep}{3pt}
     \begin{tabular}{@{}llrrl@{}}
       \toprule
-      \textbf{Corner} & \textbf{Clock} & \textbf{Setup} & \textbf{Hold} & \\ \midrule
+      \textbf{Corner} & \textbf{时钟} & \textbf{Setup} & \textbf{Hold} & \\ \midrule
       \texttt{tt25} & \NCoreMHz{} MHz & \NTTSetup & \NTTHoldW & \ok \\
       \texttt{ff0} & \NCoreMHz{} MHz & \NFFzSetup & \NFFzHoldW & \ok \\
       \texttt{ffm40} & \NCoreMHz{} MHz & \NFFmSetup & \NFFmHoldW & \ok \\
       \rowcolor{surf}\texttt{ss125} & \NCoreMHz{} MHz & \hl{\NSSSetup} & \NSSHoldW & \pending \\
       \rowcolor{surf}\texttt{SS125\_DERATED} & \NSSDPeriod{} ns / \NSSDFreq{} MHz & \textbf{\NSSDSetup} & \NSSDHoldW & \ok \\ \bottomrule
     \end{tabular}}\par\vspace{3pt}
-    \snote{Worst Negative Slack (WNS) in ns across \NMmmcCorners{} process/voltage/temperature corners.}\vspace{5pt}
+    \snote{\NMmmcCorners{} 个 PVT Corner 的最差负 Slack（WNS，单位 ns）。}\vspace{5pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item TT and both FF corners close \NCoreMHz{} MHz cleanly (min hold \NCleanHoldMin{} ns at \texttt{\NCleanHoldMinCorner}).
-      \item \texttt{ss125} critical path ends at \NSSEndSram{} \texttt{WEN} (\NSSArr{} vs. \NSSReq{} ns); closes cleanly at \NSSDFreq{} MHz.
+      \item TT 与两个 FF corner 均在 \NCoreMHz{} MHz 下干净闭合（最小 Hold \NCleanHoldMin{} ns @ \texttt{\NCleanHoldMinCorner}）。
+      \item \texttt{ss125} 关键路径终止于 \NSSEndSram{} \texttt{WEN}（到达 \NSSArr{} vs. 要求 \NSSReq{} ns）；在 \NSSDFreq{} MHz 下干净闭合。
     \end{itemize}\par\vspace{5pt}
-    \callout[warnink]{\textbf{RC \& Signoff Scope}: \texttt{\NRcNote}. Synthesis/P\&R targeted TT; closing \texttt{ss125} via MMMC optimization is Phase B's top focus.}
+    \callout[warnink]{\textbf{RC 范围说明}：\texttt{\NRcNote}。综合/P\&R 以 TT 为目标；通过 MMMC 优化闭合 \texttt{ss125} 是 Phase B 首要任务。}
     \column{0.49\textwidth}
-    \textbf{SRAM Interface Timing (\NSramRows{} Views, ns)}\par\vspace{2pt}
+    \textbf{SRAM 接口时序（\NSramRows{} 视图，ns）}\par\vspace{2pt}
     {\scriptsize\setlength{\tabcolsep}{2.5pt}
     \begin{tabular}{@{}llrrrr@{}}
       \toprule
-      \textbf{Corner} & \textbf{Macro} & \textbf{to S} & \textbf{to H} & \textbf{from S} & \textbf{from H} \\ \midrule
+      \textbf{Corner} & \textbf{角色} & \textbf{Setup→} & \textbf{Hold→} & \textbf{Setup←} & \textbf{Hold←} \\ \midrule
       \tabinput{data/sram_rows.tex}
       \bottomrule
     \end{tabular}}\par\vspace{7pt}
-    \textbf{JTAG ↔ Core CDC Signoff}
+    \textbf{JTAG ↔ Core CDC 签核}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item \NCdcPaths{} paths × \NCdcCorners{} corners = \hl{\NCdcPos/\NCdcRows{} positive slack}
-      \item Worst-case CDC margin: \NCdcMin{} ns at \texttt{\NCdcMinCorner}
+      \item \NCdcPaths{} 条路径 × \NCdcCorners{} corner = \hl{\NCdcPos/\NCdcRows{} 正 Slack}
+      \item 最差 CDC 裕量：\NCdcMin{} ns @ \texttt{\NCdcMinCorner}
     \end{itemize}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Windowed \NPwAnnot\%-Annotated VCD Power \& Operator Fusion Gain}
+\begin{frame}{窗口化 \NPwAnnot\%-Annotated VCD 功耗与算子融合收益}
   \begin{columns}[T,onlytextwidth]
     \column{0.49\textwidth}
     \centering
     \begin{tikzpicture}
       \begin{axis}[issccbar, ybar, width=\linewidth, height=5.1cm, bar width=13pt, bar shift=0pt,
-          ymin=0, ymax=70, ylabel={TT \NCoreMHz{} MHz Total Power (mW)},
+          ymin=0, ymax=70, ylabel={TT \NCoreMHz{} MHz 总功耗（mW）},
           xmin=-0.5, xmax=\NPowerXmax, xtick={0,...,\NPowerLast}, xticklabels/.expand once=\NPowerTicks,
           x tick label style={font=\tiny}, ymajorgrids,
           nodes near coords, nodes near coords style={font=\tiny, text=ink}]
         \input{data/power_plot.tex}
       \end{axis}
     \end{tikzpicture}\par\vspace{2pt}
-    \snote{Vectorless (\NVlessRaw{} mW) over-predicts real VCD windows by \NVlessOverMin–\NVlessOverMax×.}
+    \snote{无向量参考（\NVlessRaw{} mW）高估真实 VCD 窗口 \NVlessOverMin–\NVlessOverMax×。}
     \column{0.48\textwidth}
     {\scriptsize
     \begin{tabular}{@{}lrrrr@{}}
       \toprule
-      \textbf{Workload} & \textbf{Cycles} & \textbf{Win. µs} & \textbf{Power mW} & \textbf{Energy µJ} \\ \midrule
+      \textbf{工作负载} & \textbf{周期} & \textbf{窗口 µs} & \textbf{功耗 mW} & \textbf{能耗 µJ} \\ \midrule
       \tabinput{data/power_rows.tex}
       \bottomrule
     \end{tabular}}\par\vspace{10pt}
-    \callout[peking]{\textbf{Fused vs. Unfused CNN}: Execution drops from \NUnfusedCyc{} to \NFusedCyc{} cycles (\hl{\NFusionSpeed× faster}); single-inference energy falls from \NUnfusedE{} to \hl{\NFusedE{} µJ} (\hl{−\NFusionSave\%}).}\par\vspace{8pt}
+    \callout[peking]{\textbf{融合 vs. 非融合 CNN}：执行从 \NUnfusedCyc{} 周期降至 \NFusedCyc{} 周期（\hl{\NFusionSpeed× 加速}）；单次推理能耗从 \NUnfusedE{} 降至 \hl{\NFusedE{} µJ}（\hl{−\NFusionSave\%}）。}\par\vspace{8pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Extracted from post-layout SDF gate simulation strictly across \texttt{busy → irq}.
-      \item \NPwAnnot.0\% toggle annotation across all \NPwN{} workloads (TT corner, Typical RC).
+      \item 从 SDF 门级仿真严格在 \texttt{busy → irq} 窗口内提取。
+      \item \NPwAnnot.0\% Toggle 标注覆盖全部 \NPwN{} 个工作负载（TT corner，典型 RC）。
     \end{itemize}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Physical Finishing: Seal Ring, Dummy Fill \& Keepouts (\NDbuPerUm{} DBU/µm)}
+\begin{frame}{物理收尾：Seal Ring、Dummy Fill 与 Keepout（\NDbuPerUm{} DBU/µm）}
   \centering
   % Crop the top Matplotlib title banner cleanly so figures keep crisp axes & legends only
   \begin{tabular}{@{}ccc@{}}
     \includegraphics[width=0.312\linewidth, trim=0 0 0 22pt, clip]{figs/8_lab5_sealring_corner.png} &
     \includegraphics[width=0.312\linewidth, trim=0 0 0 22pt, clip]{figs/9_lab5_dummy_fill_zoom.png} &
     \includegraphics[width=0.312\linewidth, trim=0 0 0 22pt, clip]{figs/10_lab5_wirebond_keepout_zoom.png} \\[3pt]
-    \scriptsize\textbf{Native Seal Ring (SW Corner)} & \scriptsize\textbf{Dummy OD/PO + M1–M6 Fill} & \scriptsize\textbf{WireBond Keepout Halo}
+    \scriptsize\textbf{原生 Seal Ring（西南角）} & \scriptsize\textbf{Dummy OD/PO + M1–M6 填充} & \scriptsize\textbf{WireBond Keepout 保护区}
   \end{tabular}\par\vspace{9pt}
   \justifying
   \begin{columns}[T,onlytextwidth]
     \column{0.315\textwidth}
-    \scriptsize Native \NDbuPerUm{} DBU/µm Seal Ring assembly around integer-µm die frame: outer sealed die \hl{\NSealSide×\NSealSide{} µm} ≤ \NSealLimit{} µm budget.
+    \scriptsize 原生 \NDbuPerUm{} DBU/µm Seal Ring 包围整数 µm 管芯框架：外部封环后管芯 \hl{\NSealSide×\NSealSide{} µm} ≤ \NSealLimit{} µm 预算。
     \column{0.315\textwidth}
-    \scriptsize Full-chip \texttt{Dummy\_OD\_PO} (\texttt{DOD}/\texttt{DPO}) + \texttt{Dummy\_Metal} M1–M6; normal M6 fill \NDummyMsix×\NDummyMsix{} µm clears \hl{M6.A.1 = \NDummyMsixViol}.
+    \scriptsize 全芯片 \texttt{Dummy\_OD\_PO}（\texttt{DOD}/\texttt{DPO}）+ \texttt{Dummy\_Metal} M1–M6；常规 M6 填充 \NDummyMsix×\NDummyMsix{} µm，M6.A.1 = \hl{\NDummyMsixViol}。
     \column{0.315\textwidth}
-    \scriptsize \NPadMargin{} µm M5/M6 route \& fill keepout preserved around all \NPadCount{} \texttt{PAD60LU\_OBV} bond pads (\NWbHier{} Hier. / \NWbExp{} Exp. keepout/wirebond violations).
+    \scriptsize 全部 \NPadCount{} 个 \texttt{PAD60LU\_OBV} 键合 Pad 保留 \NPadMargin{} µm M5/M6 路由与填充 Keepout（\NWbHier{} Hier. / \NWbExp{} Exp. Keepout/WireBond 违例）。
   \end{columns}
 \end{frame}
 
-\begin{frame}{Full-Chip Signoff Matrix on Unified \texttt{postDummy.gds}}
-  \snote{All verification engines executed against the identical \NDbuPerUm{} DBU/µm \texttt{postDummy.gds} (\texttt{my\_soc\_top}) and CDL netlist.}\vspace{6pt}
-  {\scriptsize
-  \begin{tabularx}{\linewidth}{@{}l l c >{\raggedright\arraybackslash}X@{}}
-    \toprule
-    \textbf{Engine} & \textbf{Deck / Scope} & \textbf{Status} & \textbf{Verified Signoff Evidence} \\ \midrule
-    \textbf{DRC} & \texttt{calibre.drc}, \NDrcRules{} rules, unmasked & \ok & Blocking errors: \hl{\NDrcBlocking}; raw \NDrcHier{} Hier. / \NDrcExp{} Exp. fall strictly inside foundry IO ESD/latch-up guidelines, \texttt{MOM.R.2}, and \texttt{DRM.R.1} \\[4pt]
-    & IO \texttt{CO.R.4} PIMP fix & \ok & Exact PIMP abutment rectangle added inside IO clamp subcell: \texttt{CO.R.4} \NCorFourBefore{} → \hl{\NCorFourAfter} (zero PDK/OD edits) \\[4pt]
-    \textbf{nmLVS} & Full SRAM (un-blackboxed) & \ok & Strict \NLvsStrictTol\% tolerance: \NLvsErr{} IO \texttt{R(PR)} diffs only (\NLvsMax\% max); at \NLvsTol\% tolerance: \hl{\texttt{\NLvsStatus}}, \NLvsPorts/\NLvsPorts{} ports matched \\[4pt]
-    \textbf{Antenna} & \texttt{ant.drc}, \NAntRules{} checks & \ok & \hl{\NAntHier{} Hier. / \NAntExp{} Exp.} across full filled die \\[4pt]
-    \textbf{WireBond} & \texttt{PITCH\_55\_SINGLE} + \texttt{OBV\_CUP} & \ok & \hl{\NWbHier{} Hier. / \NWbExp{} Exp.} across all \NWbRules{} rules and \NPadCount{} bond pads \\[4pt]
-    \textbf{ERC} & \texttt{calibre.lvs}, \NErcRules{} checks & Audit & \NErcHier{} Hier. / \NErcExp{} Exp. fully traced to vendor IO subcells and outer Seal Ring frame (next slide) \\ \bottomrule
-  \end{tabularx}}\par\vspace{10pt}
-  \callout[steel]{\textbf{Signoff Discipline}: Zero DRC rules masked; \texttt{RA1SHD} SRAM macros verified at full transistor level in nmLVS; strict \NLvsStrictTol\% LVS differences are solely vendor SPICE vs. GDS IO sheet-resistance tolerance (< \NLvsTol\%) with identical topology.}
-\end{frame}
-
-\begin{frame}{Transistor-Level ERC Audit (\NErcHier{} Hier. / \NErcExp{} Exp.)}
+\begin{frame}{全芯片物理签核矩阵与晶体管级 ERC 审计}
+  \snote{所有验证引擎均在同一份 \NDbuPerUm{} DBU/µm \texttt{postDummy.gds}（\texttt{my\_soc\_top}）及 CDL 网表上执行。}\vspace{1pt}
   \begin{columns}[T,onlytextwidth]
-    \column{0.46\textwidth}
-    \centering
-    \includegraphics[width=\linewidth]{figs/11_lab5_cor4_and_erc_audit.png}\par\vspace{3pt}
-    \snote{Left: \texttt{CO.R.4} PIMP abutment fix; Right: full-die ERC marker map.}
-    \column{0.51\textwidth}
+    \column{0.52\textwidth}
+    {\scriptsize
+    \begin{tabularx}{\linewidth}{@{}l c >{\raggedright\arraybackslash}X@{}}
+      \toprule
+      \textbf{引擎} & \textbf{状态} & \textbf{已验证签核证据} \\ \midrule
+      \textbf{DRC}+\texttt{CO.R.4} & \ok & 未屏蔽 \NDrcRules{} 规则，阻断=\hl{\NDrcBlocking}；IO \texttt{CO.R.4} PIMP 修复 \NCorFourBefore{} → \hl{\NCorFourAfter} \\[1pt]
+      \textbf{nmLVS} & \ok & 全 SRAM 非黑盒，严格 \NLvsStrictTol\% 容差：\NLvsErr{} IO \texttt{R(PR)}（最大 \NLvsMax\%）；\NLvsTol\% 容差下 \hl{\texttt{\NLvsStatus}} \\[1pt]
+      \textbf{Antenna} & \ok & \hl{\NAntHier{} Hier. / \NAntExp{} Exp.}，覆盖完整填充后管芯 \\[1pt]
+      \textbf{WireBond} & \ok & \hl{\NWbHier{} Hier. / \NWbExp{} Exp.}，覆盖全部 \NWbRules{} 规则与 \NPadCount{} 个 \texttt{PAD60LU\_OBV} \\[1pt]
+      \textbf{ERC} & 审计 & \NErcHier{} Hier. / \NErcExp{} Exp. 追溯至 vendor IO 子单元与外 Seal Ring \\ \bottomrule
+    \end{tabularx}}\par\vspace{1pt}
+    \centering\includegraphics[width=0.72\linewidth]{figs/11\_lab5\_cor4\_and\_erc\_audit.png}\par
+    {\tiny\color{muted}左：\texttt{CO.R.4} PIMP 邻接修复；右：全芯片 ERC marker 分布。}
+    \column{0.45\textwidth}
     {\scriptsize\setlength{\tabcolsep}{3pt}
     \begin{tabularx}{\linewidth}{@{}l r r >{\raggedright\arraybackslash}X@{}}
       \toprule
-      \textbf{ERC Rule} & \textbf{Hier.} & \textbf{Exp.} & \textbf{Transistor / Subcell Accounting} \\ \midrule
-      \texttt{mnpg} & \NErcMnpgH & \NErcMnpgE & \NErcVddOneN×\NErcVddOneF{} \texttt{PVDD1CDG} + \NErcVddTwoN×\NErcVddTwoF{} \texttt{PVDD2CDG} + \NErcVddPocN×\NErcVddTwoF{} \texttt{PVDD2POC}: active rail ESD NMOS clamps \\[3pt]
-      \texttt{nxwell\_float} & \NErcNxwellH & \NErcNxwellE & \multirow{2}{=}{\NErcVssN×\NErcVssD{} \texttt{PVSS1CDG}: \texttt{VSS}↔\texttt{VSSPST} antiparallel ESD diode wells/taps} \\
-      \texttt{npvss49} & \NErcVssH & \NErcVssE & \\[3pt]
-      \texttt{psub\_float} & \NErcPsubH & \NErcPsubE & Outer Seal Ring substrate frame beyond \texttt{SR.S.1} moat \\ \bottomrule
-    \end{tabularx}}\par\vspace{9pt}
-    \callout[passink]{\textbf{Audit Result}: \hl{\NErcDesignDefects{} design, core, or SRAM ERC defects}; pre- vs. post-Seal-Ring ERC delta = \NErcPrePostDelta{} (\NErcPreH{} → \NErcHier{} Hier., \NErcPreE{} → \NErcExp{} Exp.); \texttt{SR.S.1} moat left unbridged.}\par\vspace{6pt}
-    \callout[warnink]{\texttt{formal\_tapeout\_signoff = \NFormalTapeout}: Vendor IO \& outer-frame ERC items retained open for formal foundry signoff waiver.}
+      \textbf{ERC 规则} & \textbf{Hier.} & \textbf{Exp.} & \textbf{晶体管/子单元核账} \\ \midrule
+      \texttt{mnpg} & \NErcMnpgH & \NErcMnpgE & \NErcVddOneN×\NErcVddOneF{} \texttt{PVDD1CDG}+\NErcVddTwoN×\NErcVddTwoF{} \texttt{PVDD2CDG}+\NErcVddPocN×\NErcVddTwoF{} \texttt{PVDD2POC}：有源 rail ESD NMOS 箝位 \\[1pt]
+      \texttt{nxwell\_float} & \NErcNxwellH & \NErcNxwellE & \multirow{2}{=}{\NErcVssN×\NErcVssD{} \texttt{PVSS1CDG}：\texttt{VSS}↔\texttt{VSSPST} 反并联 ESD 二极管阱/tap} \\
+      \texttt{npvss49} & \NErcVssH & \NErcVssE & \\[1pt]
+      \texttt{psub\_float} & \NErcPsubH & \NErcPsubE & \texttt{SR.S.1} 隔离带外侧 Seal Ring 衬底框架 \\ \bottomrule
+    \end{tabularx}}\par\vspace{6pt}
+    \callout[passink]{\textbf{审计结论}：\hl{\NErcDesignDefects{} 个设计/核心/SRAM ERC 缺陷}；Seal Ring 前后 ERC delta=\NErcPrePostDelta{}（\NErcPreH{}→\NErcHier{} Hier.，\NErcPreE{}→\NErcExp{} Exp.）；\texttt{SR.S.1} 隔离带未桥接。}\par\vspace{3pt}
+    \callout[warnink]{\texttt{formal\_tapeout\_signoff=\NFormalTapeout}：vendor IO 与外框 ERC 条目保留，待 foundry 正式签核 waiver。}
   \end{columns}
 \end{frame}
 
-% ##################################################################### PART 03
-\section{Host JTAG Optimization \& FPGA Validation}
 
-\begin{frame}{Why Optimize Host RPCs? Prior EGo1 Latency Breakdown}
-  \callout[steel]{\textbf{Prior Board Baseline (\abi{} @ \NVivClk{} MHz on EGo1 \texttt{\NVivPart})}: \hl{\NFpgaTotal{} bit-exact inferences} (\NFpgaCoarse{} coarse + \NFpgaFine{} fine, Vivado WNS \NVivWns{} / WHS \NVivWhs{} ns). Raising TCK above \NFpgaBestMhz{} MHz yielded ≤ \NFpgaAltPct\% gain — per-phase telemetry below proves why.}\par\vspace{6pt}
+% ##################################################################### PART 03
+\section{主机 JTAG 优化与 FPGA 验证}
+
+\begin{frame}{EGo1 实板延迟分解：三步排除与双瓶颈归因}
+  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 bit-exact 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} 1 → \NFpgaTckRatio{} MHz（\NFpgaTckRatio× 提频）零收益：\texttt{ecg} 驻留 \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
     \begin{tikzpicture}
-      \begin{axis}[issccbar, xbar stacked, width=0.97\linewidth, height=4.8cm, bar width=10pt,
-          xmin=0, xmax=330, xlabel={Measured EGo1 Resident Inference Latency at \NFpgaBestMhz{} MHz TCK (ms)},
+      \begin{axis}[issccbar, xbar stacked, width=0.97\linewidth, height=3.9cm, bar width=10pt,
+          xmin=0, xmax=330, xlabel={\NFpgaBestMhz{} MHz TCK 实测 EGo1 驻留推理耗时（ms）},
           symbolic y coords/.expand once=\NFpgaTicks, ytick=data, y dir=reverse,
           legend style={at={(0.5,1.03)}, anchor=south, legend columns=3, font=\tiny, draw=none, fill=none, /tikz/every even column/.append style={column sep=6pt}},
           xmajorgrids, enlarge y limits=0.14]
         \input{data/fpga_breakdown_plot.tex}
-        \legend{Fixed Ctrl/Meta RPCs, Chunked Data RPCs, Host Residual}
+        \legend{固定控制/元数据 RPC, 分块数据 RPC, 主机包装残差}
       \end{axis}
     \end{tikzpicture}
     \column{0.39\textwidth}
-    \textbf{Where Wall Time Goes (\NFpgaBestMhz{} MHz TCK)}\par\vspace{4pt}
+    \textbf{\NFpgaBestMhz{} MHz TCK 耗时组成}\par\vspace{4pt}
     {\scriptsize
     \begin{itemize}\setlength{\itemsep}{3.5pt}
-      \item \textbf{Core NPU Compute (inside poll)}: only \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms} (≤ \NFpgaComputeMaxPct\% of resident wall time; not stacked above).
-      \item \textbf{Fixed Control/Meta RPCs}: \hl{\NFpgaCtrlGeomean{} ms} geomean (\NFpgaCtrlMin–\NFpgaCtrlMax{} ms); host wrapper residual \NFpgaWrapMin–\NFpgaWrapMax{} ms.
-      \item \textbf{Chunked Data \& Total Resident}: \NFpgaXferMin–\NFpgaXferMax{} ms (\NFpgaXferGeomean{} ms geomean) \texttt{in/out} transfers; total resident \NFpgaResMin–\NFpgaResMax{} ms (\NFpgaRes{} ms geomean).
-      \item \textbf{Cold Deploy + First Infer}: \NFpgaColdMin–\NFpgaColdMax{} ms (\NFpgaCold{} ms geomean) — \hl{\NFpgaUploadShare\%} is sequential model upload (\NFpgaUploadGeomean{} ms geomean).
+      \item \textbf{NPU 实际计算}：仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\%，位于 poll 窗口内，不再叠加）。
+      \item \textbf{固定控制/元数据 RPC}：几何均值 \hl{\NFpgaCtrlGeomean{} ms}（\NFpgaCtrlMin–\NFpgaCtrlMax{} ms）；主机包装残差 \NFpgaWrapMin–\NFpgaWrapMax{} ms。三段互斥，和严格等于驻留耗时。
+      \item \textbf{分块数据读写}：\NFpgaXferMin–\NFpgaXferMax{} ms（几何均值 \NFpgaXferGeomean{} ms）；驻留总计 \NFpgaResMin–\NFpgaResMax{} ms（几何均值 \NFpgaRes{} ms）。
+      \item \textbf{双瓶颈归因}：\texttt{ecg} 输入 \NFpgaEcgInWords{} word 与 \texttt{kws\_l} 输入 \NFpgaKwsLInWords{} word 同为 1 次 RPC，却耗时 \NFpgaEcgInRpcMs{} 与 \NFpgaKwsLInRpcMs{} ms；7 模型权重上传稳定在 \hl{\NFpgaUpMpwMin–\NFpgaUpMpwMax{} ms/word}（\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInMpw{} ms/word）。耗时由主机 TCP RPC 往返与 OpenOCD 逐 \texttt{drscan} 同步 USB 刷新（\texttt{jtag\_execute\_queue()}）共同主导。
     \end{itemize}}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Host JTAG Burst \& Single-RPC Pipelining (Measured Simulations)}
+\begin{frame}{Host JTAG Burst 与 Single-RPC 流水化：分层实测证据与边界}
   \noindent{\color{ink}\scriptsize
   \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l r r r r r r@{}}
     \toprule
     & \multicolumn{2}{c}{\textbf{\NRtlTckMhz{} MHz TCK RTL Wire Sim}} & \multicolumn{4}{c}{\textbf{Live \texttt{TclRpc} TCP + \texttt{tclsh} OpenOCD-Protocol Sim}} \\
     \cmidrule(lr){2-3}\cmidrule(lr){4-7}
-    \textbf{Model} & \textbf{Burst (ms)} & \textbf{Upload \%} & \textbf{Batched → Pipe RPCs} & \textbf{RPC Cut} & \textbf{TCP+tclsh (ms)} & \textbf{Wall ×} \\ \midrule
+    \textbf{Model} & \textbf{Burst (ms)} & \textbf{上传 \%} & \textbf{Batched → Pipe RPC} & \textbf{RPC 减少} & \textbf{TCP+tclsh (ms)} & \textbf{× 加速} \\ \midrule
     \tabinput{data/jtag_sim_rows.tex}
     \bottomrule
   \end{tabular*}}\par\vspace{9pt}
   \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
-    \textbf{Measured Protocol Gains (Zero Estimates)}
+    \textbf{分层实测：各层证明了什么}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item \textbf{RTL Wire Layer}: \texttt{IR 13h/14h} burst finishes \NRtlTckMhz{} MHz TCK transfer in \hl{\NRtlBurstMsMin–\NRtlBurstMsMax{} ms} (\NRtlUpPctMin–\NRtlUpPctMax\% model upload); \NRtlAnchorCount{} direct \NRtlTckMhz{} MHz wordwise anchors drop \NRtlAnchorWordMin–\NRtlAnchorWordMax{} → \NRtlAnchorBurstMin–\NRtlAnchorBurstMax{} ms (\NRtlAnchorSpMin–\NRtlAnchorSpMax×), matching \NRpcModels-model TCK cut \NRtlTckCutMin–\NRtlTckCutMax×.
-      \item \textbf{Host Single-RPC}: \texttt{chipdesign\_reads/load/infer\_v5} collapses \NRpcBatchedMin–\NRpcBatchedMax{} RPCs (or \NRpcCachedMin–\NRpcCachedMax{} cached) into \hl{\NRpcPipe{} RPCs} (\NRpcPipeLoad{} load + \NRpcPipeInfer{} infer) = \hl{\NRpcSpMin–\NRpcSpMax×} fewer round-trips with identical \texttt{drscan} counts.
+      \item \textbf{\NRtlTckMhz{} MHz RTL 线层仿真}：证明 \texttt{IR 13h/14h} Burst 的物理线层下限为 \hl{\NRtlBurstMsMin–\NRtlBurstMsMax{} ms}（模型上传占 \NRtlUpPctMin–\NRtlUpPctMax\%）；\NRtlAnchorCount{} 个 \NRtlTckMhz{} MHz wordwise 锚点 \NRtlAnchorWordMin–\NRtlAnchorWordMax{} → \NRtlAnchorBurstMin–\NRtlAnchorBurstMax{} ms（提速 \NRtlAnchorSpMin–\NRtlAnchorSpMax×），与 \NRpcModels{} 模型 TCK 缩减 \NRtlTckCutMin–\NRtlTckCutMax× 一致。
+      \item \textbf{Single-RPC 协议仿真}：\texttt{chipdesign\_reads/load/infer\_v5} 将 \NRpcBatchedMin–\NRpcBatchedMax{} 次 RPC（缓存清单 \NRpcCachedMin–\NRpcCachedMax{} 次）合并为 \hl{\NRpcPipe{} 次}（\NRpcPipeLoad{} load + \NRpcPipeInfer{} infer），往返减少 \hl{\NRpcSpMin–\NRpcSpMax×}。
     \end{itemize}
     \column{0.48\textwidth}
-    \textbf{Measured Loopback Execution \& Honesty Boundary}
+    \textbf{Loopback 执行、诚实边界与剩余瓶颈}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Executed unmodified host \texttt{Npu}/\texttt{TclRpc} over TCP sockets against live \texttt{tclsh} production procs (with golden-output SRAM fixture; compute verified in RTL sim): \hl{\NRpcExactCount/\NRpcModels{} round-trip exact}, median loopback \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms} (\NRpcTcpSpMin× min).
-      \item \texttt{TclRpc} enforces monotonic deadlines and fail-closed socket poisoning on ambiguous timeouts.
-      \item \textbf{Boundary}: Incremental EGo1 board run for combined SRAM-lookup + Single-RPC remains for Phase B.
+      \item \textbf{本地 TCP + \texttt{tclsh} 仿真}（golden-output SRAM fixture，计算正确性已由 RTL 仿真独立验证）：\hl{\NRpcExactCount/\NRpcModels{}} 传输往返一致，loopback 中位数 \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms}。\textbf{不含真实 USB/FT232H 延迟，不等同于实板墙钟加速比。}
+      \item \textbf{剩余瓶颈}：Single-RPC 未减少 \texttt{drscan} 总次数（仍为 \hl{\NRpcDrscanMin–\NRpcDrscanMax{} 次}）；若 OpenOCD 仍逐 \texttt{drscan} 同步刷新 USB，大头延迟仍在。
+      \item \textbf{Phase B}：纯主机侧 \texttt{pyftdi} MPSSE 批量 USB 后端（打包为 1–5 个 USB Bulk 包）或 OpenOCD \texttt{svf} 批处理；EGo1 实板复测 SRAM-lookup + Single-RPC。
     \end{itemize}
   \end{columns}
 \end{frame}
 
 % ##################################################################### PART 04
-\section{Six-Scene Applications \& Next-Phase Plan}
+\section{六场景应用与下一阶段计划}
 
-\begin{frame}{Six-Scene Unified Application Software \& Verification}
+\begin{frame}{六场景统一应用软件与验证}
   \noindent{\scriptsize
   \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
     \toprule
-    \textbf{Scene} & \textbf{Input \& Processing Pipeline} & \textbf{Remaining Hardware / Field Items} \\ \midrule
-    ECG Heartbeat & MIT-BIH beat replay, 5-class classification & Live analog front-end / MAX30102 sensor \\
-    HAR Activity & UCI HAR replay or live smartphone IMU CSV streaming & Body-worn orientation calibration / MPU6050 \\
-    MNIST Digit & Interactive canvas auto-triggering on pen lift & Handwritten participant evaluation set \\
-    KWS Voice & Live microphone + MFCC frontend, 4 target keywords & Room-noise physical mic acceptance \\
-    Emotion & Cropped largest face → INT4 7-class CNN & Accuracy baseline; live field test \\
-    Face Detect & CPU YuNet default + optional NPU INT4 detector & NPU detector QAT accuracy tuning \\ \bottomrule
+    \textbf{场景} & \textbf{输入与处理流程} & \textbf{待完成硬件/现场项} \\ \midrule
+    ECG 心跳分类 & MIT-BIH 心拍回放，5 分类 & 实时模拟前端 / MAX30102 传感器 \\
+    HAR 活动识别 & UCI HAR 回放或实时手机 IMU CSV 流 & 佩戴式姿态标定 / MPU6050 \\
+    MNIST 数字 & 交互画布（松笔触发） & 手写参与者评测集 \\
+    KWS 语音 & 实时麦克风 + MFCC 前端，4 目标关键词 & 室内噪声物理麦克风验收 \\
+    表情识别 & 最大人脸裁剪 → INT4 7 类 CNN & 准确率基线；实地测试 \\
+    人脸检测 & CPU YuNet 默认 + 可选 NPU INT4 检测器 & NPU 检测器 QAT 精度调优 \\ \bottomrule
   \end{tabularx}}\par\vspace{10pt}
   \begin{columns}[T,onlytextwidth]
     \column{0.33\textwidth}
-    \textbf{Software Reference Closure}\par\vspace{2pt}
+    \textbf{软件参考闭合}\par\vspace{2pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Fixed inputs \hl{\NDemoGolden/\NDemoGoldenTotal}: bit-exact full INT32 output match
-      \item Reference zoo \NDemoZoo/\NDemoZoo{} golden frames exact
-      \item \NDemoUnit{} demo + \NDemoJtag{} JTAG unit tests pass
+      \item 固定输入 \hl{\NDemoGolden/\NDemoGoldenTotal}：bit-exact INT32 全输出匹配
+      \item zoo 参考 \NDemoZoo/\NDemoZoo{} 帧 bit-exact
+      \item \NDemoUnit{} 个演示 + \NDemoJtag{} 个 JTAG 单元测试通过
     \end{itemize}
     \column{0.33\textwidth}
-    \textbf{\NDemoFixes{} Runtime Robustness Fixes}\par\vspace{2pt}
+    \textbf{\NDemoFixes{} 项运行时健壮性修复}\par\vspace{2pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Browser restart waits for active upload queue drain
-      \item HAR streamer resets window cleanly after > \NHarGapMs{} ms gap
-      \item Self-test strictly separates partial vs. full coverage
+      \item 浏览器重启等待上传队列清空
+      \item HAR 流式窗口在 > \NHarGapMs{} ms 间隙后干净重置
+      \item 自测严格区分局部与全量覆盖
     \end{itemize}
     \column{0.31\textwidth}
-    \textbf{Vision Model Baselines}\par\vspace{2pt}
+    \textbf{视觉模型基线}\par\vspace{2pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Emotion: \NEmoAcc\% across \NEmoSamples{} FER2013 samples
-      \item Face P/R/F1: \NFaceP/\NFaceR/\NFaceF\%
-      \item \texttt{fpga\_validated=\NDemoFpga} (pending board run)
+      \item 表情：\NEmoAcc\%（FER2013 \NEmoSamples{} 样本）
+      \item 人脸 P/R/F1：\NFaceP/\NFaceR/\NFaceF\%
+      \item \texttt{fpga\_validated=\NDemoFpga}（待上板）
     \end{itemize}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Honest Boundaries \& Phase-B Engineering Plan}
+\begin{frame}{诚实边界与 Phase B 工程计划}
   \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
-    \textbf{\color{ink}Verified Baseline Ready}\par\vspace{4pt}
+    \textbf{\color{ink}已验证基线}\par\vspace{4pt}
     {\scriptsize
     \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
       \toprule
-      \textbf{RTL} & SRAM-backed \texttt{npu\_tensor\_lookup}: \NLookupAreaPct\% area, \NMutKilled/\NMutNew{} mutants, \NRtlModels{} models exact \\[3pt]
-      \textbf{ASIC} & Unified Single-GDS flow: \NCoreMHz{} MHz TT/FF, SDF, LEC, \NPwAnnot\%-VCD power (\NFusionSave\% fusion saving) \\[3pt]
-      \textbf{Signoff} & \NDbuPerUm{} DBU/µm \texttt{postDummy.gds} (\NSealSide{} µm): unmasked DRC, full-SRAM LVS, ANT, WB, ERC audited \\[3pt]
-      \textbf{Host} & \NRtlTckMhz{} MHz RTL + live TCP/\texttt{tclsh} Single-RPC sim (\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPCs, \NRpcExactCount/\NRpcModels{} round-trip exact) \\[3pt]
-      \textbf{Demo} & Six-scene host suite: \NDemoGolden/\NDemoGoldenTotal{} exact, \NDemoZoo/\NDemoZoo{} zoo frames \\ \bottomrule
+      \textbf{RTL} & SRAM 化 \texttt{npu\_tensor\_lookup}：面积 \NLookupAreaPct\%，\NMutKilled/\NMutNew{} mutant，\NRtlModels{} 模型 bit-exact \\[3pt]
+      \textbf{ASIC} & 统一 Single-GDS 流程：\NCoreMHz{} MHz TT/FF，SDF，LEC，\NPwAnnot\%-VCD 功耗（算子融合节能 \NFusionSave\%） \\[3pt]
+      \textbf{签核} & \NDbuPerUm{} DBU/µm \texttt{postDummy.gds}（\NSealSide{} µm）：未屏蔽 DRC，全 SRAM LVS，ANT，WireBond，ERC 审计 \\[3pt]
+      \textbf{主机} & \NRtlTckMhz{} MHz RTL + TCP/\texttt{tclsh} Single-RPC 仿真（\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPC；\NRpcExactCount/\NRpcModels{} golden-output fixture 传输一致） \\[3pt]
+      \textbf{演示} & 六场景主机套件：\NDemoGolden/\NDemoGoldenTotal{} bit-exact，\NDemoZoo/\NDemoZoo{} zoo 帧 \\ \bottomrule
     \end{tabularx}}
     \column{0.48\textwidth}
-    \textbf{\color{peking}Phase-B Actions \& Open Signoff Items}\par\vspace{4pt}
+    \textbf{\color{peking}Phase B 工程计划与开放签核项}\par\vspace{4pt}
     {\scriptsize
     \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
       \toprule
-      \textbf{MMMC} & Upgrade synth/P\&R to target \texttt{ss125} setup + \texttt{ffm40} hold jointly; insert 1 RTL pipeline stage on \texttt{npu→store→SRAM WEN} if backend alone falls short of \NCoreMHz{} MHz \\[3pt]
-      \textbf{Signoff} & Post-dummy RC/static-IR sensitivity; obtain formal foundry ERC waiver (\texttt{formal\_tapeout\_signoff=\NFormalTapeout}) \\[3pt]
-      \textbf{FPGA} & Incremental EGo1 re-flash with SRAM-lookup RTL + live Single-RPC board timing validation \\[3pt]
-      \textbf{Field} & End-to-end sensor evaluation (MAX30102, MPU6050, camera, mic) \& final frozen release \\ \bottomrule
+      \textbf{MMMC} & 服务器端真 MMMC：\texttt{ss125} setup + \texttt{ffm40} hold 联合优化；若纯后端 < 45 MHz，自动插 1 级 RTL 流水线（\texttt{i\_npu → i\_activation\_i\_store → i\_sram/WEN}），全量复跑回归 + Single-GDS 签核 \\[3pt]
+      \textbf{签核} & Post-dummy RC/静态 IR 敏感度分析；获取 foundry ERC waiver（\texttt{formal\_tapeout\_signoff=\NFormalTapeout}） \\[3pt]
+      \textbf{FPGA} & Vivado 实机指导包：Step 1 实板测 Single-RPC + OpenOCD，分离 TCP 与 USB 占比；Step 2 实测 \texttt{pyftdi} MPSSE 批量 USB 后端（\texttt{0403:6014}）与 OpenOCD \texttt{svf}，同步完成六场景上板验证；现有 Single-RPC 结论仅限 golden-output fixture \\[3pt]
+      \textbf{现场} & MAX30102、MPU6050、摄像头、麦克风端到端传感器评测；最终冻结发布 \\ \bottomrule
     \end{tabularx}}
   \end{columns}
+  \par\vspace{8pt}
+  \begin{center}
+    \includegraphics[width=0.14\linewidth]{Figures/PKU-emblem-names.png}\\[6pt]
+    {\large\bfseries\color{peking} 谢谢}\quad{\color{muted}·}\quad{\large\color{muted} 欢迎提问与讨论}
+  \end{center}
 \end{frame}
-
-% ===================================================================== 20 Closing
-{\setbeamertemplate{logo}{}
-\begin{frame}
-  \centering\vspace{1.2cm}
-  {\Huge\bfseries\color{peking} Thank You}\\[0.55cm]
-  {\large\color{muted} Questions \& Discussion}\\[1.1cm]
-  \includegraphics[width=0.22\linewidth]{Figures/PKU-emblem-names.png}
-\end{frame}}
 
 \end{document}
