@@ -328,6 +328,7 @@ def sec_physical_signoff(N):
         'erc_deep_dive.md (design defects)',
     )[1]
     assert int(N['ErcDesignDefects']) == 0
+    N['ErcStatus'] = '审计' if (erc['status'] == 'manual_review_required' and int(N['ErcDesignDefects']) == 0) else '异常'
     m3 = grab(
         r'\|\s*\*\*Total ERC\*\*\s*\|\s*\*\*`(\d+)\s*/\s*(\d+)`\*\*\s*\|\s*\*\*`(\d+)\s*/\s*(\d+)`\*\*\s*\|\s*\*\*`(\d+)`\*\*',
         dd,
@@ -362,6 +363,8 @@ def sec_mmmc(N):
     N['AllMmmcStatus'] = f"{len(key)}-Corner 全 {N['CoreMHz']} MHz 闭合" if all_ok else '存在违例'
     N['AllMmmcCard'] = f"{len(key)}-Corner {N['CoreMHz']} MHz 闭合" if all_ok else '存在违例'
     N['AllMmmcShort'] = '0 违例' if all_ok else '存在违例'
+    total_tns = sum(float(cor[(c, m_)]['tns_2000']) for c in key for m_ in ('setup', 'hold'))
+    N['AllMmmcTns'] = '0' if total_tns == 0.0 else f'{total_tns:,.1f}'
     N['MmmcCorners'] = str(len(key))
     hmin = min(key, key=lambda c: float(cor[(c, 'hold')]['wns']))
     N['HoldMin'], N['HoldMinCorner'] = sgn(float(cor[(hmin, 'hold')]['wns'])), hmin
@@ -703,6 +706,12 @@ def sec_fpga(N):
     mpw = [rows_1m[m_]['upload_ms'] / (tclm[m_]['model_bytes'] // 4) for m_ in order]
     N['FpgaUpMpwMin'], N['FpgaUpMpwMax'] = '%.2f' % min(mpw), '%.2f' % max(mpw)
     inw = lambda m_: -(-tclm[m_]['input_bytes'] // 4)
+    jtag_src = (ROOT / 'software/host/nocpu_jtag.py').read_text(encoding='utf-8')
+    chunk_w = int(grab(r'for i in range\(0,len\(words\),(\d+)\):', jtag_src, 'nocpu_jtag.py burst chunk')[1])
+    ecg_rpcs = -(-inw('ecg') // chunk_w)
+    kwsl_rpcs = -(-inw('kws_l') // chunk_w)
+    assert ecg_rpcs == kwsl_rpcs == 1
+    N['FpgaInSingleRpc'] = str(ecg_rpcs)
     N['FpgaEcgInWords'], N['FpgaEcgInRpcMs'] = str(inw('ecg')), '%.2f' % rows_1m['ecg']['phases_ms']['input_upload']
     N['FpgaKwsLInWords'], N['FpgaKwsLInRpcMs'] = str(inw('kws_l')), '%.2f' % rows_1m['kws_l']['phases_ms']['input_upload']
     N['FpgaGtsrbInWords'] = str(inw('gtsrb_l'))

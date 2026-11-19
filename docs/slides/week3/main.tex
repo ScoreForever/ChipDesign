@@ -365,7 +365,7 @@
     \snote{WNS 单位 ns；Fmax = 1000 / (\NCorePeriod{} − Setup WNS) MHz；违例 = Setup/Hold 端点数。}\vspace{3pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
       \item \texttt{ss125} Setup 由 \NSSBeforeSetup{} ns（\NSSBeforeViol{} 端点；降频闭合仅 \NSSBeforeFreq{} MHz）→ \hl{\NSSSetup{} ns（\NSSFreq{} MHz）}，提升 \hl{\NSSGainNs{} ns}，\hl{\NZeroRtl}；关键路径止于 \NSSEndSram{} \texttt{WEN}。
-      \item 全部 \NMmmcCorners{} 个 corner \NAllMmmcShort，TNS = 0；最小 Hold \NHoldMin{} ns @ \texttt{\NHoldMinCorner}。
+      \item 全部 \NMmmcCorners{} 个 corner \NAllMmmcShort，TNS = \NAllMmmcTns；最小 Hold \NHoldMin{} ns @ \texttt{\NHoldMinCorner}。
     \end{itemize}\par\vspace{3pt}
     \callout[warnink]{\textbf{±15\%/±20\% RC 敏感度（典型 captable 缩放）}：\texttt{ffm40} \NRcMfifteenScale\%/\NRcMtwentyScale\% RC Hold 仍 \hl{\NRcMfifteenHold{} / \NRcMtwentyHold{} ns}（\NRcHoldStatus{} \NRcHoldBadge）；\texttt{ss125} \NRcPfifteenScale\%/\NRcPtwentyScale\% RC Setup 为 \NRcPfifteenWns{} / \NRcPtwentyWns{} ns（\NRcPfifteenFreq{} / \NRcPtwentyFreq{} MHz）。\NRcScope，待 foundry \texttt{Cmax}/\texttt{Cmin} 与 PGV 静态 IR 复核。}
     \column{0.49\textwidth}
@@ -448,7 +448,7 @@
       \textbf{nmLVS} & \NLvsBadge & 全 SRAM 非黑盒，严格 \NLvsStrictTol\% 容差：\NLvsErr{} IO \texttt{R(PR)}（最大 \NLvsMax\%）；\NLvsTol\% 容差下 \hl{\texttt{\NLvsStatus}} \\[1pt]
       \textbf{Antenna} & \NAntBadge & \hl{\NAntHier{} Hier. / \NAntExp{} Exp.}，覆盖完整填充后管芯 \\[1pt]
       \textbf{WireBond} & \NWbBadge & \hl{\NWbHier{} Hier. / \NWbExp{} Exp.}，覆盖全部 \NWbRules{} 规则与 \NPadCount{} 个 \texttt{PAD60LU\_OBV} \\[1pt]
-      \textbf{ERC} & 审计 & \NErcHier{} Hier. / \NErcExp{} Exp. 追溯至 vendor IO 子单元与外 Seal Ring \\ \bottomrule
+      \textbf{ERC} & \NErcStatus & \NErcHier{} Hier. / \NErcExp{} Exp. 追溯至 vendor IO 子单元与外 Seal Ring \\ \bottomrule
     \end{tabularx}}\par\vspace{1pt}
     \centering\includegraphics[width=0.72\linewidth]{figs/11\_lab5\_cor4\_and\_erc\_audit.png}\par
     {\tiny\color{muted}左：\texttt{CO.R.4} PIMP 邻接修复；右：全芯片 ERC marker 分布。}
@@ -492,7 +492,7 @@
       \item \textbf{NPU 实际计算}：仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\%，位于 poll 窗口内，不再叠加）。
       \item \textbf{固定控制/元数据 RPC}：几何均值 \hl{\NFpgaCtrlGeomean{} ms}（\NFpgaCtrlMin–\NFpgaCtrlMax{} ms）；主机包装残差 \NFpgaWrapMin–\NFpgaWrapMax{} ms。三段互斥，和严格等于驻留耗时。
       \item \textbf{分块数据读写}：\NFpgaXferMin–\NFpgaXferMax{} ms（几何均值 \NFpgaXferGeomean{} ms）；驻留总计 \NFpgaResMin–\NFpgaResMax{} ms（几何均值 \NFpgaRes{} ms）。
-      \item \textbf{双瓶颈归因}：\texttt{ecg} 输入 \NFpgaEcgInWords{} word 与 \texttt{kws\_l} 输入 \NFpgaKwsLInWords{} word 同为 1 次 RPC，却耗时 \NFpgaEcgInRpcMs{} 与 \NFpgaKwsLInRpcMs{} ms；7 模型权重上传稳定在 \hl{\NFpgaUpMpwMin–\NFpgaUpMpwMax{} ms/word}（\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInMpw{} ms/word）。耗时由主机 TCP RPC 往返与 OpenOCD 逐 \texttt{drscan} 同步 USB 刷新（\texttt{jtag\_execute\_queue()}）共同主导。
+      \item \textbf{双瓶颈归因}：\texttt{ecg} 输入 \NFpgaEcgInWords{} word 与 \texttt{kws\_l} 输入 \NFpgaKwsLInWords{} word 同为 \NFpgaInSingleRpc{} 次 RPC，却耗时 \NFpgaEcgInRpcMs{} 与 \NFpgaKwsLInRpcMs{} ms；\NFpgaModels{} 模型权重上传稳定在 \hl{\NFpgaUpMpwMin–\NFpgaUpMpwMax{} ms/word}（\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInMpw{} ms/word）。耗时由主机 TCP RPC 往返与 OpenOCD 逐 \texttt{drscan} 同步 USB 刷新（\texttt{jtag\_execute\_queue()}）共同主导。
     \end{itemize}}
   \end{columns}
 \end{frame}
