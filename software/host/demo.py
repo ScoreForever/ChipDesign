@@ -10,7 +10,7 @@ DEMOS = {
     "kws": ("语音关键词识别", "用麦克风说出 yes、no、up 或 down。", "demos.kws"),
     "ecg": ("ECG 心拍分类", "回放带标注心电记录，显示五类心拍分数。", "demos.ecg"),
     "har": ("人体活动识别", "回放六类活动，或导入手机惯性信号。", "demos.har"),
-    "face": ("人脸框选", "电脑 YuNet 或 INT4 NPU 近景框选。", "demos.face"),
+    "face": ("人脸框选", "使用 INT4 模型检测近景人脸。", "demos.face"),
     "emotion": ("表情分类", "电脑裁脸，再由 INT4 模型输出七类分数。", "demos.emotion"),
 }
 
@@ -28,7 +28,8 @@ def main():
     parser.add_argument("--output", type=Path, help="new headless JSON report path")
     parser.add_argument("--limit", type=int, default=16, help="maximum replay/golden inputs (positive)")
     parser.add_argument("--log", type=Path, help="append inference events and packed inputs to local JSONL")
-    parser.add_argument("--face-mode", choices=("host", "npu"), default="host")
+    parser.add_argument("--face-mode", choices=("host", "npu"), default="npu",
+                        help="face detector: INT4 model on the selected backend (default) or host YuNet")
     parser.add_argument("--yunet", type=Path, default=Path(__file__).resolve().parents[2] / "build/demo_data/yunet.onnx")
     parser.add_argument("--vision-models", type=Path, help="directory containing face/ and emotion/ NPU packages")
     parser.add_argument("--camera-index", type=int, default=0)
