@@ -230,15 +230,26 @@ def render_wirebond_keepout(post_gds: Path, keepouts_tsv: Path, summary: dict, o
     return out
 
 
-def render_cor4_and_erc_evidence(post_gds: Path, summary: dict, erc_geom: dict, out_dir: Path, work_dir: Path) -> Path:
+def render_cor4_and_erc_evidence(
+    post_gds: Path, summary: dict, erc_geom: dict, out_dir: Path, work_dir: Path, keepouts_tsv: Path | None = None
+) -> Path:
     """Render CO.R.4 IO PIMP fix zoom and full-chip ERC spatial audit map."""
-    # Global CO.R.4 site on west PVDD2CDG around (72.24, 1415.48) -> clip [67..78, 1411..1420]
-    win_c = (67.5, 1411.5, 76.5, 1419.5)
+    # Compute actual global CO.R.4 site on west PVDD2CDG dynamically from W_vddio pad position
+    cor4_x, cor4_y = 72.24, 1415.48
+    if keepouts_tsv is not None and keepouts_tsv.is_file():
+        for line in keepouts_tsv.read_text().splitlines():
+            parts = line.strip().split('\t')
+            if len(parts) == 3 and 'W_vddio' in parts[0]:
+                pbox = [float(x) for x in parts[1].split()]
+                cor4_y = round(pbox[1] + 2.625, 3)
+                break
+    win_c = (cor4_x - 4.74, cor4_y - 3.98, cor4_x + 4.26, cor4_y + 4.02)
     clip_c = clip_gds_window(post_gds, work_dir, 'cor4', win_c)
     fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(11.2, 5.2), dpi=220)
 
     items_c = draw_clipped_layers(ax0, clip_c, win_c, layers_filter={(7, 0), (8, 0), (13, 0), (15, 0), (34, 0)})
-    ax0.annotate('Patched PIMP (7:0)\nabuts NIMP guard ring\nCO.R.4: 1 -> 0', xy=(72.24, 1415.48), xytext=(68.0, 1412.2),
+    ax0.annotate('Patched PIMP (7:0)\nabuts NIMP guard ring\nCO.R.4: 1 -> 0',
+                 xy=(cor4_x, cor4_y), xytext=(win_c[0] + 0.5, win_c[1] + 0.7),
                  fontsize=7.8, fontweight='bold', color='#7f0000', zorder=20,
                  bbox=dict(boxstyle='round,pad=0.25', fc='white', alpha=0.95),
                  arrowprops=dict(arrowstyle='->', color='#7f0000', lw=1.0))
@@ -249,8 +260,12 @@ def render_cor4_and_erc_evidence(post_gds: Path, summary: dict, erc_geom: dict, 
     # Right panel: ERC spatial map across full sealed die
     ox0, oy0, ox1, oy1 = summary['sealed_outer_bbox_um']
     dx0, dy0, dx1, dy1 = summary['raw_die_bbox_um']
-    ax1.add_patch(patches.Rectangle((ox0, oy0), ox1 - ox0, oy1 - oy0, fill=False, edgecolor='#7f0000', lw=2.0, label='Seal Ring (1951 µm)'))
-    ax1.add_patch(patches.Rectangle((dx0, dy0), dx1 - dx0, dy1 - dy0, fill=True, fc='#f5f5f5', ec='#555555', lw=0.8, linestyle='--', label='Active Die (1920.24 µm)'))
+    sw, sh = ox1 - ox0, oy1 - oy0
+    dw, dh = dx1 - dx0, dy1 - dy0
+    sr_lbl = f'Seal Ring ({sw:.1f} µm)' if abs(sw - sh) < 0.05 else f'Seal Ring ({sw:.1f}×{sh:.1f} µm)'
+    die_lbl = f'Active Die ({dw:.2f} µm)' if abs(dw - dh) < 0.05 else f'Active Die ({dw:.2f}×{dh:.2f} µm)'
+    ax1.add_patch(patches.Rectangle((ox0, oy0), sw, sh, fill=False, edgecolor='#7f0000', lw=2.0, label=sr_lbl))
+    ax1.add_patch(patches.Rectangle((dx0, dy0), dw, dh, fill=True, fc='#f5f5f5', ec='#555555', lw=0.8, linestyle='--', label=die_lbl))
     colors = {'mnpg': '#e63946', 'floating.nxwell_float': '#f77f00', 'npvss49': '#457b9d', 'floating.psub_float': '#6a4c93'}
     markers = {'mnpg': 'o', 'floating.nxwell_float': 'o', 'npvss49': 's', 'floating.psub_float': 'D'}
     for rule, rdata in erc_geom.get('rules', {}).items():
@@ -319,7 +334,7 @@ def main() -> None:
         render_sealring_corner(post_gds, summary, out, work),
         render_dummy_fill(post_gds, out, work),
         render_wirebond_keepout(post_gds, cand / 'wirebond_keepouts.tsv', summary, out, work),
-        render_cor4_and_erc_evidence(post_gds, summary, erc_geom, out, work),
+        render_cor4_and_erc_evidence(post_gds, summary, erc_geom, out, work, cand / 'wirebond_keepouts.tsv'),
     ]
     print(json.dumps({'rendered': [str(p) for p in paths]}, indent=2))
 

@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "filename": "design_and_reports.tar.gz",
+      "bytes": 120201195,
+      "sha256": "98995bbd773109016bb958ed3e0c28c14aed2ccd790a8599ebb77a1b46a8fc04"
+    },
+    {
+      "filename": "final_inputs.sha256",
+      "bytes": 161,
+      "sha256": "0c65b33216b58785323d7835d1306b9e4db267ed599c35303f6aa29d6452b269"
+    },
+    {
+      "filename": "postDummy.gds",
+      "bytes": 137037824,
+      "sha256": "66007a54ba102331b779adc637989c7f1fdaca3cf304d9bfe6bf07573fc41771"
+    },
+    {
+      "filename": "my_soc_top.cdl",
+      "bytes": 14146189,
+      "sha256": "dc4427554d742585179032b6bf993f0fa431f6d7327ffbb7604d35f69604a68b"
+    }
+  ],
+  "verification": {
+    "gzip": true,
+    "sha256sums": true,
+    "final_inputs": true
+  }
+}

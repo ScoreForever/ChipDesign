@@ -102,6 +102,7 @@ def main():
     ap.add_argument('--candidate', required=True, type=Path)
     ap.add_argument('--out-dir', required=True, type=Path)
     ap.add_argument('--models', default='cnn_f1,cnn_f0,ecg,har,mnist_l')
+    ap.add_argument('--view', default='func_tt_io')
     ap.add_argument('--keep-vcd', action='store_true')
     ap.add_argument('--summarize-existing', action='store_true')
     args = ap.parse_args()
@@ -164,14 +165,15 @@ def main():
     inv = out/'innovus'
     if not args.summarize_existing:
         inv.mkdir()
+        vname = args.view
         script = [f'restoreDesign {tcl(out/"work/final.enc.dat")} my_soc_top',
-                  'set_analysis_view -setup {func_tt_io} -hold {func_tt_io}', 'extractRC',
+                  f'set_analysis_view -setup {{{vname}}} -hold {{{vname}}}', 'extractRC',
                   'set_power_analysis_mode -reset',
-                  'set_power_analysis_mode -method static -corner max -create_binary_db false -write_static_currents false -ignore_control_signals true']
+                  f'set_power_analysis_mode -method static -analysis_view {vname} -corner max -create_binary_db false -write_static_currents false -ignore_control_signals true']
         for name, row in [('vectorless',None)]+[(r['name'],r) for r in rows]:
             if row:
                 script += ['read_activity_file -reset',f'read_activity_file -format VCD -scope tb_fullchip_power.dut -start {row["busy_ns"]}ns -end {row["irq_ns"]}ns {tcl(out/name/"activity.vcd")}']
-            script += [f'report_power -view func_tt_io -outfile power_{name}.rpt']
+            script += [f'report_power -view {vname} -outfile power_{name}.rpt']
         script += ['puts WEEK3_POWER_DONE','exit']
         (inv/'power.tcl').write_text('\n'.join(script)+'\n')
         log = run(['innovus','-no_gui','-files',inv/'power.tcl'],inv,'console.log')

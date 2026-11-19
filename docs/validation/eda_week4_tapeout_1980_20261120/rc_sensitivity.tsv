@@ -1,0 +1,7 @@
+view	corner	rc_scale	mode	wns_ns	tns_ns	violating_endpoints
+view_ss125	ss125	1.00	setup	0.533	0.0	0
+view_ss125_rcp15	ss125	1.15	setup	0.236	0.0	0
+view_ss125_rcp20	ss125	1.20	setup	0.340	0.0	0
+view_ffm40	ffm40	1.00	hold	0.150	0.0	0
+view_ffm40_rcm15	ffm40	0.85	hold	0.144	0.0	0
+view_ffm40_rcm20	ffm40	0.80	hold	0.141	0.0	0

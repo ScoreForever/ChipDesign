@@ -1,0 +1,9 @@
+corner,mode,wns,start,end,arrival,required,tns,violating_endpoints
+ss125,setup,0.533,i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP,i_control/i_npu/results_reg[2][158]/D,20.814,21.347,0.0,0
+ss125,hold,0.592,i_control/i_npu/kernel_offset_reg[5]/CP,i_control/i_npu/k_offsets_reg[5][6]/D,2.741,2.149,0.0,0
+tt25,setup,7.965,i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP,i_control/i_npu/results_reg[2][110]/D,12.847,20.812,0.0,0
+tt25,hold,0.306,i_control/i_npu/element_row_step_reg[8]/CP,i_control/i_npu/element_row_jump_reg[8]/D,1.617,1.311,0.0,0
+ff0,setup,11.368,i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP,i_control/i_npu/results_reg[3][236]/D,9.231,20.599,0.0,0
+ff0,hold,0.167,i_control/i_npu/element_row_step_reg[8]/CP,i_control/i_npu/element_row_jump_reg[8]/D,1.187,1.020,0.0,0
+ffm40,setup,11.769,i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP,i_control/i_npu/results_reg[3][236]/D,8.798,20.567,0.0,0
+ffm40,hold,0.150,i_control/i_npu/element_row_step_reg[8]/CP,i_control/i_npu/element_row_jump_reg[8]/D,1.131,0.981,0.0,0
