@@ -12,7 +12,8 @@ from demos.kws_audio import RATE, mfcc, one_second, quantize, read_pcm
 from demos.window import ACCENT, BACKGROUND, BORDER, DRAWING, ERROR, MUTED, PANEL
 
 
-TARGETS = {"yes": "确认", "no": "取消", "up": "向上", "down": "向下"}
+ACTIONS = {"yes": "确认", "no": "取消", "up": "向上", "down": "向下"}
+NON_KEYWORD_LABELS = {"unknown": "未识别", "silence": "静音"}
 
 
 def record():
@@ -40,8 +41,8 @@ class Demo(tk.Frame):
         self.worker = app.worker
         self.future = self.poll = None
 
-        app.label(self, "语音关键词识别", 24, bold=True).pack(anchor="w")
-        app.label(self, "点击录音后，对着麦克风说一个英文关键词。", fg=MUTED).pack(
+        app.label(self, "英文关键词识别", 24, bold=True).pack(anchor="w")
+        app.label(self, "录音时说出下列任一单词，也可打开包含单个关键词的 WAV。", fg=MUTED).pack(
             anchor="w", pady=(4, 15))
 
         body = tk.Frame(self, bg=BACKGROUND)
@@ -52,8 +53,12 @@ class Demo(tk.Frame):
                          highlightbackground=BORDER, highlightthickness=1)
         audio.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
         app.label(audio, "声音输入", 12, bold=True).pack(anchor="w")
-        app.label(audio, "yes · no · up · down", 14, fg=ACCENT, bold=True).pack(
-            anchor="w", pady=(9, 13))
+        keywords = [word for word in self.session.metadata["classes"] if word not in NON_KEYWORD_LABELS]
+        app.label(audio, f"支持 {len(keywords)} 个英文关键词", 11, bold=True).pack(anchor="w", pady=(9, 3))
+        app.label(audio, " · ".join(keywords), 13, fg=ACCENT, wraplength=295, justify="left").pack(
+            anchor="w", pady=(0, 5))
+        app.label(audio, "模型也可输出「未识别」或「静音」。", 10, fg=MUTED).pack(
+            anchor="w", pady=(0, 10))
         self.waveform = tk.Canvas(audio, height=100, width=295, bg=DRAWING,
                                   highlightthickness=0)
         self.waveform.pack(fill="x")
@@ -106,7 +111,7 @@ class Demo(tk.Frame):
 
     def connected(self, _):
         self.set_controls(True)
-        self.status.config(text="等待录音")
+        self.status.config(text="可以录音或打开 WAV")
 
     def choose_file(self):
         path = filedialog.askopenfilename(parent=self, filetypes=[("PCM WAV", "*.wav")])
@@ -155,8 +160,9 @@ class Demo(tk.Frame):
     def show_result(self, completed):
         result, timing = completed
         label = self.session.metadata["classes"][result.index]
-        self.word.config(text={"unknown": "未识别", "silence": "静音"}.get(label, label))
-        self.action.config(text=TARGETS.get(label, "等待目标词"))
+        self.word.config(text=NON_KEYWORD_LABELS.get(label, label))
+        action = ACTIONS.get(label)
+        self.action.config(text=f"界面动作 · {action}" if action else "")
         self.latency.config(text=result.timing_text(), wraplength=300)
         self.scores.config(text="INT32 分数（非概率）：\n" + " · ".join(
             f"{k}: {v}" for k, v in zip(self.session.metadata["classes"], result.scores)))

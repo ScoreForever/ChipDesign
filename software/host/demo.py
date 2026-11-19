@@ -7,7 +7,7 @@ from pathlib import Path
 
 DEMOS = {
     "mnist": ("手写数字识别", "在画板上写一个数字，停笔后查看识别结果。", "demos.mnist"),
-    "kws": ("语音关键词识别", "用麦克风说出 yes、no、up 或 down。", "demos.kws"),
+    "kws": ("英文关键词识别", "录音或打开 WAV，识别单个英文关键词。", "demos.kws"),
     "ecg": ("ECG 心拍分类", "回放带标注心电记录，显示五类心拍分数。", "demos.ecg"),
     "har": ("人体活动识别", "回放六类活动，或导入手机惯性信号。", "demos.har"),
     "face": ("人脸框选", "使用 INT4 模型检测近景人脸。", "demos.face"),
