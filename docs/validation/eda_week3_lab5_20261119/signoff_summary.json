@@ -1,0 +1,109 @@
+{
+  "artifacts_sha256": {
+    "outputs/chip.gds.gz": "6c4f4abf56f30c7af8d06bcb6ba3d211e415a9b64084747646a12c4bc267049f",
+    "outputs/chip.lef": "c914c9da4e71641073832620a921269bc8d7dbfe87e51d9eafae53a55bf84958",
+    "outputs/mapped.sdc": "537b79f0c5c52845eb1d41c2042edcdcd121c449f674f180ba7bc8f47c3d409a",
+    "outputs/physical.v": "6c81396c6413ca80d6adcce2cf46417a0dbf9d6b3247bef2c63fea006afa24ad",
+    "outputs/routed.def": "2daaba19bd14d95cc4dd0480263bd2c85c4e3b2a54157ac0ed4ce1a25a6a2d36",
+    "outputs/routed.sdf.gz": "28bf8f3259d751a5a66c90843f00f6a0ad8efe7116d9475a8fab2d6f7d1b5883",
+    "outputs/routed.spef.gz": "586e59b01d351413d5302d4713d7cdb0e0b38b94d457fdcf5807ee022c4621bd",
+    "outputs/simulation.v": "7dd25601131388d102db7f1c22a57f4b42591847970b0486e0270d95c789d003"
+  },
+  "note": "TT corner only; M5/M6 fill only; no IR/EM, seal ring or chip-level ESD review",
+  "passed": true,
+  "results": {
+    "drc": {
+      "accepted": {
+        "CO.R.4": {
+          "count": 1,
+          "reason": "front-end layer rule inside vendor IO cells"
+        },
+        "DRM.R.1": {
+          "count": 1,
+          "reason": "deck reminder to consult the DRM; emitted unconditionally"
+        },
+        "ESD.24g": {
+          "count": 30,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        },
+        "ESD.25g": {
+          "count": 2384,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        },
+        "LUP.3.3g_3.3V": {
+          "count": 1,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        },
+        "LUP.5.3g_3.3V": {
+          "count": 10,
+          "reason": "ESD/latch-up guideline inside vendor IO cells"
+        }
+      },
+      "blocking": {},
+      "check": "drc",
+      "locations": {
+        "CO.R.4": {
+          "io_ring": 1
+        },
+        "DRM.R.1": {
+          "core": 1
+        },
+        "ESD.24g": {
+          "io_ring": 30
+        },
+        "ESD.25g": {
+          "io_ring": 2384
+        },
+        "LUP.3.3g_3.3V": {
+          "io_ring": 1
+        },
+        "LUP.5.3g_3.3V": {
+          "io_ring": 10
+        }
+      },
+      "passed": true,
+      "tool_status": "complete",
+      "total": 2427,
+      "violated_rules": {
+        "CO.R.4": 1,
+        "DRM.R.1": 1,
+        "ESD.24g": 30,
+        "ESD.25g": 2384,
+        "LUP.3.3g_3.3V": 1,
+        "LUP.5.3g_3.3V": 10
+      }
+    },
+    "lec": {
+      "check": "lec",
+      "passed": true,
+      "succeeded": true,
+      "tool_status": "complete",
+      "verified": true
+    },
+    "lvs": {
+      "accepted_io_resistor_errors": 45,
+      "check": "lvs",
+      "correct": false,
+      "incorrect": true,
+      "max_io_resistor_deviation_percent": 3.47,
+      "passed": true,
+      "property_errors": 45,
+      "tool_status": "complete",
+      "top_errors": [
+        "Property errors."
+      ]
+    },
+    "sta": {
+      "black_boxes": [
+        "RA1SHD_2048x32M8..."
+      ],
+      "check": "sta",
+      "hold_wns_ns": 0.23465,
+      "passed": true,
+      "scope": "standard cells and IO; SRAM interface timing is checked by Innovus only",
+      "setup_wns_ns": 1.407282,
+      "tool_status": "complete",
+      "unannotated": false
+    }
+  }
+}

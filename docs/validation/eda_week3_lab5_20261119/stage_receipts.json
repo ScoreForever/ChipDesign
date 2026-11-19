@@ -1,0 +1,163 @@
+{
+  "analysis": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/week3/run_week3_eda.py",
+      "--out-dir",
+      "<redacted_user_path>",
+      "--only-analysis"
+    ],
+    "elapsed_seconds": 2.9935592552646995,
+    "peak_rss_kib": 147804,
+    "passed": true
+  },
+  "area_breakdown": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/optimize/area_breakdown.py",
+      "--netlist",
+      "<eda_run>/synthesis/mapped.v",
+      "--lib",
+      "<pdk_or_course>/tcb018gbwp7ttc.lib",
+      "--lib",
+      "<pdk_or_course>/RA1SHD_2048x32M8_tt_1p8_25C_syn.lib",
+      "--output",
+      "<eda_run>/area_breakdown.json"
+    ],
+    "elapsed_seconds": 1.2592493211850524,
+    "peak_rss_kib": 74196,
+    "passed": true
+  },
+  "mmmc": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/week3/run_mmmc_closure.py",
+      "--candidate",
+      "<eda_run>/candidates/diag70_h25",
+      "--out-dir",
+      "<eda_run>/week3_mmmc"
+    ],
+    "elapsed_seconds": 2120.812531499192,
+    "peak_rss_kib": 1990732,
+    "passed": true
+  },
+  "postlayout": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/optimize/postlayout.py",
+      "--candidate",
+      "<eda_run>/candidates/diag70_h25"
+    ],
+    "elapsed_seconds": 79.03363720793277,
+    "peak_rss_kib": 258976,
+    "passed": true
+  },
+  "power": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/week3/measure_power.py",
+      "--candidate",
+      "<eda_run>/candidates/diag70_h25",
+      "--out-dir",
+      "<eda_run>/week3_power"
+    ],
+    "elapsed_seconds": 1339.1116080246866,
+    "peak_rss_kib": 10188536,
+    "passed": true
+  },
+  "preflight": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/optimize/flow.py",
+      "preflight",
+      "--output",
+      "<redacted_user_path>",
+      "--clock-gating",
+      "--cols",
+      "8"
+    ],
+    "elapsed_seconds": 0.3440052028745413,
+    "peak_rss_kib": 47548,
+    "passed": true
+  },
+  "render_views": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1800x1800x24",
+      "innovus",
+      "-files",
+      "<repo>/docs/validation/eda_latest_20261111/reproduction/render_views.tcl"
+    ],
+    "elapsed_seconds": 71.08489459007978,
+    "peak_rss_kib": 2095252,
+    "passed": true
+  },
+  "screenshots": {
+    "command": [
+      "xvfb-run",
+      "-a",
+      "-s",
+      "-screen 0 1800x1800x24",
+      "innovus",
+      "-files",
+      "<repo>/hardware/asic/week3/screenshots_week3.tcl"
+    ],
+    "elapsed_seconds": 36.246492269448936,
+    "peak_rss_kib": 2227324,
+    "passed": true
+  },
+  "signoff": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/optimize/signoff.py",
+      "--candidate",
+      "<eda_run>/candidates/diag70_h25"
+    ],
+    "elapsed_seconds": 160.300244810991,
+    "peak_rss_kib": 670436,
+    "passed": true
+  },
+  "synth": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/optimize/flow.py",
+      "synth",
+      "--output",
+      "<redacted_user_path>",
+      "--clock-gating",
+      "--cols",
+      "8"
+    ],
+    "elapsed_seconds": 1067.7985701225698,
+    "peak_rss_kib": 1418692,
+    "passed": true
+  },
+  "trial": {
+    "command": [
+      "<eda_tool>/python3.8",
+      "<repo>/hardware/asic/optimize/flow.py",
+      "trial",
+      "--output",
+      "<redacted_user_path>",
+      "--clock-gating",
+      "--cols",
+      "8",
+      "--name",
+      "diag70_h25",
+      "--layout",
+      "diagonal_facing",
+      "--utilization",
+      "0.70",
+      "--halo",
+      "26",
+      "--congestion",
+      "--hold-target",
+      "0.25"
+    ],
+    "elapsed_seconds": 1629.5266525465995,
+    "peak_rss_kib": 3559720,
+    "passed": true
+  }
+}

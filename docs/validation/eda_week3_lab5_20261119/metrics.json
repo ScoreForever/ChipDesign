@@ -1,0 +1,14 @@
+{
+  "active_standard_area_um2": 1246928.479999982,
+  "active_standard_instances": 59606,
+  "core_area_mm2": 2.624659206,
+  "cts_and_repair_area_change_um2": 69906.144000019,
+  "die_area_mm2": 3.687321658,
+  "hold_tns_ns": 0.0,
+  "hold_wns_ns": 0.226,
+  "macro_area_um2": 802887.1815,
+  "macro_count": 2,
+  "setup_tns_ns": 0.0,
+  "setup_wns_ns": 0.633,
+  "wire_length_um": 3852585.625
+}
