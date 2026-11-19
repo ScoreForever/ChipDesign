@@ -180,7 +180,7 @@
       {\large\bfseries\color{peking} \NRpcBatchedMax{} → \NRpcPipe} {\scriptsize\color{muted} host RPCs}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
         \item Measured \NRpcSpMin–\NRpcSpMax× RPC cut
-        \item \NRtlTckMhz{} MHz RTL + live TclRpc exact
+        \item \NRtlTckMhz{} MHz RTL + \NRpcExactCount/\NRpcModels{} TclRpc exact
         \item Prior \abi{} FPGA breakdown
       \end{itemize}
     \column{0.238\textwidth}
@@ -344,7 +344,7 @@
     \column{0.48\textwidth}
     \textbf{Post-Route Timing, SDF \& Equivalence}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Post-layout SDF gate simulation: \hl{PASS} (\NSdfCmds{} JTAG commands, \NSdfUnexpected{} unexpected warnings)
+      \item Post-layout SDF gate simulation: \hl{\NSdfStatus} (\NSdfCmds{} JTAG commands, \NSdfUnexpected{} unexpected warnings)
       \item Formality LEC (RTL vs. routed netlist): \texttt{\NLecVerified}
       \item OpenSTA TT stdcell+IO: setup \NStaSetup{} ns / hold \NStaHold{} ns; CTS/repair +\NCtsRepairArea{} kµm²
     \end{itemize}
@@ -433,7 +433,7 @@
     \column{0.315\textwidth}
     \scriptsize Full-chip \texttt{Dummy\_OD\_PO} (\texttt{DOD}/\texttt{DPO}) + \texttt{Dummy\_Metal} M1–M6; normal M6 fill \NDummyMsix×\NDummyMsix{} µm clears \hl{M6.A.1 = \NDummyMsixViol}.
     \column{0.315\textwidth}
-    \scriptsize \NPadMargin{} µm M5/M6 route \& fill keepout preserved around all \NPadCount{} \texttt{PAD60LU\_OBV} bond pads with zero dummy intrusion.
+    \scriptsize \NPadMargin{} µm M5/M6 route \& fill keepout preserved around all \NPadCount{} \texttt{PAD60LU\_OBV} bond pads (\NWbHier{} Hier. / \NWbExp{} Exp. keepout/wirebond violations).
   \end{columns}
 \end{frame}
 
@@ -469,7 +469,7 @@
       \texttt{npvss49} & \NErcVssH & \NErcVssE & \\[3pt]
       \texttt{psub\_float} & \NErcPsubH & \NErcPsubE & Outer Seal Ring substrate frame beyond \texttt{SR.S.1} moat \\ \bottomrule
     \end{tabularx}}\par\vspace{9pt}
-    \callout[passink]{\textbf{Audit Result}: \hl{\NErcDesignDefects{} design, core, or SRAM ERC defects}; zero illegal shorts or fake labels across isolation gap; identical pre/post-Seal-Ring ERC counts.}\par\vspace{6pt}
+    \callout[passink]{\textbf{Audit Result}: \hl{\NErcDesignDefects{} design, core, or SRAM ERC defects}; pre- vs. post-Seal-Ring ERC delta = \NErcPrePostDelta{} (\NErcPreH{} → \NErcHier{} Hier., \NErcPreE{} → \NErcExp{} Exp.); \texttt{SR.S.1} moat left unbridged.}\par\vspace{6pt}
     \callout[warnink]{\texttt{formal\_tapeout\_signoff = \NFormalTapeout}: Vendor IO \& outer-frame ERC items retained open for formal foundry signoff waiver.}
   \end{columns}
 \end{frame}
@@ -488,17 +488,17 @@
           legend style={at={(0.5,1.03)}, anchor=south, legend columns=3, font=\tiny, draw=none, fill=none, /tikz/every even column/.append style={column sep=6pt}},
           xmajorgrids, enlarge y limits=0.14]
         \input{data/fpga_breakdown_plot.tex}
-        \legend{NPU Compute, Fixed Ctrl/Meta RPCs, Chunked Data RPCs}
+        \legend{Fixed Ctrl/Meta RPCs, Chunked Data RPCs, Host Residual}
       \end{axis}
     \end{tikzpicture}
     \column{0.39\textwidth}
     \textbf{Where Wall Time Goes (\NFpgaBestMhz{} MHz TCK)}\par\vspace{4pt}
     {\scriptsize
-    \begin{itemize}\setlength{\itemsep}{4pt}
-      \item \textbf{Core NPU Compute}: only \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms} (≤ \NFpgaComputeMaxPct\% of resident wall time).
-      \item \textbf{Fixed Control/Meta Overhead}: \hl{\NFpgaCtrlGeomean{} ms} geomean (\NFpgaCtrlMin–\NFpgaCtrlMax{} ms) spent per inference in serialized RPCs (metadata, commit, start, poll, ack).
-      \item \textbf{Resident Data RPCs}: \NFpgaResMin–\NFpgaResMax{} ms total (geomean \NFpgaRes{} ms) across chunked \texttt{in/out} transfers.
-      \item \textbf{Cold Deploy + First Infer}: \NFpgaColdMin–\NFpgaColdMax{} ms (geomean \NFpgaCold{} ms) — \hl{\NFpgaUploadShare\%} is sequential model upload (\NFpgaUploadGeomean{} ms geomean).
+    \begin{itemize}\setlength{\itemsep}{3.5pt}
+      \item \textbf{Core NPU Compute (inside poll)}: only \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms} (≤ \NFpgaComputeMaxPct\% of resident wall time; not stacked above).
+      \item \textbf{Fixed Control/Meta RPCs}: \hl{\NFpgaCtrlGeomean{} ms} geomean (\NFpgaCtrlMin–\NFpgaCtrlMax{} ms); host wrapper residual \NFpgaWrapMin–\NFpgaWrapMax{} ms.
+      \item \textbf{Chunked Data \& Total Resident}: \NFpgaXferMin–\NFpgaXferMax{} ms (\NFpgaXferGeomean{} ms geomean) \texttt{in/out} transfers; total resident \NFpgaResMin–\NFpgaResMax{} ms (\NFpgaRes{} ms geomean).
+      \item \textbf{Cold Deploy + First Infer}: \NFpgaColdMin–\NFpgaColdMax{} ms (\NFpgaCold{} ms geomean) — \hl{\NFpgaUploadShare\%} is sequential model upload (\NFpgaUploadGeomean{} ms geomean).
     \end{itemize}}
   \end{columns}
 \end{frame}
@@ -523,7 +523,7 @@
     \column{0.48\textwidth}
     \textbf{Measured Loopback Execution \& Honesty Boundary}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item Executed unmodified host \texttt{Npu}/\texttt{TclRpc} over TCP sockets against live \texttt{tclsh} executing production Tcl procs: \hl{\NRpcModels/\NRpcModels{} bit-exact}, median loopback time drops from \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} ms to \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms} (\NRpcTcpSpMin× min).
+      \item Executed unmodified host \texttt{Npu}/\texttt{TclRpc} over TCP sockets against live \texttt{tclsh} production procs (with golden-output SRAM fixture; compute verified in RTL sim): \hl{\NRpcExactCount/\NRpcModels{} round-trip exact}, median loopback \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms} (\NRpcTcpSpMin× min).
       \item \texttt{TclRpc} enforces monotonic deadlines and fail-closed socket poisoning on ambiguous timeouts.
       \item \textbf{Boundary}: Incremental EGo1 board run for combined SRAM-lookup + Single-RPC remains for Phase B.
     \end{itemize}
@@ -580,7 +580,7 @@
       \textbf{RTL} & SRAM-backed \texttt{npu\_tensor\_lookup}: \NLookupAreaPct\% area, \NMutKilled/\NMutNew{} mutants, \NRtlModels{} models exact \\[3pt]
       \textbf{ASIC} & Unified Single-GDS flow: \NCoreMHz{} MHz TT/FF, SDF, LEC, \NPwAnnot\%-VCD power (\NFusionSave\% fusion saving) \\[3pt]
       \textbf{Signoff} & \NDbuPerUm{} DBU/µm \texttt{postDummy.gds} (\NSealSide{} µm): unmasked DRC, full-SRAM LVS, ANT, WB, ERC audited \\[3pt]
-      \textbf{Host} & \NRtlTckMhz{} MHz RTL + live TCP/\texttt{tclsh} Single-RPC sim (\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPCs, \NRpcModels/\NRpcModels{} exact) \\[3pt]
+      \textbf{Host} & \NRtlTckMhz{} MHz RTL + live TCP/\texttt{tclsh} Single-RPC sim (\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPCs, \NRpcExactCount/\NRpcModels{} round-trip exact) \\[3pt]
       \textbf{Demo} & Six-scene host suite: \NDemoGolden/\NDemoGoldenTotal{} exact, \NDemoZoo/\NDemoZoo{} zoo frames \\ \bottomrule
     \end{tabularx}}
     \column{0.48\textwidth}

@@ -185,6 +185,7 @@ def sec_asic(N):
     N['LecVerified'] = 'verified' if so['lec']['verified'] else 'FAILED'
     sdf = jload(W3 / 'sdf_result.json')
     assert sdf['passed']
+    N['SdfStatus'] = 'PASS' if sdf['passed'] else 'FAIL'
     d = sdf['diagnostics']
     N['SdfCmds'] = str(sdf['jtag_commands'])
     N['SdfUnexpected'] = str(len(d['fatal']) + len(d['unexpected_sdfnep']) + len(d['unexpected_sdfnet']))
@@ -297,6 +298,14 @@ def sec_physical_signoff(N):
         'erc_deep_dive.md (design defects)',
     )[1]
     assert int(N['ErcDesignDefects']) == 0
+    m3 = grab(
+        r'\|\s*\*\*Total ERC\*\*\s*\|\s*\*\*`(\d+)\s*/\s*(\d+)`\*\*\s*\|\s*\*\*`(\d+)\s*/\s*(\d+)`\*\*\s*\|\s*\*\*`(\d+)`\*\*',
+        dd,
+        'erc_deep_dive.md (pre/post Seal-Ring ERC)',
+    )
+    assert int(m3[1]) == int(m3[3]) == erc['total_hier']
+    assert int(m3[2]) == int(m3[4]) == erc['total_expanded']
+    N['ErcPreH'], N['ErcPreE'], N['ErcPrePostDelta'] = m3[1], m3[2], m3[5]
 
 
 # <<SECTION:mmmc>>
@@ -522,9 +531,9 @@ def sec_fpga(N):
     alt = min(res, key=res.get)
     N['FpgaAltPct'] = '%.2f' % (100 * (res[1000] - res[alt]) / res[1000])
 
-    # Phase breakdown at 1 MHz TCK on EGo1 (all numbers in ms)
-    comp_coords, ctrl_coords, xfer_coords = [], [], []
-    comp_vals, ctrl_vals, upload_vals, cold_vals, res_vals = [], [], [], [], []
+    # Mutually exclusive breakdown of measured EGo1 resident_ms at 1 MHz TCK (note: completion_poll wraps the <=1.6 ms NPU compute)
+    ctrl_coords, xfer_coords, wrap_coords = [], [], []
+    comp_vals, ctrl_vals, xfer_vals, wrap_vals, upload_vals, cold_vals, res_vals = [], [], [], [], [], [], []
     for mdl in order:
         r_ = rows_1m[mdl]
         p = r_['phases_ms']
@@ -538,20 +547,24 @@ def sec_fpga(N):
             + p['ack']
         )
         xfer_ms = p['input_upload'] + p['output_readout']
+        wrap_ms = r_['resident_ms'] - (ctrl_ms + xfer_ms)
+        assert wrap_ms >= 0.0 and abs((ctrl_ms + xfer_ms + wrap_ms) - r_['resident_ms']) < 1e-6, (mdl, wrap_ms)
         comp_vals.append(comp_ms)
         ctrl_vals.append(ctrl_ms)
+        xfer_vals.append(xfer_ms)
+        wrap_vals.append(wrap_ms)
         upload_vals.append(r_['upload_ms'])
         cold_vals.append(r_['cold_ms'])
         res_vals.append(r_['resident_ms'])
         tick = esc(mdl)
-        comp_coords.append(f'({comp_ms:.2f},{tick})')
-        ctrl_coords.append(f'({ctrl_ms:.2f},{tick})')
-        xfer_coords.append(f'({xfer_ms:.2f},{tick})')
+        ctrl_coords.append(f'({ctrl_ms:.4f},{tick})')
+        xfer_coords.append(f'({xfer_ms:.4f},{tick})')
+        wrap_coords.append(f'({wrap_ms:.4f},{tick})')
 
     plot_tex = (
-        f'{BS}addplot[fill=ink, draw=none] coordinates {{' + ' '.join(comp_coords) + '};\n'
-        + f'{BS}addplot[fill=peking, draw=none] coordinates {{' + ' '.join(ctrl_coords) + '};\n'
+        f'{BS}addplot[fill=peking, draw=none] coordinates {{' + ' '.join(ctrl_coords) + '};\n'
         + f'{BS}addplot[fill=steel, draw=none] coordinates {{' + ' '.join(xfer_coords) + '};\n'
+        + f'{BS}addplot[fill=muted!65!white, draw=none] coordinates {{' + ' '.join(wrap_coords) + '};\n'
     )
     (OUT / 'fpga_breakdown_plot.tex').write_text(plot_tex, encoding='utf-8')
     N['FpgaTicks'] = ','.join(f'{esc(m)}' for m in order)
@@ -561,6 +574,11 @@ def sec_fpga(N):
     N['FpgaCtrlMin'] = '%.1f' % min(ctrl_vals)
     N['FpgaCtrlMax'] = '%.1f' % max(ctrl_vals)
     N['FpgaCtrlGeomean'] = '%.2f' % gm(ctrl_vals)
+    N['FpgaXferMin'] = '%.1f' % min(xfer_vals)
+    N['FpgaXferMax'] = '%.1f' % max(xfer_vals)
+    N['FpgaXferGeomean'] = '%.1f' % gm(xfer_vals)
+    N['FpgaWrapMin'] = '%.2f' % min(wrap_vals)
+    N['FpgaWrapMax'] = '%.2f' % max(wrap_vals)
     N['FpgaUploadMin'] = '%.0f' % min(upload_vals)
     N['FpgaUploadMax'] = '{:,.0f}'.format(max(upload_vals))
     N['FpgaUploadGeomean'] = '%.1f' % gm(upload_vals)
@@ -621,6 +639,7 @@ def sec_rpc(N):
     anchors = rtl['wordwise_1mhz_anchors']
     assert len(anchors) >= 2
     N['RpcModels'] = str(len(order))
+    N['RpcExactCount'] = str(sum(bool(tc['batched']['exact'] and tc['pipeline']['exact']) for tc in tcl_rows.values()))
     N['RtlTckMhz'] = '%g' % rtl['tck_mhz']
     N['RtlBurstMsMin'], N['RtlBurstMsMax'] = '%.1f' % min(burst_ms), '%.1f' % max(burst_ms)
     N['RtlUpPctMin'], N['RtlUpPctMax'] = '%.1f' % min(up_pct), '%.1f' % max(up_pct)
