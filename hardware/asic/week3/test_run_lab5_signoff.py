@@ -38,8 +38,37 @@ class Lab5ParserTests(unittest.TestCase):
     def test_drc_rejects_unreconciled_totals(self) -> None:
         p = self._write(
             'RULECHECK DRM.R.1 ...... TOTAL Result Count = 1 (1)\n'
-            'TOTAL DRC RuleChecks Executed:   523\n'
+            'TOTAL DRC RuleChecks Executed:   1\n'
             'TOTAL DRC Results Generated:     2 (2)\n'
+        )
+        with self.assertRaises(RuntimeError):
+            lab5.parse_drc_rep(p)
+
+    def test_drc_rejects_rule_count_mismatch(self) -> None:
+        p = self._write(
+            'RULECHECK M6.A.1 ....... TOTAL Result Count = 0 (0)\n'
+            'TOTAL DRC RuleChecks Executed:   523\n'
+            'TOTAL DRC Results Generated:     0 (0)\n'
+        )
+        with self.assertRaises(RuntimeError):
+            lab5.parse_drc_rep(p)
+
+    def test_drc_rejects_malformed_rulecheck_entry(self) -> None:
+        p = self._write(
+            'RULECHECK M6.A.1 ....... TOTAL Result Count = 0 (0)\n'
+            'RULECHECK CO.R.4 ....... TOTAL Result Count = CORRUPT\n'
+            'TOTAL DRC RuleChecks Executed:   523\n'
+            'TOTAL DRC Results Generated:     0 (0)\n'
+        )
+        with self.assertRaises(RuntimeError):
+            lab5.parse_drc_rep(p)
+
+    def test_drc_rejects_duplicate_rulecheck_entry(self) -> None:
+        p = self._write(
+            'RULECHECK M6.A.1 ....... TOTAL Result Count = 0 (0)\n'
+            'RULECHECK M6.A.1 ....... TOTAL Result Count = 0 (0)\n'
+            'TOTAL DRC RuleChecks Executed:   2\n'
+            'TOTAL DRC Results Generated:     0 (0)\n'
         )
         with self.assertRaises(RuntimeError):
             lab5.parse_drc_rep(p)
@@ -48,11 +77,11 @@ class Lab5ParserTests(unittest.TestCase):
         p = self._write(
             'RULECHECK M6.A.1 ....... TOTAL Result Count = 0 (0)\n'
             'RULECHECK DRM.R.1 ...... TOTAL Result Count = 1 (1)\n'
-            'TOTAL DRC RuleChecks Executed:   523\n'
+            'TOTAL DRC RuleChecks Executed:   2\n'
             'TOTAL DRC Results Generated:     1 (1)\n'
         )
         out = lab5.parse_drc_rep(p)
-        self.assertEqual(out['rules_executed'], 523)
+        self.assertEqual(out['rules_executed'], 2)
         self.assertEqual(out['total_hier'], 1)
         self.assertEqual(out['total_expanded'], 1)
         self.assertEqual(out['nonzero_rules'], {'DRM.R.1': {'hier': 1, 'expanded': 1}})
@@ -61,6 +90,16 @@ class Lab5ParserTests(unittest.TestCase):
         p = self._write(
             'RULECHECK floating.psub_float ... TOTAL Result Count = 0 (0) FAILED PATHCHK IN LAYER DERIVATION\n'
             'TOTAL ERC RuleChecks Executed:   1\n'
+            'TOTAL ERC RuleCheck Results Generated: 0 (0)\n'
+        )
+        with self.assertRaises(RuntimeError):
+            lab5.parse_erc_sum(p)
+
+    def test_erc_rejects_malformed_rulecheck_entry(self) -> None:
+        p = self._write(
+            'RULECHECK mnpg .......... TOTAL Result Count = 0 (0)\n'
+            'RULECHECK npvss49 ....... MALFORMED\n'
+            'TOTAL ERC RuleChecks Executed:   2\n'
             'TOTAL ERC RuleCheck Results Generated: 0 (0)\n'
         )
         with self.assertRaises(RuntimeError):
