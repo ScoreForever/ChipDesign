@@ -1,0 +1,509 @@
+{
+  "array_cols": 8,
+  "congestion": true,
+  "geometry": {
+    "bond_depth_um": 73.16,
+    "core_side_um": 1620,
+    "corner_um": 115.0,
+    "die_side_um": 1920,
+    "halo_um": 26.0,
+    "layout": "diagonal_facing",
+    "macros": [
+      [
+        "model",
+        196.0,
+        196.0,
+        723.85,
+        554.595,
+        "R90"
+      ],
+      [
+        "activation",
+        1000.15,
+        1169.405,
+        723.85,
+        554.595,
+        "R270"
+      ]
+    ],
+    "margin_um": 150,
+    "pads": [
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          169.5,
+          1805.0
+        ],
+        "name": "i_pad_clk_i",
+        "orient": "R180",
+        "port": "clk_i",
+        "side": "N"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          338.5,
+          1805.0
+        ],
+        "name": "i_pad_rst_ni",
+        "orient": "R180",
+        "port": "rst_ni",
+        "side": "N"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "output",
+        "loc": [
+          507.5,
+          1805.0
+        ],
+        "name": "i_pad_irq_o",
+        "orient": "R180",
+        "port": "irq_o",
+        "side": "N"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          676.5,
+          1805.0
+        ],
+        "name": "i_pad_N_vss_1",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          845.5,
+          1805.0
+        ],
+        "name": "i_pad_N_vss_2",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          1014.5,
+          1805.0
+        ],
+        "name": "i_pad_N_vssio",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1183.5,
+          1805.0
+        ],
+        "name": "i_pad_N_vdd_1",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1352.5,
+          1805.0
+        ],
+        "name": "i_pad_N_vdd_2",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          1521.5,
+          1805.0
+        ],
+        "name": "i_pad_N_vddio",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          1690.5,
+          1805.0
+        ],
+        "name": "i_pad_N_poc",
+        "orient": "R180",
+        "port": null,
+        "side": "N"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          161.82,
+          0
+        ],
+        "name": "i_pad_tck_i",
+        "orient": "R0",
+        "port": "tck_i",
+        "side": "S"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          315.455,
+          0
+        ],
+        "name": "i_pad_tms_i",
+        "orient": "R0",
+        "port": "tms_i",
+        "side": "S"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "input",
+        "loc": [
+          469.09,
+          0
+        ],
+        "name": "i_pad_td_i",
+        "orient": "R0",
+        "port": "td_i",
+        "side": "S"
+      },
+      {
+        "cell": "PDDW0204CDG",
+        "direction": "output",
+        "loc": [
+          622.725,
+          0
+        ],
+        "name": "i_pad_td_o",
+        "orient": "R0",
+        "port": "td_o",
+        "side": "S"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          776.365,
+          0
+        ],
+        "name": "i_pad_S_vss_1",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          930.0,
+          0
+        ],
+        "name": "i_pad_S_vss_2",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          1083.635,
+          0
+        ],
+        "name": "i_pad_S_vssio",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1237.275,
+          0
+        ],
+        "name": "i_pad_S_vdd_1",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1390.91,
+          0
+        ],
+        "name": "i_pad_S_vdd_2",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          1544.545,
+          0
+        ],
+        "name": "i_pad_S_vddio",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          1698.18,
+          0
+        ],
+        "name": "i_pad_S_poc",
+        "orient": "R0",
+        "port": null,
+        "side": "S"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          205.715
+        ],
+        "name": "i_pad_W_vss_1",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          447.145
+        ],
+        "name": "i_pad_W_vss_2",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          688.57
+        ],
+        "name": "i_pad_W_vssio",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          930.0
+        ],
+        "name": "i_pad_W_vdd_1",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          1171.43
+        ],
+        "name": "i_pad_W_vdd_2",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          0,
+          1412.855
+        ],
+        "name": "i_pad_W_vddio",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          0,
+          1654.285
+        ],
+        "name": "i_pad_W_poc",
+        "orient": "R270",
+        "port": null,
+        "side": "W"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          1805.0,
+          205.715
+        ],
+        "name": "i_pad_E_vss_1",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVSS1CDG",
+        "direction": "supply",
+        "loc": [
+          1805.0,
+          447.145
+        ],
+        "name": "i_pad_E_vss_2",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVSS2CDG",
+        "direction": "supply",
+        "loc": [
+          1805.0,
+          688.57
+        ],
+        "name": "i_pad_E_vssio",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1805.0,
+          930.0
+        ],
+        "name": "i_pad_E_vdd_1",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD1CDG",
+        "direction": "supply",
+        "loc": [
+          1805.0,
+          1171.43
+        ],
+        "name": "i_pad_E_vdd_2",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD2CDG",
+        "direction": "supply",
+        "loc": [
+          1805.0,
+          1412.855
+        ],
+        "name": "i_pad_E_vddio",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      },
+      {
+        "cell": "PVDD2POC",
+        "direction": "supply",
+        "loc": [
+          1805.0,
+          1654.285
+        ],
+        "name": "i_pad_E_poc",
+        "orient": "R90",
+        "port": null,
+        "side": "E"
+      }
+    ]
+  },
+  "handoff": {
+    "area.json": "9eddd699dd020353de3328b547bc57f9542417a3c7477aa1263e3621d7fa6f7c",
+    "mapped.sdc": "0237ae4f39dc980196ecb22e1503bc66740baeceb7d869b779dc27621831c487",
+    "mapped.v": "1ddb13578bfcfd5e845e4ece296749557b61dc28f3c9b278b441109ef7265c84"
+  },
+  "hold_target": 0.25,
+  "layout": "diagonal_facing",
+  "sources_sha256": {
+    "hardware/asic/flow/config/global_define.tcl": "5342081415ace8beaefbbed56a1eb5fbcc4e009d3c8dd1454a73938515e8423d",
+    "hardware/asic/flow/config/user_define.tcl": "8c69521f96e1a431031364189e9382f75905fec107aca8ca67a41770322a196f",
+    "hardware/asic/flow/pnr/scripts/init_pnr_standard.tcl": "645b42996143e6cf4419df79fd0eef80c0b718d7074233bac224fbae62deb2d9",
+    "hardware/asic/optimize/area_breakdown.py": "0b0a0f810690c2e6bd81e28f188e3506c603d4414c190e344d610f37db5af7cb",
+    "hardware/asic/optimize/cdc_check.py": "03e13af01a37f169dc831a73d04b43ba9ff2251d6ac7f785f76c5d08a7a0a7e5",
+    "hardware/asic/optimize/cell_stats.tcl": "af29a02004ab5ca1d7d339775be32ab3dc7188e96326755eb328acd07dc1800b",
+    "hardware/asic/optimize/connect_pad.tcl": "37c36e85e726d84aefc8933e35cdfdebf705ea95b9ce1fc88f52f42a1b54f6a4",
+    "hardware/asic/optimize/flow.py": "1a79bb1072deff245e27bb062aeb048b2642214622bded7680644691e0044b48",
+    "hardware/asic/optimize/fullchip.tcl": "ec0ad92e786b9c65db353555048d9efdaf4b850fce43a292e7467be33419202c",
+    "hardware/asic/optimize/make_trace.py": "1caff13e8af8abcac8f8b498f27e8fd1b700784fa74047b6ca3276d1cb3e97e6",
+    "hardware/asic/optimize/npu_jtag_cdc.tcl": "d6435bc56be7b5ec9c5ff8694b45b5c7a2aa39e2bbf44a8a18ee2ee8ff40ea89",
+    "hardware/asic/optimize/postlayout.py": "ef83e92065d6f144843bf46f782a327ac60a23b1768b13779d1fd0ac58693edf",
+    "hardware/asic/optimize/power_place.tcl": "eecdc15d4790e05ef06454f753817dc14b161a1eb1e7eabfa663c285a0fc1633",
+    "hardware/asic/optimize/register_io.tcl": "7427d9954d4c4369434878556529c3d97a6effc25c80a0c6bbb63b604052c4f8",
+    "hardware/asic/optimize/repair_antenna.tcl": "54586ab79c84fbfbbd3ab5879c6fc1de10c860436eac83e9012e9dd98c84b4f5",
+    "hardware/asic/optimize/repair_drc.tcl": "88d3650bf6b98b7ccb07d71237f88af1976e6105a3e98f072264dff9cf8068d7",
+    "hardware/asic/optimize/route.tcl": "4be2d1add6fe88cf8aaa74916300d6834dfd8f563b595ef660814c6470911db7",
+    "hardware/asic/optimize/screenshots.tcl": "afcc47bebc77f80eb3a301ef589abe1cb0e24b3f2c16e86ec10f2623306a3389",
+    "hardware/asic/optimize/signoff.py": "7504d1c698e1746a51f976f0e6f2add67d2debdcd630ee34393a776eada59df0",
+    "hardware/asic/optimize/sram_roles.tcl": "6d4d7b663556886be2c75cddbca2e687aeb89c07106701db5c4b51123399201e",
+    "hardware/asic/optimize/synth.tcl": "f85d73ebfcf70b032926d2fa8238e9c2c742fdfaf7a983d072502d482c7d31ae",
+    "hardware/asic/optimize/tb_fullchip.sv": "71c465d58cc47ef3469f605238903876d07baf765576abd53414a00a7bf0b1ed",
+    "hardware/asic/optimize/test_cdc.py": "7c0bc02deba9476babb818965d3eb40670505476493e9c9f70d414f2bf75776a",
+    "hardware/asic/optimize/test_flow.py": "95a62402c36a302a966c8a0fd26c507f64cdc9349357225d021b6f9f72e8b003",
+    "hardware/asic/optimize/test_postlayout.py": "144fa4c535a34263fef7e487559fc6fbdb3e135bf1db624cab586cefa6d0fcdc",
+    "hardware/asic/optimize/test_repair_drc.py": "8336cfff04640d660648f4cc5eee7334710c937935e0d0ae220edeb6ec796553",
+    "hardware/asic/optimize/test_signoff.py": "033e6799f37d595b46233de7a18c719b1b8866cd335f6c21df86a73f3786c86f",
+    "hardware/asic/optimize/test_wirebond_keepout.py": "291d99d39552d9c2c9eae4c850c44325f94f08a343cd9fc60c012bd402510be7",
+    "hardware/asic/optimize/tool_worker.py": "8ed97a85cdfcc01186d1437012b65fbe31bc5b93d229408128661bed67130e6b",
+    "hardware/asic/optimize/wirebond_keepout.tcl": "98282a0749a78dac2434bc5e9f92312ffbb15085d4ba82d2c8e91937a9c3d561",
+    "hardware/npu/rtl/npu_activation_store.sv": "6eb646faaadc6e47cf0c4ff153b6388482ec169eb4563ab83021a64c05fe5072",
+    "hardware/npu/rtl/npu_mac_array.sv": "dc1ae71c54bfa51e7b917282bb632f880c509129dcc473e8d8add502655da2f2",
+    "hardware/npu/rtl/npu_model_store.sv": "acce594c723c4e6f07808e7fe14ad8ba434a9a54c86348866a657f0bd33fddc8",
+    "hardware/npu/rtl/npu_program_core.sv": "e0823328a2d70c5c86630e8ff069c6b88857b3f177c14d2cf79802928e809a6a",
+    "hardware/npu/rtl/npu_trace_capture.sv": "7ca692c198917144fc75f13c207a7f3635d541fdb2e7d798bbd7e1f884b32b67",
+    "hardware/npu/rtl/requant_lane.sv": "edb58a4e3c187682bf94c591477bb49de5db283062f30d06ce131178e0af391f",
+    "hardware/npu/scripts/run_program_regression.py": "b6133887baad912f1c46471689f1438937641706278304b037b10c31ed9e3419",
+    "hardware/npu/tools/tinycnn8_golden.py": "e4a202272ba1e439a617a317982623db94ee68e1afd35630a78091491fb48874",
+    "hardware/soc/rtl/control/npu_command_controller.sv": "694dffd02f783f2ca1ff310879f797d16c3ab3ae583cc2f663788001fdb6364c",
+    "hardware/soc/rtl/control/npu_control_subsystem.sv": "f73eb1aacd3267b15e85c640335a28c9971bc0f4b20ebeaeffefd25fd10a33f3",
+    "hardware/soc/rtl/control/npu_jtag_transport.sv": "5736742a2272ef7b0a1fa98e4c47562fe98267232bf109addf19304c18510ae7",
+    "hardware/soc/rtl/my_soc_top.sv": "c78ea83c14cb7b537f63ef13d1752c312cbbb25c0c766822c801651abf13cfce",
+    "hardware/soc/sim/filelists/chipdesign_nocpu.f": "fb156c76054bba81d5f11f2fb71ec4d198d145a843ca9903e224b3ab582850ab",
+    "hardware/soc/synth/scripts/soc_constraints.tcl": "9b10fc3fded187abe2ae097e24962036ff14b13521537a4ee0747abce8930dcf",
+    "software/host/nocpu_jtag.py": "cda3b4a5c9abafe77d6f91a0e61123cad749a804600b689a007a5d325cbf063d",
+    "software/host/npu_program.py": "66f78c28a32d2c965e68a40af30e4f5475051bfc8b28ba6cbfa000431fc352cd"
+  },
+  "utilization": 0.7
+}
