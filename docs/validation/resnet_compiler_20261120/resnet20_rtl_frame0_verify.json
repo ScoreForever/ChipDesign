@@ -1,0 +1,45 @@
+{
+  "passed": true,
+  "output_shape": [
+    1,
+    1,
+    10
+  ],
+  "output_dtype": "int64",
+  "oracle_vs_tiled_ref_exact": true,
+  "max_abs_diff": 0,
+  "plan_summary": {
+    "program_groups": 33,
+    "tile_calls": 39,
+    "fused_subgraphs": 10,
+    "host_post_ops": 18,
+    "jtag_model_bytes": 141160,
+    "jtag_input_bytes": 160544,
+    "jtag_output_bytes": 100392,
+    "jtag_total_bytes": 402096
+  },
+  "ref_telemetry": {
+    "model_loads": 33,
+    "tile_infers": 39,
+    "jtag_model_bytes": 141160,
+    "jtag_input_bytes": 160544,
+    "jtag_output_bytes": 100392,
+    "npu_cycles": 0,
+    "host_ms": 4.838767898036167,
+    "wall_ms": 4237.055627978407
+  },
+  "oracle_vs_rtl_exact": true,
+  "rtl_telemetry": {
+    "model_loads": 33,
+    "tile_infers": 39,
+    "jtag_model_bytes": 141160,
+    "jtag_input_bytes": 160544,
+    "jtag_output_bytes": 100392,
+    "npu_cycles": 887696,
+    "host_ms": 5.158919928362593,
+    "wall_ms": 316095.72715801187
+  },
+  "sample_index": 0,
+  "true_label": 3,
+  "elapsed_s": 291.43
+}
