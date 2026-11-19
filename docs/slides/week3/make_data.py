@@ -634,6 +634,8 @@ def sec_fpga(N):
     N['FpgaGtsrbInOneMs'], N['FpgaGtsrbInFiveMs'] = '%.2f' % rows_1m['gtsrb_l']['phases_ms']['input_upload'], '%.2f' % rows_5m['gtsrb_l']['phases_ms']['input_upload']
     N['FpgaGtsrbUpOneMs'], N['FpgaGtsrbUpFiveMs'] = '%.2f' % rows_1m['gtsrb_l']['upload_ms'], '%.2f' % rows_5m['gtsrb_l']['upload_ms']
     N['FpgaTckRatio'] = '%g' % (5000 / 1000)
+    N['FpgaResFive'] = '%.2f' % res[5000]
+    N['FpgaTckOutcome'] = '无净提速收益' if (res[5000] >= res[1000] and cold[5000] >= cold[1000]) else '存在净提速'
     assert all(tclm[m_]['model_bytes'] % 4 == 0 for m_ in order)
     mpw = [rows_1m[m_]['upload_ms'] / (tclm[m_]['model_bytes'] // 4) for m_ in order]
     N['FpgaUpMpwMin'], N['FpgaUpMpwMax'] = '%.2f' % min(mpw), '%.2f' % max(mpw)

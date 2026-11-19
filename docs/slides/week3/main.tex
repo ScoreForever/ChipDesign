@@ -471,7 +471,7 @@
 \section{主机 JTAG 优化与 FPGA 验证}
 
 \begin{frame}{EGo1 实板延迟分解：三步排除与双瓶颈归因}
-  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 \NFpgaExactStatus{} 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} 1 → \NFpgaTckRatio{} MHz（\NFpgaTckRatio× 提频）零收益：\texttt{ecg} 驻留 \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
+  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 \NFpgaExactStatus{} 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} 1 → \NFpgaTckRatio{} MHz（\NFpgaTckRatio× 提频）\NFpgaTckOutcome{}（驻留几何均值 \NFpgaRes{} → \NFpgaResFive{} ms；\texttt{ecg} \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms）；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
   \begin{columns}[T,onlytextwidth]
     \column{0.58\textwidth}
     \begin{tikzpicture}
