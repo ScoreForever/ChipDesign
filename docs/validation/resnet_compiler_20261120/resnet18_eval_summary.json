@@ -1,0 +1,24 @@
+{
+  "model": "resnet18_imagenet1k",
+  "params": 11689512,
+  "fp32_imagenet1k_head_on_imagenette_top1": 0.7814012738853503,
+  "fp32_10class_top1": 0.9903184713375797,
+  "int4_ptq_1k_head_top1": 0.3653503184713376,
+  "int4_distill_fakequant_1k_head_top1": 0.8231847133757961,
+  "exact_int4_graph_1k_head_top1": 0.8191082802547771,
+  "exact_int4_graph_10class_top1": 0.9763057324840765,
+  "eval_samples": 3925,
+  "bit_exact_frames_checked": 2,
+  "all_frames_bit_exact": true,
+  "plan_summary": {
+    "program_groups": 878,
+    "tile_calls": 3141,
+    "fused_subgraphs": 0,
+    "host_post_ops": 27,
+    "jtag_model_bytes": 5958432,
+    "jtag_input_bytes": 11685605,
+    "jtag_output_bytes": 7593632,
+    "jtag_total_bytes": 25237669
+  },
+  "elapsed_s": 859.6
+}

@@ -1,0 +1,21 @@
+{
+  "model": "resnet20_cifar10",
+  "params": 272474,
+  "fp32_top1_acc": 0.9263,
+  "qat_fakequant_top1_acc": 0.9118,
+  "exact_int4_graph_top1_acc": 0.9106,
+  "eval_samples": 10000,
+  "bit_exact_frames_checked": 5,
+  "all_frames_bit_exact": true,
+  "plan_summary": {
+    "program_groups": 33,
+    "tile_calls": 39,
+    "fused_subgraphs": 10,
+    "host_post_ops": 18,
+    "jtag_model_bytes": 141160,
+    "jtag_input_bytes": 160544,
+    "jtag_output_bytes": 100392,
+    "jtag_total_bytes": 402096
+  },
+  "elapsed_s": 475.9
+}

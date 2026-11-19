@@ -1,0 +1,28 @@
+[
+  {
+    "index": 0,
+    "imagenet1k_label": 0,
+    "top1_pred": 0,
+    "top5_pred": [
+      0,
+      389,
+      758,
+      391,
+      764
+    ],
+    "bit_exact": true
+  },
+  {
+    "index": 500,
+    "imagenet1k_label": 217,
+    "top1_pred": 212,
+    "top5_pred": [
+      212,
+      217,
+      219,
+      247,
+      232
+    ],
+    "bit_exact": true
+  }
+]

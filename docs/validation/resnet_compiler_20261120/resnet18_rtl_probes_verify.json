@@ -1,0 +1,120 @@
+{
+  "stem_7x7": {
+    "program_id": "p0000",
+    "layer_name": "stem",
+    "ops": [
+      "Conv",
+      "Requant"
+    ],
+    "input_shape": [
+      39,
+      37,
+      3
+    ],
+    "output_shape": [
+      17,
+      16,
+      64
+    ],
+    "input_dtype": "i4",
+    "output_dtype": "u4",
+    "model_bytes": 5184,
+    "oc_slice": [
+      0,
+      64
+    ],
+    "k_slice": [
+      0,
+      3
+    ],
+    "rtl_npu_cycles": 103084,
+    "rtl_bit_exact": true
+  },
+  "maxpool_3x3": {
+    "program_id": "p0001",
+    "layer_name": "maxpool",
+    "ops": [
+      "MaxPool"
+    ],
+    "input_shape": [
+      3,
+      113,
+      64
+    ],
+    "output_shape": [
+      1,
+      56,
+      64
+    ],
+    "input_dtype": "u4",
+    "output_dtype": "u4",
+    "model_bytes": 64,
+    "oc_slice": [
+      0,
+      64
+    ],
+    "k_slice": null,
+    "rtl_npu_cycles": 9141,
+    "rtl_bit_exact": true
+  },
+  "ktiled_512_i32": {
+    "program_id": "p0022",
+    "layer_name": "s2_b0_c2",
+    "ops": [
+      "Conv"
+    ],
+    "input_shape": [
+      9,
+      9,
+      16
+    ],
+    "output_shape": [
+      7,
+      7,
+      16
+    ],
+    "input_dtype": "u4",
+    "output_dtype": "i32",
+    "model_bytes": 1280,
+    "oc_slice": [
+      0,
+      16
+    ],
+    "k_slice": [
+      112,
+      128
+    ],
+    "rtl_npu_cycles": 3285,
+    "rtl_bit_exact": true
+  },
+  "fc_1000_oc_tile": {
+    "program_id": "p0836",
+    "layer_name": "fc",
+    "ops": [
+      "FC"
+    ],
+    "input_shape": [
+      1,
+      1,
+      512
+    ],
+    "output_shape": [
+      1,
+      1,
+      24
+    ],
+    "input_dtype": "u4",
+    "output_dtype": "i32",
+    "model_bytes": 6304,
+    "oc_slice": [
+      0,
+      24
+    ],
+    "k_slice": [
+      0,
+      512
+    ],
+    "rtl_npu_cycles": 2465,
+    "rtl_bit_exact": true
+  }
+}
