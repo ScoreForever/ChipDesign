@@ -1,0 +1,13 @@
+{
+  "antenna": true,
+  "cdc": true,
+  "connectivity": true,
+  "drc": true,
+  "drv": true,
+  "macro_pins": true,
+  "pad_geometry": true,
+  "pg_connectivity": true,
+  "pg_drc": true,
+  "placement": true,
+  "ports": true
+}

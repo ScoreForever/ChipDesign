@@ -1,0 +1,11 @@
+corner,mode,wns,start,end,arrival,required,tns_2000,violating_endpoints_2000
+ss125,setup,-16.779,i_control/i_npu/d_reg[0][0]/CP,i_control/i_activation_i_store_g_bank[0].i_sram/WEN[0],32.047,15.268,-13334.549,2000
+ss125,hold,0.458,i_control/i_npu/i_requant/out_data_reg[3]/CP,i_control/i_npu/write_data_reg[5][3]/D,2.794,2.336,0,0
+tt25,setup,0.633,i_control/i_npu/d_reg[0][0]/CP,i_control/i_activation_i_store_cache_data_reg[7][7]/D,20.084,20.718,0,0
+tt25,hold,0.226,i_control/i_activation_i_store_cache_data_reg[12][22]/CP,i_control/i_activation_i_store_high_word_reg[22]/D,1.623,1.397,0,0
+ff0,setup,4.529,i_control/i_npu/d_reg[0][0]/CP,i_control/i_activation_i_store_cache_data_reg[7][7]/D,15.929,20.458,0,0
+ff0,hold,0.090,i_control/i_activation_i_store_cache_data_reg[12][22]/CP,i_control/i_activation_i_store_high_word_reg[22]/D,1.181,1.091,0,0
+ffm40,setup,5.327,i_control/i_npu/d_reg[0][0]/CP,i_control/i_activation_i_store_cache_data_reg[7][7]/D,15.105,20.431,0,0
+ffm40,hold,0.075,i_control/i_activation_i_store_cache_data_reg[12][22]/CP,i_control/i_activation_i_store_high_word_reg[22]/D,1.127,1.051,0,0
+SS125_DERATED,setup,0.234,i_host/ack_toggle_reg/CP,i_host/ack_sync_reg[0]/D,2.305,2.539,NA,NA
+SS125_DERATED,hold,0.458,i_control/i_npu/i_requant/out_data_reg[3]/CP,i_control/i_npu/write_data_reg[5][3]/D,2.794,2.336,NA,NA

@@ -1,0 +1,16 @@
+{
+  "dbu_per_um": 2000,
+  "candidate_name": "diag70_h25",
+  "private_server_sha256": {
+    "chip.gds.gz": "6c4f4abf56f30c7af8d06bcb6ba3d211e415a9b64084747646a12c4bc267049f",
+    "physical.v": "6c81396c6413ca80d6adcce2cf46417a0dbf9d6b3247bef2c63fea006afa24ad",
+    "routed.def": "2daaba19bd14d95cc4dd0480263bd2c85c4e3b2a54157ac0ed4ce1a25a6a2d36",
+    "routed.sdf.gz": "28bf8f3259d751a5a66c90843f00f6a0ad8efe7116d9475a8fab2d6f7d1b5883",
+    "routed.spef.gz": "586e59b01d351413d5302d4713d7cdb0e0b38b94d457fdcf5807ee022c4621bd",
+    "preDummy.gds": "9603c145d80a435b029e8c4ed9b67d8b45c14b32621f348d4486893d6c52bbd1",
+    "DM.gds": "126f4346b021d9ac0797f5959cbc934fead25c829271c3c48d5a245d1ba0edf9",
+    "DOD.gds": "10eb7d5ea04c0ca273b1669d9e37d90a7873a42bf4bfa38d6e57dede4301d5c5",
+    "postDummy.gds": "17fbc02c48f4b756c91788df420b7db307d506e03787af7be200faad55cc0a89",
+    "netlist.cdl": "6b2fe0be04a068ec7ddffddbc5a939f519397ee1e9a540b58966f275e31502aa"
+  }
+}

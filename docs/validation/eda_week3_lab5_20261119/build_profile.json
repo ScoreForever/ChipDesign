@@ -1,0 +1,7 @@
+{
+  "activation_bits": 4,
+  "array_cols": 8,
+  "clock_gating": true,
+  "requant_fraction_bits": 15,
+  "weight_bits": 4
+}
