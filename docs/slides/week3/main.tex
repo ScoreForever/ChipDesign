@@ -1,26 +1,71 @@
-% Week 3 全栈进展（11-11 → 11-18）组会幻灯片，14 页
-% 编译：python3 make_data.py && latexmk -xelatex main.tex
-% 所有数字来自 data/numbers.tex 等（由 make_data.py 从 docs/validation/ 读取），本文件不手写数字。
-% 模板：minimalist-pku-beamer-2026（MIT，见 LICENSE.template）
-\documentclass[10pt,aspectratio=169,hyperref={colorlinks,urlcolor=peking_blue,linkcolor=}]{beamer}
+% 14 Pages, CN+EN ISSCC/VLSI Theme (v4 — 4-Corner 50 MHz Closure)
+% Build: python3 make_data.py && latexmk -xelatex main.tex
+% All metric values are generated into data/ from verified repository records; none are hardcoded here.
+\documentclass[10pt,aspectratio=169,hyperref={colorlinks,urlcolor=steel,linkcolor=}]{beamer}
 \usepackage{PekingU}
-\setbeamertemplate{headline}{}  % 不显示顶部章节导航行
-\usefonttheme{serif}
-\usepackage[fontset=none, scheme=plain]{ctex}
-\IfFontExistsTF{Songti SC}{%
-  \setCJKmainfont{Songti SC}[AutoFakeSlant=0.2]%
-  \setCJKsansfont{Songti SC}[AutoFakeSlant=0.2]%
-  \setCJKmonofont{Songti SC}%
+\setbeamertemplate{headline}{}
+\makeatletter\AtBeginDocument{\global\pku@headheight=0pt}\makeatother
+\setbeamertemplate{background canvas}{\color{white}\rule{\paperwidth}{\paperheight}}
+\usefonttheme{professionalfonts}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\xeCJKsetup{CJKmath=true}
+% CJK: Microsoft YaHei (TrueType collection) on Windows/WSL; PingFang SC on macOS; Noto Sans CJK SC on Linux. Never the ctex default serif.
+\IfFileExists{/mnt/c/Windows/Fonts/msyh.ttc}{%
+  \setCJKmainfont{msyh.ttc}[Path=/mnt/c/Windows/Fonts/,BoldFont=msyhbd.ttc,ItalicFont=msyh.ttc]%
+  \setCJKsansfont{msyh.ttc}[Path=/mnt/c/Windows/Fonts/,BoldFont=msyhbd.ttc,ItalicFont=msyh.ttc]%
+  \setCJKmonofont{msyh.ttc}[Path=/mnt/c/Windows/Fonts/,BoldFont=msyhbd.ttc,ItalicFont=msyh.ttc]%
 }{%
-  \setCJKmainfont{FandolSong-Regular}[Extension=.otf,BoldFont=FandolSong-Bold,AutoFakeSlant=0.2]%
-  \setCJKsansfont{FandolSong-Regular}[Extension=.otf,BoldFont=FandolSong-Bold,AutoFakeSlant=0.2]%
-  \setCJKmonofont{FandolFang-Regular}[Extension=.otf,BoldFont=FandolFang-Regular]%
+  \IfFontExistsTF{PingFang SC}{%
+    \setCJKmainfont{PingFang SC}\setCJKsansfont{PingFang SC}\setCJKmonofont{PingFang SC}%
+  }{%
+    \setCJKmainfont{Noto Sans CJK SC}\setCJKsansfont{Noto Sans CJK SC}\setCJKmonofont{Noto Sans CJK SC}%
+  }%
 }
-\setmainfont{XCharter}
-\IfFontExistsTF{Maple Mono NF}{\setmonofont{Maple Mono NF}[Scale=MatchLowercase]}{}
+\renewcommand{\CJKfamilydefault}{\CJKsfdefault}
+
+% Strictly TrueType (.ttf) sans-serif & monospace fonts for universal pdf.js rendering
+\IfFileExists{/mnt/c/Windows/Fonts/segoeui.ttf}{%
+  \setsansfont{segoeui.ttf}[
+    Path=/mnt/c/Windows/Fonts/,
+    BoldFont=segoeuib.ttf,
+    ItalicFont=segoeuii.ttf,
+    BoldItalicFont=segoeuiz.ttf
+  ]%
+}{%
+  \IfFontExistsTF{Helvetica Neue}{%
+    \setsansfont{Helvetica Neue}%
+  }{%
+    \setsansfont{LiberationSans-Regular.ttf}[
+      Path=/usr/share/fonts/truetype/liberation/,
+      BoldFont=LiberationSans-Bold.ttf,
+      ItalicFont=LiberationSans-Italic.ttf,
+      BoldItalicFont=LiberationSans-BoldItalic.ttf
+    ]%
+  }%
+}
+\IfFileExists{/mnt/c/Windows/Fonts/consola.ttf}{%
+  \setmonofont{consola.ttf}[
+    Path=/mnt/c/Windows/Fonts/,
+    BoldFont=consolab.ttf,
+    Scale=0.92
+  ]%
+}{%
+  \IfFontExistsTF{Menlo}{%
+    \setmonofont{Menlo}[Scale=0.92]%
+  }{%
+    \setmonofont{LiberationMono-Regular.ttf}[
+      Path=/usr/share/fonts/truetype/liberation/,
+      BoldFont=LiberationMono-Bold.ttf,
+      Scale=0.92
+    ]%
+  }%
+}
+\renewcommand{\familydefault}{\sfdefault}
+
 \usepackage{amsmath,amssymb,xcolor,booktabs,graphicx,ragged2e,parskip,tabularx,array,multirow,colortbl}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,fit,calc,backgrounds,shapes.misc}
+\usetikzlibrary{positioning,arrows.meta,calc}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \apptocmd{\frame}{}{\justifying}{}
@@ -28,467 +73,525 @@
 \input{data/numbers.tex}
 \makeatletter\newcommand{\tabinput}[1]{\@@input #1 }\makeatother
 
-\title[先进芯片全栈设计与实践]{先进芯片全栈设计与实践}
-\subtitle{Week 3 Full-Stack Progress（11-11 $\to$ 11-18）}
-\author[]{何睿隽 \quad 章国懿 \quad 赵智远 \quad 程沐阳}
-\institute{北京大学}
-\date{2026 年 11 月}
+% ---------- ISSCC / VLSI Restrained Minimalist Palette ----------
+\definecolor{peking}{HTML}{8B0012}     % Primary Accent: PKU Crimson
+\definecolor{ink}{HTML}{1E293B}        % Primary Ink: Deep Charcoal
+\definecolor{muted}{HTML}{64748B}      % Secondary Text / Captions
+\definecolor{hair}{HTML}{D8DEE6}       % Hairline Rules & Borders
+\definecolor{surf}{HTML}{F6F7F9}       % Neutral Light Surface
+\definecolor{steel}{HTML}{1D4E89}      % Secondary Chart Accent: Deep Steel Blue
+\definecolor{passink}{HTML}{15803D}    % Subtle Semantic Pass
+\definecolor{warnink}{HTML}{B45309}    % Subtle Semantic Attention
 
-% ---------- 通用样式 ----------
+\setbeamercolor{normal text}{fg=ink,bg=white}
+\setbeamercolor{frametitle}{fg=peking,bg=white}
+\setbeamercolor{structure}{fg=peking}
+\setbeamercolor{footline}{bg=peking,fg=white}
+\setbeamercolor{title}{bg=peking,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamerfont{section in toc}{series=\bfseries,size=\normalsize}
+\setbeamerfont{itemize/enumerate body}{size=\scriptsize}
+\setbeamerfont{itemize/enumerate subbody}{size=\scriptsize}
+\setbeamertemplate{itemize item}{\raisebox{0.18ex}{\tikz\fill[peking] (0,0) rectangle (3pt,3pt);}}
+\setbeamertemplate{itemize subitem}{\raisebox{0.18ex}{\tikz\draw[muted,line width=0.6pt] (0,0) circle (1.3pt);}}
+\setbeamertemplate{enumerate item}{\textbf{\color{peking}\insertenumlabel.}}
+
+\title[先进芯片全栈设计与实践]{先进芯片全栈设计与实践\\[3pt]{\large Full-Stack Chip Design \& Practice}}
+\subtitle{第 3 周进展：从架构与 RTL 到物理签核（Signoff）与主机加速}
+\author[]{Ruijun He \quad Guoyi Zhang \quad Zhiyuan Zhao \quad Muyang Cheng}
+\institute{Peking University}
+\date{November 2026}
+
+% ---------- Clean Helpers ----------
 \newcommand{\hl}[1]{\textcolor{peking}{\textbf{#1}}}
-\newcommand{\snote}[1]{{\scriptsize\color{peking_gray}#1}}
-\newcommand{\src}[1]{{\tiny\color{peking_gray}\texttt{#1}}}
-% Okabe-Ito 色盲友好配色
-\definecolor{oiorange}{HTML}{E69F00}
-\definecolor{oisky}{HTML}{56B4E9}
-\definecolor{oigreen}{HTML}{009E73}
-\definecolor{oiyellow}{HTML}{F0E442}
-\definecolor{oiblue}{HTML}{0072B2}
-\definecolor{oiverm}{HTML}{D55E00}
-\definecolor{oipurple}{HTML}{CC79A7}
-\definecolor{oigray}{HTML}{3A3A3A}
-\newcommand{\ok}{\textcolor{oigreen}{\textbf{\checkmark}}}
-\newcommand{\warn}{\textcolor{oiorange}{\textbf{!}}}
-\newcommand{\todo}{\textcolor{oiverm}{\textbf{$\circ$}}}
-\tikzset{
-  blk/.style={draw=oigray!60, rounded corners=2pt, fill=white, align=center,
-              font=\scriptsize, inner sep=2pt, minimum height=0.85cm, text width=#1},
-  blk/.default=1.6cm,
-  arr/.style={-{Stealth[length=4pt,width=3pt]}, line width=0.8pt, draw=oigray, rounded corners=2pt},
-  card/.style={draw=#1!70, rounded corners=3pt, fill=#1!7, align=left,
-               inner sep=4pt, font=\scriptsize},
-  card/.default=peking,
-  lab/.style={font=\tiny, inner sep=1pt, fill=white, text=oigray},
+\newcommand{\snote}[1]{{\scriptsize\color{muted}#1\par}}
+\newcommand{\ok}{\tikz[baseline=-0.1ex]\draw[passink,line width=1.15pt,line cap=round,line join=round] (0,0.34ex) -- (0.36ex,-0.02ex) -- (0.98ex,0.82ex);}
+\newcommand{\pending}{\textcolor{warnink}{\textbf{–}}}
+\newcommand{\abi}{ABI 5.0 \NCols×\NCols}
+
+% Crisp Left-Bar Callout (Zero full-sided colored boxes)
+\newcommand{\callout}[2][peking]{%
+  \noindent\begin{tikzpicture}
+    \node[anchor=north west, fill=surf, text=ink, inner xsep=8pt, inner ysep=6pt,
+          text width=\dimexpr\linewidth-16pt\relax, align=left, font=\scriptsize] (box) {#2};
+    \fill[#1] (box.north west) rectangle ([xshift=2.4pt]box.south west);
+  \end{tikzpicture}%
 }
+
+\tikzset{
+  issccbox/.style={draw=ink!80, line width=0.75pt, rounded corners=1.5pt, fill=white,
+                   align=center, font=\scriptsize, inner sep=4pt, minimum height=0.95cm, text width=#1},
+  issccbox/.default=1.8cm,
+  issccarr/.style={-{Stealth[length=4.5pt,width=3.2pt]}, line width=0.75pt, draw=ink!80},
+  issccnote/.style={font=\tiny, text=ink!85, inner sep=1pt, outer sep=2pt},
+}
+
 \pgfplotsset{
-  pkubar/.style={
-    font=\scriptsize, axis lines*=left, grid style={peking_gray!25},
-    tick label style={font=\scriptsize}, label style={font=\scriptsize},
+  issccbar/.style={
+    font=\scriptsize,
+    axis lines*=left,
+    axis line style={ink!60, line width=0.6pt},
+    tick style={ink!50},
+    grid style={hair, line width=0.4pt},
+    tick label style={font=\scriptsize, text=ink},
+    xticklabel={\pgfmathprintnumber[assume math mode=true]{\tick}},
+    yticklabel={\pgfmathprintnumber[assume math mode=true]{\tick}},
+    label style={font=\scriptsize, text=ink},
     legend style={font=\scriptsize, draw=none, fill=none},
+    /pgf/number format/assume math mode=true,
   },
 }
-\setlength{\tabcolsep}{4pt}
 
-% 不生成章节分隔页：每个 frame 与 14 页结构一一对应
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.18}
+
+% Clean Minimalist Chapter Divider Slides
 \AtBeginSection[]{}
+
 \begin{document}
 
-% ===================================================================== 1
+% ===================================================================== 1 Cover
 {\setbeamertemplate{logo}{}
 \begin{frame}
   \titlepage
-  \begin{center}\includegraphics[width=0.22\linewidth]{Figures/PKU-emblem-names.png}\end{center}
+  \begin{center}\includegraphics[width=0.21\linewidth]{Figures/PKU-emblem-names.png}\end{center}
 \end{frame}}
 
-% ===================================================================== 2
-\begin{frame}{本周全栈进展总览}
-  \centering
-  \begin{tikzpicture}[node distance=0.14cm]
-    \node[card=oisky, text width=2.92cm, minimum height=3.35cm, anchor=north west] (a) at (0,0) {%
-      {\footnotesize\textbf{PR \#17 · 六场景 Demo}}\\[3pt]
-      \NNumScenes{} 个场景统一入口\\
-      固定输入 \hl{\NDemoGolden/\NDemoGoldenTotal} \mbox{位级一致}\\
-      原七模型 \NDemoZoo/\NDemoZoo{} 帧一致\\
-      修复 \NDemoFixes{} 项评审问题\\[2pt]
-      \textcolor{peking_gray}{软件参考，无实板}};
-    \node[card=oiorange, text width=2.92cm, minimum height=3.35cm, anchor=north west, right=of a.north east, anchor=north west] (b) {%
-      {\footnotesize\textbf{PR \#18 · JTAG Single-RPC}}\\[3pt]
-      每模型 load \NRpcPipeLoad{} + infer \NRpcPipeInfer{} 次 RPC\\
-      \NRpcModels{} 个模型均减至 \NRpcPipe{} 次\\
-      估计主机往返 \hl{\NRpcSpMin--\NRpcSpMax$\times$}\\
-      TclRpc fail-closed\\[2pt]
-      \textcolor{peking_gray}{按 \NRpcMsPer{} ms/RPC \mbox{历史值估计}}};
-    \node[card=oigreen, text width=2.92cm, minimum height=3.35cm, right=of b.north east, anchor=north west] (c) {%
-      {\footnotesize\textbf{PR \#15/\#19 · 查找表入 SRAM}}\\[3pt]
-      \NRecords{} 条记录从触发器移入激活 SRAM\\
-      \NRtlModels{} 模型 $\times$ \NRtlConfigs{} 存储配置复核\\
-      周期 $-$\NCycDeltaMin{}$\sim-$\NCycDeltaMax{}\\
-      新增故障注入 \hl{\NMutKilled/\NMutNew}\\[2pt]
-      \textcolor{peking_gray}{PR \#19 为对齐基线复核}};
-    \node[card=oiblue, text width=2.92cm, minimum height=3.35cm, right=of c.north east, anchor=north west] (d) {%
-      {\footnotesize\textbf{PR \#20 · Week 3 ASIC}}\\[3pt]
-      TT \NCoreMHz{} MHz：\NTTSetup{} / \NTTHold{} ns\\
-      查找表面积 \hl{\NLookupAreaPct\%}\\
-      \NMmmcCorners-Corner MMMC + \NCdcRows{} CDC\\
-      VCD 功耗：融合省能 \hl{\NFusionSave\%}\\[2pt]
-      \textcolor{peking_gray}{Standalone 原型签核}};
-    \draw[arr] (a.east) -- (b.west);
-    \draw[arr] (b.east) -- (c.west);
-    \draw[arr] (c.east) -- (d.west);
-  \end{tikzpicture}
-  \vspace{6pt}
-
-  {\scriptsize
-  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
-    \toprule
-    & 本周闭环 & 仍未完成（第 13 页） \\ \midrule
-    芯片 & RTL $\to$ 综合 $\to$ P\&R $\to$ STA / LEC / DRC / LVS / SDF $\to$ MMMC $\to$ VCD 功耗 & Lab 5 Seal Ring、下层 Dummy、ERC / WireBond；RC 工艺角 \\
-    系统 & 主机 Single-RPC、六场景软件参考闭环 & ABI 5.0 \NCols$\times$\NCols{} FPGA 实板、传感器现场验收 \\ \bottomrule
-  \end{tabularx}}
+% ===================================================================== 2 Overview
+\begin{frame}{总览：第 3 周端到端进展}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.238\textwidth}
+      {\color{ink}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
+      {\tiny\bfseries\color{muted} 01 · 架构与 RTL}\\[2pt]
+      {\small\bfseries\color{ink} SRAM 化 Lookup}\\[5pt]
+      {\large\bfseries\color{peking} \NLookupAreaPct\%} {\scriptsize\color{muted} 查找表面积}\\[4pt]
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item \NLookupFFBefore{} → \NLookupFFAfter{} 个 FF
+        \item \NRtlModels{} 模型 × \NRtlConfigs{} 配置 \NRtlExactShort
+        \item Lookup mutant 杀死 \NMutKilled/\NMutNew
+      \end{itemize}
+    \column{0.238\textwidth}
+      {\color{peking}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
+      {\tiny\bfseries\color{peking} 02 · 纯后端 True-MMMC 与签核}\\[2pt]
+      {\small\bfseries\color{ink} \NAllMmmcCard}\\[5pt]
+      {\large\bfseries\color{peking} \NSSSetup\,ns} {\scriptsize\color{muted} SS125}\\[4pt]
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item \texttt{ss125} \NSSBeforeFreq{} → \NSSFreq{} MHz，\NZeroRtl
+        \item DRC / nmLVS / ANT / WireBond \NSignoffAllStatus
+        \item ERC \NErcHier{} Hier. / \NErcExp{} Exp. 已逐项审计
+      \end{itemize}
+    \column{0.238\textwidth}
+      {\color{ink}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
+      {\tiny\bfseries\color{muted} 03 · 主机与 FPGA}\\[2pt]
+      {\small\bfseries\color{ink} Single-RPC 流水线}\\[5pt]
+      {\large\bfseries\color{peking} \NRpcBatchedMax{} → \NRpcPipe} {\scriptsize\color{muted} 主机 RPC 次数}\\[4pt]
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item RPC 实测减少 \NRpcSpMin–\NRpcSpMax×
+        \item \NRtlTckMhz{} MHz RTL + \NRpcExactCount/\NRpcModels{} TclRpc golden-output fixture \NRpcExactStatus
+      \end{itemize}
+    \column{0.238\textwidth}
+      {\color{ink}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
+      {\tiny\bfseries\color{muted} 04 · 应用}\\[2pt]
+      {\small\bfseries\color{ink} 六场景套件}\\[5pt]
+      {\large\bfseries\color{peking} \NDemoGolden/\NDemoGoldenTotal} {\scriptsize\color{muted} INT32 \NDemoExactStatus}\\[4pt]
+      \begin{itemize}\setlength{\itemsep}{2pt}
+        \item \NDemoZoo/\NDemoZoo{} zoo 参考帧 \NDemoExactStatus
+        \item \NDemoFixes{} 项运行时健壮性修复
+      \end{itemize}
+  \end{columns}\par\vspace{12pt}\callout[peking]{\textbf{核心主线}：以 SRAM 化 Lookup 释放面积（\hl{\NLookupAreaPct\%}），以纯后端 True-MMMC 实现 \hl{\NAllMmmcStatus}（\texttt{ss125} Setup \NSSBeforeSetup{} → \hl{\NSSSetup{} ns}，\NZeroRtl），在统一 \texttt{postDummy.gds} 上 DRC / nmLVS / ANT / WireBond \NSignoffAllStatus{} 并完成 ERC 审计，再以 Single-RPC 把主机 RPC 由 \NRpcBatchedMax{} 次压至 \NRpcPipe{} 次；下一步为 EGo1 实板 USB 批量后端。}
 \end{frame}
 
-% ===================================================================== 3
-\begin{frame}{主机 JTAG Single-RPC 与 Demo 健壮性（PR \#18 / PR \#17）}
-  \begin{columns}[T]
-    \column{0.56\textwidth}
-    \textbf{RPC 次数：逐条 $\to$ 批量 $\to$ 流水（burst 协议）}\\[2pt]
-    {\scriptsize
-    \begin{tabular}{@{}lrrrrr@{}}
-      \toprule
-      模型 & legacy & batched & pipeline & 估计 ms & 加速 \\ \midrule
-      \tabinput{data/jtag_rows.tex}
-      \bottomrule
-    \end{tabular}}\par\vspace{2pt}
-    \snote{估计 = RPC 次数 $\times$ \NRpcMsPer{} ms（历史 OpenOCD 基线，非本轮 EGo1 实测）。}\\
-    \src{jtag\_rpc\_20261118/e2e\_timing.json}
-    \column{0.42\textwidth}
-    \textbf{\NAnchorTck{} MHz TCK 锚点（ecg，RTL 仿真）}
-    \begin{itemize}\scriptsize
-      \item burst 总 TCK 时间 \hl{\NAnchorBurstMs{} ms}，wordwise \NAnchorWordMs{} ms（\NAnchorRatio$\times$）
-      \item 模型上传占 burst 总 TCK 的 \NAnchorUpPct\%；计算本身可忽略
-    \end{itemize}
-    \src{ecg\_1mhz\_anchor.json}\\[4pt]
-    \textbf{Demo \NDemoFixes{} 项评审问题已修复（\texttt{1759302}，随 PR \#17 合入）}
-    \begin{itemize}\scriptsize
-      \item 手机采集重启：等待上一轮上传队列排空后才开放新会话，旧回调不再打断新会话
-      \item HAR 跟随：时间戳缺口 $>$ \NHarGapMs{} ms 时从断点后重新积累窗口，不再长时间拒绝
-      \item 自测报告区分 \texttt{golden\_coverage}（部分）与 \texttt{golden\_complete}（完整）；仅 FPGA 完整自测才置 \texttt{fpga\_validated}
-    \end{itemize}
-  \end{columns}
-\end{frame}
+% ##################################################################### PART 01
+\section{架构与 RTL 验证}
 
-% ===================================================================== 4
-\begin{frame}{架构：\texttt{npu\_tensor\_lookup} 从触发器移入激活 SRAM（PR \#15 / \#19）}
-  \begin{columns}[T]
+\begin{frame}{\texttt{npu\_tensor\_lookup}：从触发器迁移到 Activation SRAM}
+  \begin{columns}[T,onlytextwidth]
     \column{0.40\textwidth}
-    \textbf{为什么能移走}
-    \begin{itemize}\scriptsize
-      \item 查找表只在 \texttt{MODEL\_COMMIT} 校验描述符时使用：每个算子的源张量必须由前序算子写过且未被覆盖
-      \item 此时激活区尚无有效数据，可借用作暂存
-      \item 校验通过后描述符不再变化，\texttt{START} 不必重扫
-    \end{itemize}
-    \textbf{做法}
-    \begin{itemize}\scriptsize
-      \item 原 \NRecords{} $\times$ \NRecordBitsOld{} bit 触发器表（\NLookupFFBefore{} FF，占标准单元 \NLookupShareBefore\%）
-      \item 每条记录压成一个 \NRecordWordBits{} bit 字，存于激活 SRAM 字节 $[0,\,4(\text{op}+1))$
-      \item 复用 NPU 现有读写口，不加端口
-    \end{itemize}
-    \column{0.58\textwidth}
+    \textbf{设计动机}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item Lookup 溯源记录仅在 \texttt{MODEL\_COMMIT} 阶段查询，用于校验每个源张量均已写入且未被覆盖。
+      \item commit 期间 Activation SRAM 不存放有效激活值，并在推理 \texttt{START} 前清空。
+    \end{itemize}\par\vspace{5pt}
+    \textbf{实现方案}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item 以顺序 SRAM 扫描替换 \NRecords×\NRecordBitsOld-bit 的 FF 表（占优化前 stdcell 面积的 \NLookupShareBefore\%）。
+      \item 每条记录打包为 1 个 \NRecordWordBits-bit 字，存放于 Activation SRAM 字节区间 \texttt{[0, 4(op+1))}。
+      \item 复用现有 SRAM 读写端口，\NSramPinStatus。
+    \end{itemize}\par\vspace{7pt}
+    \callout[peking]{\textbf{综合实测收益}：Lookup FF \NLookupFFBefore{} → \hl{\NLookupFFAfter}；模块面积 \NLookupAreaBefore{} → \hl{\NLookupAreaAfter{} kµm²}（\hl{\NLookupAreaPct\%}）。}
+    \column{0.57\textwidth}
     \centering
-    \begin{tikzpicture}[node distance=0.45cm and 0.32cm]
-      \node[blk=1.55cm, fill=oiorange!12, draw=oiorange] (host) {主机 JTAG\\描述符 + 模型};
-      \node[blk=1.3cm, right=of host] (ctl) {控制器\\\texttt{VWAIT}};
-      \node[blk=2.45cm, right=of ctl, fill=oigreen!12, draw=oigreen] (lk) {\texttt{npu\_tensor\_lookup}\\顺序扫描 FSM};
-      \node[blk=4.6cm, below=0.9cm of lk.south east, anchor=north east, fill=oiblue!10, draw=oiblue, minimum height=1.0cm] (sram) {激活 SRAM（\texttt{RA1SHD}）\\[1pt]
-        \tiny 记录区 $[0,4(\text{op}+1))$ \quad | \quad 推理激活数据};
-      \draw[arr, draw=oiorange] (host) -- node[lab, above]{commit} (ctl);
-      \draw[arr] (ctl) -- node[lab, above]{校验} (lk);
-      \draw[arr, draw=oiblue] ([xshift=-4pt]lk.south) -- node[lab, left]{写记录} ([xshift=-4pt]lk.south |- sram.north);
-      \draw[arr, draw=oiblue] ([xshift=10pt]lk.south |- sram.north) -- node[lab, right]{读记录} ([xshift=10pt]lk.south);
-      \draw[arr, dashed] (ctl.south) |- node[lab, pos=0.25, left]{\texttt{act\_owner\_o}} ([yshift=6pt]sram.west);
-    \end{tikzpicture}\par\vspace{4pt}
+    \begin{tikzpicture}[node distance=0.55cm and 0.85cm]
+      \node[issccbox=1.5cm] (host) {Host JTAG\\Desc. + Model};
+      \node[issccbox=1.3cm, right=of host] (ctl) {Controller\\\texttt{VWAIT}};
+      \node[issccbox=2.25cm, right=of ctl, fill=surf, draw=peking, line width=1.0pt] (lk) {\textbf{\texttt{npu\_tensor\_lookup}}\\Sequential Scan FSM};
+      \node[issccbox=4.6cm, below=0.95cm of lk.south east, anchor=north east, fill=surf, draw=steel, line width=0.9pt, minimum height=1.1cm] (sram) {%
+        \textbf{Activation SRAM (\texttt{RA1SHD})}\\[2pt]
+        \tiny Record Space \texttt{[0, 4(op+1))} \quad|\quad Inference Activations};
+      \draw[issccarr] (host) -- node[issccnote, above=2pt]{commit} (ctl);
+      \draw[issccarr] (ctl) -- node[issccnote, above=2pt]{verify} (lk);
+      \draw[issccarr, steel] ([xshift=-9pt]lk.south) -- node[issccnote, left=2pt]{write} ([xshift=-9pt]lk.south |- sram.north);
+      \draw[issccarr, steel] ([xshift=13pt]lk.south |- sram.north) -- node[issccnote, right=2pt]{read} ([xshift=13pt]lk.south);
+      \draw[issccarr, dashed, peking] (ctl.south) -- node[issccnote, left=2pt]{\texttt{act\_owner\_o}} (ctl.south |- sram.north);
+    \end{tikzpicture}\par\vspace{10pt}
     {\scriptsize
     \begin{tabular}{@{}l l@{}}
       \toprule
-      时序约束 & 防止的问题 \\ \midrule
-      同时只有一笔写在途 & 写后读冲突（RAW） \\
-      写等待时不发读 & 读到旧记录 \\
-      记录写全部被接受才报 \texttt{done} & 主机输入与记录写竞争 \\
-      \texttt{VWAIT} 期间激活口归 NPU & 记录流量被阻塞 \\ \bottomrule
+      \textbf{序关系不变量} & \textbf{防护的冒险} \\ \midrule
+      同一时刻至多 1 个 SRAM 写在途 & 写后读（RAW）冒险 \\
+      写停顿期间不发起读 & 读到过期溯源记录 \\
+      \texttt{done} 等待最后一次写被接受 & 主机输入覆写与记录写入冲突 \\
+      \texttt{VWAIT} 内锁定端口所有权 & 校验扫描被饿死 \\ \bottomrule
     \end{tabular}}
   \end{columns}
 \end{frame}
 
-% ===================================================================== 5
-\begin{frame}{RTL 验证与故障注入（PR \#15 / \#19）}
-  \begin{columns}[T]
-    \column{0.55\textwidth}
-    \textbf{七模型冷启动周期（\texttt{\NRtlBefore} $\to$ \texttt{\NRtlAfter}）}\\[2pt]
-    {\scriptsize
+\begin{frame}{同基线 RTL 回归与 Mutation 覆盖}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.53\textwidth}
+    \textbf{\NRtlModels{} 个 zoo 模型冷运行周期变化量}\par\vspace{3pt}
+    {\scriptsize\setlength{\tabcolsep}{3pt}
     \begin{tabular}{@{}lrrrr@{}}
       \toprule
-      模型 & behavioral & $\Delta$ & \texttt{FPGA\_MEM} & $\Delta$\% \\ \midrule
+      \textbf{模型} & \textbf{行为级} & \textbf{Δ} & \textbf{\texttt{FPGA\_MEM}} & \textbf{Δ\%} \\ \midrule
       \tabinput{data/cycle_rows.tex}
       \bottomrule
-    \end{tabular}}\par\vspace{2pt}
-    \snote{\NRtlRuns{} 组运行写回次数全部不变、逐写回位级一致，\NRtlNeg{} 项负例 / 生命周期检查通过；省下的 \NCycDeltaMin--\NCycDeltaMax{} 周期来自 \texttt{START} 不再重扫查找表。}\\
-    \src{rtl\_lookup\_20261118/model\_cycles.csv, provenance.json}
-    \column{0.43\textwidth}
-    \textbf{回归（PR \#15 提交记录）}\\[1pt]
+    \end{tabular}}\par\vspace{5pt}
+    \snote{\NRtlRuns{} 次对比运行\NRtlExactStatus；\NCycDeltaMin–\NCycDeltaMax{} 周期收益来自 \texttt{START} 时跳过 commit 重扫。\NRtlNeg{} 条负向生命周期检查\NRtlNegStatus。}
+    \column{0.44\textwidth}
+    \textbf{完整回归门控}\par\vspace{3pt}
     {\scriptsize
     \begin{tabular}{@{}lr@{}}
       \toprule
-      behavioral 程序回归 & \NRegBeh \\
+      行为级程序回归 & \NRegBeh \\
       \texttt{FPGA\_MEM} 程序回归 & \NRegFpga \\
-      \texttt{RA1SHD} 宏模型回归 & \NRegMacro \\
-      CDC 极限扫描 & \NCdcLimits \\
-      原有严格故障注入 & \NMutOld{}（与之前相同） \\ \bottomrule
-    \end{tabular}}\par\vspace{4pt}
-    \textbf{新增 \NMutNew{} 个故障注入：\hl{\NMutKilled/\NMutNew{} 检出（\NMutKillPct\%）}}\\[1pt]
-    {\tiny
+      \texttt{RA1SHD} 宏单元仿真 & \NRegMacro \\
+      CDC 边界模糊/扫描 & \NCdcLimits \\
+      基线严格 Mutation 套件 & \NMutOld \\ \bottomrule
+    \end{tabular}}\par\vspace{7pt}
+    \textbf{新 Lookup Mutant：\hl{\NMutKilled/\NMutNew{} 已杀灭（\NMutKillPct\%）}}\par\vspace{3pt}
+    {\tiny\setlength{\tabcolsep}{2.5pt}
     \begin{tabular}{@{}lll@{}}
+      \toprule
+      \textbf{ID} & \textbf{范围} & \textbf{注入故障} \\ \midrule
       \tabinput{data/mutants.tex}
-    \end{tabular}}\par\vspace{1pt}
-    \snote{检出手段：\NMutKilledBy}
+      \bottomrule
+    \end{tabular}}
   \end{columns}
 \end{frame}
 
-% ===================================================================== 6
-\begin{frame}{Week 3 ASIC 综合与层次面积：对比 11-11（PR \#20）}
-  \begin{columns}[T]
-    \column{0.47\textwidth}
+% ##################################################################### PART 02
+\section{统一 ASIC 实现与物理签核}
+
+\begin{frame}{综合与布线后相对 FF-Lookup 基线的变化}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.44\textwidth}
     \centering
     \begin{tikzpicture}
-      \begin{axis}[pkubar, xbar, width=0.86\linewidth, height=4.5cm, bar width=7pt,
-          xmin=0, xmax=115, xlabel={相对 11-11 的减少（\%）},
-          symbolic y coords/.expand once=\NDeltaTicks, ytick=data, y dir=reverse,
-          nodes near coords={$-$\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}\%},
-          nodes near coords style={font=\tiny}, xmajorgrids, enlarge y limits=0.12,
-          y tick label style={font=\scriptsize}]
+      \begin{axis}[issccbar, xbar, width=0.95\linewidth, height=5.1cm, bar width=8pt, bar shift=0pt,
+          xmin=0, xmax=122, xlabel={相对 FF-Lookup 基线降幅（\%）},
+          symbolic y coords/.expand once=\NDeltaTicks, ytick/.expand once=\NDeltaTicks, y dir=reverse,
+          nodes near coords={−\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}\%},
+          nodes near coords style={font=\tiny, text=ink}, xmajorgrids, enlarge y limits=0.12]
         \input{data/delta_plot.tex}
       \end{axis}
-    \end{tikzpicture}
-    \column{0.51\textwidth}
-    {\scriptsize
+    \end{tikzpicture}\par\vspace{3pt}
+    \snote{True-MMMC 流程：\texttt{ss125} \NSynOverPeriod{} ns 过约束综合 → \NCorePeriod{} ns 四角联合 P\&R + ECO；目标利用率 \NUtilPct\%，Hold 目标 \NHoldTarget{} ns。}
+    \snote{相对同 RTL 的 TT-only 网表：综合 stdcell \NMmmcSynPct\%，高驱动 MMMC 缓冲使布线后面积 \NMmmcActPct\%、线长 \NMmmcWirePct\%（\NMmmcInstDelta{} 实例）；\NMmmcVsFfStatus。}
+    \column{0.53\textwidth}
+    {\scriptsize\setlength{\tabcolsep}{3.5pt}
     \begin{tabular}{@{}lrr@{}}
       \toprule
-      指标 & 11-11 & 11-18 \\ \midrule
+      \textbf{指标} & \textbf{FF 基线} & \textbf{SRAM Lookup} \\ \midrule
       \texttt{npu\_tensor\_lookup} FF & \NLookupFFBefore & \hl{\NLookupFFAfter} \\
-      查找表面积（k µm²） & \NLookupAreaBefore & \hl{\NLookupAreaAfter} \\
-      综合标准单元（mm²） & \NSynStdBefore & \NSynStdAfter \\
-      综合触发器数 & \NSynSeqBefore & \NSynSeqAfter \\
-      布线后有效面积（mm²） & \NActBefore & \NActAfter \\
-      总线长（m） & \NWireBefore & \NWireAfter \\
-      无向量功耗 TT（mW） & \NVlessBefore & \NVlessAfter \\ \bottomrule
-    \end{tabular}}\par\vspace{4pt}
-    \textbf{布线后层次面积（k µm²）}\\[1pt]
-    {\tiny
+      Lookup 模块面积（kµm²） & \NLookupAreaBefore & \hl{\NLookupAreaAfter} \\
+      综合 stdcell 面积（mm²） & \NSynStdBefore & \NSynStdAfter \\
+      综合时序单元数 & \NSynSeqBefore & \NSynSeqAfter \\
+      布线后有效 stdcell（mm²） & \NActBefore & \NActAfter \\
+      布线线长（m） & \NWireBefore & \NWireAfter \\
+      无向量 TT 功耗（mW） & \NVlessBefore & \NVlessAfter \\ \bottomrule
+    \end{tabular}}\par\vspace{7pt}
+    \textbf{布线后层次面积分解（kµm²）}\par\vspace{2pt}
+    {\scriptsize\setlength{\tabcolsep}{2.5pt}
     \begin{tabular}{@{}lrrrr@{}}
       \toprule
-      层次 & 11-11 & 11-18 & $\Delta$ & 时序单元 \\ \midrule
+      \textbf{层次} & \textbf{优化前} & \textbf{优化后} & \textbf{Δ} & \textbf{时序单元} \\ \midrule
       \tabinput{data/hier_rows.tex}
       \bottomrule
-    \end{tabular}}\par\vspace{1pt}
-    \snote{hold 目标提高到 \NHoldTarget{} ns，CTS / 修复新增 \NCtsRepairArea{}k µm²（\NCtsRepairInst{} 个实例）。}
+    \end{tabular}}
   \end{columns}
 \end{frame}
 
-% ===================================================================== 7
-\begin{frame}{物理实现与版图（PR \#20）}
-  {\small 候选 \texttt{\NCandidate}（\texttt{\NLayout} 双宏，利用率 \NUtil，halo \NHaloUm{} µm）：
-  die \hl{\NDieAfter{} mm²}（边长 \NDieSide{} µm $\le$ \NCourseDieLimit{} µm），
-  Innovus 几何 / 物理检查 \hl{\NGeoPass/\NGeoTotal}，TT setup / hold \hl{\NTTSetup{} / \NTTHold{} ns}（TNS = \NTTTns）}\par\vspace{4pt}
+\begin{frame}{True-MMMC 物理版图、\NPadCount-Pad Keepout 与功能闭合}
   \centering
   \begin{tabular}{@{}cccc@{}}
-    \includegraphics[width=0.228\linewidth]{figs/1_placement.png} &
-    \includegraphics[width=0.228\linewidth]{figs/5_all.png} &
-    \includegraphics[width=0.228\linewidth]{figs/4b_m56_with_fill.png} &
-    \includegraphics[width=0.228\linewidth]{figs/7_sram_diag_zoom.png} \\
-    \scriptsize 布局：对角双 SRAM & \scriptsize 全层布线 M1--M6 & \scriptsize M5/M6 金属填充 & \scriptsize SRAM 对角 halo 通道
-  \end{tabular}\par\vspace{3pt}
-  \snote{两块 \texttt{RA1SHD\_2048x32M8}（\NMacroArea{} mm²，model R90 / activation R270）；die 相对 11-11 \NDiePct\%。图来自 \texttt{eda\_week3\_20261118/images/}。}
-\end{frame}
-
-% ===================================================================== 8
-\begin{frame}{四引擎独立签核与门级 SDF 仿真（PR \#20）}
-  \noindent\normalfont{\scriptsize
-  \begin{tabularx}{\linewidth}{@{}l l c >{\raggedright\arraybackslash}X@{}}
-    \toprule
-    引擎 & 工具 / 范围 & 结论 & 关键结果 \\ \midrule
-    STA & PrimeTime，TT，标准单元 + IO & \ok & setup \hl{\NStaSetup{} ns}，hold \hl{\NStaHold{} ns}，\texttt{unannotated = \NStaUnannot}；SRAM 宏为黑盒，接口时序由 Innovus 检查（第 9 页） \\
-    LEC & Formality，RTL vs 布线后 \texttt{physical.v} & \ok & \texttt{\NLecVerified} \\
-    SDF & Xcelium + \texttt{routed.sdf} & \ok & 全芯片 \NSdfCmds{} 条 JTAG 命令通过；\NSdfFatal{} 条 fatal / 非预期 SDFNEP / SDFNET；\NSdfIfnone{} 条库 \texttt{ifnone} 弧与 \NSdfPadConf{} 条 time-0 输入冲突已逐类核对 \\
-    DRC & Calibre，standalone die & \warn & 原始 \hl{\NDrcTotal} 条：\NDrcIoRing{} 条位于厂商 IO 单元（ESD.25g 占 \NDrcEsdTwoFive），\NDrcCore{} 条为无条件 \texttt{DRM.R.1} 提示；阻塞类 \NDrcBlocking{} 条 \\
-    LVS & Calibre，GDS vs SPICE & \warn & 原始 \texttt{\NLvsRaw}：\hl{\NLvsErr} 条 IO 电阻属性偏差，最大 \NLvsMaxDev\%，来源 \texttt{\NLvsLibA} SPICE / \texttt{\NLvsLibB} GDS IO 库版本差，按课程 $\le$ \NLvsPolicy\% 政策接受 \\ \bottomrule
-  \end{tabularx}}\par\vspace{6pt}
-  \begin{columns}[T]
+    \includegraphics[width=0.225\linewidth]{figs/1_placement.png} &
+    \includegraphics[width=0.225\linewidth]{figs/5_all.png} &
+    \includegraphics[width=0.225\linewidth]{figs/4b_m56_with_fill.png} &
+    \includegraphics[width=0.225\linewidth]{figs/7_sram_diag_zoom.png} \\
+    \scriptsize 对角双 SRAM 平面规划 & \scriptsize 全信号布线 M1–M6 & \scriptsize M5/M6 金属填充 & \scriptsize 对角 SRAM 间距通道
+  \end{tabular}\par\vspace{10pt}
+  \justifying
+  \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
-    \textbf{诚实口径}
-    \begin{itemize}\scriptsize
-      \item DRC / LVS 的 ``通过'' 是课程政策下的接受，不是原始 0 条 / CORRECT
-      \item 签核仅 TT 角、仅 M5/M6 填充
+    \textbf{物理架构与 DRC 闭合}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item 未封环管芯 \hl{\NDieSide{} µm} ≤ \NDieLimit{} µm 预算（\NDieAfter{} mm²；\NMacroCount× \texttt{RA1SHD\_2048x32M8}，\NMacroArea{} mm²）
+      \item Innovus 内部检查：\hl{\NGeoPass/\NGeoTotal} \NGeoStatus
+      \item \NPadCount{} 个 \texttt{PAD60LU\_OBV} CUP Pad：布线前施加 \NPadMargin{} µm M5/M6 路由与填充 Keepout
     \end{itemize}
     \column{0.48\textwidth}
-    \textbf{不含}
-    \begin{itemize}\scriptsize
-      \item IR / EM、Seal Ring、芯片级 ESD 复核
-      \item Lab 5 \texttt{postDummy.gds} 同源 DRC / LVS / ERC
+    \textbf{布线后时序、SDF 与等价性验证}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item \hl{\NSdfCorner} SDF 门级仿真：\hl{\NSdfStatus}（\NSdfCmds{} 条 JTAG 指令，\NSdfUnexpected{} 个非预期告警）
+      \item Formality LEC（综合网表 vs. 布线网表）：\texttt{\NLecVerified}
+      \item \NStaTool{} TT stdcell+IO：Setup \NStaSetup{} ns / Hold \NStaHold{} ns；CTS/repair +\NCtsRepairArea{} kµm²
     \end{itemize}
   \end{columns}
-  \src{eda\_week3\_20261118/signoff\_summary.json, sdf\_result.json}
 \end{frame}
 
-% ===================================================================== 9
-\begin{frame}{\NMmmcCorners-Corner MMMC、SRAM 接口时序与 \NCdcRows{} 条 CDC 检查（PR \#20）}
-  \begin{columns}[T]
+\begin{frame}{\NAllMmmcStatus：±RC、\NSramRows-View SRAM 与 \NCdcRows-Path CDC}
+  \begin{columns}[T,onlytextwidth]
     \column{0.50\textwidth}
-    {\scriptsize\setlength{\tabcolsep}{2.5pt}
-    \begin{tabular}{@{}llrrl@{}}
+    {\scriptsize\setlength{\tabcolsep}{3pt}
+    \begin{tabular}{@{}lrrrrcl@{}}
       \toprule
-      角 & 周期 & setup WNS & hold WNS & \\ \midrule
-      \texttt{tt25} & \NCoreMHz{} MHz & \NTTSetup & \NTTHoldW & \ok \\
-      \texttt{ff0} & \NCoreMHz{} MHz & \NFFzSetup & \NFFzHoldW & \ok \\
-      \texttt{ffm40} & \NCoreMHz{} MHz & \NFFmSetup & \NFFmHoldW & \ok \\
-      \rowcolor{oiverm!10}\texttt{ss125} & \NCoreMHz{} MHz & \textbf{\NSSSetup} & \NSSHoldW & \todo \\
-      \rowcolor{oigreen!10}\texttt{ss125} 降频 & \NSSDPeriod{} ns / \NSSDFreq{} MHz & \NSSDSetup & \NSSDHoldW & \ok \\ \bottomrule
-    \end{tabular}}\par\vspace{3pt}
-    \begin{itemize}\scriptsize
-      \item 三个角 \NCoreMHz{} MHz 干净，最小 hold \hl{\NCleanHoldMin{} ns}（\texttt{\NCleanHoldMinCorner}）
-      \item \texttt{ss125} 关键路径终点为 \NSSEndSram{} \texttt{WEN}：到达 \NSSArr{} ns，要求 \NSSReq{} ns；TNS \NSSTns{} ns（前 \NSSViol{} 端点）
-      \item 降到 \NSSDPeriod{} ns（\NSSDFreq{} MHz）后 SS 角闭合
-    \end{itemize}
-    \fcolorbox{oiorange}{oiorange!8}{\parbox{0.9\linewidth}{\raggedright\scriptsize\textbf{RC 口径}：\texttt{\NRcNote}。各角只换库与温度，不含 RC 工艺角。}}
-    \column{0.48\textwidth}
-    \textbf{SRAM 接口（\NSramRows{} 行，\NSramNA{} 个 NA；ns）}\\[1pt]
-    {\tiny
+      \textbf{Corner} & \textbf{时钟} & \textbf{Setup} & \textbf{Hold} & \textbf{Fmax} & \textbf{违例} & \\ \midrule
+      \rowcolor{surf}\texttt{ss125} & \NCoreMHz{} MHz & \hl{\NSSSetup} & \NSSHoldW & \hl{\NSSFreq} & \NSSViol & \NSSBadge \\
+      \texttt{tt25} & \NCoreMHz{} MHz & \NTTSetup & \NTTHoldW & \NTTFreq & \NTTViol & \NTTBadge \\
+      \texttt{ff0} & \NCoreMHz{} MHz & \NFFzSetup & \NFFzHoldW & \NFFzFreq & \NFFzViol & \NFFzBadge \\
+      \texttt{ffm40} & \NCoreMHz{} MHz & \NFFmSetup & \NFFmHoldW & \NFFmFreq & \NFFmViol & \NFFmBadge \\ \bottomrule
+    \end{tabular}}\par\vspace{2pt}
+    \snote{WNS 单位 ns；Fmax = 1000 / (\NCorePeriod{} − Setup WNS) MHz；违例 = Setup/Hold 端点数。}\vspace{3pt}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item \texttt{ss125} Setup 由 \NSSBeforeSetup{} ns（\NSSBeforeViol{} 端点；降频闭合仅 \NSSBeforeFreq{} MHz）→ \hl{\NSSSetup{} ns（\NSSFreq{} MHz）}，提升 \hl{\NSSGainNs{} ns}，\hl{\NZeroRtl}；关键路径止于 \NSSEndSram{} \texttt{WEN}。
+      \item 全部 \NMmmcCorners{} 个 corner \NAllMmmcShort，TNS = \NAllMmmcTns；最小 Hold \NHoldMin{} ns @ \texttt{\NHoldMinCorner}。
+    \end{itemize}\par\vspace{3pt}
+    \callout[warnink]{\textbf{±\NRcScaleLow\%/±\NRcScaleHigh\% RC 敏感度（典型 captable 缩放）}：\texttt{ffm40} \NRcMfifteenScale\%/\NRcMtwentyScale\% RC Hold 仍 \hl{\NRcMfifteenHold{} / \NRcMtwentyHold{} ns}（\NRcHoldStatus{} \NRcHoldBadge）；\texttt{ss125} \NRcPfifteenScale\%/\NRcPtwentyScale\% RC Setup 为 \NRcPfifteenWns{} / \NRcPtwentyWns{} ns（\NRcPfifteenFreq{} / \NRcPtwentyFreq{} MHz）。\NRcScope，待 foundry \texttt{Cmax}/\texttt{Cmin} 与 PGV 静态 IR 复核。}
+    \column{0.49\textwidth}
+    \textbf{SRAM 接口时序（\NSramCorners{} corner，ns）\quad\NSramBadge}\par\vspace{2pt}
+    {\scriptsize\setlength{\tabcolsep}{2.5pt}
     \begin{tabular}{@{}llrrrr@{}}
       \toprule
-      角 & 宏 & to S & to H & from S & from H \\ \midrule
+      \textbf{Corner} & \textbf{角色} & \textbf{Setup→} & \textbf{Hold→} & \textbf{Setup←} & \textbf{Hold←} \\ \midrule
       \tabinput{data/sram_rows.tex}
       \bottomrule
-    \end{tabular}}\par
-    \snote{\texttt{ss125}@\NCoreMHz{} MHz 两宏 setup 均为负，最差 \NSramSSWorst{} ns（未列入上表）。}\\[4pt]
-    \textbf{JTAG $\leftrightarrow$ 核心 CDC}
-    \begin{itemize}\scriptsize
-      \item \NCdcPaths{} 条路径 $\times$ \NCdcCorners{} 角 = \NCdcRows{} 条检查，\hl{\NCdcPos/\NCdcRows{} 为正}
-      \item 每角最小 slack：\texttt{ffm40} \NCdcFFmMin，\texttt{ff0} \NCdcFFzMin，\texttt{tt25} \NCdcTTMin，\texttt{ss125} \NCdcSSMin{} ns
+    \end{tabular}}\par\vspace{7pt}
+    \snote{\NSramRows{} 视图\NSramStatus，最小裕量 \NSramMin{} ns。}\vspace{4pt}
+    \textbf{JTAG ↔ Core CDC 签核\quad\NCdcBadge}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item \NCdcPaths{} 条路径 × \NCdcCorners{} corner = \hl{\NCdcPos/\NCdcRows{} 正 Slack}
+      \item 最差 CDC 裕量：\NCdcMin{} ns @ \texttt{\NCdcMinCorner}
     \end{itemize}
   \end{columns}
 \end{frame}
 
-% ===================================================================== 10
-\begin{frame}{窗口化门级 VCD 功耗（\NPwAnnot\% 标注）与算子融合节能（PR \#20）}
-  \begin{columns}[T]
-    \column{0.50\textwidth}
+\begin{frame}{窗口化 \NPwAnnot\%-Annotated VCD 功耗与算子融合收益}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.49\textwidth}
     \centering
     \begin{tikzpicture}
-      \begin{axis}[pkubar, ybar, width=\linewidth, height=4.7cm, bar width=12pt,
+      \begin{axis}[issccbar, ybar, width=\linewidth, height=5.1cm, bar width=13pt, bar shift=0pt,
           ymin=0, ymax=70, ylabel={TT \NCoreMHz{} MHz 总功耗（mW）},
           xmin=-0.5, xmax=\NPowerXmax, xtick={0,...,\NPowerLast}, xticklabels/.expand once=\NPowerTicks,
           x tick label style={font=\tiny}, ymajorgrids,
-          nodes near coords, nodes near coords style={font=\tiny}]
+          nodes near coords, nodes near coords style={font=\tiny, text=ink}]
         \input{data/power_plot.tex}
       \end{axis}
-    \end{tikzpicture}\par
-    \snote{vectorless 估计为这 \NPwN{} 个 VCD 窗口功耗估计的 \NVlessOverMin--\NVlessOverMax$\times$。}
+    \end{tikzpicture}\par\vspace{2pt}
+    \snote{无向量参考（\NVlessRaw{} mW）高估真实 VCD 窗口 \NVlessOverMin–\NVlessOverMax×。}
     \column{0.48\textwidth}
     {\scriptsize
     \begin{tabular}{@{}lrrrr@{}}
       \toprule
-      负载 & 周期 & 窗口 µs & mW & µJ \\ \midrule
+      \textbf{工作负载} & \textbf{周期} & \textbf{窗口 µs} & \textbf{功耗 mW} & \textbf{能耗 µJ} \\ \midrule
       \tabinput{data/power_rows.tex}
       \bottomrule
-    \end{tabular}}\par\vspace{4pt}
-    \fcolorbox{oigreen}{oigreen!8}{\parbox{0.9\linewidth}{\raggedright\scriptsize
-      \textbf{融合 vs 非融合 CNN}：周期 \NFusedCyc{} vs \NUnfusedCyc（$-$\NFusionCycPct\%），\\
-      单次推理能量 \hl{\NFusedE{} µJ vs \NUnfusedE{} µJ，节省 \NFusionSave\%}}}\\[4pt]
-    \begin{itemize}\scriptsize
-      \item 布线后 SDF 仿真，VCD 只截取 \texttt{busy} $\to$ \texttt{irq} 窗口
-      \item \NPwN{} 个负载净标注率均为 \NPwAnnot\%；VCD 记录哈希后即删除
-      \item 仅 TT 角、Typical RC
+    \end{tabular}}\par\vspace{10pt}
+    \callout[peking]{\textbf{融合 vs. 非融合 CNN}：执行从 \NUnfusedCyc{} 周期降至 \NFusedCyc{} 周期（\hl{\NFusionSpeed× 加速}）；单次推理能耗从 \NUnfusedE{} 降至 \hl{\NFusedE{} µJ}（\hl{−\NFusionSave\%}）。}\par\vspace{8pt}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item 从 SDF 门级仿真严格在 \texttt{busy → irq} 窗口内提取；动态功耗（internal+switching）\NPwDynMin–\NPwDynMax{} mW，静态漏电 \NPwLeakDisp{} mW（≤ \NPwLeakMaxPct\%）。
+      \item \NPwAnnot.0\% Toggle 标注覆盖全部 \NPwN{} 个工作负载（TT corner，典型 RC）。
     \end{itemize}
   \end{columns}
 \end{frame}
 
-% ===================================================================== 11
-\begin{frame}{六场景应用 Demo 与闭环验证（PR \#17 / \#18）}
-  \noindent\normalfont{\scriptsize
-  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
-    \toprule
-    场景 & 输入与处理 & 尚缺 \\ \midrule
-    ECG 心拍 & 回放 MIT-BIH 标注记录，逐拍五类分类 & 真实 ECG / MAX30102 传感器 \\
-    HAR 活动 & 回放 UCI HAR，或跟随手机惯性数据 CSV & 手机佩戴与坐标现场校准、MPU6050 \\
-    MNIST 手写 & 画板书写，停笔自动识别 & 实写样本验收 \\
-    KWS 语音 & 麦克风录音 + MFCC，四个目标词 & 麦克风现场 \\
-    Emotion 表情 & 电脑裁最大人脸 $\to$ INT4 七类模型 & 精度偏低，未现场验收 \\
-    Face 人脸 & 默认 YuNet（CPU）；另有 NPU INT4 检测模型 & NPU 模型精度偏低 \\ \bottomrule
-  \end{tabularx}}\par\vspace{5pt}
-  \begin{columns}[T]
-    \column{0.36\textwidth}
-    \textbf{软件闭环（无板）}
-    \begin{itemize}\scriptsize
-      \item 六场景固定输入 \hl{\NDemoGolden/\NDemoGoldenTotal}：完整 INT32 输出位级一致
-      \item 原七模型 \NDemoZoo/\NDemoZoo{} 帧与黄金一致
-      \item Demo 测试 \NDemoUnit{}、JTAG 驱动测试 \NDemoJtag{} 项通过
-    \end{itemize}
-    \column{0.30\textwidth}
-    \textbf{两个新视觉模型}
-    \begin{itemize}\scriptsize
-      \item Emotion：FER2013 \NEmoSamples{} 张，准确率 \NEmoAcc\%
-      \item Face：\NFaceSamples{} 张，P / R / F1 = \NFaceP{} / \NFaceR{} / \NFaceF\%
-      \item 均为实验基线
-    \end{itemize}
-    \column{0.30\textwidth}
-    \textbf{未测（\NDemoNotTested{} 项）}
-    \begin{itemize}\scriptsize
-      \item FPGA（\texttt{fpga\_validated = \NDemoFpga}）
-      \item 摄像头、麦克风、手机 IMU
-      \item 参与者准确率
-    \end{itemize}
+\begin{frame}{物理收尾：Seal Ring、Dummy Fill 与 Keepout（\NDbuPerUm{} DBU/µm）}
+  \centering
+  % Crop the top Matplotlib title banner cleanly so figures keep crisp axes & legends only
+  \begin{tabular}{@{}ccc@{}}
+    \includegraphics[width=0.312\linewidth, trim=0 0 0 22pt, clip]{figs/8_lab5_sealring_corner.png} &
+    \includegraphics[width=0.312\linewidth, trim=0 0 0 22pt, clip]{figs/9_lab5_dummy_fill_zoom.png} &
+    \includegraphics[width=0.312\linewidth, trim=0 0 0 22pt, clip]{figs/10_lab5_wirebond_keepout_zoom.png} \\[3pt]
+    \scriptsize\textbf{原生 Seal Ring（西南角）} & \scriptsize\textbf{Dummy OD/PO + M1–M6 填充} & \scriptsize\textbf{WireBond Keepout 保护区}
+  \end{tabular}\par\vspace{9pt}
+  \justifying
+  \begin{columns}[T,onlytextwidth]
+    \column{0.315\textwidth}
+    \scriptsize 原生 \NDbuPerUm{} DBU/µm Seal Ring 包围整数 µm 管芯框架：外部封环后管芯 \hl{\NSealSide×\NSealSide{} µm} ≤ \NSealLimit{} µm 预算。
+    \column{0.315\textwidth}
+    \scriptsize 全芯片 \texttt{Dummy\_OD\_PO}（\texttt{DOD}/\texttt{DPO}）+ \texttt{Dummy\_Metal} M1–M6；常规 M6 填充 \NDummyMsix×\NDummyMsix{} µm，M6.A.1 = \hl{\NDummyMsixViol}。
+    \column{0.315\textwidth}
+    \scriptsize 全部 \NPadCount{} 个 \texttt{PAD60LU\_OBV} 键合 Pad 保留 \NPadMargin{} µm M5/M6 路由与填充 Keepout（\NWbHier{} Hier. / \NWbExp{} Exp. Keepout/WireBond 违例）。
   \end{columns}
-  \src{demo\_software\_20261116/summary.json, models/\{emotion,face\}/training\_result.json}
 \end{frame}
 
-% ===================================================================== 12
-\begin{frame}{课程 Lab 0--6 与 Final Project 对照，AI 红队可追溯}
-  \begin{columns}[T]
-    \column{0.62\textwidth}
+\begin{frame}{全芯片物理签核矩阵与晶体管级 ERC 审计}
+  \snote{所有验证引擎均在同一份 \NDbuPerUm{} DBU/µm \texttt{postDummy.gds}（\texttt{my\_soc\_top}，\NSealSide{} µm ≤ \NSealLimit{} µm）及 CDL 网表上执行。}\vspace{1pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.52\textwidth}
     {\scriptsize
     \begin{tabularx}{\linewidth}{@{}l c >{\raggedright\arraybackslash}X@{}}
       \toprule
-      环节 & 状态 & 依据与口径 \\ \midrule
-      Lab 0 / 1 / 3 & 演进 & 已演进为 ABI 5.0 \NCols$\times$\NCols{} 可编程 NPU + No-CPU JTAG；不作原始模板凭证 \\
-      Lab 2 & \warn & 仅有历史 CPU JTAG / GDB 记录，不称模板四项修复已复测 \\
-      Lab 4 & \ok & Genus + Innovus \NCoreMHz{} MHz，die 边长 \NDieSide{} µm $\le$ \NCourseDieLimit{} µm，\NGeoPass/\NGeoTotal{} 检查 \\
-      Lab 5 & \warn & Standalone Calibre DRC / LVS；Seal Ring、Dummy、ERC、WireBond 未做 \\
-      Lab 6 & \warn & EGo1 实板记录为 ABI 4.0；ABI 5.0 待复测 \\
-      Final：场景 & \ok & ECG / MNIST / KWS / HAR 四类官方场景均有模型与黄金向量 \\
-      Final：AI 记录 & \warn & 提交史 + PR 审查已具备；需整理脱敏版合入仓库 \\ \bottomrule
-    \end{tabularx}}\par\vspace{2pt}
-    \snote{来源：课程官网逐页核对 + 服务器 \texttt{/lec/lab4}、\texttt{/lec/lab5}；Lab 0--6 均不交报告，产出由 Final 复用。}
-    \column{0.36\textwidth}
-    \textbf{多模型对抗评审流程}\\[3pt]
-    \begin{tikzpicture}[node distance=0.22cm, every node/.append style={execute at begin node=\centering}]
-      \node[blk=3.9cm, fill=oiblue!10, draw=oiblue] (o) {\textbf{Opus} 起草 / 实现\\RTL、脚本、报告、幻灯片};
-      \node[blk=3.9cm, below=of o, fill=oisky!12, draw=oisky] (s) {\textbf{Sol} 交叉复核\\逐项对数字与来源文件};
-      \node[blk=3.9cm, below=of s, fill=oiorange!12, draw=oiorange] (a) {\textbf{Astra} 红队门禁\\跨厂商只读审计、挑口径};
-      \node[blk=3.9cm, below=of a, fill=oigreen!12, draw=oigreen] (h) {\textbf{人工}决策 Gate\\采纳 / 否决 $\to$ PR \#18--\#21};
-      \draw[arr] (o) -- (s); \draw[arr] (s) -- (a); \draw[arr] (a) -- (h);
-    \end{tikzpicture}\par\vspace{2pt}
-    \snote{角色分工为会话级工作流约定，原始对话未归档进仓库；可追溯的是 PR \#18--\#21 的提交与审查记录，见本目录 \texttt{README.md}。}
+      \textbf{引擎} & \textbf{状态} & \textbf{已验证签核证据} \\ \midrule
+      \textbf{DRC}+\texttt{CO.R.4} & \NDrcBadge & 未屏蔽 \NDrcRules{} 规则，阻断=\hl{\NDrcBlocking}；IO \texttt{CO.R.4} PIMP 修复 \NCorFourBefore{} → \hl{\NCorFourAfter} \\[1pt]
+      \textbf{nmLVS} & \NLvsBadge & 全 SRAM 非黑盒，严格 \NLvsStrictTol\% 容差：\NLvsErr{} IO \texttt{R(PR)}（最大 \NLvsMax\%）；\NLvsTol\% 容差下 \hl{\texttt{\NLvsStatus}} \\[1pt]
+      \textbf{Antenna} & \NAntBadge & \hl{\NAntHier{} Hier. / \NAntExp{} Exp.}，覆盖完整填充后管芯 \\[1pt]
+      \textbf{WireBond} & \NWbBadge & \hl{\NWbHier{} Hier. / \NWbExp{} Exp.}，覆盖全部 \NWbRules{} 规则与 \NPadCount{} 个 \texttt{PAD60LU\_OBV} \\[1pt]
+      \textbf{ERC} & \NErcStatus & \NErcHier{} Hier. / \NErcExp{} Exp. 追溯至 vendor IO 子单元与外 Seal Ring \\ \bottomrule
+    \end{tabularx}}\par\vspace{1pt}
+    \centering\includegraphics[width=0.72\linewidth]{figs/11\_lab5\_cor4\_and\_erc\_audit.png}\par
+    {\tiny\color{muted}左：\texttt{CO.R.4} PIMP 邻接修复；右：全芯片 ERC marker 分布。}
+    \column{0.45\textwidth}
+    {\scriptsize\setlength{\tabcolsep}{3pt}
+    \begin{tabularx}{\linewidth}{@{}l r r >{\raggedright\arraybackslash}X@{}}
+      \toprule
+      \textbf{ERC 规则} & \textbf{Hier.} & \textbf{Exp.} & \textbf{晶体管/子单元核账} \\ \midrule
+      \texttt{mnpg} & \NErcMnpgH & \NErcMnpgE & \NErcVddOneN×\NErcVddOneF{} \texttt{PVDD1CDG}+\NErcVddTwoN×\NErcVddTwoF{} \texttt{PVDD2CDG}+\NErcVddPocN×\NErcVddTwoF{} \texttt{PVDD2POC}：有源 rail ESD NMOS 箝位 \\[1pt]
+      \texttt{nxwell\_float} & \NErcNxwellH & \NErcNxwellE & \multirow{2}{=}{\NErcVssN×\NErcVssD{} \texttt{PVSS1CDG}：\texttt{VSS}↔\texttt{VSSPST} 反并联 ESD 二极管阱/tap} \\
+      \texttt{npvss49} & \NErcVssH & \NErcVssE & \\[1pt]
+      \texttt{psub\_float} & \NErcPsubH & \NErcPsubE & \texttt{SR.S.1} 隔离带外侧 Seal Ring 衬底框架 \\ \bottomrule
+    \end{tabularx}}\par\vspace{6pt}
+    \callout[passink]{\textbf{审计结论}：\hl{\NErcDesignDefects{} 个设计/核心/SRAM ERC 缺陷}；Seal Ring 前后 ERC delta=\NErcPrePostDelta{}（\NErcPreH{}→\NErcHier{} Hier.，\NErcPreE{}→\NErcExp{} Exp.）；\texttt{SR.S.1} \NSrIsolationStatus。}\par\vspace{3pt}
+    \callout[warnink]{\texttt{formal\_tapeout\_signoff=\NFormalTapeout}：vendor IO 与外框 ERC 条目保留，待 foundry 正式签核 waiver。}
   \end{columns}
 \end{frame}
 
-% ===================================================================== 13
-\begin{frame}{诚实边界与流片 / 上板下一步}
-  \noindent\normalfont{\scriptsize
-  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
-    \toprule
-    & \textcolor{oigreen}{\textbf{已完成：Standalone 原型签核}} & \textcolor{oiverm}{\textbf{待完成：Lab 5 完整流片签核}} \\ \midrule
-    时序 & TT \NCoreMHz{} MHz 签核；\NMmmcCorners-Corner MMMC（SS 降至 \NSSDFreq{} MHz） & RC 工艺角（目前 Typical captable 温度缩放） \\
-    物理 & Calibre DRC / LVS（standalone die，课程政策接受） & Virtuoso Seal Ring、\texttt{postDummy.gds} 同源 DRC=0 / LVS CORRECT \\
-    填充 & 仅 M5/M6 金属填充 & 下层 Dummy / DOD 填充合并 \\
-    其他 & Innovus Antenna / DRV / CDC 检查 & ERC、WireBond、人工 Antenna 复核；IR / EM \\ \midrule
-    & \textcolor{oigreen}{\textbf{历史记录：ABI 4.0 EGo1}} & \textcolor{oiverm}{\textbf{待完成：ABI 5.0 实板}} \\ \midrule
-    FPGA & ABI 4.0 阵列在 EGo1 实板推理通过（Vivado） & \NCols$\times$\NCols{} 新镜像上板，七模型逐位比对 \\
-    主机 & Single-RPC 仅 RTL / Tcl 仿真；RPC 时延为历史估计 & EGo1 实测 RPC 往返与片上周期 \\
-    传感器 & 六场景软件参考闭环 & MAX30102 / MPU6050、摄像头、麦克风现场验收 \\ \bottomrule
-  \end{tabularx}}\par\vspace{6pt}
-  \textbf{期末收尾清单}
-  \begin{enumerate}\scriptsize
-    \item 冻结同一套 RTL / 模型 / GDS / bitstream SHA-256，不混用 ABI 4.0 旧数据
-    \item 完成 Lab 5 Seal Ring + Dummy + \texttt{postDummy.gds} 同源签核
-    \item ABI 5.0 EGo1 实板 + 传感器端到端验收；整理脱敏 AI 使用与人工修改记录
-  \end{enumerate}
+
+% ##################################################################### PART 03
+\section{主机 JTAG 优化与 FPGA 验证}
+
+\begin{frame}{EGo1 实板延迟分解：三步排除与双瓶颈归因}
+  \callout[steel]{\textbf{三步排除}（EGo1 实板，\abi{} @ \NVivClk{} MHz，\texttt{\NVivPart}，\hl{\NFpgaTotal{} 次 \NFpgaExactStatus{} 推理}）：(1) NPU 实际计算仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\% 驻留耗时，嵌在 \texttt{completion\_poll} 窗口内、未叠加在柱图中）；(2) \texttt{TCK} \NFpgaBestMhz{} → \NFpgaFiveMhz{} MHz（\NFpgaTckRatio× 提频）\NFpgaTckOutcome{}（驻留几何均值 \NFpgaRes{} → \NFpgaResFive{} ms；\texttt{ecg} \NFpgaEcgOneMs{} → \NFpgaEcgFiveMs{} ms，\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInOneMs{} → \NFpgaGtsrbInFiveMs{} ms、模型上传 \NFpgaGtsrbUpOneMs{} → \NFpgaGtsrbUpFiveMs{} ms）；(3) 冷启动模型上传占 \hl{\NFpgaUploadShare\%}（\NFpgaUploadMin–\NFpgaUploadMax{} ms）。}\par\vspace{2pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.58\textwidth}
+    \begin{tikzpicture}
+      \begin{axis}[issccbar, xbar stacked, width=0.97\linewidth, height=3.9cm, bar width=10pt,
+          xmin=0, xmax=330, xlabel={\NFpgaBestMhz{} MHz TCK 实测 EGo1 驻留推理耗时（ms）},
+          symbolic y coords/.expand once=\NFpgaTicks, ytick=data, y dir=reverse,
+          legend style={at={(0.5,1.03)}, anchor=south, legend columns=3, font=\tiny, draw=none, fill=none, /tikz/every even column/.append style={column sep=6pt}},
+          xmajorgrids, enlarge y limits=0.14]
+        \input{data/fpga_breakdown_plot.tex}
+        \legend{固定控制/元数据 RPC, 分块数据 RPC, 主机包装残差}
+      \end{axis}
+    \end{tikzpicture}
+    \column{0.39\textwidth}
+    \textbf{\NFpgaBestMhz{} MHz TCK 耗时组成}\par\vspace{4pt}
+    {\scriptsize
+    \begin{itemize}\setlength{\itemsep}{3.5pt}
+      \item \textbf{NPU 实际计算}：仅 \hl{\NFpgaComputeMin–\NFpgaComputeMax{} ms}（≤ \NFpgaComputeMaxPct\%，位于 poll 窗口内，不再叠加）。
+      \item \textbf{固定控制/元数据 RPC}：几何均值 \hl{\NFpgaCtrlGeomean{} ms}（\NFpgaCtrlMin–\NFpgaCtrlMax{} ms）；主机包装残差 \NFpgaWrapMin–\NFpgaWrapMax{} ms。三段互斥，和严格等于驻留耗时。
+      \item \textbf{分块数据读写}：\NFpgaXferMin–\NFpgaXferMax{} ms（几何均值 \NFpgaXferGeomean{} ms）；驻留总计 \NFpgaResMin–\NFpgaResMax{} ms（几何均值 \NFpgaRes{} ms）。
+      \item \textbf{双瓶颈归因}：\texttt{ecg} 输入 \NFpgaEcgInWords{} word 与 \texttt{kws\_l} 输入 \NFpgaKwsLInWords{} word 同为 \NFpgaInSingleRpc{} 次 RPC，却耗时 \NFpgaEcgInRpcMs{} 与 \NFpgaKwsLInRpcMs{} ms；\NFpgaModels{} 模型权重上传稳定在 \hl{\NFpgaUpMpwMin–\NFpgaUpMpwMax{} ms/word}（\texttt{gtsrb\_l} 输入 \NFpgaGtsrbInMpw{} ms/word）。耗时由主机 TCP RPC 往返与 OpenOCD 逐 \texttt{drscan} 同步 USB 刷新（\texttt{jtag\_execute\_queue()}）共同主导。
+    \end{itemize}}
+  \end{columns}
 \end{frame}
 
-% ===================================================================== 14
-{\setbeamertemplate{logo}{}
-\begin{frame}
-  \centering\vspace{1.2cm}
-  {\Huge\textcolor{peking}{谢谢！}}\\[0.8cm]
-  {\large 欢迎提问}\\[1cm]
-  \includegraphics[width=0.22\linewidth]{Figures/PKU-emblem-names.png}
-\end{frame}}
+\begin{frame}{Host JTAG Burst 与 Single-RPC 流水化：分层实测证据与边界}
+  \noindent{\color{ink}\scriptsize
+  \begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}l r r r r r r@{}}
+    \toprule
+    & \multicolumn{2}{c}{\textbf{\NRtlTckMhz{} MHz TCK RTL Wire Sim}} & \multicolumn{4}{c}{\textbf{Live \texttt{TclRpc} TCP + \texttt{tclsh} OpenOCD-Protocol Sim}} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-7}
+    \textbf{Model} & \textbf{Burst (ms)} & \textbf{上传 \%} & \textbf{Batched → Pipe RPC} & \textbf{RPC 减少} & \textbf{TCP+tclsh (ms)} & \textbf{× 加速} \\ \midrule
+    \tabinput{data/jtag_sim_rows.tex}
+    \bottomrule
+  \end{tabular*}}\par\vspace{9pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+    \textbf{分层实测：各层证明了什么}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item \textbf{\NRtlTckMhz{} MHz RTL 线层仿真}：证明 \texttt{IR 13h/14h} Burst 的物理线层下限为 \hl{\NRtlBurstMsMin–\NRtlBurstMsMax{} ms}（模型上传占 \NRtlUpPctMin–\NRtlUpPctMax\%）；\NRtlAnchorCount{} 个 \NRtlTckMhz{} MHz wordwise 锚点 \NRtlAnchorWordMin–\NRtlAnchorWordMax{} → \NRtlAnchorBurstMin–\NRtlAnchorBurstMax{} ms（提速 \NRtlAnchorSpMin–\NRtlAnchorSpMax×），与 \NRpcModels{} 模型 TCK 缩减 \NRtlTckCutMin–\NRtlTckCutMax× 一致。
+      \item \textbf{Single-RPC 协议仿真}：\texttt{chipdesign\_reads/load/infer\_v5} 将 \NRpcBatchedMin–\NRpcBatchedMax{} 次 RPC（缓存清单 \NRpcCachedMin–\NRpcCachedMax{} 次）合并为 \hl{\NRpcPipe{} 次}（\NRpcPipeLoad{} load + \NRpcPipeInfer{} infer），往返减少 \hl{\NRpcSpMin–\NRpcSpMax×}。
+    \end{itemize}
+    \column{0.48\textwidth}
+    \textbf{Loopback 执行、诚实边界与剩余瓶颈}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item \textbf{本地 TCP + \texttt{tclsh} 仿真}（golden-output SRAM fixture，\NRtlWireExactNote）：\hl{\NRpcExactCount/\NRpcModels{}} \NRpcExactStatus，loopback 中位数 \NRpcTcpBatchedMin–\NRpcTcpBatchedMax{} → \hl{\NRpcTcpPipeMin–\NRpcTcpPipeMax{} ms}。\textbf{不含真实 USB/FT232H 延迟，不等同于实板墙钟加速比。}
+      \item \textbf{剩余瓶颈}：\NDrscanDeltaNote{} \texttt{drscan} 总次数（仍为 \hl{\NRpcDrscanMin–\NRpcDrscanMax{} 次}）；若 OpenOCD 仍逐 \texttt{drscan} 同步刷新 USB，大头延迟仍在。
+      \item \textbf{Phase B}：纯主机侧 \texttt{pyftdi} MPSSE 批量 USB 后端（打包为 1–5 个 USB Bulk 包）或 OpenOCD \texttt{svf} 批处理；EGo1 实板复测 SRAM-lookup + Single-RPC。
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+% ##################################################################### PART 04
+\section{六场景应用与下一阶段计划}
+
+\begin{frame}{六场景统一应用软件与验证}
+  \noindent{\scriptsize
+  \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{场景} & \textbf{输入与处理流程} & \textbf{待完成硬件/现场项} \\ \midrule
+    ECG 心跳分类 & MIT-BIH 心拍回放，5 分类 & 实时模拟前端 / MAX30102 传感器 \\
+    HAR 活动识别 & UCI HAR 回放或实时手机 IMU CSV 流 & 佩戴式姿态标定 / MPU6050 \\
+    MNIST 数字 & 交互画布（松笔触发） & 手写参与者评测集 \\
+    KWS 语音 & 实时麦克风 + MFCC 前端，4 目标关键词 & 室内噪声物理麦克风验收 \\
+    表情识别 & 最大人脸裁剪 → INT4 7 类 CNN & 准确率基线；实地测试 \\
+    人脸检测 & CPU YuNet 默认 + 可选 NPU INT4 检测器 & NPU 检测器 QAT 精度调优 \\ \bottomrule
+  \end{tabularx}}\par\vspace{10pt}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.33\textwidth}
+    \textbf{软件参考闭合}\par\vspace{2pt}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item 固定输入 \hl{\NDemoGolden/\NDemoGoldenTotal}：INT32 全输出 \NDemoExactStatus
+      \item zoo 参考 \NDemoZoo/\NDemoZoo{} 帧 \NDemoExactStatus
+      \item \NDemoUnit{} 个演示 + \NDemoJtag{} 个 JTAG 单元测试\NDemoUnitStatus
+    \end{itemize}
+    \column{0.33\textwidth}
+    \textbf{\NDemoFixes{} 项运行时健壮性修复}\par\vspace{2pt}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item 浏览器重启等待上传队列清空
+      \item HAR 流式窗口在 > \NHarGapMs{} ms 间隙后干净重置
+      \item 自测严格区分局部与全量覆盖
+    \end{itemize}
+    \column{0.31\textwidth}
+    \textbf{视觉模型基线}\par\vspace{2pt}
+    \begin{itemize}\setlength{\itemsep}{2pt}
+      \item 表情：\NEmoAcc\%（FER2013 \NEmoSamples{} 样本）
+      \item 人脸 P/R/F1：\NFaceP/\NFaceR/\NFaceF\%
+      \item \texttt{fpga\_validated=\NDemoFpga}（待上板）
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{诚实边界与后续工程计划}
+  \begin{columns}[T,onlytextwidth]
+    \column{0.48\textwidth}
+    \textbf{\color{ink}已验证基线}\par\vspace{4pt}
+    {\scriptsize
+    \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
+      \toprule
+      \textbf{RTL} & SRAM 化 \texttt{npu\_tensor\_lookup}：面积 \NLookupAreaPct\%，\NMutKilled/\NMutNew{} mutant，\NRtlModels{} 模型 \NRtlExactShort \\[3pt]
+      \textbf{ASIC} & 纯后端 \hl{\NAllMmmcStatus}（\NZeroRtl；\texttt{ss125} \NSSSetup{} ns）+ ±RC 敏感度（\texttt{ffm40} Hold \NRcHoldStatus），\NSdfCorner{} SDF \NSdfStatus，LEC \texttt{\NLecVerified}，\NPwAnnot\%-VCD 功耗（算子融合节能 \NFusionSave\%） \\[3pt]
+      \textbf{签核} & \NDbuPerUm{} DBU/µm \texttt{postDummy.gds}（\NSealSide{} µm）：DRC / 全 SRAM LVS / ANT / WireBond \NSignoffAllStatus，ERC 审计 \\[3pt]
+      \textbf{主机} & \NRtlTckMhz{} MHz RTL + TCP/\texttt{tclsh} Single-RPC 仿真（\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPC；\NRpcExactCount/\NRpcModels{} golden-output fixture \NRpcExactStatus） \\[3pt]
+      \textbf{演示} & 六场景主机套件：\NDemoGolden/\NDemoGoldenTotal{} \NDemoExactStatus，\NDemoZoo/\NDemoZoo{} zoo 帧 \\ \bottomrule
+    \end{tabularx}}
+    \column{0.48\textwidth}
+    \textbf{\color{peking}后续工程计划与开放签核项}\par\vspace{4pt}
+    {\scriptsize
+    \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
+      \toprule
+      \textbf{FPGA} & Vivado 实机指导包已交接：实板测 Single-RPC + OpenOCD，分离 TCP 与 USB 占比；实测 \texttt{pyftdi} MPSSE 批量 USB 后端（\texttt{0403:6014}）与 OpenOCD \texttt{svf}，同步完成六场景上板；现有 Single-RPC 结论仅限 golden-output fixture \\[3pt]
+      \textbf{签核} & 获取 foundry ERC waiver（\texttt{formal\_tapeout\_signoff=\NFormalTapeout}）；以真实 \texttt{Cmax}/\texttt{Cmin} RC 角复核 \texttt{ss125} Setup（当前 \NRcPfifteenScale\% RC 为 \NRcPfifteenWns{} ns）；补做带 PGV 的静态 IR Drop \\[3pt]
+      \textbf{现场} & MAX30102、MPU6050、摄像头、麦克风传感器端到端联调与评测；最终冻结发布 \\ \bottomrule
+    \end{tabularx}}
+  \end{columns}
+  \par\vspace{8pt}
+  \begin{center}
+    \includegraphics[width=0.14\linewidth]{Figures/PKU-emblem-names.png}\\[6pt]
+    {\large\bfseries\color{peking} 谢谢}\quad{\color{muted}·}\quad{\large\color{muted} 欢迎提问与讨论}
+  \end{center}
+\end{frame}
 
 \end{document}

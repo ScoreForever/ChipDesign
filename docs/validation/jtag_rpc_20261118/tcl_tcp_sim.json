@@ -1,0 +1,239 @@
+{
+  "scope": "Measured localhost TCP (TclRpc) + persistent tclsh executing unmodified nocpu_jtag.py production procedures across all 7 pretrained models; not physical EGo1 USB/FT232H board wall time.",
+  "runs_per_mode": 5,
+  "note_infer_rpcs": "Unmodified Npu.infer() in batched mode performs 2 additional reads (0x18/0x1c input base/bytes), so batched load+infer total is 54-76 RPCs (vs. 52-74 when manifest cached); pipeline mode collapses both to 2+2=4 RPCs.",
+  "all_bit_exact": true,
+  "models": [
+    {
+      "model": "ecg",
+      "model_bytes": 3908,
+      "input_bytes": 64,
+      "output_bytes": 20,
+      "compute_cycles": 13247,
+      "batched": {
+        "exact": true,
+        "load_rpcs": 35,
+        "infer_rpcs": 19,
+        "total_rpcs": 54,
+        "load_drscans": 1025,
+        "infer_drscans": 54,
+        "total_drscans": 1079,
+        "median_load_ms": 45.061,
+        "median_infer_ms": 23.196,
+        "median_total_ms": 68.439
+      },
+      "pipeline": {
+        "exact": true,
+        "load_rpcs": 2,
+        "infer_rpcs": 2,
+        "total_rpcs": 4,
+        "load_drscans": 1025,
+        "infer_drscans": 54,
+        "total_drscans": 1079,
+        "median_load_ms": 6.632,
+        "median_infer_ms": 2.682,
+        "median_total_ms": 8.66
+      },
+      "rpc_reduction_x": 13.5,
+      "loopback_speedup_x": 7.9
+    },
+    {
+      "model": "fashion_cnn",
+      "model_bytes": 8104,
+      "input_bytes": 392,
+      "output_bytes": 40,
+      "compute_cycles": 35765,
+      "batched": {
+        "exact": true,
+        "load_rpcs": 51,
+        "infer_rpcs": 20,
+        "total_rpcs": 71,
+        "load_drscans": 2074,
+        "infer_drscans": 141,
+        "total_drscans": 2215,
+        "median_load_ms": 60.878,
+        "median_infer_ms": 19.034,
+        "median_total_ms": 79.709
+      },
+      "pipeline": {
+        "exact": true,
+        "load_rpcs": 2,
+        "infer_rpcs": 2,
+        "total_rpcs": 4,
+        "load_drscans": 2074,
+        "infer_drscans": 141,
+        "total_drscans": 2215,
+        "median_load_ms": 9.282,
+        "median_infer_ms": 3.972,
+        "median_total_ms": 13.535
+      },
+      "rpc_reduction_x": 17.75,
+      "loopback_speedup_x": 5.89
+    },
+    {
+      "model": "gtsrb_l",
+      "model_bytes": 7736,
+      "input_bytes": 2048,
+      "output_bytes": 172,
+      "compute_cycles": 78990,
+      "batched": {
+        "exact": true,
+        "load_rpcs": 50,
+        "infer_rpcs": 26,
+        "total_rpcs": 76,
+        "load_drscans": 1982,
+        "infer_drscans": 588,
+        "total_drscans": 2570,
+        "median_load_ms": 58.759,
+        "median_infer_ms": 33.458,
+        "median_total_ms": 93.702
+      },
+      "pipeline": {
+        "exact": true,
+        "load_rpcs": 2,
+        "infer_rpcs": 2,
+        "total_rpcs": 4,
+        "load_drscans": 1982,
+        "infer_drscans": 588,
+        "total_drscans": 2570,
+        "median_load_ms": 9.376,
+        "median_infer_ms": 5.778,
+        "median_total_ms": 15.094
+      },
+      "rpc_reduction_x": 19.0,
+      "loopback_speedup_x": 6.21
+    },
+    {
+      "model": "har",
+      "model_bytes": 4216,
+      "input_bytes": 576,
+      "output_bytes": 24,
+      "compute_cycles": 15357,
+      "batched": {
+        "exact": true,
+        "load_rpcs": 36,
+        "infer_rpcs": 21,
+        "total_rpcs": 57,
+        "load_drscans": 1102,
+        "infer_drscans": 183,
+        "total_drscans": 1285,
+        "median_load_ms": 54.008,
+        "median_infer_ms": 27.636,
+        "median_total_ms": 80.79
+      },
+      "pipeline": {
+        "exact": true,
+        "load_rpcs": 2,
+        "infer_rpcs": 2,
+        "total_rpcs": 4,
+        "load_drscans": 1102,
+        "infer_drscans": 183,
+        "total_drscans": 1285,
+        "median_load_ms": 7.281,
+        "median_infer_ms": 3.642,
+        "median_total_ms": 10.922
+      },
+      "rpc_reduction_x": 14.25,
+      "loopback_speedup_x": 7.4
+    },
+    {
+      "model": "kws_l",
+      "model_bytes": 7896,
+      "input_bytes": 245,
+      "output_bytes": 48,
+      "compute_cycles": 71318,
+      "batched": {
+        "exact": true,
+        "load_rpcs": 50,
+        "infer_rpcs": 19,
+        "total_rpcs": 69,
+        "load_drscans": 2022,
+        "infer_drscans": 107,
+        "total_drscans": 2129,
+        "median_load_ms": 72.619,
+        "median_infer_ms": 25.659,
+        "median_total_ms": 98.06
+      },
+      "pipeline": {
+        "exact": true,
+        "load_rpcs": 2,
+        "infer_rpcs": 2,
+        "total_rpcs": 4,
+        "load_drscans": 2022,
+        "infer_drscans": 107,
+        "total_drscans": 2129,
+        "median_load_ms": 9.43,
+        "median_infer_ms": 3.232,
+        "median_total_ms": 12.267
+      },
+      "rpc_reduction_x": 17.25,
+      "loopback_speedup_x": 7.99
+    },
+    {
+      "model": "kws_m",
+      "model_bytes": 7632,
+      "input_bytes": 245,
+      "output_bytes": 48,
+      "compute_cycles": 72935,
+      "batched": {
+        "exact": true,
+        "load_rpcs": 49,
+        "infer_rpcs": 19,
+        "total_rpcs": 68,
+        "load_drscans": 1956,
+        "infer_drscans": 107,
+        "total_drscans": 2063,
+        "median_load_ms": 61.255,
+        "median_infer_ms": 20.437,
+        "median_total_ms": 83.574
+      },
+      "pipeline": {
+        "exact": true,
+        "load_rpcs": 2,
+        "infer_rpcs": 2,
+        "total_rpcs": 4,
+        "load_drscans": 1956,
+        "infer_drscans": 107,
+        "total_drscans": 2063,
+        "median_load_ms": 8.508,
+        "median_infer_ms": 3.371,
+        "median_total_ms": 12.806
+      },
+      "rpc_reduction_x": 17.0,
+      "loopback_speedup_x": 6.53
+    },
+    {
+      "model": "mnist_l",
+      "model_bytes": 4688,
+      "input_bytes": 392,
+      "output_bytes": 40,
+      "compute_cycles": 30184,
+      "batched": {
+        "exact": true,
+        "load_rpcs": 38,
+        "infer_rpcs": 20,
+        "total_rpcs": 58,
+        "load_drscans": 1220,
+        "infer_drscans": 141,
+        "total_drscans": 1361,
+        "median_load_ms": 49.794,
+        "median_infer_ms": 24.513,
+        "median_total_ms": 74.447
+      },
+      "pipeline": {
+        "exact": true,
+        "load_rpcs": 2,
+        "infer_rpcs": 2,
+        "total_rpcs": 4,
+        "load_drscans": 1220,
+        "infer_drscans": 141,
+        "total_drscans": 1361,
+        "median_load_ms": 7.616,
+        "median_infer_ms": 4.37,
+        "median_total_ms": 12.531
+      },
+      "rpc_reduction_x": 14.5,
+      "loopback_speedup_x": 5.94
+    }
+  ]
+}

@@ -12,6 +12,7 @@ re-run this script to change content.
 from __future__ import annotations
 import argparse
 import io
+import re
 from pathlib import Path
 
 import pymupdf
@@ -19,6 +20,7 @@ from pptx import Presentation
 from pptx.util import Emu
 
 HERE = Path(__file__).resolve().parent
+_XML_INVALID_RE = re.compile(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f\ud800-\udfff\ufffe\uffff]')
 
 
 def main():
@@ -37,7 +39,7 @@ def main():
         png = page.get_pixmap(dpi=args.dpi).tobytes('png')
         slide = prs.slides.add_slide(blank)
         slide.shapes.add_picture(io.BytesIO(png), 0, 0, prs.slide_width, prs.slide_height)
-        text = page.get_text().strip()
+        text = _XML_INVALID_RE.sub('', page.get_text()).strip()
         if text:
             slide.notes_slide.notes_text_frame.text = text
     prs.save(args.out)

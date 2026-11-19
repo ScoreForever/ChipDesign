@@ -1,0 +1,16 @@
+{
+  "dbu_per_um": 2000,
+  "candidate_name": "pnr_mmmc_closed",
+  "private_server_sha256": {
+    "chip.gds.gz": "b1b1cbe2b7b84b670068ca65ee79382e49a2f8e63ab51ce2454f1672b0805784",
+    "physical.v": "8b83f07842347cdb8e7414df72c17d92f721e1d1745bc4c0f5783a7b8781fd56",
+    "routed.def": "32521cef3434339d1de2e00600f750803eb59c7084c4cb99f0d8d8582265f407",
+    "routed.sdf.gz": "2cc89a5132c8ffb4844321e3c87aa0e6cba1611433f9e83b848a2fd84e9766bc",
+    "routed.spef.gz": "aaeb719989c5289ffc61ed6e590c394ac5f2f7277b5aba922238813b200654f4",
+    "preDummy.gds": "5c1d2db1a31e618e37c1fd039b0a9dc8124d39a7e73bd1acd5692ed8991683b9",
+    "DM.gds": "5f11b5b0009647947e4bd6800b3b25b37c57b9d573e0d31fa5ef593fe3d235e6",
+    "DOD.gds": "df6d7afaabf3a1a792a54b3d8a807828147ddb89bf9243c10dd0a10ee6bb0640",
+    "postDummy.gds": "e39c6efaf2623d6747de33fdd11ef8462c1f7bc0ad91f22693dbc0725318fc1f",
+    "netlist.cdl": "eb6db02dd8ac4492181aec1a436e1ed1e39f64e7a09dfccef5c172104ead3597"
+  }
+}
