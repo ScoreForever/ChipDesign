@@ -1,0 +1,164 @@
+{
+  "corners": [
+    {
+      "corner": "ss125",
+      "mode": "setup",
+      "wns": "0.492",
+      "start": "i_control/i_controller_model_bytes_o_reg[1]/CP",
+      "end": "i_control/i_activation_i_store_g_bank[1].i_sram/WEN[3]",
+      "arrival": "14.963",
+      "required": "15.455",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ss125",
+      "mode": "hold",
+      "wns": "0.568",
+      "start": "i_control/i_npu/kernel_offset_reg[12]/CP",
+      "end": "i_control/i_npu/k_normalized_reg[5][12]/D",
+      "arrival": "2.776",
+      "required": "2.209",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "tt25",
+      "mode": "setup",
+      "wns": "7.083",
+      "start": "i_control/i_npu/i_array_tag_pipe_reg[14][2]/CP",
+      "end": "i_control/i_npu/results_reg[2][250]/D",
+      "arrival": "13.792",
+      "required": "20.875",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "tt25",
+      "mode": "hold",
+      "wns": "0.281",
+      "start": "i_control/i_npu/pool_scan_product_reg[14]/CP",
+      "end": "i_control/i_npu/cursor_step_reg[7][14]/D",
+      "arrival": "1.620",
+      "required": "1.339",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ff0",
+      "mode": "setup",
+      "wns": "10.824",
+      "start": "i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP",
+      "end": "i_control/i_npu/results_reg[3][193]/D",
+      "arrival": "9.880",
+      "required": "20.704",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ff0",
+      "mode": "hold",
+      "wns": "0.163",
+      "start": "i_control/i_npu/psum_reg[4][122]/CP",
+      "end": "i_control/i_npu/psum_reg[4][122]/SI",
+      "arrival": "1.209",
+      "required": "1.046",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ffm40",
+      "mode": "setup",
+      "wns": "11.263",
+      "start": "i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP",
+      "end": "i_control/i_npu/results_reg[3][193]/D",
+      "arrival": "9.403",
+      "required": "20.667",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    },
+    {
+      "corner": "ffm40",
+      "mode": "hold",
+      "wns": "0.144",
+      "start": "i_control/i_npu/psum_reg[4][122]/CP",
+      "end": "i_control/i_npu/psum_reg[4][122]/SI",
+      "arrival": "1.156",
+      "required": "1.012",
+      "tns_2000": "0.0",
+      "violating_endpoints_2000": "0"
+    }
+  ],
+  "cdc_rows": 452,
+  "sram_rows": 8,
+  "rc_sensitivity": [
+    {
+      "case": "typ_ss125",
+      "corner": "ss125",
+      "rc_scale": "1.00",
+      "setup_wns": "0.492",
+      "setup_tns": "0.0",
+      "setup_viol": "0",
+      "hold_wns": "0.568",
+      "hold_tns": "0.0",
+      "hold_viol": "0"
+    },
+    {
+      "case": "rc_p15_ss125",
+      "corner": "ss125",
+      "rc_scale": "1.15",
+      "setup_wns": "-0.341",
+      "setup_tns": "-25.11",
+      "setup_viol": "199",
+      "hold_wns": "0.567",
+      "hold_tns": "0.0",
+      "hold_viol": "0"
+    },
+    {
+      "case": "rc_p20_ss125",
+      "corner": "ss125",
+      "rc_scale": "1.20",
+      "setup_wns": "-0.750",
+      "setup_tns": "-181.205",
+      "setup_viol": "766",
+      "hold_wns": "0.567",
+      "hold_tns": "0.0",
+      "hold_viol": "0"
+    },
+    {
+      "case": "typ_ffm40",
+      "corner": "ffm40",
+      "rc_scale": "1.00",
+      "setup_wns": "11.263",
+      "setup_tns": "0.0",
+      "setup_viol": "0",
+      "hold_wns": "0.144",
+      "hold_tns": "0.0",
+      "hold_viol": "0"
+    },
+    {
+      "case": "rc_m15_ffm40",
+      "corner": "ffm40",
+      "rc_scale": "0.85",
+      "setup_wns": "11.891",
+      "setup_tns": "0.0",
+      "setup_viol": "0",
+      "hold_wns": "0.125",
+      "hold_tns": "0.0",
+      "hold_viol": "0"
+    },
+    {
+      "case": "rc_m20_ffm40",
+      "corner": "ffm40",
+      "rc_scale": "0.80",
+      "setup_wns": "12.092",
+      "setup_tns": "0.0",
+      "setup_viol": "0",
+      "hold_wns": "0.121",
+      "hold_tns": "0.0",
+      "hold_viol": "0"
+    }
+  ],
+  "rc_note": "Typical captable only, temperature scaled; +-15%/+-20% RC scaling sensitivity verified",
+  "passed_all_4corners": true
+}

@@ -1,4 +1,4 @@
-% Week 3 Engineering Progress Deck — ISSCC/VLSI Minimalist Theme (20 Pages, Pure English)
+% 14 Pages, CN+EN ISSCC/VLSI Theme (v4 — 4-Corner 50 MHz Closure)
 % Build: python3 make_data.py && latexmk -xelatex main.tex
 % All metric values are generated into data/ from verified repository records; none are hardcoded here.
 \documentclass[10pt,aspectratio=169,hyperref={colorlinks,urlcolor=steel,linkcolor=}]{beamer}
@@ -172,11 +172,11 @@
       \end{itemize}
     \column{0.238\textwidth}
       {\color{peking}\rule{\linewidth}{1.6pt}}\par\vspace{5pt}
-      {\tiny\bfseries\color{peking} 02 · 统一 ASIC 签核}\\[2pt]
-      {\small\bfseries\color{ink} Single-GDS 流程}\\[5pt]
-      {\large\bfseries\color{peking} \NSealSide\,µm} {\scriptsize\color{muted} 封环管芯}\\[4pt]
+      {\tiny\bfseries\color{peking} 02 · 纯后端 True-MMMC 与签核}\\[2pt]
+      {\small\bfseries\color{ink} \NAllMmmcCard}\\[5pt]
+      {\large\bfseries\color{peking} \NSSSetup\,ns} {\scriptsize\color{muted} SS125}\\[4pt]
       \begin{itemize}\setlength{\itemsep}{2pt}
-        \item TT \NCoreMHz{} MHz, \NMmmcCorners-Corner MMMC
+        \item \texttt{ss125} \NSSBeforeFreq{} → \NSSFreq{} MHz，\NZeroRtl
         \item DRC / nmLVS / ANT / WireBond \NSignoffAllStatus
         \item ERC \NErcHier{} Hier. / \NErcExp{} Exp. 已逐项审计
       \end{itemize}
@@ -198,7 +198,7 @@
         \item \NDemoZoo/\NDemoZoo{} zoo 参考帧 \NDemoExactStatus
         \item \NDemoFixes{} 项运行时健壮性修复
       \end{itemize}
-  \end{columns}\par\vspace{12pt}\callout[peking]{\textbf{核心主线}：以 SRAM 化 Lookup 释放面积（\hl{\NLookupAreaPct\%}），在统一 \texttt{postDummy.gds} 上完成 DRC / nmLVS / ANT / WireBond 签核与 ERC 审计，再以 Single-RPC 把主机 RPC 由 \NRpcBatchedMax{} 次压至 \NRpcPipe{} 次；Phase B 转向真 MMMC 与实板 USB 批量后端。}
+  \end{columns}\par\vspace{12pt}\callout[peking]{\textbf{核心主线}：以 SRAM 化 Lookup 释放面积（\hl{\NLookupAreaPct\%}），以纯后端 True-MMMC 实现 \hl{\NAllMmmcStatus}（\texttt{ss125} Setup \NSSBeforeSetup{} → \hl{\NSSSetup{} ns}，\NZeroRtl），在统一 \texttt{postDummy.gds} 上 DRC / nmLVS / ANT / WireBond \NSignoffAllStatus{} 并完成 ERC 审计，再以 Single-RPC 把主机 RPC 由 \NRpcBatchedMax{} 次压至 \NRpcPipe{} 次；下一步为 EGo1 实板 USB 批量后端。}
 \end{frame}
 
 % ##################################################################### PART 01
@@ -296,7 +296,8 @@
         \input{data/delta_plot.tex}
       \end{axis}
     \end{tikzpicture}\par\vspace{3pt}
-    \snote{Single-GDS 签核流程：对角双 SRAM 平面规划，目标利用率 \NUtilPct\%，Hold 目标 \NHoldTarget{} ns。}
+    \snote{True-MMMC 流程：\texttt{ss125} \NSynOverPeriod{} ns 过约束综合 → \NCorePeriod{} ns 四角联合 P\&R + ECO；目标利用率 \NUtilPct\%，Hold 目标 \NHoldTarget{} ns。}
+    \snote{相对同 RTL 的 TT-only 网表：综合 stdcell \NMmmcSynPct\%，高驱动 MMMC 缓冲使布线后面积 \NMmmcActPct\%、线长 \NMmmcWirePct\%（\NMmmcInstDelta{} 实例）；仍低于 FF 基线。}
     \column{0.53\textwidth}
     {\scriptsize\setlength{\tabcolsep}{3.5pt}
     \begin{tabular}{@{}lrr@{}}
@@ -321,7 +322,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{物理版图、\NPadCount-Pad Keepout 与功能闭合}
+\begin{frame}{True-MMMC 物理版图、\NPadCount-Pad Keepout 与功能闭合}
   \centering
   \begin{tabular}{@{}cccc@{}}
     \includegraphics[width=0.225\linewidth]{figs/1_placement.png} &
@@ -342,34 +343,33 @@
     \column{0.48\textwidth}
     \textbf{布线后时序、SDF 与等价性验证}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item 布局后 SDF 门级仿真：\hl{\NSdfStatus}（\NSdfCmds{} 条 JTAG 指令，\NSdfUnexpected{} 个非预期告警）
-      \item Formality LEC（RTL vs. 布线网表）：\texttt{\NLecVerified}
-      \item OpenSTA TT stdcell+IO：Setup \NStaSetup{} ns / Hold \NStaHold{} ns；CTS/repair +\NCtsRepairArea{} kµm²
+      \item \hl{\NSdfCorner} SDF 门级仿真：\hl{\NSdfStatus}（\NSdfCmds{} 条 JTAG 指令，\NSdfUnexpected{} 个非预期告警）
+      \item Formality LEC（综合网表 vs. 布线网表）：\texttt{\NLecVerified}
+      \item \NStaTool{} TT stdcell+IO：Setup \NStaSetup{} ns / Hold \NStaHold{} ns；CTS/repair +\NCtsRepairArea{} kµm²
     \end{itemize}
   \end{columns}
 \end{frame}
 
-\begin{frame}{\NMmmcCorners-Corner MMMC STA、SRAM 接口与 \NCdcRows-Path CDC 闭合}
+\begin{frame}{\NAllMmmcStatus：±RC、\NSramRows-View SRAM 与 \NCdcRows-Path CDC}
   \begin{columns}[T,onlytextwidth]
-    \column{0.48\textwidth}
+    \column{0.50\textwidth}
     {\scriptsize\setlength{\tabcolsep}{3pt}
-    \begin{tabular}{@{}llrrl@{}}
+    \begin{tabular}{@{}lrrrrcl@{}}
       \toprule
-      \textbf{Corner} & \textbf{时钟} & \textbf{Setup} & \textbf{Hold} & \\ \midrule
-      \texttt{tt25} & \NCoreMHz{} MHz & \NTTSetup & \NTTHoldW & \NTTBadge \\
-      \texttt{ff0} & \NCoreMHz{} MHz & \NFFzSetup & \NFFzHoldW & \NFFzBadge \\
-      \texttt{ffm40} & \NCoreMHz{} MHz & \NFFmSetup & \NFFmHoldW & \NFFmBadge \\
-      \rowcolor{surf}\texttt{ss125} & \NCoreMHz{} MHz & \hl{\NSSSetup} & \NSSHoldW & \NSSBadge \\
-      \rowcolor{surf}\texttt{SS125\_DERATED} & \NSSDPeriod{} ns / \NSSDFreq{} MHz & \textbf{\NSSDSetup} & \NSSDHoldW & \NSSDBadge \\ \bottomrule
-    \end{tabular}}\par\vspace{3pt}
-    \snote{\NMmmcCorners{} 个 PVT Corner 的最差负 Slack（WNS，单位 ns）。}\vspace{5pt}
+      \textbf{Corner} & \textbf{时钟} & \textbf{Setup} & \textbf{Hold} & \textbf{Fmax} & \textbf{违例} & \\ \midrule
+      \rowcolor{surf}\texttt{ss125} & \NCoreMHz{} MHz & \hl{\NSSSetup} & \NSSHoldW & \hl{\NSSFreq} & \NSSViol & \NSSBadge \\
+      \texttt{tt25} & \NCoreMHz{} MHz & \NTTSetup & \NTTHoldW & \NTTFreq & \NTTViol & \NTTBadge \\
+      \texttt{ff0} & \NCoreMHz{} MHz & \NFFzSetup & \NFFzHoldW & \NFFzFreq & \NFFzViol & \NFFzBadge \\
+      \texttt{ffm40} & \NCoreMHz{} MHz & \NFFmSetup & \NFFmHoldW & \NFFmFreq & \NFFmViol & \NFFmBadge \\ \bottomrule
+    \end{tabular}}\par\vspace{2pt}
+    \snote{WNS 单位 ns；Fmax = 1000 / (\NCorePeriod{} − Setup WNS) MHz；违例 = Setup/Hold 端点数。}\vspace{3pt}
     \begin{itemize}\setlength{\itemsep}{2pt}
-      \item TT 与两个 FF corner 在 \NCoreMHz{} MHz 下\NCleanMmmcStatus（TNS = \NTTTns/\NFFzTns/\NFFmTns{} ns，最小 Hold \NCleanHoldMin{} ns @ \texttt{\NCleanHoldMinCorner}）。
-      \item \texttt{ss125} 在 \NCoreMHz{} MHz 下 TNS = \NSSTns{} ns（\NSSViol{} 端点，关键路径止于 \NSSEndSram{} \texttt{WEN}，到达 \NSSArr{} vs. 要求 \NSSReq{} ns）；降频至 \NSSDFreq{} MHz 后\NSSDStatus。
-    \end{itemize}\par\vspace{5pt}
-    \callout[warnink]{\textbf{RC 范围说明}：\texttt{\NRcNote}。综合/P\&R 以 TT 为目标；通过 MMMC 优化闭合 \texttt{ss125} 是 Phase B 首要任务。}
+      \item \texttt{ss125} Setup 由 \NSSBeforeSetup{} ns（\NSSBeforeViol{} 端点；降频闭合仅 \NSSBeforeFreq{} MHz）→ \hl{\NSSSetup{} ns（\NSSFreq{} MHz）}，提升 \hl{\NSSGainNs{} ns}，\hl{\NZeroRtl}；关键路径止于 \NSSEndSram{} \texttt{WEN}。
+      \item 全部 \NMmmcCorners{} 个 corner \NAllMmmcShort，TNS = 0；最小 Hold \NHoldMin{} ns @ \texttt{\NHoldMinCorner}。
+    \end{itemize}\par\vspace{3pt}
+    \callout[warnink]{\textbf{±15\%/±20\% RC 敏感度（典型 captable 缩放）}：\texttt{ffm40} \NRcMfifteenScale\%/\NRcMtwentyScale\% RC Hold 仍 \hl{\NRcMfifteenHold{} / \NRcMtwentyHold{} ns}（\NRcHoldStatus{} \NRcHoldBadge）；\texttt{ss125} \NRcPfifteenScale\%/\NRcPtwentyScale\% RC Setup 为 \NRcPfifteenWns{} / \NRcPtwentyWns{} ns（\NRcPfifteenFreq{} / \NRcPtwentyFreq{} MHz）。\NRcScope，待 foundry \texttt{Cmax}/\texttt{Cmin} 与 PGV 静态 IR 复核。}
     \column{0.49\textwidth}
-    \textbf{SRAM 接口时序（\NSramRows{} 视图，ns）}\par\vspace{2pt}
+    \textbf{SRAM 接口时序（\NSramCorners{} corner，ns）\quad\NSramBadge}\par\vspace{2pt}
     {\scriptsize\setlength{\tabcolsep}{2.5pt}
     \begin{tabular}{@{}llrrrr@{}}
       \toprule
@@ -377,7 +377,8 @@
       \tabinput{data/sram_rows.tex}
       \bottomrule
     \end{tabular}}\par\vspace{7pt}
-    \textbf{JTAG ↔ Core CDC 签核}
+    \snote{\NSramRows{} 视图\NSramStatus，最小裕量 \NSramMin{} ns。}\vspace{4pt}
+    \textbf{JTAG ↔ Core CDC 签核\quad\NCdcBadge}
     \begin{itemize}\setlength{\itemsep}{2pt}
       \item \NCdcPaths{} 条路径 × \NCdcCorners{} corner = \hl{\NCdcPos/\NCdcRows{} 正 Slack}
       \item 最差 CDC 裕量：\NCdcMin{} ns @ \texttt{\NCdcMinCorner}
@@ -563,7 +564,7 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{诚实边界与 Phase B 工程计划}
+\begin{frame}{诚实边界与后续工程计划}
   \begin{columns}[T,onlytextwidth]
     \column{0.48\textwidth}
     \textbf{\color{ink}已验证基线}\par\vspace{4pt}
@@ -571,20 +572,19 @@
     \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
       \toprule
       \textbf{RTL} & SRAM 化 \texttt{npu\_tensor\_lookup}：面积 \NLookupAreaPct\%，\NMutKilled/\NMutNew{} mutant，\NRtlModels{} 模型 \NRtlExactShort \\[3pt]
-      \textbf{ASIC} & 统一 Single-GDS 流程：\NCoreMHz{} MHz TT/FF \NCleanMmmcStatus，SDF \NSdfStatus，LEC \texttt{\NLecVerified}，\NPwAnnot\%-VCD 功耗（算子融合节能 \NFusionSave\%） \\[3pt]
+      \textbf{ASIC} & 纯后端 \hl{\NAllMmmcStatus}（\NZeroRtl；\texttt{ss125} \NSSSetup{} ns）+ ±RC 敏感度（\texttt{ffm40} Hold \NRcHoldStatus），\NSdfCorner{} SDF \NSdfStatus，LEC \texttt{\NLecVerified}，\NPwAnnot\%-VCD 功耗（算子融合节能 \NFusionSave\%） \\[3pt]
       \textbf{签核} & \NDbuPerUm{} DBU/µm \texttt{postDummy.gds}（\NSealSide{} µm）：DRC / 全 SRAM LVS / ANT / WireBond \NSignoffAllStatus，ERC 审计 \\[3pt]
       \textbf{主机} & \NRtlTckMhz{} MHz RTL + TCP/\texttt{tclsh} Single-RPC 仿真（\NRpcBatchedMin–\NRpcBatchedMax{} → \NRpcPipe{} RPC；\NRpcExactCount/\NRpcModels{} golden-output fixture \NRpcExactStatus） \\[3pt]
       \textbf{演示} & 六场景主机套件：\NDemoGolden/\NDemoGoldenTotal{} \NDemoExactStatus，\NDemoZoo/\NDemoZoo{} zoo 帧 \\ \bottomrule
     \end{tabularx}}
     \column{0.48\textwidth}
-    \textbf{\color{peking}Phase B 工程计划与开放签核项}\par\vspace{4pt}
+    \textbf{\color{peking}后续工程计划与开放签核项}\par\vspace{4pt}
     {\scriptsize
     \begin{tabularx}{\linewidth}{@{}l >{\raggedright\arraybackslash}X@{}}
       \toprule
-      \textbf{MMMC} & 服务器端真 MMMC：\texttt{ss125} setup + \texttt{ffm40} hold 联合优化；若纯后端 < 45 MHz，自动插 1 级 RTL 流水线（\texttt{i\_npu → i\_activation\_i\_store → i\_sram/WEN}），全量复跑回归 + Single-GDS 签核 \\[3pt]
-      \textbf{签核} & Post-dummy RC/静态 IR 敏感度分析；获取 foundry ERC waiver（\texttt{formal\_tapeout\_signoff=\NFormalTapeout}） \\[3pt]
-      \textbf{FPGA} & Vivado 实机指导包：Step 1 实板测 Single-RPC + OpenOCD，分离 TCP 与 USB 占比；Step 2 实测 \texttt{pyftdi} MPSSE 批量 USB 后端（\texttt{0403:6014}）与 OpenOCD \texttt{svf}，同步完成六场景上板验证；现有 Single-RPC 结论仅限 golden-output fixture \\[3pt]
-      \textbf{现场} & MAX30102、MPU6050、摄像头、麦克风端到端传感器评测；最终冻结发布 \\ \bottomrule
+      \textbf{FPGA} & Vivado 实机指导包已交接：实板测 Single-RPC + OpenOCD，分离 TCP 与 USB 占比；实测 \texttt{pyftdi} MPSSE 批量 USB 后端（\texttt{0403:6014}）与 OpenOCD \texttt{svf}，同步完成六场景上板；现有 Single-RPC 结论仅限 golden-output fixture \\[3pt]
+      \textbf{签核} & 获取 foundry ERC waiver（\texttt{formal\_tapeout\_signoff=\NFormalTapeout}）；以真实 \texttt{Cmax}/\texttt{Cmin} RC 角复核 \texttt{ss125} Setup（当前 \NRcPfifteenScale\% RC 为 \NRcPfifteenWns{} ns）；补做带 PGV 的静态 IR Drop \\[3pt]
+      \textbf{现场} & MAX30102、MPU6050、摄像头、麦克风传感器端到端联调与评测；最终冻结发布 \\ \bottomrule
     \end{tabularx}}
   \end{columns}
   \par\vspace{8pt}

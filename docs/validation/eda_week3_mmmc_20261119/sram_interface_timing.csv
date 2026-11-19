@@ -1,0 +1,9 @@
+corner,instance,role,setup_to,hold_to,setup_from,hold_from
+ss125,i_control/i_activation_i_store_g_bank[0].i_sram,activation,0.614,0.873,0.698,3.426
+ss125,i_control/i_activation_i_store_g_bank[1].i_sram,model,0.492,1.066,0.547,3.514
+tt25,i_control/i_activation_i_store_g_bank[0].i_sram,activation,9.855,0.439,7.831,1.740
+tt25,i_control/i_activation_i_store_g_bank[1].i_sram,model,9.653,0.578,7.731,1.798
+ff0,i_control/i_activation_i_store_g_bank[0].i_sram,activation,12.944,0.234,11.417,0.992
+ff0,i_control/i_activation_i_store_g_bank[1].i_sram,model,12.778,0.342,11.359,1.022
+ffm40,i_control/i_activation_i_store_g_bank[0].i_sram,activation,13.243,0.213,11.844,0.935
+ffm40,i_control/i_activation_i_store_g_bank[1].i_sram,model,13.094,0.318,11.791,0.964

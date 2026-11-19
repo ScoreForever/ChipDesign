@@ -3,7 +3,8 @@ r"""Generate English LaTeX data macros and pgfplots snippets for the Week 3 deck
 
 All metric numbers and plot coordinates are read directly from repository evidence:
   docs/validation/eda_latest_20261111/       (FF-lookup synthesis/PnR baseline)
-  docs/validation/eda_week3_lab5_20261119/   (unified single-GDS Lab 4 + full physical signoff)
+  docs/validation/eda_week3_mmmc_20261119/   (zero-RTL 4-corner 50 MHz true-MMMC P&R + single-GDS physical signoff)
+  docs/validation/eda_week3_lab5_20261119/   (pre-MMMC TT-only run: ss125 before-recovery + CO.R.4 pre-fix count only)
   docs/validation/rtl_lookup_20261118/       (matched seven-model RTL cycle comparison)
   docs/validation/jtag_rpc_20261118/         (measured 1 MHz RTL wire sim + live TclRpc TCP+tclsh sim)
   docs/validation/demo_software_20261116/ + software/host/demos/models/*/training_result.json
@@ -26,7 +27,8 @@ ROOT = HERE.parents[2]
 OUT = HERE / 'data'
 VAL = ROOT / 'docs/validation'
 OLD = VAL / 'eda_latest_20261111'
-W3 = VAL / 'eda_week3_lab5_20261119'
+W3 = VAL / 'eda_week3_mmmc_20261119'
+PRE = VAL / 'eda_week3_lab5_20261119'
 RTL = VAL / 'rtl_lookup_20261118'
 JT = VAL / 'jtag_rpc_20261118'
 DEMO = VAL / 'demo_software_20261116'
@@ -130,6 +132,19 @@ def sec_asic(N):
     N['CtsRepairArea'] = f"{nm['cts_and_repair_area_change_um2'] / 1e3:.1f}"
     N['SramSeqCount'] = f"{ncells['sequential_count']:,}"
 
+    # Same-RTL pre-MMMC (TT-only) -> true-MMMC cost of 4-corner closure
+    psb, pm = jload(PRE / 'synthesis_area_breakdown.json'), jload(PRE / 'metrics.json')
+    pstd = psb['flop_area_um2'] + psb['comb_area_um2']
+    assert sum(v['count'] for v in psb['flops_by_register'].values()) == sq1
+    N['MmmcSynPct'] = f'{pct(std1, pstd):+.2f}'
+    N['MmmcActPct'] = f"{pct(act1, pm['active_standard_area_um2']):+.2f}"
+    N['MmmcWirePct'] = f"{pct(wl1, pm['wire_length_um']):+.2f}"
+    N['MmmcInstDelta'] = f"{nm['active_standard_instances'] - pm['active_standard_instances']:+,}"
+    N['ZeroRtl'] = '零 RTL 修改' if re.search(r'\bzero-RTL\b', readme) else 'RTL 已修改'
+    N['StaTool'] = grab(r'(PrimeTime|OpenSTA) TT STA', readme, 'README (STA tool)')[1]
+    m = grab(r'over-constrained high-effort synthesis at `([\d.]+) ns`', readme, 'README (synthesis over-constraint)')
+    N['SynOverPeriod'] = m[1]
+
     om_rows = {r['group']: r for r in rows(OLD / 'physical_area_modules.csv')}
     nm_rows = {r['group']: r for r in rows(W3 / 'physical_area_modules.csv')}
     lines = []
@@ -173,7 +188,7 @@ def sec_asic(N):
     N['GeoStatus'] = '通过' if geo_pass == len(checks) else '存在失败'
     l5 = jload(W3 / 'lab5_summary.json')
     N['DieSide'] = f"{l5['raw_die_bbox_um'][2]:.2f}"
-    N['DieLimit'] = grab(r'`<= (\d+) µm` Lab 4 die limit', readme, 'README (die limit)')[1]
+    N['DieLimit'] = grab(r'`<= (\d+) µm` die limit', readme, 'README (die limit)')[1]
     assert l5['raw_die_bbox_um'][2] <= float(N['DieLimit'])
     N['Util'] = grab(r'utilization `([\d.]+)`', readme, 'README (utilization)')[1]
     N['UtilPct'] = f"{100 * float(N['Util']):.0f}"
@@ -192,6 +207,9 @@ def sec_asic(N):
     N['SdfCmds'] = str(sdf['jtag_commands'])
     N['SdfUnexpected'] = str(len(d['fatal']) + len(d['unexpected_sdfnep']) + len(d['unexpected_sdfnet']))
     N['SdfPadConf'] = str(sdf['accepted_time0_input_pad_conflicts'])
+    m = grab(r'^(MAX|MIN|TYP)\w* \((ss|tt|ff)(m?\d+)\)$', sdf['mtm_corner'], 'sdf_result.json mtm_corner')
+    temp = ('-' if m[3].startswith('m') else '') + m[3].lstrip('m')
+    N['SdfCorner'] = f'{m[2].upper()} {temp}°C {m[1]}'
 
 
 # <<SECTION:physical_signoff>>
@@ -221,7 +239,11 @@ def sec_physical_signoff(N):
     N['DummyMsixViol'] = str(cats.get('M6.A.1', {}).get('hier', 0))
     assert N['DummyMsixViol'] == '0' and 'M6.A.1' not in drc['blocking']
     N['CorFourAfter'] = str(cats.get('CO.R.4', {}).get('hier', 0))
-    N['CorFourBefore'] = str(jload(W3 / 'signoff_summary.json')['results']['drc']['accepted']['CO.R.4']['count'])
+    # Pre-fix CO.R.4 count comes from the pre-MMMC single-GDS DRC; the fresh run must report the same uncovered
+    # IO PIMP contact (already_covered == False), i.e. the patch was needed and applied again.
+    before = jload(PRE / 'signoff_summary.json')['results']['drc']['accepted']['CO.R.4']['count']
+    assert l5['cor4_pimp_patch']['already_covered'] is False and before == 1
+    N['CorFourBefore'] = str(before)
 
     lv = ck['lvs']
     strict, relaxed = lv['pr_0pct'], lv['pr_3_48pct']
@@ -319,35 +341,71 @@ def sec_physical_signoff(N):
 # <<SECTION:mmmc>>
 def sec_mmmc(N):
     mm = jload(W3 / 'mmmc_summary.json')
-    readme = (W3 / 'README.md').read_text(encoding='utf-8')
     cor = {(c['corner'], c['mode']): c for c in rows(W3 / 'mmmc_corners.csv')}
-    key = {'tt25': 'TT', 'ff0': 'FFz', 'ffm40': 'FFm', 'ss125': 'SS', 'SS125_DERATED': 'SSD'}
+    key = {'ss125': 'SS', 'tt25': 'TT', 'ff0': 'FFz', 'ffm40': 'FFm'}
+    assert set(cor) == {(c, m_) for c in key for m_ in ('setup', 'hold')}
+    period = float(N['CorePeriod'])
+    fmax = lambda wns: 1000.0 / (period - wns)
+    all_ok = True
     for c, k in key.items():
-        sw = float(cor[(c, 'setup')]['wns'])
-        hw = float(cor[(c, 'hold')]['wns'])
-        N[k + 'Setup'] = sgn(sw)
-        N[k + 'HoldW'] = sgn(hw)
-        N[k + 'Badge'] = BS + ('ok' if (sw >= 0 and hw >= 0) else 'pending')
-        raw_tns = cor[(c, 'setup')]['tns_2000']
-        N[k + 'Tns'] = '0' if raw_tns in ('0', '0.0', 'NA') else '{:,.1f}'.format(float(raw_tns))
-    clean = ['tt25', 'ff0', 'ffm40']
-    clean_ok = all(float(cor[(c, m)]['wns']) >= 0 for c in clean for m in ('setup', 'hold'))
-    assert clean_ok
-    N['CleanMmmcStatus'] = '均干净闭合' if clean_ok else '存在违例'
-    hmin = min(clean, key=lambda c: float(cor[(c, 'hold')]['wns']))
-    N['CleanHoldMin'] = sgn(float(cor[(hmin, 'hold')]['wns']))
-    N['CleanHoldMinCorner'] = hmin
+        su, ho = cor[(c, 'setup')], cor[(c, 'hold')]
+        sw, hw = float(su['wns']), float(ho['wns'])
+        ok = sw >= 0 and hw >= 0 and all(
+            float(r_['tns_2000']) == 0.0 and int(r_['violating_endpoints_2000']) == 0 for r_ in (su, ho)
+        )
+        all_ok &= ok
+        N[k + 'Setup'], N[k + 'HoldW'] = sgn(sw), sgn(hw)
+        N[k + 'Freq'] = '%.2f' % fmax(sw)
+        N[k + 'Viol'] = '%d/%d' % (int(su['violating_endpoints_2000']), int(ho['violating_endpoints_2000']))
+        N[k + 'Badge'] = BS + ('ok' if ok else 'pending')
+    assert all_ok == bool(mm['passed_all_4corners'])
+    N['AllMmmcStatus'] = f"{len(key)}-Corner 全 {N['CoreMHz']} MHz 闭合" if all_ok else '存在违例'
+    N['AllMmmcCard'] = f"{len(key)}-Corner {N['CoreMHz']} MHz 闭合" if all_ok else '存在违例'
+    N['AllMmmcShort'] = '0 违例' if all_ok else '存在违例'
+    N['MmmcCorners'] = str(len(key))
+    hmin = min(key, key=lambda c: float(cor[(c, 'hold')]['wns']))
+    N['HoldMin'], N['HoldMinCorner'] = sgn(float(cor[(hmin, 'hold')]['wns'])), hmin
     ss = cor[('ss125', 'setup')]
-    N['SSTns'] = '{:,.1f}'.format(float(ss['tns_2000']))
-    N['SSViol'] = '{:,}'.format(int(ss['violating_endpoints_2000']))
-    N['SSArr'], N['SSReq'] = ss['arrival'], ss['required']
     N['SSEndSram'] = 'SRAM' if 'i_sram' in ss['end'] else esc(ss['end'])
-    m = grab(r'SS125_DERATED` \(SS, 125 .C\) \| `([\d.]+) ns` \(`([\d.]+) MHz`', readme, 'README (SS125_DERATED period)')
-    N['SSDPeriod'], N['SSDFreq'] = m[1], m[2]
-    ssd_ok = float(N['SSDSetup']) > 0 and float(N['SSDHoldW']) > 0
-    assert ssd_ok
-    N['SSDStatus'] = '干净闭合' if ssd_ok else '存在违例'
+    N['SSArr'], N['SSReq'] = ss['arrival'], ss['required']
+
+    # Before-MMMC ss125 (same RTL, TT-only P&R) -> after true-MMMC recovery
+    pre = {(c['corner'], c['mode']): c for c in rows(PRE / 'mmmc_corners.csv')}
+    b = float(pre[('ss125', 'setup')]['wns'])
+    a = float(ss['wns'])
+    assert b < 0 <= a
+    # 'Before' frequency = the measured, closed SS125_DERATED run of the pre-MMMC netlist (not an extrapolation)
+    pre_rd = (PRE / 'README.md').read_text(encoding='utf-8')
+    m = grab(r'SS125_DERATED` \(SS, 125 .C\) \| `([\d.]+) ns` \(`([\d.]+) MHz`', pre_rd, 'pre-MMMC README (SS125_DERATED)')
+    dsu, dho = float(pre[('SS125_DERATED', 'setup')]['wns']), float(pre[('SS125_DERATED', 'hold')]['wns'])
+    assert dsu >= 0 and dho >= 0 and abs(1000.0 / float(m[1]) - float(m[2])) < 0.01
+    assert float(m[2]) <= fmax(b) + 1e-9  # measured derated closure is no better than the linear extrapolation
+    N['SSBeforeSetup'], N['SSBeforeFreq'], N['SSBeforePeriod'] = sgn(b), m[2], m[1]
+    N['SSFreqGainX'] = '%.2f' % (fmax(a) / float(m[2]))
+    N['SSBeforeViol'] = '{:,}'.format(int(pre[('ss125', 'setup')]['violating_endpoints_2000']))
+    N['SSGainNs'] = sgn(a - b)
+
+    # +/-RC captable scaling sensitivity
+    rc = {r_['case']: r_ for r_ in rows(W3 / 'rc_sensitivity.tsv', '\t')}
+    assert [dict(r_) for r_ in mm['rc_sensitivity']] == [dict(r_) for r_ in rc.values()]
+    assert float(rc['typ_ss125']['setup_wns']) == a and float(rc['typ_ffm40']['hold_wns']) == float(cor[('ffm40', 'hold')]['wns'])
+    for tag, case in [('Pfifteen', 'rc_p15_ss125'), ('Ptwenty', 'rc_p20_ss125')]:
+        r_ = rc[case]
+        N['Rc' + tag + 'Scale'] = '%+.0f' % (100 * (float(r_['rc_scale']) - 1))
+        N['Rc' + tag + 'Wns'] = sgn(float(r_['setup_wns']))
+        N['Rc' + tag + 'Freq'] = '%.2f' % fmax(float(r_['setup_wns']))
+        N['Rc' + tag + 'Viol'] = '{:,}'.format(int(r_['setup_viol']))
+    hold_ok = True
+    for tag, case in [('Mfifteen', 'rc_m15_ffm40'), ('Mtwenty', 'rc_m20_ffm40')]:
+        r_ = rc[case]
+        N['Rc' + tag + 'Scale'] = '%+.0f' % (100 * (float(r_['rc_scale']) - 1))
+        N['Rc' + tag + 'Hold'] = sgn(float(r_['hold_wns']))
+        hold_ok &= float(r_['hold_wns']) >= 0 and int(r_['hold_viol']) == 0
+    N['RcHoldBadge'] = BS + ('ok' if hold_ok else 'pending')
+    N['RcHoldStatus'] = '0 违例' if hold_ok else '存在违例'
+    N['RcHoldViol'] = str(sum(int(rc[c]['hold_viol']) for c in ('rc_m15_ffm40', 'rc_m20_ffm40')))
     N['RcNote'] = esc(mm['rc_note'])
+    N['RcScope'] = 'PDK 仅含 typical captable（温度缩放）' if 'Typical captable only' in mm['rc_note'] else esc(mm['rc_note'])
 
     sram = rows(W3 / 'sram_interface_timing.csv')
     assert len(sram) == mm['sram_rows']
@@ -363,6 +421,11 @@ def sec_mmmc(N):
     N['SramSSWorst'] = sgn(min(float(r_['setup_to']) for r_ in ssr))
     tt = [r_ for r_ in sram if r_['corner'] == 'tt25']
     N['SramTTWorst'] = sgn(min(float(r_['setup_to']) for r_ in tt))
+    allv = [float(r_[k]) for r_ in sram for k in ('setup_to', 'hold_to', 'setup_from', 'hold_from')]
+    N['SramMin'] = sgn(min(allv))
+    N['SramCorners'] = str(len({r_['corner'] for r_ in sram}))
+    N['SramBadge'] = BS + ('ok' if min(allv) > 0 else 'pending')
+    N['SramStatus'] = '全部正 Slack' if min(allv) > 0 else '存在负 Slack'
 
     cdc = rows(W3 / 'cdc_4corners.tsv', '\t')
     assert len(cdc) == mm['cdc_rows']
@@ -379,7 +442,7 @@ def sec_mmmc(N):
             N['Cdc' + k + 'Min'] = sgn(by[c])
     cmin = min(by, key=by.get)
     N['CdcMin'], N['CdcMinCorner'] = sgn(by[cmin]), esc(cmin)
-    N['MmmcCorners'] = str(len({c for c, _ in cor} - {'SS125_DERATED'}))
+    N['CdcBadge'] = BS + ('ok' if N['CdcPos'] == N['CdcRows'] else 'pending')
 
 
 # <<SECTION:power>>

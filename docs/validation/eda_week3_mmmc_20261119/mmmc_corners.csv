@@ -1,0 +1,9 @@
+corner,mode,wns,start,end,arrival,required,tns_2000,violating_endpoints_2000
+ss125,setup,0.492,i_control/i_controller_model_bytes_o_reg[1]/CP,i_control/i_activation_i_store_g_bank[1].i_sram/WEN[3],14.963,15.455,0.0,0
+ss125,hold,0.568,i_control/i_npu/kernel_offset_reg[12]/CP,i_control/i_npu/k_normalized_reg[5][12]/D,2.776,2.209,0.0,0
+tt25,setup,7.083,i_control/i_npu/i_array_tag_pipe_reg[14][2]/CP,i_control/i_npu/results_reg[2][250]/D,13.792,20.875,0.0,0
+tt25,hold,0.281,i_control/i_npu/pool_scan_product_reg[14]/CP,i_control/i_npu/cursor_step_reg[7][14]/D,1.620,1.339,0.0,0
+ff0,setup,10.824,i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP,i_control/i_npu/results_reg[3][193]/D,9.880,20.704,0.0,0
+ff0,hold,0.163,i_control/i_npu/psum_reg[4][122]/CP,i_control/i_npu/psum_reg[4][122]/SI,1.209,1.046,0.0,0
+ffm40,setup,11.263,i_control/i_npu/i_array_tag_pipe_reg[14][0]/CP,i_control/i_npu/results_reg[3][193]/D,9.403,20.667,0.0,0
+ffm40,hold,0.144,i_control/i_npu/psum_reg[4][122]/CP,i_control/i_npu/psum_reg[4][122]/SI,1.156,1.012,0.0,0
