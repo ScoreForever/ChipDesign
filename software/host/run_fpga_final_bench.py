@@ -310,6 +310,7 @@ def suite_models(args, models=MODELS):
         entry['real_board'] = real_board(args, transport)
         try:
             npu = Npu(transport)
+            npu.command(Op.RESET)
             for name in models:
                 try:
                     entry['models'][name] = bench_model(npu, transport, args, name)
@@ -365,6 +366,7 @@ def suite_scenes(args, scenes=SCENES):
             continue
         entry['real_board'] = real = real_board(args, transport)
         try:
+            Npu(transport).command(Op.RESET)
             for scene in scenes:
                 session = None
                 try:
@@ -488,6 +490,7 @@ def suite_resnet(args):
         entry['real_board'] = real_board(args, transport)
         try:
             npu = Npu(transport)
+            npu.command(Op.RESET)
             for name, plan_dir, samples in targets:
                 try:
                     entry['models'][name] = bench_resnet(args, transport, npu, name, plan_dir, samples)

@@ -140,7 +140,7 @@ class ResidencyAndTransportTests(unittest.TestCase):
             tx.timeout = 0.05
             tx.idle_tcks = 8
             tx.write_chunk_words = 512
-            tx.read_chunk_words = 256
+            tx.read_chunk_words = 128
             tx._cur_ir = 0x12
             tx._cached_io_geometry = (0, 8, 16, 8)
             return tx
@@ -187,6 +187,45 @@ class ResidencyAndTransportTests(unittest.TestCase):
             tx.pipeline_infer([1, 2], 8, burst=True)
         self.assertIsNone(tx._cur_ir)
         self.assertIsNone(tx._cached_io_geometry)
+
+    def test_burst_read_respects_ft232h_1kb_rx_fifo(self):
+        class RxFifoLimitedTap(MockFtdiMpsseTap):
+            def __init__(self, *args, rx_fifo_bytes=1024, **kwargs):
+                super().__init__(*args, **kwargs)
+                self.rx_fifo_bytes = rx_fifo_bytes
+                self.max_rx_buffered = 0
+
+            def write_data(self, buf):
+                n = super().write_data(buf)
+                self.max_rx_buffered = max(self.max_rx_buffered, len(self.rx))
+                if len(self.rx) > self.rx_fifo_bytes:
+                    raise OSError(f'FT232H RX FIFO overflow: {len(self.rx)} > {self.rx_fifo_bytes}')
+                return n
+
+        words = [(0xa5000000 + i * 0x010101) & 0xffffffff for i in range(2049)]
+        dev = RxFifoLimitedTap(idcode=1, tck_hz=10_000_000, sys_clk_hz=57_143_000)
+        for i, word in enumerate(words):
+            dev.memory[0x20000 + 4 * i] = word
+        tx = FtdiMpsseTransport(ftdi_dev=dev, frequency=10_000_000, sys_clk_hz=57_143_000)
+        try:
+            self.assertEqual(tx.read_chunk_words, 128)
+            self.assertEqual(tx.exchange(Op.READ, 0x20000), words[0])
+            self.assertEqual(tx.burst_read(2048), words[1:])
+            self.assertLessEqual(dev.max_rx_buffered, 1024)
+        finally:
+            tx.close()
+
+        # Verify that oversized read_chunk_words=256 would overflow the 1024 B FIFO.
+        dev_bad = RxFifoLimitedTap(idcode=1, tck_hz=10_000_000, sys_clk_hz=57_143_000)
+        for i, word in enumerate(words[:257]):
+            dev_bad.memory[0x20000 + 4 * i] = word
+        tx_bad = FtdiMpsseTransport(ftdi_dev=dev_bad, frequency=10_000_000, sys_clk_hz=57_143_000, read_chunk_words=256)
+        try:
+            self.assertEqual(tx_bad.exchange(Op.READ, 0x20000), words[0])
+            with self.assertRaises(OSError):
+                tx_bad.burst_read(256)
+        finally:
+            tx_bad.close()
 
 
 class VectorizedCodecAndRequantTests(unittest.TestCase):

@@ -409,7 +409,9 @@ class FtdiMpsseTransport(JtagTransport):
     """Direct FT232H MPSSE transport; all scans start and finish in RTI."""
     supports_pipeline_rpc = True
 
-    def __init__(self, url='ftdi://ftdi:232h/1', frequency=1_000_000, timeout=5.0, *, sys_clk_hz=50_000_000, burst_read_sys_cycles=24, expected_idcode=1, ftdi_dev=None, write_chunk_words=512, read_chunk_words=256):
+    # FT232H has a 1024 B hardware RX FIFO; burst_read queues 5 RX bytes per
+    # 32-bit word before draining via _read(), so 128 words = 640 B fits safely.
+    def __init__(self, url='ftdi://ftdi:232h/1', frequency=1_000_000, timeout=5.0, *, sys_clk_hz=50_000_000, burst_read_sys_cycles=24, expected_idcode=1, ftdi_dev=None, write_chunk_words=512, read_chunk_words=128):
         import math
         if min(frequency, sys_clk_hz, burst_read_sys_cycles, timeout, write_chunk_words, read_chunk_words) <= 0:
             raise ValueError('frequencies, latency bound, timeout and chunk sizes must be positive')
