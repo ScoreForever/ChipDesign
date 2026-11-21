@@ -625,7 +625,7 @@ module npu_program_core #(
 
     task automatic begin_tile;
         begin
-            ret2_valid<=0; e_data_q<=0;
+            ret2_valid<=0; ret2_slot<=0; ret2_tap_first<=0; ret2_tap_last<=0; ret2_pos_addr<=0; e_data_q<=0;
             load_seq<=0; issue_seq<=0; load_g<=0; issue_g<=0; load_tile<=0; issue_tile<=0;
             load_row<=0; lstate<=L_IDLE; load_more<=1; issue_more<=1;
             req_row<=0; l_out<=0; lq_head<=0; lq_tail<=0; lq_count<=0;
@@ -769,6 +769,7 @@ module npu_program_core #(
             oct<=0; param_channel<=0;
             oh<=1; ow<=1; dh<=1; dw<=1; k_count<=1; groups<=1; octs<=1; positions<=1; row_stride<=1;
             src_span<=0; dst_span<=0; weight_span<=0; param_span<=0;src_pixels<=0;dst_pixels<=0;
+            for(v=0;v<WRITE_DEPTH;v=v+1)begin write_addr[v]<=0;write_mask[v]<=0;write_data[v]<=0;end
             begin_tile;
         end else begin
             validation_done<=0; done<=0;
