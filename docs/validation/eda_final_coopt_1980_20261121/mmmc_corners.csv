@@ -1,0 +1,9 @@
+corner,mode,wns,start,end,arrival,required,tns,violating_endpoints
+ss125,setup,0.369,i_control/i_controller_timeout_limit_reg[0]/CP,i_control/i_controller_rsp_data_o_reg[8]/D,21.094,21.463,0.0,0
+ss125,hold,0.421,i_control/i_npu/ret2_reduced_reg[116]/CP,i_control/i_npu/ret2_reduced_reg[116]/D,2.060,1.639,0.0,0
+tt25,setup,8.192,i_control/i_controller_model_count_reg[6]/CP,i_control/i_activation_i_store_cache_data_reg[10][21]/D,12.678,20.870,0.0,0
+tt25,hold,0.177,i_control/i_npu/ret2_reduced_reg[116]/CP,i_control/i_npu/ret2_reduced_reg[116]/D,1.334,1.157,0.0,0
+ff0,setup,11.494,i_control/i_controller_model_bytes_o_reg[2]/CP,i_control/i_activation_i_store_cache_data_reg[10][21]/D,9.076,20.570,0.0,0
+ff0,hold,0.065,i_control/i_npu/ret2_reduced_reg[116]/CP,i_control/i_npu/ret2_reduced_reg[116]/D,0.999,0.934,0.0,0
+ffm40,setup,11.956,i_control/i_controller_model_bytes_o_reg[2]/CP,i_control/i_activation_i_store_cache_data_reg[10][21]/D,8.581,20.537,0.0,0
+ffm40,hold,0.052,i_control/i_npu/ret2_reduced_reg[116]/CP,i_control/i_npu/ret2_reduced_reg[116]/D,0.958,0.906,0.0,0
