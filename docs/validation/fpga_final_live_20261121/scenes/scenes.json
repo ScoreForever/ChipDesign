@@ -1,0 +1,132 @@
+{
+  "suite": "scenes",
+  "backend": "mpsse",
+  "sys_clk_mhz": 57.143,
+  "fpga_available": true,
+  "fpga_validated": true,
+  "real_board_frames": 80,
+  "frames_checked": 80,
+  "frames_exact": 80,
+  "agreement_rate": 1.0,
+  "scope_note": "Representative frames only: these are the published golden inputs of the six demo scenes (mnist_l/kws_l/ecg/har 16 each, face/emotion 8 each) run on the selected backend. The full offline checks are 80/80 demo-scene golden outputs (software/host/demos/README.md, `demo.py --self-test`; docs/DEMO_SOFTWARE_20261116.md) and 112/112 zoo golden frames (7 models x 16, software/zoo/pretrained/MANIFEST.json golden_frames; docs/DEMO_SOFTWARE_20261116.md). Both counts are output-equals-golden checks, not label accuracy.",
+  "passed": true,
+  "runs": [
+    {
+      "label": "tck_10mhz",
+      "tck_mhz": 10.0,
+      "tck_note": "MPSSE TCK 10 MHz (tck_khz=10000)",
+      "scenes": {
+        "mnist": {
+          "model": "mnist_l",
+          "frames": 16,
+          "golden_exact": 16,
+          "agreement_rate": 1.0,
+          "latency": {
+            "count": 16,
+            "median_ms": 18.64254000247456,
+            "mean_ms": 20.834588507568697,
+            "p95_ms": 27.843608986586332,
+            "min_ms": 16.741881030611694,
+            "max_ms": 29.705129039939493,
+            "fps": 47.99710825278476
+          },
+          "transfer_ms_median": 15.125826,
+          "start_wait_ms_median": 4.008055000000001,
+          "npu_cycles_median": 31782.0
+        },
+        "kws": {
+          "model": "kws_l",
+          "frames": 16,
+          "golden_exact": 16,
+          "agreement_rate": 1.0,
+          "latency": {
+            "count": 16,
+            "median_ms": 17.91996051906608,
+            "mean_ms": 19.6759669961466,
+            "p95_ms": 27.984668966382742,
+            "min_ms": 16.56755496514961,
+            "max_ms": 28.770189033821225,
+            "fps": 50.82342332632714
+          },
+          "transfer_ms_median": 14.647140999999998,
+          "start_wait_ms_median": 3.0135009999999998,
+          "npu_cycles_median": 73706.0
+        },
+        "ecg": {
+          "model": "ecg",
+          "frames": 16,
+          "golden_exact": 16,
+          "agreement_rate": 1.0,
+          "latency": {
+            "count": 16,
+            "median_ms": 20.42429448920302,
+            "mean_ms": 20.62960605326225,
+            "p95_ms": 23.11468997504562,
+            "min_ms": 18.56090297224,
+            "max_ms": 23.921055952087045,
+            "fps": 48.4740230820775
+          },
+          "transfer_ms_median": 16.096975999999998,
+          "start_wait_ms_median": 4.00999,
+          "npu_cycles_median": 14571.0
+        },
+        "har": {
+          "model": "har",
+          "frames": 16,
+          "golden_exact": 16,
+          "agreement_rate": 1.0,
+          "latency": {
+            "count": 16,
+            "median_ms": 18.05694750510156,
+            "mean_ms": 18.318194575840607,
+            "p95_ms": 19.679198041558266,
+            "min_ms": 16.712155018467456,
+            "max_ms": 21.841139008756727,
+            "fps": 54.59053270014252
+          },
+          "transfer_ms_median": 14.423603,
+          "start_wait_ms_median": 3.0098225000000003,
+          "npu_cycles_median": 16047.0
+        },
+        "face": {
+          "model": "face",
+          "frames": 8,
+          "golden_exact": 8,
+          "agreement_rate": 1.0,
+          "latency": {
+            "count": 8,
+            "median_ms": 18.822862533852458,
+            "mean_ms": 18.990359509189148,
+            "p95_ms": 20.704013004433364,
+            "min_ms": 18.063555005937815,
+            "max_ms": 20.704013004433364,
+            "fps": 52.65829746488554
+          },
+          "transfer_ms_median": 15.351862,
+          "start_wait_ms_median": 4.007651,
+          "npu_cycles_median": 33710.0
+        },
+        "emotion": {
+          "model": "emotion",
+          "frames": 8,
+          "golden_exact": 8,
+          "agreement_rate": 1.0,
+          "latency": {
+            "count": 8,
+            "median_ms": 17.67482896684669,
+            "mean_ms": 17.629851863603108,
+            "p95_ms": 18.827521009370685,
+            "min_ms": 16.68683101888746,
+            "max_ms": 18.827521009370685,
+            "fps": 56.721974054955254
+          },
+          "transfer_ms_median": 14.658007000000001,
+          "start_wait_ms_median": 3.0078075,
+          "npu_cycles_median": 65771.0
+        }
+      },
+      "errors": [],
+      "real_board": true
+    }
+  ]
+}

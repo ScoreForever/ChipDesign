@@ -1,0 +1,73 @@
+{
+  "suite": "resnet",
+  "backend": "mpsse",
+  "sys_clk_mhz": 57.143,
+  "fpga_available": true,
+  "fpga_validated": true,
+  "skipped": [
+    "resnet20: plan directory missing: omitted"
+  ],
+  "passed": true,
+  "runs": [
+    {
+      "label": "tck_10mhz",
+      "tck_mhz": 10.0,
+      "tck_note": "MPSSE TCK 10 MHz (tck_khz=10000)",
+      "models": {
+        "resnet20": {
+          "model": "resnet20",
+          "skipped": "plan directory missing: omitted"
+        },
+        "resnet18": {
+          "model": "resnet18",
+          "plan_dir": "handoff/resnet18/tiled_plan_opt",
+          "samples": "handoff/resnet18/test_samples_5.npz",
+          "plan_summary": {
+            "program_groups": 855,
+            "tile_calls": 2370,
+            "fused_subgraphs": 11,
+            "host_post_ops": 11,
+            "jtag_model_bytes": 5984064,
+            "jtag_input_bytes": 10141645,
+            "jtag_output_bytes": 8231648,
+            "jtag_total_bytes": 24357357
+          },
+          "samples_checked": 1,
+          "bit_exact": true,
+          "label_correct": 1,
+          "npu_cycles_median": 46504887,
+          "breakdown_median_ms": {
+            "wall": 150572.65575398924,
+            "host": 347.024118877016,
+            "npu_compute": 813.8334879162802,
+            "jtag_transfer": 149411.79814719595
+          },
+          "breakdown_note": "jtag_transfer = wall - host - cycles/sys_clk; it includes driver/USB overhead and completion polling, not only shift time",
+          "rows": [
+            {
+              "index": 0,
+              "label": 0,
+              "predicted": 0,
+              "bit_exact": true,
+              "max_abs_diff": 0,
+              "npu_cycles": 46504887,
+              "wall_ms": 150572.65575398924,
+              "host_ms": 347.024118877016,
+              "npu_compute_ms": 813.8334879162802,
+              "jtag_transfer_ms": 149411.79814719595,
+              "telemetry": {
+                "model_loads": 852,
+                "tile_infers": 2370,
+                "jtag_model_bytes": 5980800,
+                "jtag_input_bytes": 10141645,
+                "jtag_output_bytes": 8231648
+              }
+            }
+          ]
+        }
+      },
+      "errors": [],
+      "real_board": true
+    }
+  ]
+}

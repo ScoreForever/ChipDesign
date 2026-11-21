@@ -1,0 +1,1642 @@
+{
+  "suite": "models",
+  "backend": "mpsse",
+  "sys_clk_mhz": 57.143,
+  "fpga_available": true,
+  "fpga_validated": true,
+  "cycles_note": null,
+  "passed": true,
+  "runs": [
+    {
+      "label": "tck_1mhz",
+      "tck_mhz": 1.0,
+      "tck_note": "MPSSE TCK 1 MHz (tck_khz=1000)",
+      "models": {
+        "ecg": {
+          "model": "ecg",
+          "model_bytes": 3908,
+          "input_bytes": 64,
+          "output_bytes": 20,
+          "ops": 13,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 112.64816200127825,
+            "first_infer_ms": 29.28222599439323,
+            "total_ms": 141.93038799567148,
+            "npu_cycles": 14571
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.552081506233662,
+            "mean_ms": 17.1679066879733,
+            "p95_ms": 20.446629030629992,
+            "min_ms": 15.387453022412956,
+            "max_ms": 22.62488001724705,
+            "fps": 58.248219667953684
+          },
+          "npu_cycles": {
+            "values": [
+              14571
+            ],
+            "median": 14571.0,
+            "compute_us": 254.9918625203437
+          }
+        },
+        "har": {
+          "model": "har",
+          "model_bytes": 4216,
+          "input_bytes": 576,
+          "output_bytes": 24,
+          "ops": 7,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 99.83012999873608,
+            "first_infer_ms": 23.40046997414902,
+            "total_ms": 123.2305999728851,
+            "npu_cycles": 16045
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 23.60844096983783,
+            "mean_ms": 23.49982568557607,
+            "p95_ms": 25.04672302166,
+            "min_ms": 20.8493159734644,
+            "max_ms": 25.473686982877553,
+            "fps": 42.55350713574819
+          },
+          "npu_cycles": {
+            "values": [
+              16047
+            ],
+            "median": 16047.0,
+            "compute_us": 280.8217979455051
+          }
+        },
+        "mnist_l": {
+          "model": "mnist_l",
+          "model_bytes": 4688,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 111.771623021923,
+            "first_infer_ms": 23.573363025207072,
+            "total_ms": 135.34498604713008,
+            "npu_cycles": 31782
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 22.63818751089275,
+            "mean_ms": 22.48693954970804,
+            "p95_ms": 24.42930598044768,
+            "min_ms": 20.67620900925249,
+            "max_ms": 24.661089992150664,
+            "fps": 44.47025784853784
+          },
+          "npu_cycles": {
+            "values": [
+              31782
+            ],
+            "median": 31782.0,
+            "compute_us": 556.1836095409761
+          }
+        },
+        "fashion_cnn": {
+          "model": "fashion_cnn",
+          "model_bytes": 8104,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 5,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 149.59810400614515,
+            "first_infer_ms": 23.47909804666415,
+            "total_ms": 173.0772020528093,
+            "npu_cycles": 36225
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 21.861878514755517,
+            "mean_ms": 21.76838419836713,
+            "p95_ms": 22.54825399722904,
+            "min_ms": 19.78856901405379,
+            "max_ms": 24.272300011944026,
+            "fps": 45.938182222776604
+          },
+          "npu_cycles": {
+            "values": [
+              36225
+            ],
+            "median": 36225.0,
+            "compute_us": 633.9359151602121
+          }
+        },
+        "kws_m": {
+          "model": "kws_m",
+          "model_bytes": 7632,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 11,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 139.21148097142577,
+            "first_infer_ms": 22.548809996806085,
+            "total_ms": 161.76029096823186,
+            "npu_cycles": 75322
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 23.195282992674038,
+            "mean_ms": 23.327476312260842,
+            "p95_ms": 24.528833979275078,
+            "min_ms": 22.241364000365138,
+            "max_ms": 24.692284991033375,
+            "fps": 42.86790335199712
+          },
+          "npu_cycles": {
+            "values": [
+              75322
+            ],
+            "median": 75322.0,
+            "compute_us": 1318.1317046707384
+          }
+        },
+        "kws_l": {
+          "model": "kws_l",
+          "model_bytes": 7896,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 9,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 151.29096596501768,
+            "first_infer_ms": 22.66404201509431,
+            "total_ms": 173.955007980112,
+            "npu_cycles": 73706
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 27.37779199378565,
+            "mean_ms": 27.01008424992324,
+            "p95_ms": 31.872728024609387,
+            "min_ms": 22.24099898012355,
+            "max_ms": 31.98984800837934,
+            "fps": 37.023209211309364
+          },
+          "npu_cycles": {
+            "values": [
+              73706
+            ],
+            "median": 73706.0,
+            "compute_us": 1289.8517753705617
+          }
+        },
+        "gtsrb_l": {
+          "model": "gtsrb_l",
+          "model_bytes": 7736,
+          "input_bytes": 2048,
+          "output_bytes": 172,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 138.64766497863457,
+            "first_infer_ms": 43.12951897736639,
+            "total_ms": 181.77718395600095,
+            "npu_cycles": 80919
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 43.17776599782519,
+            "mean_ms": 42.78672481086687,
+            "p95_ms": 44.81529601616785,
+            "min_ms": 39.23073096666485,
+            "max_ms": 47.023250022903085,
+            "fps": 23.371735144963054
+          },
+          "npu_cycles": {
+            "values": [
+              80919
+            ],
+            "median": 80919.0,
+            "compute_us": 1416.0789598026004
+          }
+        }
+      },
+      "errors": [],
+      "real_board": true
+    },
+    {
+      "label": "tck_2mhz",
+      "tck_mhz": 2.0,
+      "tck_note": "MPSSE TCK 2 MHz (tck_khz=2000)",
+      "models": {
+        "ecg": {
+          "model": "ecg",
+          "model_bytes": 3908,
+          "input_bytes": 64,
+          "output_bytes": 20,
+          "ops": 13,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 67.14131304761395,
+            "first_infer_ms": 19.375892996322364,
+            "total_ms": 86.51720604393631,
+            "npu_cycles": 14571
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.67511254386045,
+            "mean_ms": 18.59959049761528,
+            "p95_ms": 20.056788984220475,
+            "min_ms": 16.8313899775967,
+            "max_ms": 20.194120006635785,
+            "fps": 53.76462455601985
+          },
+          "npu_cycles": {
+            "values": [
+              14571
+            ],
+            "median": 14571.0,
+            "compute_us": 254.9918625203437
+          }
+        },
+        "har": {
+          "model": "har",
+          "model_bytes": 4216,
+          "input_bytes": 576,
+          "output_bytes": 24,
+          "ops": 7,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 66.33085099747404,
+            "first_infer_ms": 20.144381967838854,
+            "total_ms": 86.4752329653129,
+            "npu_cycles": 16045
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 20.85844799876213,
+            "mean_ms": 20.81623712365399,
+            "p95_ms": 22.152214020024985,
+            "min_ms": 18.452796968631446,
+            "max_ms": 22.251137997955084,
+            "fps": 48.03942201752093
+          },
+          "npu_cycles": {
+            "values": [
+              16047
+            ],
+            "median": 16047.0,
+            "compute_us": 280.8217979455051
+          }
+        },
+        "mnist_l": {
+          "model": "mnist_l",
+          "model_bytes": 4688,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 67.65894498676062,
+            "first_infer_ms": 18.530990986619145,
+            "total_ms": 86.18993597337976,
+            "npu_cycles": 31782
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.905397009802982,
+            "mean_ms": 18.95366157623357,
+            "p95_ms": 19.887040019966662,
+            "min_ms": 17.965114035177976,
+            "max_ms": 20.900570030789822,
+            "fps": 52.760254053175814
+          },
+          "npu_cycles": {
+            "values": [
+              31782
+            ],
+            "median": 31782.0,
+            "compute_us": 556.1836095409761
+          }
+        },
+        "fashion_cnn": {
+          "model": "fashion_cnn",
+          "model_bytes": 8104,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 5,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 105.54586799116805,
+            "first_infer_ms": 18.731395015493035,
+            "total_ms": 124.27726300666109,
+            "npu_cycles": 36225
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 22.168235998833552,
+            "mean_ms": 23.67742368733161,
+            "p95_ms": 30.56728298543021,
+            "min_ms": 17.918516998179257,
+            "max_ms": 31.25393600203097,
+            "fps": 42.23432469703369
+          },
+          "npu_cycles": {
+            "values": [
+              36225
+            ],
+            "median": 36225.0,
+            "compute_us": 633.9359151602121
+          }
+        },
+        "kws_m": {
+          "model": "kws_m",
+          "model_bytes": 7632,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 11,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 125.47765200724825,
+            "first_infer_ms": 28.779813030268997,
+            "total_ms": 154.25746503751725,
+            "npu_cycles": 75322
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.718965991865844,
+            "mean_ms": 20.676272873970447,
+            "p95_ms": 28.065368998795748,
+            "min_ms": 17.718677001539618,
+            "max_ms": 28.142552997451276,
+            "fps": 48.36461610346173
+          },
+          "npu_cycles": {
+            "values": [
+              75322
+            ],
+            "median": 75322.0,
+            "compute_us": 1318.1317046707384
+          }
+        },
+        "kws_l": {
+          "model": "kws_l",
+          "model_bytes": 7896,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 9,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 109.94124301942065,
+            "first_infer_ms": 29.93803098797798,
+            "total_ms": 139.87927400739864,
+            "npu_cycles": 73706
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 19.865187001414597,
+            "mean_ms": 19.702060435520252,
+            "p95_ms": 21.00772800622508,
+            "min_ms": 17.34163804212585,
+            "max_ms": 22.13076496263966,
+            "fps": 50.75611270571123
+          },
+          "npu_cycles": {
+            "values": [
+              73706
+            ],
+            "median": 73706.0,
+            "compute_us": 1289.8517753705617
+          }
+        },
+        "gtsrb_l": {
+          "model": "gtsrb_l",
+          "model_bytes": 7736,
+          "input_bytes": 2048,
+          "output_bytes": 172,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 108.19633601931855,
+            "first_infer_ms": 32.882166968192905,
+            "total_ms": 141.07850298751146,
+            "npu_cycles": 80919
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 29.865922988392413,
+            "mean_ms": 29.949616244266508,
+            "p95_ms": 30.7582649984397,
+            "min_ms": 28.422828996554017,
+            "max_ms": 34.154788008891046,
+            "fps": 33.389409461680096
+          },
+          "npu_cycles": {
+            "values": [
+              80919
+            ],
+            "median": 80919.0,
+            "compute_us": 1416.0789598026004
+          }
+        }
+      },
+      "errors": [],
+      "real_board": true
+    },
+    {
+      "label": "tck_3mhz",
+      "tck_mhz": 3.0,
+      "tck_note": "MPSSE TCK 3 MHz (tck_khz=3000)",
+      "models": {
+        "ecg": {
+          "model": "ecg",
+          "model_bytes": 3908,
+          "input_bytes": 64,
+          "output_bytes": 20,
+          "ops": 13,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 56.5516630304046,
+            "first_infer_ms": 15.976052964106202,
+            "total_ms": 72.5277159945108,
+            "npu_cycles": 14571
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.324405529303476,
+            "mean_ms": 16.693659013981232,
+            "p95_ms": 19.053291995078325,
+            "min_ms": 15.691307024098933,
+            "max_ms": 19.090931047685444,
+            "fps": 59.90298466995657
+          },
+          "npu_cycles": {
+            "values": [
+              14571
+            ],
+            "median": 14571.0,
+            "compute_us": 254.9918625203437
+          }
+        },
+        "har": {
+          "model": "har",
+          "model_bytes": 4216,
+          "input_bytes": 576,
+          "output_bytes": 24,
+          "ops": 7,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 56.851139990612864,
+            "first_infer_ms": 20.56864002952352,
+            "total_ms": 77.41978002013639,
+            "npu_cycles": 16045
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 20.137181505560875,
+            "mean_ms": 20.201571936922846,
+            "p95_ms": 21.346775989513844,
+            "min_ms": 18.351946957409382,
+            "max_ms": 22.661297000013292,
+            "fps": 49.501098385927015
+          },
+          "npu_cycles": {
+            "values": [
+              16047
+            ],
+            "median": 16047.0,
+            "compute_us": 280.8217979455051
+          }
+        },
+        "mnist_l": {
+          "model": "mnist_l",
+          "model_bytes": 4688,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 68.1234790245071,
+            "first_infer_ms": 19.29326297249645,
+            "total_ms": 87.41674199700356,
+            "npu_cycles": 31782
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 21.05692503391765,
+            "mean_ms": 23.63477469771169,
+            "p95_ms": 29.944723995868117,
+            "min_ms": 17.478814988862723,
+            "max_ms": 30.46143299434334,
+            "fps": 42.31053660506523
+          },
+          "npu_cycles": {
+            "values": [
+              31782
+            ],
+            "median": 31782.0,
+            "compute_us": 556.1836095409761
+          }
+        },
+        "fashion_cnn": {
+          "model": "fashion_cnn",
+          "model_bytes": 8104,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 5,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 100.88311199797317,
+            "first_infer_ms": 18.768195004668087,
+            "total_ms": 119.65130700264126,
+            "npu_cycles": 36225
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 19.373564515262842,
+            "mean_ms": 20.685683128249366,
+            "p95_ms": 26.74792503239587,
+            "min_ms": 15.602610015776008,
+            "max_ms": 28.34459498990327,
+            "fps": 48.34261425161018
+          },
+          "npu_cycles": {
+            "values": [
+              36225
+            ],
+            "median": 36225.0,
+            "compute_us": 633.9359151602121
+          }
+        },
+        "kws_m": {
+          "model": "kws_m",
+          "model_bytes": 7632,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 11,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 88.8891409849748,
+            "first_infer_ms": 30.882178049068898,
+            "total_ms": 119.7713190340437,
+            "npu_cycles": 75322
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 20.241234014974907,
+            "mean_ms": 20.887203805614263,
+            "p95_ms": 23.225078999530524,
+            "min_ms": 18.092260987032205,
+            "max_ms": 27.03607705188915,
+            "fps": 47.87620254517795
+          },
+          "npu_cycles": {
+            "values": [
+              75322
+            ],
+            "median": 75322.0,
+            "compute_us": 1318.1317046707384
+          }
+        },
+        "kws_l": {
+          "model": "kws_l",
+          "model_bytes": 7896,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 9,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 96.4963809819892,
+            "first_infer_ms": 19.67267697909847,
+            "total_ms": 116.16905796108767,
+            "npu_cycles": 73706
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 19.260271510574967,
+            "mean_ms": 19.433612065768102,
+            "p95_ms": 21.075764030683786,
+            "min_ms": 17.605922010261565,
+            "max_ms": 23.105091007892042,
+            "fps": 51.45723793475732
+          },
+          "npu_cycles": {
+            "values": [
+              73706
+            ],
+            "median": 73706.0,
+            "compute_us": 1289.8517753705617
+          }
+        },
+        "gtsrb_l": {
+          "model": "gtsrb_l",
+          "model_bytes": 7736,
+          "input_bytes": 2048,
+          "output_bytes": 172,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 88.30780198331922,
+            "first_infer_ms": 26.40502096619457,
+            "total_ms": 114.7128229495138,
+            "npu_cycles": 80919
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 27.070748998085037,
+            "mean_ms": 27.288756442430895,
+            "p95_ms": 29.017527005635202,
+            "min_ms": 24.813125957734883,
+            "max_ms": 33.40327402111143,
+            "fps": 36.6451289969782
+          },
+          "npu_cycles": {
+            "values": [
+              80919
+            ],
+            "median": 80919.0,
+            "compute_us": 1416.0789598026004
+          }
+        }
+      },
+      "errors": [],
+      "real_board": true
+    },
+    {
+      "label": "tck_5mhz",
+      "tck_mhz": 5.0,
+      "tck_note": "MPSSE TCK 5 MHz (tck_khz=5000)",
+      "models": {
+        "ecg": {
+          "model": "ecg",
+          "model_bytes": 3908,
+          "input_bytes": 64,
+          "output_bytes": 20,
+          "ops": 13,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 50.02950195921585,
+            "first_infer_ms": 14.898021006956697,
+            "total_ms": 64.92752296617255,
+            "npu_cycles": 14571
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.456920508062467,
+            "mean_ms": 16.556696438783547,
+            "p95_ms": 17.644387029577047,
+            "min_ms": 15.287075017113239,
+            "max_ms": 18.119185988325626,
+            "fps": 60.39852235603783
+          },
+          "npu_cycles": {
+            "values": [
+              14571
+            ],
+            "median": 14571.0,
+            "compute_us": 254.9918625203437
+          }
+        },
+        "har": {
+          "model": "har",
+          "model_bytes": 4216,
+          "input_bytes": 576,
+          "output_bytes": 24,
+          "ops": 7,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 56.71435396652669,
+            "first_infer_ms": 17.506136035081,
+            "total_ms": 74.22049000160769,
+            "npu_cycles": 16045
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 19.568274467019364,
+            "mean_ms": 21.028106562880566,
+            "p95_ms": 28.57422805391252,
+            "min_ms": 17.060487996786833,
+            "max_ms": 28.922085009980947,
+            "fps": 47.55539910403676
+          },
+          "npu_cycles": {
+            "values": [
+              16047
+            ],
+            "median": 16047.0,
+            "compute_us": 280.8217979455051
+          }
+        },
+        "mnist_l": {
+          "model": "mnist_l",
+          "model_bytes": 4688,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 77.4926359881647,
+            "first_infer_ms": 28.09487300692126,
+            "total_ms": 105.58750899508595,
+            "npu_cycles": 31782
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.273491004947573,
+            "mean_ms": 17.898394940857543,
+            "p95_ms": 18.835992028471082,
+            "min_ms": 15.4542819946073,
+            "max_ms": 19.302878994494677,
+            "fps": 55.87093162846971
+          },
+          "npu_cycles": {
+            "values": [
+              31782
+            ],
+            "median": 31782.0,
+            "compute_us": 556.1836095409761
+          }
+        },
+        "fashion_cnn": {
+          "model": "fashion_cnn",
+          "model_bytes": 8104,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 5,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 62.95106600737199,
+            "first_infer_ms": 18.823811959009618,
+            "total_ms": 81.77487796638161,
+            "npu_cycles": 36225
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 24.559000477893278,
+            "mean_ms": 24.192257176764542,
+            "p95_ms": 29.121991014108062,
+            "min_ms": 17.91111595230177,
+            "max_ms": 29.902297945227474,
+            "fps": 41.335539412190535
+          },
+          "npu_cycles": {
+            "values": [
+              36225
+            ],
+            "median": 36225.0,
+            "compute_us": 633.9359151602121
+          }
+        },
+        "kws_m": {
+          "model": "kws_m",
+          "model_bytes": 7632,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 11,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 72.70352204795927,
+            "first_infer_ms": 17.816578969359398,
+            "total_ms": 90.52010101731867,
+            "npu_cycles": 75322
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.298039525281638,
+            "mean_ms": 16.29095144016901,
+            "p95_ms": 16.94050501100719,
+            "min_ms": 15.435358975082636,
+            "max_ms": 17.56754901725799,
+            "fps": 61.38376900039581
+          },
+          "npu_cycles": {
+            "values": [
+              75322
+            ],
+            "median": 75322.0,
+            "compute_us": 1318.1317046707384
+          }
+        },
+        "kws_l": {
+          "model": "kws_l",
+          "model_bytes": 7896,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 9,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 64.0146880177781,
+            "first_infer_ms": 16.985955007839948,
+            "total_ms": 81.00064302561805,
+            "npu_cycles": 73706
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.42366001033224,
+            "mean_ms": 16.830890635901596,
+            "p95_ms": 18.762693041935563,
+            "min_ms": 15.306671033613384,
+            "max_ms": 19.038391998037696,
+            "fps": 59.414562285071376
+          },
+          "npu_cycles": {
+            "values": [
+              73706
+            ],
+            "median": 73706.0,
+            "compute_us": 1289.8517753705617
+          }
+        },
+        "gtsrb_l": {
+          "model": "gtsrb_l",
+          "model_bytes": 7736,
+          "input_bytes": 2048,
+          "output_bytes": 172,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 62.64427199494094,
+            "first_infer_ms": 24.04610498342663,
+            "total_ms": 86.69037697836757,
+            "npu_cycles": 80919
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 22.790874470956624,
+            "mean_ms": 23.322593373450218,
+            "p95_ms": 26.44018200226128,
+            "min_ms": 21.088902023620903,
+            "max_ms": 26.588766020722687,
+            "fps": 42.87687839802463
+          },
+          "npu_cycles": {
+            "values": [
+              80919
+            ],
+            "median": 80919.0,
+            "compute_us": 1416.0789598026004
+          }
+        }
+      },
+      "errors": [],
+      "real_board": true
+    },
+    {
+      "label": "tck_8mhz",
+      "tck_mhz": 8.0,
+      "tck_note": "MPSSE TCK 8 MHz (tck_khz=8000)",
+      "models": {
+        "ecg": {
+          "model": "ecg",
+          "model_bytes": 3908,
+          "input_bytes": 64,
+          "output_bytes": 20,
+          "ops": 13,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 49.61674503283575,
+            "first_infer_ms": 18.837834999430925,
+            "total_ms": 68.45458003226668,
+            "npu_cycles": 14571
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.24151602340862,
+            "mean_ms": 18.653745250048814,
+            "p95_ms": 20.469865994527936,
+            "min_ms": 16.824071994051337,
+            "max_ms": 21.028202958405018,
+            "fps": 53.60853740604092
+          },
+          "npu_cycles": {
+            "values": [
+              14571
+            ],
+            "median": 14571.0,
+            "compute_us": 254.9918625203437
+          }
+        },
+        "har": {
+          "model": "har",
+          "model_bytes": 4216,
+          "input_bytes": 576,
+          "output_bytes": 24,
+          "ops": 7,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 54.26310101756826,
+            "first_infer_ms": 18.788883986417204,
+            "total_ms": 73.05198500398546,
+            "npu_cycles": 16045
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 24.57924251211807,
+            "mean_ms": 24.68341524945572,
+            "p95_ms": 30.786406015977263,
+            "min_ms": 17.77835696702823,
+            "max_ms": 31.045355019159615,
+            "fps": 40.5130323293512
+          },
+          "npu_cycles": {
+            "values": [
+              16047
+            ],
+            "median": 16047.0,
+            "compute_us": 280.8217979455051
+          }
+        },
+        "mnist_l": {
+          "model": "mnist_l",
+          "model_bytes": 4688,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 51.996179041452706,
+            "first_infer_ms": 19.10439197672531,
+            "total_ms": 71.10057101817802,
+            "npu_cycles": 31782
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.43225900665857,
+            "mean_ms": 18.468062495230697,
+            "p95_ms": 19.147424958646297,
+            "min_ms": 17.06672098953277,
+            "max_ms": 19.523240975104272,
+            "fps": 54.1475317325922
+          },
+          "npu_cycles": {
+            "values": [
+              31782
+            ],
+            "median": 31782.0,
+            "compute_us": 556.1836095409761
+          }
+        },
+        "fashion_cnn": {
+          "model": "fashion_cnn",
+          "model_bytes": 8104,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 5,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 56.84550397563726,
+            "first_infer_ms": 21.10786101548001,
+            "total_ms": 77.95336499111727,
+            "npu_cycles": 36225
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.789432506309822,
+            "mean_ms": 20.933557683747495,
+            "p95_ms": 26.79119596723467,
+            "min_ms": 16.678059997502714,
+            "max_ms": 29.001876013353467,
+            "fps": 47.770188665846575
+          },
+          "npu_cycles": {
+            "values": [
+              36225
+            ],
+            "median": 36225.0,
+            "compute_us": 633.9359151602121
+          }
+        },
+        "kws_m": {
+          "model": "kws_m",
+          "model_bytes": 7632,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 11,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 57.23474599653855,
+            "first_infer_ms": 18.579300958663225,
+            "total_ms": 75.81404695520177,
+            "npu_cycles": 75322
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.313923996174708,
+            "mean_ms": 18.223279002995696,
+            "p95_ms": 19.506720011122525,
+            "min_ms": 16.58535999013111,
+            "max_ms": 19.894400029443204,
+            "fps": 54.87486636382023
+          },
+          "npu_cycles": {
+            "values": [
+              75322
+            ],
+            "median": 75322.0,
+            "compute_us": 1318.1317046707384
+          }
+        },
+        "kws_l": {
+          "model": "kws_l",
+          "model_bytes": 7896,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 9,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 65.5587250366807,
+            "first_infer_ms": 17.38244597800076,
+            "total_ms": 82.94117101468146,
+            "npu_cycles": 73706
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.446706992108375,
+            "mean_ms": 19.142492488754215,
+            "p95_ms": 21.653330011758953,
+            "min_ms": 16.807676991447806,
+            "max_ms": 21.926645014900714,
+            "fps": 52.239801091079315
+          },
+          "npu_cycles": {
+            "values": [
+              73706
+            ],
+            "median": 73706.0,
+            "compute_us": 1289.8517753705617
+          }
+        },
+        "gtsrb_l": {
+          "model": "gtsrb_l",
+          "model_bytes": 7736,
+          "input_bytes": 2048,
+          "output_bytes": 172,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 61.36244896333665,
+            "first_infer_ms": 21.54754800722003,
+            "total_ms": 82.90999697055668,
+            "npu_cycles": 80919
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 21.86230948427692,
+            "mean_ms": 22.123331309558125,
+            "p95_ms": 23.905671027023345,
+            "min_ms": 20.289482024963945,
+            "max_ms": 25.298305961769074,
+            "fps": 45.201149230539336
+          },
+          "npu_cycles": {
+            "values": [
+              80919
+            ],
+            "median": 80919.0,
+            "compute_us": 1416.0789598026004
+          }
+        }
+      },
+      "errors": [],
+      "real_board": true
+    },
+    {
+      "label": "tck_10mhz",
+      "tck_mhz": 10.0,
+      "tck_note": "MPSSE TCK 10 MHz (tck_khz=10000)",
+      "models": {
+        "ecg": {
+          "model": "ecg",
+          "model_bytes": 3908,
+          "input_bytes": 64,
+          "output_bytes": 20,
+          "ops": 13,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 48.01375494571403,
+            "first_infer_ms": 20.04181401571259,
+            "total_ms": 68.05556896142662,
+            "npu_cycles": 14571
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 17.638441000599414,
+            "mean_ms": 17.683045869489433,
+            "p95_ms": 18.73631594935432,
+            "min_ms": 16.62571099586785,
+            "max_ms": 19.714411988388747,
+            "fps": 56.55134343825989
+          },
+          "npu_cycles": {
+            "values": [
+              14571
+            ],
+            "median": 14571.0,
+            "compute_us": 254.9918625203437
+          }
+        },
+        "har": {
+          "model": "har",
+          "model_bytes": 4216,
+          "input_bytes": 576,
+          "output_bytes": 24,
+          "ops": 7,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 55.8281289995648,
+            "first_infer_ms": 24.770312011241913,
+            "total_ms": 80.59844101080671,
+            "npu_cycles": 16045
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 21.771699015516788,
+            "mean_ms": 22.929774695512606,
+            "p95_ms": 29.89832899766043,
+            "min_ms": 17.34451000811532,
+            "max_ms": 29.90778401726857,
+            "fps": 43.611418484443355
+          },
+          "npu_cycles": {
+            "values": [
+              16047
+            ],
+            "median": 16047.0,
+            "compute_us": 280.8217979455051
+          }
+        },
+        "mnist_l": {
+          "model": "mnist_l",
+          "model_bytes": 4688,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 50.76842900598422,
+            "first_infer_ms": 18.138920015189797,
+            "total_ms": 68.90734902117401,
+            "npu_cycles": 31782
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 17.779025511117652,
+            "mean_ms": 17.744600681908196,
+            "p95_ms": 20.073926949407905,
+            "min_ms": 16.17098698625341,
+            "max_ms": 20.32653003698215,
+            "fps": 56.355170675639194
+          },
+          "npu_cycles": {
+            "values": [
+              31782
+            ],
+            "median": 31782.0,
+            "compute_us": 556.1836095409761
+          }
+        },
+        "fashion_cnn": {
+          "model": "fashion_cnn",
+          "model_bytes": 8104,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 5,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 55.92770595103502,
+            "first_infer_ms": 17.020580999087542,
+            "total_ms": 72.94828695012257,
+            "npu_cycles": 36225
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 17.75103496038355,
+            "mean_ms": 20.242219055944588,
+            "p95_ms": 27.854599989950657,
+            "min_ms": 15.486599004361778,
+            "max_ms": 28.02500600228086,
+            "fps": 49.40169836302247
+          },
+          "npu_cycles": {
+            "values": [
+              36225
+            ],
+            "median": 36225.0,
+            "compute_us": 633.9359151602121
+          }
+        },
+        "kws_m": {
+          "model": "kws_m",
+          "model_bytes": 7632,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 11,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 55.30134600121528,
+            "first_infer_ms": 17.051741015166044,
+            "total_ms": 72.35308701638132,
+            "npu_cycles": 75322
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.478687524795532,
+            "mean_ms": 16.476744815008715,
+            "p95_ms": 17.04129803692922,
+            "min_ms": 15.5760120251216,
+            "max_ms": 17.46834599180147,
+            "fps": 60.69159965924198
+          },
+          "npu_cycles": {
+            "values": [
+              75322
+            ],
+            "median": 75322.0,
+            "compute_us": 1318.1317046707384
+          }
+        },
+        "kws_l": {
+          "model": "kws_l",
+          "model_bytes": 7896,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 9,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 51.14244396099821,
+            "first_infer_ms": 16.152355005033314,
+            "total_ms": 67.29479896603152,
+            "npu_cycles": 73706
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 17.23038501222618,
+            "mean_ms": 17.92915762416669,
+            "p95_ms": 20.824175036977977,
+            "min_ms": 15.883092011790723,
+            "max_ms": 21.370410977397114,
+            "fps": 55.775068799222396
+          },
+          "npu_cycles": {
+            "values": [
+              73706
+            ],
+            "median": 73706.0,
+            "compute_us": 1289.8517753705617
+          }
+        },
+        "gtsrb_l": {
+          "model": "gtsrb_l",
+          "model_bytes": 7736,
+          "input_bytes": 2048,
+          "output_bytes": 172,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 53.68841398740187,
+            "first_infer_ms": 21.325849986169487,
+            "total_ms": 75.01426397357136,
+            "npu_cycles": 80919
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 19.21571299317293,
+            "mean_ms": 20.344276821560925,
+            "p95_ms": 26.234493998344988,
+            "min_ms": 17.880449013318866,
+            "max_ms": 30.34897899487987,
+            "fps": 49.15387304110004
+          },
+          "npu_cycles": {
+            "values": [
+              80919
+            ],
+            "median": 80919.0,
+            "compute_us": 1416.0789598026004
+          }
+        }
+      },
+      "errors": [],
+      "real_board": true
+    },
+    {
+      "label": "tck_15mhz",
+      "tck_mhz": 15.0,
+      "tck_note": "MPSSE TCK 15 MHz (tck_khz=15000)",
+      "models": {
+        "ecg": {
+          "model": "ecg",
+          "model_bytes": 3908,
+          "input_bytes": 64,
+          "output_bytes": 20,
+          "ops": 13,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 44.59124297136441,
+            "first_infer_ms": 14.891439990606159,
+            "total_ms": 59.48268296197057,
+            "npu_cycles": 14571
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.69630949618295,
+            "mean_ms": 16.85194388483069,
+            "p95_ms": 18.221242004074156,
+            "min_ms": 15.191025042440742,
+            "max_ms": 18.688969023060054,
+            "fps": 59.340335265426084
+          },
+          "npu_cycles": {
+            "values": [
+              14571
+            ],
+            "median": 14571.0,
+            "compute_us": 254.9918625203437
+          }
+        },
+        "har": {
+          "model": "har",
+          "model_bytes": 4216,
+          "input_bytes": 576,
+          "output_bytes": 24,
+          "ops": 7,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 51.4273380395025,
+            "first_infer_ms": 17.512535967398435,
+            "total_ms": 68.93987400690094,
+            "npu_cycles": 16045
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 22.611922031501308,
+            "mean_ms": 22.735761191142956,
+            "p95_ms": 28.005058993585408,
+            "min_ms": 17.2270709881559,
+            "max_ms": 29.40591296646744,
+            "fps": 43.9835724695052
+          },
+          "npu_cycles": {
+            "values": [
+              16047
+            ],
+            "median": 16047.0,
+            "compute_us": 280.8217979455051
+          }
+        },
+        "mnist_l": {
+          "model": "mnist_l",
+          "model_bytes": 4688,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 46.74395598703995,
+            "first_infer_ms": 15.278565988410264,
+            "total_ms": 62.02252197545022,
+            "npu_cycles": 31782
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 16.17888451437466,
+            "mean_ms": 16.13743662892375,
+            "p95_ms": 16.920401016250253,
+            "min_ms": 15.352211019489914,
+            "max_ms": 17.18018902465701,
+            "fps": 61.96771042357876
+          },
+          "npu_cycles": {
+            "values": [
+              31782
+            ],
+            "median": 31782.0,
+            "compute_us": 556.1836095409761
+          }
+        },
+        "fashion_cnn": {
+          "model": "fashion_cnn",
+          "model_bytes": 8104,
+          "input_bytes": 392,
+          "output_bytes": 40,
+          "ops": 5,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 48.76925999997184,
+            "first_infer_ms": 15.869439987000078,
+            "total_ms": 64.63869998697191,
+            "npu_cycles": 36225
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 17.77205799589865,
+            "mean_ms": 18.279296746186446,
+            "p95_ms": 21.74154104432091,
+            "min_ms": 15.204708033706993,
+            "max_ms": 24.100740964058787,
+            "fps": 54.70669981921635
+          },
+          "npu_cycles": {
+            "values": [
+              36225
+            ],
+            "median": 36225.0,
+            "compute_us": 633.9359151602121
+          }
+        },
+        "kws_m": {
+          "model": "kws_m",
+          "model_bytes": 7632,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 11,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 54.65177999576554,
+            "first_infer_ms": 16.982832981739193,
+            "total_ms": 71.63461297750473,
+            "npu_cycles": 75322
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 18.855010479455814,
+            "mean_ms": 20.982447498681722,
+            "p95_ms": 28.5014400142245,
+            "min_ms": 16.0994459874928,
+            "max_ms": 29.61470204172656,
+            "fps": 47.65888250466623
+          },
+          "npu_cycles": {
+            "values": [
+              75322
+            ],
+            "median": 75322.0,
+            "compute_us": 1318.1317046707384
+          }
+        },
+        "kws_l": {
+          "model": "kws_l",
+          "model_bytes": 7896,
+          "input_bytes": 245,
+          "output_bytes": 48,
+          "ops": 9,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 52.887127036228776,
+            "first_infer_ms": 17.700238968245685,
+            "total_ms": 70.58736600447446,
+            "npu_cycles": 73706
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 17.66445249086246,
+            "mean_ms": 17.72538349905517,
+            "p95_ms": 20.26837400626391,
+            "min_ms": 15.071237983647734,
+            "max_ms": 20.373056002426893,
+            "fps": 56.41626879628888
+          },
+          "npu_cycles": {
+            "values": [
+              73706
+            ],
+            "median": 73706.0,
+            "compute_us": 1289.8517753705617
+          }
+        },
+        "gtsrb_l": {
+          "model": "gtsrb_l",
+          "model_bytes": 7736,
+          "input_bytes": 2048,
+          "output_bytes": 172,
+          "ops": 10,
+          "frames_checked": 17,
+          "golden_match": true,
+          "mismatches": [],
+          "cold": {
+            "load_model_ms": 60.69980899337679,
+            "first_infer_ms": 23.723279999103397,
+            "total_ms": 84.42308899248019,
+            "npu_cycles": 80919
+          },
+          "warm": {
+            "count": 16,
+            "median_ms": 25.389999005710706,
+            "mean_ms": 26.276806864188984,
+            "p95_ms": 31.538716983050108,
+            "min_ms": 21.81541098980233,
+            "max_ms": 31.708840979263186,
+            "fps": 38.05637439771411
+          },
+          "npu_cycles": {
+            "values": [
+              80919
+            ],
+            "median": 80919.0,
+            "compute_us": 1416.0789598026004
+          }
+        }
+      },
+      "errors": [],
+      "real_board": true
+    }
+  ]
+}

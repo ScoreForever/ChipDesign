@@ -1,0 +1,21 @@
+{
+  "started_utc": "2026-11-21T13:35:00.490321+00:00",
+  "backend": "mpsse",
+  "sys_clk_mhz": 57.143,
+  "tck_runs": [
+    "tck_10mhz"
+  ],
+  "commit": "0763111",
+  "passed": true,
+  "fpga_available": true,
+  "fpga_validated": true,
+  "suites": {
+    "resnet": {
+      "passed": true,
+      "fpga_validated": true,
+      "skipped": [
+        "resnet20: plan directory missing: omitted"
+      ]
+    }
+  }
+}

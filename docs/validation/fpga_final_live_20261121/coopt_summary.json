@@ -1,0 +1,203 @@
+{
+  "commit": "feat/final-sw-coopt",
+  "resnet20": {
+    "baseline": {
+      "program_groups": 33,
+      "tile_calls": 39,
+      "fused_subgraphs": 10,
+      "host_post_ops": 18,
+      "jtag_model_bytes": 141160,
+      "jtag_input_bytes": 160544,
+      "jtag_output_bytes": 100392,
+      "jtag_total_bytes": 402096
+    },
+    "coopt_software_fusion_only": {
+      "program_groups": 33,
+      "tile_calls": 39,
+      "fused_subgraphs": 10,
+      "host_post_ops": 18,
+      "jtag_model_bytes": 141160,
+      "jtag_input_bytes": 160544,
+      "jtag_output_bytes": 100392,
+      "jtag_total_bytes": 402096
+    },
+    "coopt_hw_add": {
+      "program_groups": 42,
+      "tile_calls": 51,
+      "fused_subgraphs": 19,
+      "host_post_ops": 0,
+      "jtag_model_bytes": 143080,
+      "jtag_input_bytes": 246560,
+      "jtag_output_bytes": 143400,
+      "jtag_total_bytes": 533040
+    },
+    "frame0_rtl_1c8ad47_exact": true,
+    "frame0_rtl_1c8ad47_cycles": 980914,
+    "frame0_baseline_cycles": 887696
+  },
+  "resnet18": {
+    "baseline": {
+      "program_groups": 878,
+      "tile_calls": 3141,
+      "fused_subgraphs": 0,
+      "host_post_ops": 27,
+      "jtag_model_bytes": 5958432,
+      "jtag_input_bytes": 11685605,
+      "jtag_output_bytes": 7593632,
+      "jtag_total_bytes": 25237669
+    },
+    "coopt_software_fusion_only": {
+      "program_groups": 845,
+      "tile_calls": 2316,
+      "fused_subgraphs": 1,
+      "host_post_ops": 27,
+      "jtag_model_bytes": 5975744,
+      "jtag_input_bytes": 9389005,
+      "jtag_output_bytes": 7855328,
+      "jtag_total_bytes": 23220077
+    },
+    "coopt_hw_add": {
+      "program_groups": 855,
+      "tile_calls": 2370,
+      "fused_subgraphs": 11,
+      "host_post_ops": 11,
+      "jtag_model_bytes": 5984064,
+      "jtag_input_bytes": 10141645,
+      "jtag_output_bytes": 8231648,
+      "jtag_total_bytes": 24357357
+    },
+    "rtl_probes_1c8ad47": {
+      "stem_maxpool_fused": {
+        "program_id": "p0000",
+        "layer_name": "stem+maxpool",
+        "ops": [
+          "Conv",
+          "Requant",
+          "MaxPool"
+        ],
+        "input_shape": [
+          35,
+          35,
+          3
+        ],
+        "output_shape": [
+          7,
+          7,
+          64
+        ],
+        "model_bytes": 5248,
+        "rtl_npu_cycles": 102192,
+        "rtl_bit_exact": true
+      },
+      "hw_add_requant": {
+        "program_id": "p0011",
+        "layer_name": "s1_b0_add",
+        "ops": [
+          "Add",
+          "Requant"
+        ],
+        "input_shape": [
+          4,
+          56,
+          64
+        ],
+        "output_shape": [
+          4,
+          56,
+          64
+        ],
+        "model_bytes": 320,
+        "rtl_npu_cycles": 14621,
+        "rtl_bit_exact": true
+      },
+      "s2_b0_c2_joint": {
+        "program_id": "p0026",
+        "layer_name": "s2_b0_c2",
+        "ops": [
+          "Conv"
+        ],
+        "input_shape": [
+          9,
+          16,
+          64
+        ],
+        "output_shape": [
+          7,
+          14,
+          16
+        ],
+        "model_bytes": 4736,
+        "rtl_npu_cycles": 20227,
+        "rtl_bit_exact": true
+      }
+    }
+  },
+  "models_1c8ad47_behavioral_rtl": {
+    "ecg": {
+      "bit_exact": true,
+      "npu_cycles": 14024,
+      "model_bytes": 3908,
+      "input_bytes": 64,
+      "output_bytes": 20,
+      "ops": 13,
+      "vectors_checked": 16
+    },
+    "har": {
+      "bit_exact": true,
+      "npu_cycles": [
+        15646,
+        15647
+      ],
+      "model_bytes": 4216,
+      "input_bytes": 576,
+      "output_bytes": 24,
+      "ops": 7,
+      "vectors_checked": 16
+    },
+    "mnist_l": {
+      "bit_exact": true,
+      "npu_cycles": 31250,
+      "model_bytes": 4688,
+      "input_bytes": 392,
+      "output_bytes": 40,
+      "ops": 10,
+      "vectors_checked": 16
+    },
+    "fashion_cnn": {
+      "bit_exact": true,
+      "npu_cycles": 36009,
+      "model_bytes": 8104,
+      "input_bytes": 392,
+      "output_bytes": 40,
+      "ops": 5,
+      "vectors_checked": 16
+    },
+    "kws_m": {
+      "bit_exact": true,
+      "npu_cycles": 74687,
+      "model_bytes": 7632,
+      "input_bytes": 245,
+      "output_bytes": 48,
+      "ops": 11,
+      "vectors_checked": 16
+    },
+    "kws_l": {
+      "bit_exact": true,
+      "npu_cycles": 73120,
+      "model_bytes": 7896,
+      "input_bytes": 245,
+      "output_bytes": 48,
+      "ops": 9,
+      "vectors_checked": 16
+    },
+    "gtsrb_l": {
+      "bit_exact": true,
+      "npu_cycles": 80273,
+      "model_bytes": 7736,
+      "input_bytes": 2048,
+      "output_bytes": 172,
+      "ops": 10,
+      "vectors_checked": 16
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "started_utc": "2026-11-21T12:37:05.582476+00:00",
+  "backend": "rtl",
+  "sys_clk_mhz": 57.143,
+  "tck_runs": [],
+  "commit": "0763111",
+  "passed": true,
+  "fpga_available": false,
+  "fpga_validated": false,
+  "suites": {
+    "rtl_audit": {
+      "passed": true,
+      "fpga_validated": false,
+      "skipped": []
+    }
+  }
+}
