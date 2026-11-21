@@ -139,6 +139,43 @@ class Suites(unittest.TestCase):
         self.assertEqual(len(result['skipped']), 1)
         self.assertFalse(result['fpga_validated'])
 
+    @unittest.skipIf(COMPILER_ERROR, COMPILER_ERROR or '')
+    def test_resnet_hardware_add_plan_mock(self):
+        from software.compiler import ProgramGroup
+        rng = np.random.default_rng(7)
+        w1 = rng.integers(-4, 4, size=(16, 3, 3, 16), dtype=np.int64).reshape(-1).tolist()
+        w2 = rng.integers(-4, 4, size=(16, 3, 3, 16), dtype=np.int64).reshape(-1).tolist()
+        graph = GraphIR(
+            input=TensorDesc('x', (32, 32, 16), 'u4'),
+            nodes=[
+                NodeIR('Conv', ['x'], 'c1', dict(channels=16, kernel=[3, 3], stride=[1, 1], pads=[1, 1, 1, 1],
+                                                groups=1, weights=w1, bias=[1] * 16)),
+                NodeIR('Requant', ['c1'], 'q1', dict(multiplier=[0x4000] * 16, shift=[-5] * 16, clamp=[0, 15], dtype='u4')),
+                NodeIR('Conv', ['q1'], 'c2', dict(channels=16, kernel=[3, 3], stride=[1, 1], pads=[1, 1, 1, 1],
+                                                 groups=1, weights=w2, bias=[0] * 16)),
+                NodeIR('Requant', ['c2'], 'q2', dict(multiplier=[0x4000] * 16, shift=[-5] * 16, clamp=[-8, 7], dtype='i4')),
+                NodeIR('Add', ['x', 'q2'], 'add', dict(weights=[2, 3])),
+                NodeIR('Requant', ['add'], 'q3', dict(multiplier=[0x4000] * 16, shift=[-3] * 16, clamp=[0, 15], dtype='u4')),
+                NodeIR('ReLU', ['q3'], 'out', {}),
+            ],
+            output='out',
+        )
+        plan = compile_graph_to_plan(graph, enable_fusion=True, hardware_add=True)
+        self.assertTrue(any(isinstance(s, ProgramGroup) and 'input2' in s.sub_model for s in plan.steps),
+                        'expected at least one two-input hardware OP_ADD ProgramGroup')
+        with tempfile.TemporaryDirectory() as td:
+            plan.save(td)
+            samples = Path(td) / 'samples.npz'
+            np.savez(samples, inputs=rng.integers(0, 16, size=(2, 32, 32, 16)).astype(np.uint8), labels=np.array([0, 1]))
+            code, load = run_main('--backend', 'mock', '--suite', 'resnet',
+                                  '--resnet20-plan', td, '--resnet20-samples', str(samples),
+                                  '--resnet18-plan', f'{td}/missing')
+            result = load('resnet')
+        self.assertEqual(code, 0, result)
+        row = result['runs'][0]['models']['resnet20']
+        self.assertTrue(row['bit_exact'])
+        self.assertEqual(row['samples_checked'], 2)
+
     def test_sys_clk_and_tck_reach_create_transport(self):
         calls = []
 

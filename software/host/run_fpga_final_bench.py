@@ -123,8 +123,15 @@ class MockNpuTransport:
     def _run(self):
         model, m = self.active
         base, length = self.regs[0x18], self.regs[0x1c]
-        values = decode_tensor(bytes(self.act_mem[base:base + length]), m['input_dtype'], m['input_elements'])
-        out = encode_tensor(reference(model, values)[model_output_name(model)], m['output_dtype'])
+        raw_in = bytes(self.act_mem[base:base + length])
+        if 'input2' in model or len(m.get('input_tensors', [])) > 1:
+            from software.compiler.runtime import decode_tile_inputs, encode_tensor_np, execute_sub_model
+            tiles = decode_tile_inputs(SimpleNamespace(sub_model=model), raw_in)
+            out_vals = execute_sub_model(model, tiles)[model_output_name(model)]
+            out = encode_tensor_np(out_vals, m['output_dtype'])
+        else:
+            values = decode_tensor(raw_in, m['input_dtype'], m['input_elements'])
+            out = encode_tensor(reference(model, values)[model_output_name(model)], m['output_dtype'])
         if self.corrupt_outputs:
             out = bytes([out[0] ^ 1]) + out[1:]
         obase = self.regs[0x20]
