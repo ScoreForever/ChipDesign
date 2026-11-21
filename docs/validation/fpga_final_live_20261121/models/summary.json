@@ -1,0 +1,25 @@
+{
+  "started_utc": "2026-11-21T11:19:32.248204+00:00",
+  "backend": "mpsse",
+  "sys_clk_mhz": 57.143,
+  "tck_runs": [
+    "tck_1mhz",
+    "tck_2mhz",
+    "tck_3mhz",
+    "tck_5mhz",
+    "tck_8mhz",
+    "tck_10mhz",
+    "tck_15mhz"
+  ],
+  "commit": "8610c7f",
+  "passed": true,
+  "fpga_available": true,
+  "fpga_validated": true,
+  "suites": {
+    "models": {
+      "passed": true,
+      "fpga_validated": true,
+      "skipped": []
+    }
+  }
+}

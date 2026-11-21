@@ -1,0 +1,149 @@
+{
+  "suite": "resnet",
+  "backend": "mpsse",
+  "sys_clk_mhz": 57.143,
+  "fpga_available": true,
+  "fpga_validated": true,
+  "skipped": [
+    "resnet18: plan directory missing: omitted"
+  ],
+  "passed": true,
+  "runs": [
+    {
+      "label": "tck_10mhz",
+      "tck_mhz": 10.0,
+      "tck_note": "MPSSE TCK 10 MHz (tck_khz=10000)",
+      "models": {
+        "resnet20": {
+          "model": "resnet20",
+          "plan_dir": "handoff/resnet20/tiled_plan_opt",
+          "samples": "handoff/resnet20/test_samples_10.npz",
+          "plan_summary": {
+            "program_groups": 42,
+            "tile_calls": 51,
+            "fused_subgraphs": 19,
+            "host_post_ops": 0,
+            "jtag_model_bytes": 143080,
+            "jtag_input_bytes": 246560,
+            "jtag_output_bytes": 143400,
+            "jtag_total_bytes": 533040
+          },
+          "samples_checked": 5,
+          "bit_exact": true,
+          "label_correct": 4,
+          "npu_cycles_median": 983666,
+          "breakdown_median_ms": {
+            "wall": 4264.021729992237,
+            "host": 4.63315419619903,
+            "npu_compute": 17.21411196472009,
+            "jtag_transfer": 4242.399903557227
+          },
+          "breakdown_note": "jtag_transfer = wall - host - cycles/sys_clk; it includes driver/USB overhead and completion polling, not only shift time",
+          "rows": [
+            {
+              "index": 0,
+              "label": 3,
+              "predicted": 3,
+              "bit_exact": true,
+              "max_abs_diff": 0,
+              "npu_cycles": 983666,
+              "wall_ms": 4219.857581018005,
+              "host_ms": 5.260428413748741,
+              "npu_compute_ms": 17.21411196472009,
+              "jtag_transfer_ms": 4197.3830406395355,
+              "telemetry": {
+                "model_loads": 42,
+                "tile_infers": 51,
+                "jtag_model_bytes": 143080,
+                "jtag_input_bytes": 246560,
+                "jtag_output_bytes": 143400
+              }
+            },
+            {
+              "index": 1,
+              "label": 8,
+              "predicted": 8,
+              "bit_exact": true,
+              "max_abs_diff": 0,
+              "npu_cycles": 983666,
+              "wall_ms": 4264.021729992237,
+              "host_ms": 4.407714470289648,
+              "npu_compute_ms": 17.21411196472009,
+              "jtag_transfer_ms": 4242.399903557227,
+              "telemetry": {
+                "model_loads": 42,
+                "tile_infers": 51,
+                "jtag_model_bytes": 143080,
+                "jtag_input_bytes": 246560,
+                "jtag_output_bytes": 143400
+              }
+            },
+            {
+              "index": 2,
+              "label": 8,
+              "predicted": 8,
+              "bit_exact": true,
+              "max_abs_diff": 0,
+              "npu_cycles": 983666,
+              "wall_ms": 4433.614730951376,
+              "host_ms": 4.479196795728058,
+              "npu_compute_ms": 17.21411196472009,
+              "jtag_transfer_ms": 4411.921422190928,
+              "telemetry": {
+                "model_loads": 42,
+                "tile_infers": 51,
+                "jtag_model_bytes": 143080,
+                "jtag_input_bytes": 246560,
+                "jtag_output_bytes": 143400
+              }
+            },
+            {
+              "index": 3,
+              "label": 0,
+              "predicted": 8,
+              "bit_exact": true,
+              "max_abs_diff": 0,
+              "npu_cycles": 983666,
+              "wall_ms": 4234.160029038321,
+              "host_ms": 4.947710200212896,
+              "npu_compute_ms": 17.21411196472009,
+              "jtag_transfer_ms": 4211.998206873388,
+              "telemetry": {
+                "model_loads": 42,
+                "tile_infers": 51,
+                "jtag_model_bytes": 143080,
+                "jtag_input_bytes": 246560,
+                "jtag_output_bytes": 143400
+              }
+            },
+            {
+              "index": 4,
+              "label": 6,
+              "predicted": 6,
+              "bit_exact": true,
+              "max_abs_diff": 0,
+              "npu_cycles": 983666,
+              "wall_ms": 4383.165510953404,
+              "host_ms": 4.63315419619903,
+              "npu_compute_ms": 17.21411196472009,
+              "jtag_transfer_ms": 4361.318244792485,
+              "telemetry": {
+                "model_loads": 42,
+                "tile_infers": 51,
+                "jtag_model_bytes": 143080,
+                "jtag_input_bytes": 246560,
+                "jtag_output_bytes": 143400
+              }
+            }
+          ]
+        },
+        "resnet18": {
+          "model": "resnet18",
+          "skipped": "plan directory missing: omitted"
+        }
+      },
+      "errors": [],
+      "real_board": true
+    }
+  ]
+}
