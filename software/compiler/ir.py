@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
-import math
 from pathlib import Path
 import sys
 import numpy as np
@@ -74,6 +73,17 @@ def wrap32_np(arr: np.ndarray) -> np.ndarray:
     return ((arr.astype(np.int64) + (1 << 31)) % (1 << 32) - (1 << 31)).astype(np.int64)
 
 
+def q8_np(multiplier, shift) -> tuple[np.ndarray, np.ndarray]:
+    """Vectorized npu_program.q8: round Q15 to 8 bits; a carry to 256 renormalizes (or saturates at shift 31)."""
+    mult = np.asarray(multiplier, dtype=np.int64)
+    sh = np.asarray(shift, dtype=np.int64)
+    m = (mult + 64) >> 7
+    carry = m == 256
+    m = np.where(carry, np.where(sh < 31, 128, 255), m)
+    sh = np.where(carry & (sh < 31), sh + 1, sh)
+    return m.astype(np.int64), sh.astype(np.int64)
+
+
 def requant_np(x: np.ndarray, multiplier, shift, lo: int = -8, hi: int = 7) -> np.ndarray:
     """Vectorized bit-exact equivalent of npu_program.requant for HWC int64 tensors."""
     c = x.shape[-1]
@@ -86,12 +96,9 @@ def requant_np(x: np.ndarray, multiplier, shift, lo: int = -8, hi: int = 7) -> n
     if mult_arr.size != c or shift_arr.size != c:
         raise ValueError(f'Requant channel mismatch: x has {c}, mult={mult_arr.size}, shift={shift_arr.size}')
 
-    m_q8 = np.empty(c, dtype=np.int64)
-    s_eff = np.empty(c, dtype=np.int64)
-    for idx in range(c):
-        mm, ss = abi.q8(int(mult_arr[idx]), int(shift_arr[idx]))
-        m_q8[idx] = mm
-        s_eff[idx] = ss
+    if (mult_arr < 0).any() or (mult_arr >= 1 << 15).any() or (shift_arr < -31).any() or (shift_arr > 31).any():
+        raise ValueError('invalid INT4/u4 Q15 parameters')
+    m_q8, s_eff = q8_np(mult_arr, shift_arr)
 
     z = wrap32_np(x)
     pos_shift = np.maximum(s_eff, 0)
@@ -114,9 +121,9 @@ def pad_value_for_dtype(dtype: str, op: str) -> int:
     return 0
 
 
-def infer_tensors(graph: GraphIR) -> dict[str, TensorDesc]:
-    """Infer HWC shape and dtype for every tensor in GraphIR."""
-    tensors: dict[str, TensorDesc] = {graph.input.name: graph.input}
+def infer_tensors(graph: GraphIR, extra_inputs: dict[str, TensorDesc] | None = None) -> dict[str, TensorDesc]:
+    """Infer HWC shape and dtype for every tensor in GraphIR (plus optional extra graph inputs)."""
+    tensors: dict[str, TensorDesc] = {graph.input.name: graph.input, **(extra_inputs or {})}
     for n in graph.nodes:
         t = tensors[n.inputs[0]]
         h, w, c = t.shape
@@ -185,14 +192,25 @@ def _conv2d_exact(x_hwc: np.ndarray, weights_flat, bias, kh: int, kw: int, sh: i
     return wrap32_np(out)
 
 
-def oracle_reference(graph: GraphIR, input_hwc: np.ndarray) -> dict[str, np.ndarray]:
-    """Execute full GraphIR with exact integer semantics and NO hardware capacity limits."""
-    tensors = infer_tensors(graph)
-    inp_arr = np.asarray(input_hwc, dtype=np.int64).reshape(graph.input.shape)
-    lo, hi = {'i32': (-(1 << 31), (1 << 31) - 1), 'i4': (-8, 7), 'u4': (0, 15)}[graph.input.dtype]
-    if inp_arr.min() < lo or inp_arr.max() > hi:
-        raise ValueError(f'Input values outside {graph.input.dtype} range [{lo}, {hi}]')
-    values: dict[str, np.ndarray] = {graph.input.name: inp_arr}
+_DTYPE_RANGE = {'i32': (-(1 << 31), (1 << 31) - 1), 'i4': (-8, 7), 'u4': (0, 15)}
+
+
+def oracle_reference(graph: GraphIR, input_hwc: np.ndarray,
+                     extra_inputs: dict[str, tuple[TensorDesc, np.ndarray]] | None = None) -> dict[str, np.ndarray]:
+    """Execute full GraphIR with exact integer semantics and NO hardware capacity limits.
+
+    extra_inputs maps additional input tensor names to (TensorDesc, value); used by
+    two-input hardware tiles such as a tiled residual Add.
+    """
+    extra = extra_inputs or {}
+    tensors = infer_tensors(graph, {k: d for k, (d, _) in extra.items()})
+    values: dict[str, np.ndarray] = {}
+    for desc, arr in [(graph.input, input_hwc)] + list(extra.values()):
+        arr = np.asarray(arr, dtype=np.int64).reshape(desc.shape)
+        lo, hi = _DTYPE_RANGE[desc.dtype]
+        if arr.min() < lo or arr.max() > hi:
+            raise ValueError(f'Input values outside {desc.dtype} range [{lo}, {hi}]')
+        values[desc.name] = arr
     for n in graph.nodes:
         op = n.op
         a = n.attrs
