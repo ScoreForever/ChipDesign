@@ -133,6 +133,61 @@ class ResidencyAndTransportTests(unittest.TestCase):
             create_transport('mpsse', ftdi_url='ftdi://ftdi:232h/1', tck_khz=5000, timeout=3.0, sys_clk_mhz=57.143)
             mpsse_cls.assert_called_once_with('ftdi://ftdi:232h/1', 5_000_000, 3.0, sys_clk_hz=57_143_000)
 
+    def test_scan_burst_and_output_failures_invalidate_residency(self):
+        def make_tx():
+            tx = object.__new__(FtdiMpsseTransport)
+            tx.ftdi = Mock()
+            tx.timeout = 0.05
+            tx.idle_tcks = 8
+            tx.write_chunk_words = 512
+            tx.read_chunk_words = 256
+            tx._cur_ir = 0x12
+            tx._cached_io_geometry = (0, 8, 16, 8)
+            return tx
+
+        # 1. drscan USB write failure invalidates both caches.
+        tx = make_tx()
+        tx.ftdi.write_data.side_effect = OSError('usb disconnect')
+        with self.assertRaises(OSError):
+            tx.drscan(32, 0)
+        self.assertIsNone(tx._cur_ir)
+        self.assertIsNone(tx._cached_io_geometry)
+
+        # 2. _read timeout invalidates both caches.
+        tx = make_tx()
+        tx.timeout = 0.0
+        tx.ftdi.read_data_bytes.return_value = b''
+        with self.assertRaises(TimeoutError):
+            tx._read(5)
+        self.assertIsNone(tx._cur_ir)
+        self.assertIsNone(tx._cached_io_geometry)
+
+        # 3. burst_check overrun/NPU-error invalidates both caches.
+        tx = make_tx()
+        tx.scan = Mock(return_value=(0x20 << 64))
+        with self.assertRaises(RuntimeError):
+            tx.burst_check()
+        self.assertIsNone(tx._cur_ir)
+        self.assertIsNone(tx._cached_io_geometry)
+
+        # 4. burst_read write/read failure invalidates both caches.
+        tx = make_tx()
+        tx.ftdi.write_data.side_effect = [None, RuntimeError('bulk write failed')]
+        with self.assertRaises(RuntimeError):
+            tx.burst_read(4)
+        self.assertIsNone(tx._cur_ir)
+        self.assertIsNone(tx._cached_io_geometry)
+
+        # 5. Output burst_read failure inside pipeline_infer invalidates both caches.
+        tx = make_tx()
+        tx.exchange = Mock(side_effect=lambda op, addr=0, data=0: 8 if (op == Op.READ and addr == 4) else 0)
+        tx.burst_write = Mock()
+        tx.burst_read = Mock(side_effect=TimeoutError('output burst failed'))
+        with self.assertRaises(TimeoutError):
+            tx.pipeline_infer([1, 2], 8, burst=True)
+        self.assertIsNone(tx._cur_ir)
+        self.assertIsNone(tx._cached_io_geometry)
+
 
 class VectorizedCodecAndRequantTests(unittest.TestCase):
     def test_pack_unpack_i4_u4_odd_and_i32_roundtrip(self):

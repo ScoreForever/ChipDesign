@@ -442,14 +442,17 @@ class FtdiMpsseTransport(JtagTransport):
             self.close()
             raise
 
+    def _invalidate_residency(self):
+        self._cur_ir = None
+        self._cached_io_geometry = None
+
     def exchange(self, op, addr=0, data=0):
         try:
             if op in (Op.RESET, Op.MODEL_BEGIN):
                 self._cached_io_geometry = None
             return super().exchange(op, addr, data)
         except Exception:
-            self._cur_ir = None
-            self._cached_io_geometry = None
+            self._invalidate_residency()
             raise
 
     @staticmethod
@@ -475,11 +478,15 @@ class FtdiMpsseTransport(JtagTransport):
     def _read(self, size):
         result = bytearray()
         deadline = time.monotonic()+self.timeout
-        while len(result) < size:
-            result.extend(self.ftdi.read_data_bytes(size-len(result), 1))
-            if time.monotonic() >= deadline and len(result) < size:
-                raise TimeoutError('MPSSE USB response timed out; operation may have executed')
-        return result
+        try:
+            while len(result) < size:
+                result.extend(self.ftdi.read_data_bytes(size-len(result), 1))
+                if time.monotonic() >= deadline and len(result) < size:
+                    raise TimeoutError('MPSSE USB response timed out; operation may have executed')
+            return result
+        except Exception:
+            self._invalidate_residency()
+            raise
 
     @staticmethod
     def _decode(raw, nbits):
@@ -493,12 +500,20 @@ class FtdiMpsseTransport(JtagTransport):
         if getattr(self, '_cur_ir', None) == ir_val:
             return
         self._cur_ir = None
-        self.ftdi.write_data(self._encode_scan(5, ir_val, False, True))
+        try:
+            self.ftdi.write_data(self._encode_scan(5, ir_val, False, True))
+        except Exception:
+            self._invalidate_residency()
+            raise
         self._cur_ir = ir_val
 
     def drscan(self, nbits, value, read=True):
-        self.ftdi.write_data(self._encode_scan(nbits, value, read) + (b'\x87' if read else b''))
-        return self._decode(self._read((nbits-1)//8 + bool((nbits-1)%8) + 1), nbits) if read else None
+        try:
+            self.ftdi.write_data(self._encode_scan(nbits, value, read) + (b'\x87' if read else b''))
+            return self._decode(self._read((nbits-1)//8 + bool((nbits-1)%8) + 1), nbits) if read else None
+        except Exception:
+            self._invalidate_residency()
+            raise
 
     def scan(self, packet):
         return self.drscan(72, packet)
@@ -510,41 +525,53 @@ class FtdiMpsseTransport(JtagTransport):
     def burst_write(self, words):
         words = list(words)
         if not words: return
-        scans = [self._encode_scan(32, int(w)&0xffffffff, False) for w in words]
-        self.irscan(0x13)
-        prefix = b''
-        for i in range(0, len(scans), self.write_chunk_words):
-            self.ftdi.write_data(prefix + b''.join(scans[i:i+self.write_chunk_words]))
+        try:
+            scans = [self._encode_scan(32, int(w)&0xffffffff, False) for w in words]
+            self.irscan(0x13)
             prefix = b''
-        self.burst_check()
+            for i in range(0, len(scans), self.write_chunk_words):
+                self.ftdi.write_data(prefix + b''.join(scans[i:i+self.write_chunk_words]))
+                prefix = b''
+            self.burst_check()
+        except Exception:
+            self._invalidate_residency()
+            raise
 
     def burst_read(self, count):
         if count <= 0: return []
-        self.irscan(0x14)
-        values = []
-        idle = b''.join(self._tms(0, min(7, self.idle_tcks-i)) for i in range(0, self.idle_tcks, 7))
-        for i in range(0, count, self.read_chunk_words):
-            n = min(self.read_chunk_words, count-i)
-            self.ftdi.write_data((self._encode_scan(32, 0)+idle)*n+b'\x87')
-            raw = self._read(n*5)
-            values.extend(self._decode(raw[j:j+5], 32) for j in range(0, n*5, 5))
-        return values[1:]+[self.burst_check() & 0xffffffff]
+        try:
+            self.irscan(0x14)
+            values = []
+            idle = b''.join(self._tms(0, min(7, self.idle_tcks-i)) for i in range(0, self.idle_tcks, 7))
+            for i in range(0, count, self.read_chunk_words):
+                n = min(self.read_chunk_words, count-i)
+                self.ftdi.write_data((self._encode_scan(32, 0)+idle)*n+b'\x87')
+                raw = self._read(n*5)
+                values.extend(self._decode(raw[j:j+5], 32) for j in range(0, n*5, 5))
+            return values[1:]+[self.burst_check() & 0xffffffff]
+        except Exception:
+            self._invalidate_residency()
+            raise
 
     def burst_check(self):
-        self.irscan(0x12)
-        deadline = time.monotonic() + self.timeout
-        while True:
-            response = self.scan(0)
-            status = response >> 64
-            if status & 0x20:
-                raise RuntimeError('JTAG burst fault: overrun')
-            if (status & 0xc0) == 0x80:
-                code = status & 31
-                if code:
-                    raise RuntimeError(f'JTAG burst fault: NPU error {code}: {ERRORS.get(code, "unknown")}')
-                return response
-            if time.monotonic() >= deadline:
-                raise TimeoutError('JTAG burst completion timed out; transfer state is uncertain')
+        try:
+            self.irscan(0x12)
+            deadline = time.monotonic() + self.timeout
+            while True:
+                response = self.scan(0)
+                status = response >> 64
+                if status & 0x20:
+                    raise RuntimeError('JTAG burst fault: overrun')
+                if (status & 0xc0) == 0x80:
+                    code = status & 31
+                    if code:
+                        raise RuntimeError(f'JTAG burst fault: NPU error {code}: {ERRORS.get(code, "unknown")}')
+                    return response
+                if time.monotonic() >= deadline:
+                    raise TimeoutError('JTAG burst completion timed out; transfer state is uncertain')
+        except Exception:
+            self._invalidate_residency()
+            raise
 
     def read_words_batch(self, addrs):
         return [self.exchange(Op.READ, addr) for addr in addrs]
@@ -567,7 +594,7 @@ class FtdiMpsseTransport(JtagTransport):
             # Read back what the hardware committed, once per model load.
             self._cached_io_geometry = tuple(self.read_words_batch(_IO_GEOMETRY_REGS))
         except Exception:
-            self._cached_io_geometry = None
+            self._invalidate_residency()
             raise
 
     def pipeline_infer(self, frame_words, expected_in_bytes, timeout=10, burst=True):
@@ -596,19 +623,18 @@ class FtdiMpsseTransport(JtagTransport):
                     time.sleep(_POLL_SLEEP_S)
             wait_ms = int((time.monotonic()-started)*1000)
             base, length = out_geom if out_geom is not None else tuple(self.read_words_batch((0x20, 0x24)))
+            count = (length+3)//4
+            words = []
+            if count:
+                words = [self.exchange(Op.READ, 0x20000+base)]
+                words += self.burst_read(count-1) if burst else self.read_words_batch(0x20000+base+4*i for i in range(1,count))
+            return b''.join(w.to_bytes(4,'little') for w in words)[:length], wait_ms
         except Exception:
-            self._cached_io_geometry = None
+            self._invalidate_residency()
             raise
-        count = (length+3)//4
-        words = []
-        if count:
-            words = [self.exchange(Op.READ, 0x20000+base)]
-            words += self.burst_read(count-1) if burst else self.read_words_batch(0x20000+base+4*i for i in range(1,count))
-        return b''.join(w.to_bytes(4,'little') for w in words)[:length], wait_ms
 
     def close(self):
-        self._cur_ir = None
-        self._cached_io_geometry = None
+        self._invalidate_residency()
         self.ftdi.close()
 
 
