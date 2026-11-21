@@ -370,6 +370,11 @@ module npu_program_core #(
     wire [1:0] ret_slot=!pool_enable ? ret_p[1:0] : pool1d ? ret_p[2:1] : ret_p[3:2];
     wire ret_tap_first=pool1d ? !ret_p[0] : ret_p[1:0]==0;
     wire ret_tap_last=pool1d ? ret_p[0] : ret_p[1:0]==3;
+    reg ret2_valid;
+    reg [1:0] ret2_slot;
+    reg ret2_tap_first,ret2_tap_last;
+    reg [15:0] ret2_pos_addr;
+    reg [COLS*PSUM_BITS-1:0] ret2_reduced;
     reg signed [PSUM_BITS-1:0] reduced;
     reg signed [31:0] biased;
     integer lane;
@@ -509,6 +514,7 @@ module npu_program_core #(
     // Pools walk a kh x kw window per lane (max or INT32 sum); Add reads
     // its two i4 operands in turn and forms wa*a+wb*b.
     reg [2:0] estate;
+    reg [31:0] e_data_q;
     reg [15:0] element_pos;
     reg [$clog2(COLS)-1:0] element_lane;
     reg [1:0] element_slot;
@@ -519,11 +525,11 @@ module npu_program_core #(
     reg [15:0] element_base,element_base2,element_col_step,element_row_step,element_row_jump;
     reg [31:0] element_scan_product;
     reg signed [31:0] element_acc;
-    wire signed [31:0] element_value=src32 ? $signed(a_data) : $signed({{28{a_data[3] && !su}},a_data[3:0]});
+    wire signed [31:0] element_value=src32 ? $signed(e_data_q) : $signed({{28{e_data_q[3] && !su}},e_data_q[3:0]});
     wire tap_first=tap_y==0 && tap_x==0;
     wire tap_last=!elem_pool || (tap_y==pkh-8'd1 && tap_x==pkw-8'd1);
     wire signed [12:0] add_term=$signed(add_second ? add_wb : add_wa)*
-        $signed({a_data[3] && !(add_second ? su2 : su),a_data[3:0]});
+        $signed({e_data_q[3] && !(add_second ? su2 : su),e_data_q[3:0]});
     reg signed [31:0] selected_element;
     always @* begin
         selected_element=element_value;
@@ -543,7 +549,7 @@ module npu_program_core #(
     always @* begin
         for(vl=0;vl<COLS;vl=vl+1)begin
             lane_acc=$signed(results[element_slot][vl*32+:21]);
-            lane_v=$signed({{16{a_data[vl*4+3] && !(op==ADD && add_second ? su2 : su)}},a_data[vl*4+:4]});
+            lane_v=$signed({{16{e_data_q[vl*4+3] && !(op==ADD && add_second ? su2 : su)}},e_data_q[vl*4+:4]});
             case(op)
                 POOL:lane_next[vl]=!tap_first && lane_acc>lane_v ? lane_acc : lane_v;
                 AVGPOOL:lane_next[vl]=tap_first ? lane_v : lane_acc+lane_v;
@@ -619,6 +625,7 @@ module npu_program_core #(
 
     task automatic begin_tile;
         begin
+            ret2_valid<=0; e_data_q<=0;
             load_seq<=0; issue_seq<=0; load_g<=0; issue_g<=0; load_tile<=0; issue_tile<=0;
             load_row<=0; lstate<=L_IDLE; load_more<=1; issue_more<=1;
             req_row<=0; l_out<=0; lq_head<=0; lq_tail<=0; lq_count<=0;
@@ -638,7 +645,7 @@ module npu_program_core #(
     task automatic fail(input [4:0] code);
         begin error<=code; error_op<=pc; state<=FAILED; end
     endtask
-    wire compute_drained=write_count==0 && (mac_op ? (!issue_more && inflight[0]==0 && inflight[1]==0 &&
+    wire compute_drained=write_count==0 && !ret2_valid && (mac_op ? (!issue_more && inflight[0]==0 && inflight[1]==0 &&
         slot_busy==0 && rq_pending==0 && !rq_valid && lstate==L_IDLE && !load_more && l_out==0 && lq_count==0) :
         (element_pos==dst_pixels && estate==0 && slot_busy==0 && rq_pending==0 && !rq_valid));
     // A partial write-combining word must reach physical SRAM before the next
@@ -1077,19 +1084,29 @@ module npu_program_core #(
                                 cursor_at_last_x<=peek_x==scan_last_x;
                             end
                         end
+                        ret2_valid<=out_valid && ret_last;
                         if(out_valid) begin
                             for(lane=0;lane<COLS;lane=lane+1) begin
                                 reduced=$signed(ret_first ? {PSUM_BITS{1'b0}} : psum[psum_index][lane*PSUM_BITS+:PSUM_BITS])+
                                     $signed(out_sum[lane*11+:11]);
-                                biased=$signed(reduced)+$signed(bias_cache[lane]);
                                 if(!ret_last) psum[psum_index][lane*PSUM_BITS+:PSUM_BITS]<=reduced;
-                                else if(!pool_enable || ret_tap_first ||
-                                    biased>$signed(results[ret_slot][lane*32+:32]))
-                                    results[ret_slot][lane*32+:32]<=biased;
+                                else ret2_reduced[lane*PSUM_BITS+:PSUM_BITS]<=reduced;
                             end
-                            if(ret_last && (!pool_enable || ret_tap_last)) begin
-                                slot_ready[ret_slot]<=1;
-                                result_addr[ret_slot]<=ret_pos_addr; ret_pos_addr<=ret_pos_addr+chb;
+                            if(ret_last) begin
+                                ret2_slot<=ret_slot; ret2_tap_first<=ret_tap_first; ret2_tap_last<=ret_tap_last;
+                                ret2_pos_addr<=ret_pos_addr;
+                                if(!pool_enable || ret_tap_last) ret_pos_addr<=ret_pos_addr+chb;
+                            end
+                        end
+                        if(ret2_valid) begin
+                            for(lane=0;lane<COLS;lane=lane+1) begin
+                                biased=$signed(ret2_reduced[lane*PSUM_BITS+:PSUM_BITS])+$signed(bias_cache[lane]);
+                                if(!pool_enable || ret2_tap_first || biased>$signed(results[ret2_slot][lane*32+:32]))
+                                    results[ret2_slot][lane*32+:32]<=biased;
+                            end
+                            if(!pool_enable || ret2_tap_last) begin
+                                slot_ready[ret2_slot]<=1;
+                                result_addr[ret2_slot]<=ret2_pos_addr;
                             end
                         end
                     end else begin
@@ -1100,7 +1117,8 @@ module npu_program_core #(
                                 estate<=1;
                             end
                             1: if(a_ready) estate<=2;
-                            2: if(a_rsp_valid && evec) begin
+                            2: if(a_rsp_valid) begin e_data_q<=a_data; estate<=4; end
+                            4: if(evec) begin
                                 for(v=0;v<COLS;v=v+1)results[element_slot][v*32+:32]<={{11{lane_next[v][20]}},lane_next[v]};
                                 if(!element_done) begin
                                     if(op==ADD) add_second<=1;
@@ -1111,7 +1129,7 @@ module npu_program_core #(
                                 end else begin
                                     tap_y<=0; tap_x<=0; tap_offset<=0; add_second<=0; estate<=3;
                                 end
-                            end else if(a_rsp_valid) begin
+                            end else begin
                                 element_acc<=selected_element;
                                 if(!element_done) begin
                                     if(op==ADD) add_second<=1;
