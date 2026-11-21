@@ -126,7 +126,12 @@ module npu_mac_array #(
                 wire signed [3:0] weight_sel = sel_link[r][c] ? weight_bank1 : weight_bank0;
                 // |u4 x i4| <= 120 and four rows <= 480 fit the 10-bit local sum.
                 wire signed [8:0] product = $signed(act_link[r][c]) * weight_sel;
-                (* use_dsp = "no" *) wire signed [ACC_WIDTH-1:0] mac =
+`ifdef CHIPDESIGN_FPGA_MEM
+                (* use_dsp = "yes" *)
+`else
+                (* use_dsp = "no" *)
+`endif
+                wire signed [ACC_WIDTH-1:0] mac =
                     $signed(psum_link[r][c]) + product;
                 always @(posedge clk) begin
                     if (rst) begin
