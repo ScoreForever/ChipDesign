@@ -11,6 +11,7 @@ module npu_command_controller #(
  input wire core_ready_i,core_busy_i,validation_done_i,validation_ok_i,done_i,
  input wire [4:0] core_error_i,input wire [7:0] core_error_op_i,
  input wire [31:0] cycles_i,issues_i,model_reads_i,act_reads_i,act_writes_i,
+ input wire [31:0] exit_status_i,exit_margin_i,
  input wire [24*32-1:0] perf_counters_i,
  output reg [31:0] trace_control_o,trace_offset_o,
  output wire trace_read_o,output wire [15:0] trace_addr_o,
@@ -108,7 +109,7 @@ module npu_command_controller #(
       end else case(addr)
        'h00:reply(0,32'h00050000);
        'h04:reply(0,{25'd0,faulted,input_loading,model_loading,done,input_valid,model_valid,owned});
-       'h08:reply(0,error_code); 'h0c:reply(0,'h7f); // opcodes 1..7
+       'h08:reply(0,error_code); 'h0c:reply(0,'hff); // opcodes 1..8 (ABI 6.0 Early-Exit)
        'h10:reply(0,model_bytes_o); 'h14:reply(0,op_count_o); 'h18:reply(0,input_base_o);
        'h1c:reply(0,input_bytes_o); 'h20:reply(0,output_base_o); 'h24:reply(0,output_bytes_o);
        'h28:reply(0,timeout_limit); 'h2c:reply(0,job_id); 'h30:reply(0,completed_id); 'h34:reply(0,error_op);
@@ -118,6 +119,8 @@ module npu_command_controller #(
        'h5c:reply(0,MAX_K); 'h60:reply(0,MAX_OPS);'h64:reply(0,input_i32_o);
        'h6c:reply(0,32'h0f200404); // Q15, raw INT32, activation/weight INT4.
        'h68:reply(0,32'h00010018); // Performance extension v1, 24 counters.
+       'h70:reply(0,exit_status_i); // ABI 6.0: {exit_taken, 7'd0, exit_id, exit_pc, top1_idx}
+       'h74:reply(0,exit_margin_i); // ABI 6.0: signed 32-bit (max1 - max2) margin
        default:reply(2,0);
       endcase
       2:if(locked) reply(owned ? 4 : done ? 9 : 5,0);
