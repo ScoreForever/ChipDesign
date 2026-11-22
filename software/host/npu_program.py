@@ -21,7 +21,14 @@ import operator
 ABI=0x50000
 FORMAT_MAGIC=0x49340f80  # I4, Q15, eight rows; low nibble is array column count.
 NUMERIC_FORMAT=0x0f200404
-OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5,'AvgPool':6,'Add':7}
+OPS={'Conv':1,'FC':2,'MaxPool':3,'ReLU':4,'Requant':5,'AvgPool':6,'Add':7,'Exit':8}
+EXIT_MODES={'margin':0,'top1':1,'always':2}
+WEIGHT_DTYPES={'i4':0,'t2':1,'i2':2,'s2':3}
+W2_ENCODE={
+    't2':{-1:2,0:0,1:1},          # BitNet-1.58b Ternary {-1, 0, +1}
+    'i2':{-2:2,-1:3,0:0,1:1},     # Signed 2-bit 2's complement {-2, -1, 0, +1}
+    's2':{-2:0,-1:1,1:2,2:3},     # Symmetric non-zero INT2 {-2, -1, +1, +2}
+}
 Q,R,P,S32,D32,DW,P1D=1<<8,1<<9,1<<10,1<<11,1<<12,1<<13,1<<14
 # u4: 4-bit tensors holding unsigned 0..15 (typically post-ReLU activations).
 SU,SU2,DU=1<<15,1<<16,1<<17
@@ -67,6 +74,13 @@ def pack_i4(values):
     values=[operator.index(v) for v in values]
     if any(v < -8 or v > 7 for v in values):raise ValueError('value outside signed INT4')
     return bytes((values[i]&15)|((values[i+1]&15)<<4 if i+1<len(values) else 0) for i in range(0,len(values),2))
+
+def pack_w2(values,wtype):
+    """Pack 4 x 2-bit weights per byte (low bits first) for t2/i2/s2."""
+    enc=W2_ENCODE[wtype]
+    codes=[enc[operator.index(v)] for v in values]
+    while len(codes)%4:codes.append(0)
+    return bytes(codes[i]|(codes[i+1]<<2)|(codes[i+2]<<4)|(codes[i+3]<<6) for i in range(0,len(codes),4))
 
 def unpack_i4(payload,count):
     if count<0 or len(payload)!=(count+1)//2:raise ValueError('packed INT4 length')
@@ -188,11 +202,12 @@ def analyze(model):
         n=dict(original);op=n['op'];src=n['input'];dst=n['output']
         if op not in OPS or src not in tensors or dst in tensors:
             raise ValueError('unknown operator/input or duplicate output')
-        fields={'Conv':{'channels','weights','bias','kernel','stride','pads','groups','dilation','weight_zero_point'},
-                'FC':{'channels','weights','bias','kernel','stride','pads'},
+        fields={'Conv':{'channels','weights','bias','kernel','stride','pads','groups','dilation','weight_zero_point','weight_dtype'},
+                'FC':{'channels','weights','bias','kernel','stride','pads','weight_dtype'},
                 'MaxPool':{'kernel','stride','pads'},'AvgPool':{'kernel','stride','pads'},'ReLU':set(),
                 'Requant':{'multiplier','shift','clamp','dtype','input_zero_point','output_zero_point'},
-                'Add':{'input2','weights'}}
+                'Add':{'input2','weights'},
+                'Exit':{'threshold','mode','target_pc','exit_id'}}
         unknown=set(n)-({'op','input','output','metadata','name','layout','zero_point','fuse'}|fields[op])
         if unknown:raise ValueError(f'unknown {op} fields: {sorted(unknown)}')
         if n.get('layout','NHWC')!='NHWC' or any(n.get(key,0)!=0 for key in
@@ -222,13 +237,20 @@ def analyze(model):
             k=kh*kw*(1 if depthwise else c)
             if not 1<=oc<=256 or k>1024 or not 1<=oh<=255 or not 1<=ow<=255:
                 raise ValueError('Conv/FC shape exceeds capability')
+            wdtype=n.get('weight_dtype','i4')
+            if wdtype not in WEIGHT_DTYPES:raise ValueError('weight_dtype must be i4, t2, i2 or s2')
             weights=flatten(n['weights']);bias=flatten(n.get('bias',[0]*oc))
-            if len(weights)!=oc*k or len(bias)!=oc or any(v< -8 or v>7 for v in weights):
-                raise ValueError('weights must be [OC,KH,KW,IC] (depthwise [C,KH,KW]), FC [OC,K], signed i4')
+            if len(weights)!=oc*k or len(bias)!=oc:
+                raise ValueError('weights must be [OC,KH,KW,IC] (depthwise [C,KH,KW]), FC [OC,K]')
+            if wdtype=='i4':
+                if any(v< -8 or v>7 for v in weights):raise ValueError('weights outside signed INT4')
+            else:
+                allowed=W2_ENCODE[wdtype]
+                if any(v not in allowed for v in weights):raise ValueError(f'weights outside {wdtype} alphabet {sorted(allowed)}')
             if any(v< -2**(BIAS_BITS-1) or v>=2**(BIAS_BITS-1) for v in bias):
                 raise ValueError(f'bias outside the {BIAS_BITS}-bit parameter field')
             n.update(kernel_h=kh,kernel_w=kw,stride_h=sh,stride_w=sw,pads=pads,channels=oc,weights=weights,bias=bias,k=k,
-                     input_shape=(h,w,c),depthwise=depthwise)
+                     input_shape=(h,w,c),depthwise=depthwise,weight_dtype=wdtype)
             result=Tensor((oh,ow,oc),'i32')
         elif op in ('MaxPool','AvgPool'):
             kh,kw=pair(n.get('kernel',2),'kernel');sh,sw=pair(n.get('stride',[kh,kw]),'stride')
@@ -249,6 +271,22 @@ def analyze(model):
             n.update(weights=[wa,wb]);n['inputs']=[src,other]
             result=Tensor(t.shape,'i32')
         elif op=='ReLU':result=Tensor(t.shape,t.dtype)
+        elif op=='Exit':
+            mode_name=n.get('mode','margin')
+            if mode_name not in EXIT_MODES:raise ValueError('Exit mode must be margin, top1 or always')
+            mode_id=EXIT_MODES[mode_name]
+            th=operator.index(n.get('threshold',0))
+            if not (-2**31<=th<2**31):raise ValueError('Exit threshold outside signed 32-bit')
+            exit_id=operator.index(n.get('exit_id',1))
+            if not (0<=exit_id<=255):raise ValueError('Exit exit_id must be 0..255')
+            target_pc=n.get('target_pc',None)
+            if target_pc is not None:
+                target_pc=operator.index(target_pc)
+                if not (0<target_pc<=128):raise ValueError('Exit target_pc out of range')
+            if (h,w)!=(1,1) or not (1<=c<=256) or (mode_id==0 and c<2):
+                raise ValueError('Exit input must be (1,1,C) with C>=2 for margin mode')
+            n.update(exit_mode=mode_id,threshold=th,exit_id=exit_id,target_pc=target_pc)
+            result=Tensor(t.shape,t.dtype)
         else:
             mult=flatten(n['multiplier']);shift=flatten(n['shift'])
             if len(mult)==1:mult*=c
@@ -273,9 +311,28 @@ def reference(model,values):
     lo,hi={'i32':(-2**31,2**31),'i4':(-8,8),'u4':(0,16)}[tensors[model['input']['name']].dtype]
     if len(values)!=math.prod(tensors[model['input']['name']].shape) or any(v<lo or v>=hi for v in values):
         raise ValueError('input length/range mismatch')
-    data={model['input']['name']:values}
-    for n in nodes:
-        op=n['op'];a=data[n['input']];t=tensors[n['input']];h,w,c=t.shape;out=[]
+    data={model['input']['name']:values,'__exit__':dict(taken=False,exit_id=0,pc=0,top1=0,margin=0)}
+    idx=0
+    while idx<len(nodes):
+        n=nodes[idx];op=n['op'];a=data[n['input']];t=tensors[n['input']];h,w,c=t.shape;out=[]
+        if op=='Exit':
+            max1=-2**31;max2=-2**31;max1_idx=0
+            for ci,val in enumerate(a):
+                if val>max1:max2=max1;max1=val;max1_idx=ci
+                elif val>max2:max2=val
+            margin=wrap32(max1-max2)
+            mode_id=n['exit_mode'];th=n['threshold']
+            taken=(mode_id==2) or (max1>=th if mode_id==1 else margin>=th)
+            data[n['output']]=list(a)
+            if taken:
+                data['__exit__']=dict(taken=True,exit_id=n['exit_id'],pc=idx,top1=max1_idx,margin=margin)
+                if n['target_pc'] is None:
+                    data[nodes[-1]['output']]=list(a)
+                    break
+                idx=n['target_pc']
+                continue
+            idx+=1
+            continue
         if op in ('Conv','FC'):
             h,w,c=n['input_shape'];oh,ow,oc=tensors[n['output']].shape;kh,kw=n['kernel_h'],n['kernel_w']
             for y in range(oh):
@@ -306,6 +363,7 @@ def reference(model,values):
         else:
             out=[requant(v,n['multiplier'][i%c],n['shift'][i%c],*n['clamp']) for i,v in enumerate(a)]
         data[n['output']]=out
+        idx+=1
     return data
 
 def head_kind(node):
@@ -322,9 +380,43 @@ def fuse_policy(fuse):
         if kind not in FUSE_KINDS or (head and head not in FUSE_HEADS):raise ValueError(f'unknown fusion switch {item!r}')
     return lambda head,kind:kind in allowed or f'{head}.{kind}' in allowed
 
-def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_ops=128):
+def k_groups(n):
+    """Hardware K groups of a Conv/FC node (descriptor xk/8, rounded up)."""
+    if n['depthwise']:return n['kernel_h']*n['kernel_w']
+    if n['input_shape'][2]==1 and n['kernel_w']<=8 and n['kernel_h']>1:return n['kernel_h']
+    return -(-n['k']//8)
+
+
+def skew_words(g,positions,schedule):
+    """Descriptor words 13/14 for the skewed K-group schedule, or (0, 0).
+
+    Phase g of pass t issues the 16-position window [16(t-1)+e(g), 16t+e(g)),
+    with e(g)=floor(16(g+1)/G), so completions (and result-slot demand) are
+    spread over all G phases instead of bursting in the last K group."""
+    n=g[0]
+    if schedule=='off' or n['op'] not in ('Conv','FC') or any(v['op']=='MaxPool' for v in g[1:]):return 0,0
+    G=k_groups(n)
+    if not 2<=G<=16:return 0,0
+    if schedule=='auto' and not skew_profitable(G,positions):return 0,0
+    table=0
+    for i in range(G-1):table|=(16*(i+1)//G)<<(4*i)
+    return table&0xffffffff,(table>>32)|(1<<31)
+
+
+def skew_profitable(G,positions):
+    """Skew only pays when positions span more than one 16-position tile:
+    it overlaps a tile's completions with the next tile's K groups. A single
+    tile only gains G-1 partially filled phases (RTL sweep, G 2..16: up to
+    +23% at 16 positions, never slower above 16)."""
+    return positions>16
+
+
+def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_ops=128,schedule='auto'):
     """fuse: True, False, or an iterable of switches such as {'requant','relu','conv.maxpool'}.
-    A node with "fuse": false is never absorbed into a preceding operator."""
+    A node with "fuse": false is never absorbed into a preceding operator.
+    schedule: K-group schedule of unpooled Conv/FC layers: 'off' (tile-aligned),
+    'on' (skewed wherever legal) or 'auto' (skewed where the cost rule predicts a gain)."""
+    if schedule not in ('off','on','auto'):raise ValueError('schedule must be off, on or auto')
     tensors,nodes=analyze(model)
     if cols!=8:raise ValueError('ABI 5 requires 8 array columns')
     if not 1<=max_ops<=128:raise ValueError('max_ops must be in 1..128')
@@ -375,28 +467,30 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
             pool=next((v for v in g[1:] if v['op']=='MaxPool'),None)
             if pool:flags|=P|(P1D if pool['kernel_h']==1 else 0)
         if op=='Conv' and n['depthwise']:flags|=DW
+        if op in ('Conv','FC'):flags|=WEIGHT_DTYPES[n['weight_dtype']]<<20
+        if op=='Exit':flags|=n['exit_mode']<<18
         weight_base=param_base=0
         if op in ('Conv','FC') and n['depthwise']:
             # One row of COLS lane weights per tap; the COLS/8 K groups of the
             # tap reuse it and the array expands it to a block diagonal.
-            packed=[];taps=n['kernel_h']*n['kernel_w']
+            packed=[];taps=n['kernel_h']*n['kernel_w'];wd=n['weight_dtype']
             for o_base in range(0,oc,cols):
                 for tap in range(taps):packed.extend(n['weights'][(o_base+lane)*taps+tap] for lane in range(cols))
-            weight_base=append(pack_i4(packed),4)
+            weight_base=append(pack_i4(packed) if wd=='i4' else pack_w2(packed,wd),4)
         elif op in ('Conv','FC'):
-            packed=[];k=n['k'];kw=n['kernel_w']
+            packed=[];k=n['k'];kw=n['kernel_w'];wd=n['weight_dtype'];pad_v=0 if wd!='s2' else 1
             # Single-channel kernels up to eight taps wide: one padded eight-row K group per
             # kernel row (one contiguous read each); see rowpad in the core.
             row_pad=n['input_shape'][2]==1 and kw<=8 and n['kernel_h']>1
             for o_base in range(0,oc,cols):
-                width=4 if cols==8 and oc-o_base<=4 else cols
+                width=4 if (wd=='i4' and cols==8 and oc-o_base<=4) else cols
                 for ki in range(n['kernel_h']*8 if row_pad else align(k,8)):
                     for lane in range(width):
                         o=o_base+lane
                         logical=(ki//8)*kw+ki%8 if row_pad else ki
                         valid=ki%8<kw if row_pad else ki<k
-                        packed.append(n['weights'][o*k+logical] if o<oc and valid else 0)
-            weight_base=append(pack_i4(packed),4)
+                        packed.append(n['weights'][o*k+logical] if o<oc and valid else pad_v)
+            weight_base=append(pack_i4(packed) if wd=='i4' else pack_w2(packed,wd),4)
         if op in ('Conv','FC','Requant') or q:
             if op=='Requant':q=n
             params=[param_word(n.get('bias',[0]*oc)[ch] if op in ('Conv','FC') else 0,
@@ -409,12 +503,17 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
             geometry=0 # canonical 2x2/stride-2 standalone pool keeps the ABI 3 encoding
         pads=n.get('pads',[0]*4) if op in ('Conv','FC') else [0]*4
         clamp=q['clamp'] if q else [0,0]
+        if op=='Exit':
+            weight_base=n['threshold']&0xffffffff
+            tpc=len(groups) if n['target_pc'] is None else n['target_pc']
+            param_base=(tpc&255)|((n['exit_id']&255)<<8)
         words=[OPS[op]|flags,allocation[n['input']][0],allocation[g[-1]['output']][0],
                h|(w<<16),c|(oc<<16),geometry,
                sum(v<<(8*i) for i,v in enumerate(pads)),weight_base,param_base,
                (clamp[0]&31)|((clamp[1]&31)<<5),tout.shape[0]|(tout.shape[1]<<16),
                allocation[n['input2']][0] if op=='Add' else 0,
                ((n['weights'][0]&255)|((n['weights'][1]&255)<<8)) if op=='Add' else 0,0,0,0]
+        if op in ('Conv','FC'):words[13],words[14]=skew_words(g,tout.shape[0]*tout.shape[1],schedule)
         words[15]=FORMAT_MAGIC|cols
         records.append(words)
     while len(image)%4:image.append(0)
@@ -425,6 +524,8 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
     last_use={name:-1 for name in tensors}
     for idx,g in enumerate(groups):
         for name in g[0]['inputs']:last_use[name]=idx
+        if g[0]['op']=='Exit' and g[0]['target_pc'] is None:
+            last_use[g[0]['input']]=len(groups)-1
     for idx,g in enumerate(groups):
         name=g[-1]['output'];size=tensors[name].size;at=0
         for base,length in sorted(live.values()):
@@ -432,6 +533,11 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
             at=align(max(at,base+length))
         # Exact in-place elementwise operations: ReLU, and Add onto an operand
         # of the same byte size whose last use is this Add.
+        if g[0]['op']=='Exit':
+            allocation[name]=allocation[g[0]['input']]
+            for old in list(live):
+                if old not in ('__model__',) and last_use.get(old,-1)<=idx:del live[old]
+            continue
         if g[0]['op']=='ReLU' and last_use[g[0]['input']]==idx:
             at=allocation[g[0]['input']][0]
         elif g[0]['op']=='Add':
@@ -442,12 +548,18 @@ def compile_model(model,*,fuse=True,cols=8,act_bytes=8192,model_bytes=8192,max_o
         allocation[name]=(at,size);live[name]=(at,size);peak=max(peak,at+size)
         for old in list(live):
             if old not in (name,'__model__') and last_use.get(old,-1)<=idx:del live[old]
-    for words,g in zip(records,groups):
+    out_name=groups[-1][-1]['output']
+    for idx,(words,g) in enumerate(zip(records,groups)):
         words[1]=allocation[g[0]['input']][0]
-        words[2]=allocation[g[-1]['output']][0]
+        if g[0]['op']=='Exit':
+            tpc=len(groups) if g[0]['target_pc'] is None else g[0]['target_pc']
+            if not (idx<tpc<=len(groups)):raise ValueError('Exit target_pc must be strictly forward (> pc and <= op_count)')
+            words[2]=allocation[out_name][0] if tpc==len(groups) else words[1]
+            words[8]=(tpc&255)|((g[0]['exit_id']&255)<<8)
+        else:
+            words[2]=allocation[g[-1]['output']][0]
         if g[0]['op']=='Add':words[11]=allocation[g[0]['input2']][0]
     for i,words in enumerate(records):struct.pack_into('<16I',image,i*64,*words)
-    out_name=groups[-1][-1]['output']
     manifest=dict(rows=8,activation_bank_bytes=act_bytes,shared_model_tail=True,abi=ABI,numeric_format=NUMERIC_FORMAT,packing='low_nibble_first',cols=cols,model_bytes=len(image),op_count=len(groups),
                   input_elements=math.prod(tensors[model['input']['name']].shape),
                   input_base=0,input_bytes=tensors[model['input']['name']].size,input_dtype=tensors[model['input']['name']].dtype,

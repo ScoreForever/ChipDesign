@@ -23,6 +23,7 @@ module npu_program_core #(
     output reg validation_done,validation_ok,done,
     output reg [4:0] error, output reg [7:0] error_op,
     output reg [31:0] cycles,issues,model_reads,act_reads,act_writes,
+    output reg [31:0] exit_status,exit_margin,
     output wire [24*32-1:0] perf_counters,
     output wire trace_clear,trace_active,
     output wire [127:0] trace_sample,
@@ -38,18 +39,26 @@ module npu_program_core #(
 );
     localparam IDLE=0,FREQ=1,FWAIT=2,BASIC=3,CHECK=4,PREQ=5,PWAIT=6,
         SETUP=7,EXECUTE=8,NEXT=9,FAILED=10,INIT_A=11,INIT_B=12,
-        LOOKUP_WAIT=13,DERIVE=14;
-    localparam CONV=1,FC=2,POOL=3,RELU=4,REQUANT=5,AVGPOOL=6,ADD=7;
+        LOOKUP_WAIT=13,DERIVE=14,EXIT_RUN=15;
+    localparam CONV=1,FC=2,POOL=3,RELU=4,REQUANT=5,AVGPOOL=6,ADD=7,EXIT=8;
     localparam L_IDLE=0,L_REQ=1,L_WAIT=2,L_HAVE=3;
     reg [3:0] state;
     reg checking;
     reg [7:0] pc;
     reg [3:0] fetch_word;
-    reg [31:0] d[0:15];
+    (* ram_style = "distributed" *) reg [31:0] d[0:15];
     // Full opcode is checked before execution. Cache the hot one-bit modes
     // rather than repeating wide opcode comparisons on memory address paths.
-    wire [2:0] op=d[0][2:0];
-    reg q_enable,relu_enable,pool_enable,mac_op,dwconv,pool1d,elem_pool;
+    wire [3:0] op=d[0][3:0];
+    reg q_enable,relu_enable,pool_enable,mac_op,dwconv,pool1d,elem_pool,exit_op;
+    reg [1:0] w_mode;
+    reg w2_mode;
+    wire [1:0] exit_mode=d[0][19:18];
+    wire [7:0] exit_target_pc=d[8][7:0],exit_id_field=d[8][15:8];
+    reg [2:0] exit_phase;
+    reg [8:0] exit_idx;
+    reg [7:0] exit_max1_idx;
+    reg signed [31:0] exit_max1,exit_max2,exit_copy_word;
     wire src32=d[0][11],dst32=d[0][12];
     // u4: 4-bit tensors holding unsigned 0..15 (post-ReLU activations).
     wire su=d[0][15],su2=d[0][16],du=d[0][17];
@@ -72,6 +81,34 @@ module npu_program_core #(
     reg [31:0] src_span,dst_span,weight_span,param_span;
     reg [15:0] positions;
     reg [15:0] src_pixels,dst_pixels;
+    // Skewed K-group schedule (MAC ops, words 13/14). Without it every TILE
+    // positions finish together in the last K group and the four result slots
+    // throttle that burst. With it, K-group phase g of pass t issues the
+    // sliding window [16(t-1)+e(g), 16t+e(g)) of positions; e(g) is the
+    // compiler's strictly increasing table (e(G-1)=16), so every position still
+    // meets each K group exactly once and completions spread over all phases.
+    // Positions index psum modulo 16. word14[31] enables; word13 holds e(0..7),
+    // word14[27:0] e(8..14). Requires TILE=16, 2..16 K groups and no fused pool.
+    reg skew;
+    wire [63:0] skew_table={4'd0,d[14][27:0],d[13]};
+    wire [3:0] sk_gl=groups[3:0]-4'd1;
+    // Pure function of its arguments, so continuous assignments stay
+    // sensitive to the descriptor table in simulation as in synthesis.
+    function automatic [4:0] skew_e_of(input [63:0] table_v,input [3:0] last_g,input [3:0] g);
+        skew_e_of=g==last_g ? 5'd16 : {1'b0,table_v[g*4+:4]};
+    endfunction
+    reg skew_table_ok;
+    integer sg;
+    always @* begin
+        skew_table_ok=1;
+        // Entry 0 must be at least 1; each later used entry exceeds its predecessor.
+        if(skew_table[3:0]==0) skew_table_ok=0;
+        for(sg=1;sg<15;sg=sg+1)
+            if(sg<groups-1) begin
+                if(skew_table[sg*4+:4]<=skew_table[(sg-1)*4+:4]) skew_table_ok=0;
+            end else if(skew_table[sg*4+:4]!=0) skew_table_ok=0;
+    end
+    wire skew_bad=skew && (!mac_op || pool_enable || TILE!=16 || groups<2 || groups>16 || !skew_table_ok);
     // Descriptor/tile setup products share one 16x16 multiplier, one product
     // per cycle (DERIVE steps 0-7, SETUP steps 0-9) instead of ~20 parallel
     // multipliers that sat idle during execution.
@@ -115,7 +152,8 @@ module npu_program_core #(
     // per descriptor; execution never recomputes tensor-size multiplications.
     integer xoh,xow,xdh,xdw,xk,xsrc,xdst,xweight,xparam;
     reg basic_bad,shape_bad,range_bad;
-    wire output_bad=pc==op_count-1 && (dst!=(output_base<<1) || dst_span!=(output_bytes<<1));
+    wire output_bad=(pc==op_count-1 || (exit_op && exit_target_pc==op_count)) &&
+        (dst!=(output_base<<1) || dst_span!=(output_bytes<<1));
     // Provenance is checked only while validating; a run repeats no lookup.
     wire lookup_save=checking && state==CHECK && lookup_done && source_known && source2_known && !output_bad;
     wire lookup_seed=state==IDLE && validate;
@@ -123,7 +161,7 @@ module npu_program_core #(
     // Validation must not publish its result while record writes are queued.
     wire validation_drained=!lookup_busy && memory_idle;
     (* keep_hierarchy = "yes" *) npu_tensor_lookup #(.MAX_OPS(MAX_OPS)) i_tensor_lookup (
-        .clk(clk),.rst(rst),.seed(lookup_seed),.start(lookup_start),.save(lookup_save),.pc(pc),
+        .clk(clk),.rst(rst),.seed(lookup_seed),.start(lookup_start),.save(lookup_save),.no_write(exit_op),.pc(pc),
         .input_i32(input_i32),.input_first(input_first),.input_end(input_end),
         .src_i32(src32),.src(src),.src_end(src_end),.add_op(op==ADD),.src2(src2),.src2_end(src2_end),
         .dst_i32(dst32),.dst(dst),.dst_end(dst_end),
@@ -134,10 +172,17 @@ module npu_program_core #(
     );
     assign lookup_rsp_valid=checking && a_rsp_valid;
     always @* begin
-        basic_bad=fetch_bad || d[0][7:0]<CONV || d[0][7:0]>ADD ||
+        basic_bad=fetch_bad || d[0][7:0]<CONV || d[0][7:0]>EXIT ||
             ih==0 || iw==0 || ic==0 || ic>MAX_K || oc==0 || oc>256 ||
             (su && src32) || (su2 && op!=ADD) || (du && dst32);
-        if(mac_op) begin
+        if(exit_op) begin
+            // ABI 6.0 Early-Exit / Conditional Forward Branch: strictly forward DAG.
+            basic_bad=basic_bad || oc!=ic || ih!=1 || iw!=1 || d[0][14:13]!=0 || d[0][10:8]!=0 ||
+                d[5]!=0 || d[6]!=0 || d[9][9:0]!=0 || src32!=dst32 || su!=du ||
+                exit_mode==2'b11 || (exit_mode==2'b00 && ic<2) ||
+                exit_target_pc<=pc || exit_target_pc>op_count ||
+                (exit_target_pc<op_count && src!=dst);
+        end else if(mac_op) begin
             // Rectangular kernels up to 7x7. Depthwise convolution keeps one
             // input channel per output channel and whole COLS-wide tiles.
             basic_bad=basic_bad || src32 || (q_enable==dst32) ||
@@ -183,7 +228,7 @@ module npu_program_core #(
                          $signed({1'b0,iw})+$signed({1'b0,pl})+$signed({1'b0,pr})<$signed({1'b0,kw}) || xk>MAX_K)) ||
             (elem_pool && (ih<pkh || iw<pkw || pool_chk_h+pkh>ih || pool_chk_h+psh+pkh<=ih ||
                            pool_chk_w+pkw>iw || pool_chk_w+psw+pkw<=iw)) ||
-            d[10]!={xdw[15:0],xdh[15:0]};
+            d[10]!={xdw[15:0],xdh[15:0]} || skew_bad;
         range_bad=(SHARED_MODEL && (src+xsrc>(ACT_BYTES-model_bytes)*2 ||
             dst+xdst>(ACT_BYTES-model_bytes)*2 ||
             (op==ADD && src2+xsrc>(ACT_BYTES-model_bytes)*2))) || xsrc<1 || xsrc>ACT_BYTES*2 || xdst<1 || xdst>ACT_BYTES*2 ||
@@ -191,7 +236,7 @@ module npu_program_core #(
             (mac_op && ($signed({1'b0,weights})+xweight>model_bytes || weights<op_count*64)) ||
             (need_params && ($signed({1'b0,params})+xparam>model_bytes || params<op_count*64)) ||
             (($signed({1'b0,src})<$signed({1'b0,dst})+xdst && $signed({1'b0,dst})<$signed({1'b0,src})+xsrc) &&
-             !((op==RELU || op==ADD) && src==dst && xsrc==xdst)) ||
+             !((op==RELU || op==ADD || exit_op) && src==dst && xsrc==xdst)) ||
             // Elementwise ops read every element before writing it, so ReLU
             // and Add may run exactly in place (Add onto either operand).
             (op==ADD && ($signed({1'b0,src2})+xsrc>ACT_BYTES*2 ||
@@ -213,7 +258,30 @@ module npu_program_core #(
     // An eight-column tail of <=4 channels also uses a 2-byte row.
     wire [15:0] tile_channels=channels-oct*COLS;
     wire narrow=COLS==8 && tile_channels<=4;
-    wire [15:0] row_bytes=narrow ? 16'd2 : COLS/2;
+    // W2 (BitNet-1.58b ternary / INT2) packs 8 lanes into 16 bits (2 bytes/row),
+    // cutting weight SRAM footprint in half while reusing 2-byte aligned reads.
+    wire [15:0] row_bytes=(narrow || w2_mode) ? 16'd2 : COLS/2;
+    reg [COLS*4-1:0] unpacked_w2;
+    integer wl;
+    always @* begin
+        unpacked_w2=0;
+        for(wl=0;wl<COLS;wl=wl+1) begin
+            case(w_mode)
+                2'b01: case(m_data[wl*2+:2])
+                    2'b01: unpacked_w2[wl*4+:4]=4'sd1;
+                    2'b10: unpacked_w2[wl*4+:4]=-4'sd1;
+                    default: unpacked_w2[wl*4+:4]=4'sd0;
+                endcase
+                2'b10: unpacked_w2[wl*4+:4]={{2{m_data[wl*2+1]}},m_data[wl*2+:2]};
+                default: case(m_data[wl*2+:2])
+                    2'b00: unpacked_w2[wl*4+:4]=-4'sd2;
+                    2'b01: unpacked_w2[wl*4+:4]=-4'sd1;
+                    2'b10: unpacked_w2[wl*4+:4]=4'sd1;
+                    default: unpacked_w2[wl*4+:4]=4'sd2;
+                endcase
+            endcase
+        end
+    end
     // Padded K rows still program zero into every PE, but consume no model
     // read bandwidth. This matters for eight-row groups and narrow kernels.
     // Zero rows are always a suffix of a bank load.
@@ -232,7 +300,8 @@ module npu_program_core #(
     wire load_req=state==EXECUTE && mac_op && lstate==L_REQ && req_row<ROWS && !req_zero &&
         {1'b0,l_out}+{1'b0,lq_count}<LQ;
     wire load_rsp=m_rsp_valid && l_out!=0;
-    wire [COLS*4-1:0] response_row=narrow ? (m_data & 32'h0000ffff) : m_data;
+    wire [COLS*4-1:0] response_row=w2_mode ? (narrow ? (unpacked_w2 & 32'h0000ffff) : unpacked_w2) :
+        (narrow ? (m_data & 32'h0000ffff) : m_data);
     wire dw_hold=dwconv && load_row!=0;
     wire row_avail=load_zero || dw_hold || lq_count!=0 || load_rsp;
     wire array_weight_we=state==EXECUTE && mac_op && lstate==L_REQ && row_avail && inflight[load_bank]==0;
@@ -250,8 +319,8 @@ module npu_program_core #(
 
     // At most four completed vectors are resident. Reserve their slots before
     // issuing the final K group, including outputs still inside the MAC pipe.
-    reg [COLS*PSUM_BITS-1:0] psum[0:TILE-1];
-    reg [COLS*32-1:0] results[0:3];
+    (* ram_style = "distributed" *) reg [COLS*PSUM_BITS-1:0] psum[0:TILE-1];
+    (* ram_style = "distributed" *) reg [COLS*32-1:0] results[0:3];
     // Each completed slot keeps its output-position address dst+pos*channels;
     // positions complete in order, so it is a running sum, not a product.
     reg [15:0] result_addr[0:3];
@@ -309,11 +378,21 @@ module npu_program_core #(
     wire write_two=q_enable ? rq_pair : lane1_valid;
     wire [15:0] write_at=q_enable ? rq_addr : post_addr;
     wire write_tail_pad=dst_pixels[0] && channels[0] && write_at+write_two==packed_tail_addr;
-    // Validation (lookup records) and execution never own the write port together.
-    assign w_valid=core_w_valid || lookup_wr_valid;
-    assign w_addr=checking ? {5'd0,lookup_wr_index,3'd0} : write_addr[write_head];
-    assign w_data=checking ? lookup_wr_data : write_data[write_head];
-    assign w_mask=checking ? 8'hff : write_mask[write_head];
+    // ABI 6.0 EXIT_RUN scan/copy datapath (off MAC/SRAM critical paths).
+    wire signed [31:0] exit_sample=src32 ? $signed(a_data) :
+        (su ? $signed({28'd0,a_data[3:0]}) : $signed({{28{a_data[3]}},a_data[3:0]}));
+    wire signed [31:0] exit_diff=$signed(exit_max1)-$signed(exit_max2);
+    wire exit_cond=(exit_mode==2'b10) ||
+        (exit_mode==2'b01 ? ($signed(exit_max1)>=$signed(d[7])) :
+                            ($signed(exit_diff)>=$signed(d[7])));
+    wire [15:0] exit_step_off=src32 ? {4'd0,exit_idx,3'd0} : {7'd0,exit_idx};
+    wire exit_w_valid=(state==EXIT_RUN) && (exit_phase==3'd5);
+    wire exit_tail_pad=!src32 && ic[0] && (exit_idx==ic[8:0]-9'd1);
+    // Validation (lookup records), EXIT copy, and execution never own the write port together.
+    assign w_valid=core_w_valid || lookup_wr_valid || exit_w_valid;
+    assign w_addr=checking ? {5'd0,lookup_wr_index,3'd0} : exit_w_valid ? (dst+exit_step_off) : write_addr[write_head];
+    assign w_data=checking ? lookup_wr_data : exit_w_valid ? (src32 ? exit_copy_word : {28'd0,exit_copy_word[3:0]}) : write_data[write_head];
+    assign w_mask=checking ? 8'hff : exit_w_valid ? (src32 ? 8'hff : (exit_tail_pad ? 8'h03 : 8'h01)) : write_mask[write_head];
 
     // Gather one address-consecutive subset per read. Irregular channel
     // groups may cross kernel rows: consume each subset once instead of
@@ -346,18 +425,51 @@ module npu_program_core #(
     wire [31:0] remaining=positions-issue_tile*TILE;
     reg [4:0] tile_positions;
     reg last_group;
+    // Skewed schedule, phase (t=issue_tile, g=issue_g): window start W, the
+    // previous window's end (positions at or beyond it enter now: first) and
+    // the next window's start (positions below it leave now: last). All are
+    // evaluated only on the closing kernel_prepare edge and registered.
+    wire sk_wrap=issue_g[3:0]==sk_gl;
+    wire signed [21:0] sk_t16=$signed({2'b0,issue_tile,4'b0});
+    wire signed [21:0] sk_n=$signed({6'b0,positions});
+    wire signed [21:0] sk_w=sk_t16-22'sd16+$signed({17'd0,skew_e_of(skew_table,sk_gl,issue_g[3:0])});
+    wire signed [21:0] sk_first_end=sk_t16+$signed({17'd0,issue_g[3:0]==0 ? 5'd0 : skew_e_of(skew_table,sk_gl,issue_g[3:0]-4'd1)});
+    wire signed [21:0] sk_w_next=sk_wrap ? sk_t16+$signed({17'd0,skew_e_of(skew_table,sk_gl,4'd0)}) :
+        sk_t16-22'sd16+$signed({17'd0,skew_e_of(skew_table,sk_gl,issue_g[3:0]+4'd1)});
+    wire signed [21:0] sk_start=sk_w<0 ? 22'sd0 : sk_w;
+    wire signed [21:0] sk_end=sk_w+22'sd16>sk_n ? sk_n : sk_w+22'sd16;
+    wire signed [21:0] sk_next_start=sk_w_next<0 ? 22'sd0 : sk_w_next;
+    wire signed [21:0] sk_fdelta=sk_first_end-sk_start;
+    // Window length and advance are both at most 16 positions.
+    wire [4:0] sk_count=sk_end[4:0]-sk_start[4:0];
+    wire [4:0] sk_adv_now=sk_next_start[4:0]-sk_start[4:0];
+    wire [4:0] sk_fidx_now=sk_fdelta<0 ? 5'd0 : sk_fdelta[4:0];
+    // Positions [start, start+sk_adv) leave in this phase; index sk_adv is the
+    // next phase's start (bookmarked into tile_*). Indices >= sk_fidx enter.
+    // Loader: start of the phase after the one just loaded (same formula).
+    wire ld_wrap=load_g[3:0]==sk_gl;
+    wire signed [21:0] ld_t16=$signed({2'b0,load_tile,4'b0});
+    wire signed [21:0] ld_w_next=ld_wrap ? ld_t16+$signed({17'd0,skew_e_of(skew_table,sk_gl,4'd0)}) :
+        ld_t16-22'sd16+$signed({17'd0,skew_e_of(skew_table,sk_gl,load_g[3:0]+4'd1)});
+    reg [4:0] sk_adv,sk_fidx;
+    reg [3:0] sk_pos;
+    reg sk_last_q,sk_first_q,sk_more;
+    wire last_flag=skew ? sk_last_q : last_group;
+    wire first_flag=skew ? sk_first_q : issue_g==0;
     // Fused pooling: 2x2 windows take four positions per output, 1x2 two.
     // Position tag: with TILE=8 the spare top bit carries the tile parity, so a
     // 2x2 pool's slot index (bits 3:2) is still the output number modulo four.
-    wire [3:0] tag_pos=TILE==16 ? issue_p[3:0] : {issue_tile[0],issue_p[2:0]};
+    // Skewed tags are the absolute position modulo 16, kept in a counter so
+    // the issue/slot path sees a register rather than an adder.
+    wire [3:0] tag_pos=skew ? sk_pos : TILE==16 ? issue_p[3:0] : {issue_tile[0],issue_p[2:0]};
     wire [1:0] issue_slot=!pool_enable ? tag_pos[1:0] : pool1d ? tag_pos[2:1] : tag_pos[3:2];
     wire reserve_slot=!pool_enable || (pool1d ? !issue_p[0] : issue_p[1:0]==0);
     wire pool_tap_last=pool1d ? issue_p[0] : issue_p[1:0]==3;
-    wire slot_available=!last_group || !reserve_slot || !slot_busy[issue_slot];
+    wire slot_available=!last_flag || !reserve_slot || !slot_busy[issue_slot];
     wire issue_can_fire=mac_op && issue_more && gather_full && bank_ready[issue_seq[0]] && slot_available;
     wire issue_fire=state==EXECUTE && issue_can_fire;
     // First and last flags plus position (six bits total).
-    wire [5:0] in_tag={issue_g==0,last_group,tag_pos};
+    wire [5:0] in_tag={first_flag,last_flag,tag_pos};
     wire out_valid,out_bank; wire [5:0] out_tag; wire [COLS*11-1:0] out_sum;
     npu_mac_array #(.ARRAY_ROWS(ROWS),.ARRAY_COLS(COLS),.ACC_WIDTH(11),.TAG_WIDTH(6)) i_array (
         .clk(clk),.rst(rst),.weight_we(array_weight_we),.weight_bank(load_bank),
@@ -592,6 +704,9 @@ module npu_program_core #(
                 a_valid=|gather_mask;
             end else if(!mac_op && estate==1) begin a_valid=1; end
         end
+        if(state==EXIT_RUN && (exit_phase==3'd0 || exit_phase==3'd3)) begin
+            a_valid=1; a_addr=src+exit_step_off;
+        end
         // Validation never executes, so the provenance scan owns the read port.
         if(checking) begin a_valid=lookup_rd_valid; a_addr={5'd0,lookup_rd_index,3'd0}; end
     end
@@ -638,6 +753,7 @@ module npu_program_core #(
             ret_pos_addr<=dst; element_addr<=dst;
             cursor_y<=0; cursor_x<=0; tile_y<=0; tile_x<=0;cursor_at_last_x<=0;
             tile_positions<=TILE;last_group<=0;has_next_q<=TILE>1;
+            sk_adv<=0;sk_fidx<=0;sk_pos<=0;sk_last_q<=0;sk_first_q<=0;sk_more<=1;
             kernel_c<=0; kernel_x<=0; kernel_y<=0;kernel_offset<=0;kernel_prepare<=1;prep_row<=0;
             element_y<=0; element_x<=0;
         end
@@ -651,6 +767,7 @@ module npu_program_core #(
     // A partial write-combining word must reach physical SRAM before the next
     // channel tile/layer can reuse its address, or before done is published.
     assign memory_flush=(state==EXECUTE && compute_drained) ||
+        (state==EXIT_RUN && exit_phase==3'd6) ||
         (checking && (state==FAILED || (state==NEXT && pc==op_count-1)));
     wire drained=compute_drained && memory_idle;
 
@@ -761,7 +878,10 @@ module npu_program_core #(
     always @(posedge clk) begin
         if(rst) begin
             state<=IDLE; checking<=0; pc<=0; fetch_word<=0; l_out<=0; lq_count<=0; lq_head<=0; lq_tail<=0;
-            q_enable<=0;relu_enable<=0;pool_enable<=0;mac_op<=0;dwconv<=0;pool1d<=0;elem_pool<=0;
+            q_enable<=0;relu_enable<=0;pool_enable<=0;mac_op<=0;dwconv<=0;pool1d<=0;elem_pool<=0;exit_op<=0;
+            w_mode<=0;w2_mode<=0;
+            exit_phase<=0;exit_idx<=0;exit_max1_idx<=0;exit_max1<=0;exit_max2<=0;exit_copy_word<=0;
+            exit_status<=0;exit_margin<=0;
             astep<=0;fetch_bad<=0;
             validation_done<=0; validation_ok<=0; done<=0; error<=0; error_op<=0;
             cycles<=0; issues<=0; model_reads<=0; act_reads<=0; act_writes<=0;
@@ -782,6 +902,7 @@ module npu_program_core #(
                     checking<=validate; pc<=0; fetch_word<=0; error<=0; error_op<=0;
                     validation_ok<=0; state<=FREQ; cycles<=0; issues<=0;
                     model_reads<=0; act_reads<=0; act_writes<=0;
+                    exit_status<=0; exit_margin<=0;
                     if(op_count==0 || op_count>MAX_OPS || model_bytes>MODEL_BYTES ||
                        model_bytes<op_count*64 || input_bytes==0 || output_bytes==0 ||
                        input_base[1:0]!=0 || output_base[1:0]!=0 ||
@@ -792,17 +913,27 @@ module npu_program_core #(
                 end
                 FREQ: begin if(m_ready) state<=FWAIT; if(fetch_word==0) fetch_bad<=0; end
                 FWAIT: if(m_rsp_valid) begin
-                    d[fetch_word]<=m_data;
+                    case(fetch_word)
+                        4'd0:d[0]<=m_data; 4'd1:d[1]<=m_data; 4'd2:d[2]<=m_data; 4'd3:d[3]<=m_data;
+                        4'd4:d[4]<=m_data; 4'd5:d[5]<=m_data; 4'd6:d[6]<=m_data; 4'd7:d[7]<=m_data;
+                        4'd8:d[8]<=m_data; 4'd9:d[9]<=m_data; 4'd10:d[10]<=m_data; 4'd11:d[11]<=m_data;
+                        4'd12:d[12]<=m_data; 4'd13:d[13]<=m_data; 4'd14:d[14]<=m_data; default:d[15]<=m_data;
+                    endcase
                     // Reserved/range fields are checked here so they are never stored.
                     case(fetch_word)
-                        0: if(m_data[31:18]!=0) fetch_bad<=1;
+                        0: if(m_data[31:22]!=0 ||
+                              (m_data[7:0]!=CONV && m_data[7:0]!=FC && m_data[21:20]!=0) ||
+                              (m_data[7:0]!=EXIT && m_data[19:18]!=0)) fetch_bad<=1;
                         1,2: if(m_data[31:15]!=0 || m_data[1:0]!=0) fetch_bad<=1;
                         3: if(m_data[15:8]!=0 || m_data[31:24]!=0) fetch_bad<=1;
-                        7,8: if(m_data[31:16]!=0) fetch_bad<=1;
+                        7: if(d[0][7:0]!=EXIT && m_data[31:16]!=0) fetch_bad<=1;
+                        8: if(m_data[31:16]!=0) fetch_bad<=1;
                         9: if(m_data[31:10]!=0) fetch_bad<=1;
                         11: if(d[0][7:0]==ADD ? (m_data[31:15]!=0 || m_data[1:0]!=0) : m_data!=0) fetch_bad<=1;
                         12: if(d[0][7:0]==ADD ? m_data[31:16]!=0 : m_data!=0) fetch_bad<=1;
-                        13,14: if(m_data!=0) fetch_bad<=1;
+                        // Words 13/14 carry the skew schedule of MAC ops only.
+                        13: if(m_data!=0 && d[0][7:0]!=CONV && d[0][7:0]!=FC) fetch_bad<=1;
+                        14: if(m_data[30:28]!=0 || (m_data!=0 && d[0][7:0]!=CONV && d[0][7:0]!=FC)) fetch_bad<=1;
                         15: if(m_data!=(32'h49340f80|COLS)) fetch_bad<=1;
                         default: ;
                     endcase
@@ -814,7 +945,11 @@ module npu_program_core #(
                         pool_enable<=d[0][10] && (d[0][7:0]==CONV || d[0][7:0]==FC);
                         pool1d<=d[0][14];
                         dwconv<=d[0][13];
+                        skew<=d[14][31];
                         elem_pool<=d[0][7:0]==POOL || d[0][7:0]==AVGPOOL;
+                        exit_op<=d[0][7:0]==EXIT;
+                        w_mode<=d[0][21:20];
+                        w2_mode<=d[0][21:20]!=2'b00;
                         state<=BASIC;
                     end
                     else begin fetch_word<=fetch_word+1'b1; state<=m_ready ? FWAIT : FREQ; end
@@ -835,8 +970,9 @@ module npu_program_core #(
                         5:pool_chk_h<=mul_p;
                         6:pool_chk_w<=mul_p;
                         default:begin
-                            weight_span<=dwconv ? mul_p*(ROWS/2) :
-                                mul_p*ROWS*(COLS/2)-(COLS==8 && oc%8!=0 && oc%8<=4 ? groups*ROWS*2 : 0);
+                            weight_span<=dwconv ? mul_p*(w2_mode ? 16'd2 : (ROWS/2)) :
+                                mul_p*ROWS*(w2_mode ? 16'd2 : (COLS/2))-
+                                (!w2_mode && COLS==8 && oc%8!=0 && oc%8<=4 ? groups*ROWS*2 : 0);
                             param_span<=channels*4;
                             positions<=dst_pixels<<(!pool_enable ? 0 : pool1d ? 1 : 2);
                             lookup_done<=0;
@@ -856,7 +992,14 @@ module npu_program_core #(
                     else begin
                         oct<=0; param_channel<=0;
                         astep<=0;
-                        if(need_params) state<=PREQ;
+                        if(exit_op) begin
+                            if(checking) state<=NEXT;
+                            else begin
+                                exit_phase<=0; exit_idx<=0; exit_max1_idx<=0;
+                                exit_max1<=32'sh8000_0000; exit_max2<=32'sh8000_0000;
+                                state<=EXIT_RUN;
+                            end
+                        end else if(need_params) state<=PREQ;
                         else state<=checking ? NEXT : SETUP;
                     end
                 end
@@ -893,9 +1036,9 @@ module npu_program_core #(
                         6:origin_y<=mul_p;
                         7:origin_x<=mul_p;
                         8:begin
-                            // Depthwise tiles hold one COLS-lane row per tap: groups*2 bytes.
-                            weight_tile_base<=weights+mul_p*(dwconv ? ROWS/2 : ROWS*(COLS/2));
-                            load_address<=weights+mul_p*(dwconv ? ROWS/2 : ROWS*(COLS/2));
+                            // Depthwise tiles hold one COLS-lane row per tap; W2 halves row bytes from 4 to 2.
+                            weight_tile_base<=weights+mul_p*(dwconv ? (w2_mode ? 16'd2 : ROWS/2) : ROWS*(w2_mode ? 16'd2 : COLS/2));
+                            load_address<=weights+mul_p*(dwconv ? (w2_mode ? 16'd2 : ROWS/2) : ROWS*(w2_mode ? 16'd2 : COLS/2));
                         end
                         default:begin
                             // Normal kernels step over IC contiguous channels per tap;
@@ -1005,9 +1148,11 @@ module npu_program_core #(
                                 peek_request_mask<=request_mask[1];peek_first<=request_first[1];
                                 peek_first_addr<=prepared_first_addr;peek_any<=request_any[1];
                                 kernel_prepare<=0;
-                                tile_positions<=remaining<TILE ? remaining[4:0] : TILE;
-                                has_next_q<=remaining>1;
+                                tile_positions<=skew ? sk_count : remaining<TILE ? remaining[4:0] : TILE;
+                                has_next_q<=skew ? sk_count>5'd1 : remaining>1;
                                 last_group<=issue_g==groups-16'd1;
+                                sk_adv<=sk_adv_now; sk_fidx<=sk_fidx_now; sk_pos<=sk_start[3:0];
+                                sk_last_q<=sk_adv_now!=0; sk_first_q<=sk_fidx_now==0; sk_more<=sk_w_next<sk_n;
                             end
                         end
                         if(load_start) begin lstate<=L_REQ; req_row<=0; req_addr<=load_address; end
@@ -1025,7 +1170,13 @@ module npu_program_core #(
                                 dwconv && (load_row!=ROWS-1 || ((load_g+1)%(COLS/ROWS)!=0)) ? load_address : load_address+row_bytes;
                             if(load_row==ROWS-1) begin
                                 load_row<=0; lstate<=L_IDLE; bank_ready[load_bank]<=1; load_seq<=load_seq+1'b1;
-                                if(load_g!=groups-1) load_g<=load_g+1'b1;
+                                // Skewed: load the same phase sequence the issue side walks.
+                                if(skew) begin
+                                    if(ld_w_next>=sk_n) load_more<=0;
+                                    else if(ld_wrap) begin load_g<=0; load_tile<=load_tile+1'b1; end
+                                    else load_g<=load_g+1'b1;
+                                end
+                                else if(load_g!=groups-1) load_g<=load_g+1'b1;
                                 else begin
                                     load_g<=0;
                                     if((load_tile+1)*TILE<positions) load_tile<=load_tile+1'b1;
@@ -1057,12 +1208,35 @@ module npu_program_core #(
                             gather_mask<=calc_mask;
                             gathered<=0; gather_row<=calc_first;
                             gather_state<=!has_next ? 0 : calc_mask==0 ? 3 : (a_valid && a_ready ? 2 : 1);
-                            if(last_group && reserve_slot) slot_busy[issue_slot]<=1;
+                            if(last_flag && reserve_slot) slot_busy[issue_slot]<=1;
+                            if(has_next) begin
+                                sk_last_q<=issue_p+5'd1<sk_adv; sk_first_q<=issue_p+5'd1>=sk_fidx;
+                                sk_pos<=sk_pos+4'd1;
+                            end
+                            // Bookmark the next phase's first position as it passes.
+                            if(skew && issue_p+5'd1==sk_adv) begin
+                                tile_base<=peek_base; tile_y<=peek_y; tile_x<=peek_x;
+                            end
                             if(!has_next) begin
                                 issue_p<=0;has_next_q<=tile_positions>1;
                                 prep_row<=0;
                                 bank_ready[issue_seq[0]]<=0; issue_seq<=issue_seq+1'b1;
-                                if(!last_group) begin
+                                if(skew) begin
+                                    kernel_prepare<=1;
+                                    if(issue_p+5'd1==sk_adv) begin
+                                        cursor_base<=peek_base; cursor_y<=peek_y; cursor_x<=peek_x;
+                                        cursor_at_last_x<=peek_x==scan_last_x;
+                                    end else begin
+                                        cursor_base<=tile_base; cursor_y<=tile_y; cursor_x<=tile_x;
+                                        cursor_at_last_x<=tile_x==scan_last_x;
+                                    end
+                                    if(sk_wrap) begin
+                                        issue_g<=0; issue_tile<=issue_tile+1'b1;
+                                        kernel_c<=0;kernel_x<=0;kernel_y<=0;kernel_offset<=0;
+                                    end else issue_g<=issue_g+1'b1;
+                                    if(!sk_more) issue_more<=0;
+                                end
+                                else if(!last_group) begin
                                     issue_g<=issue_g+1'b1;
                                     kernel_prepare<=1;cursor_base<=tile_base;
                                     cursor_y<=tile_y; cursor_x<=tile_x;
@@ -1164,6 +1338,39 @@ module npu_program_core #(
                         end
                     end
                 end
+                EXIT_RUN: case(exit_phase)
+                    3'd0: if(a_ready) exit_phase<=3'd1;
+                    3'd1: if(a_rsp_valid) begin
+                        if(exit_sample>$signed(exit_max1)) begin
+                            exit_max2<=exit_max1; exit_max1<=exit_sample; exit_max1_idx<=exit_idx[7:0];
+                        end else if(exit_sample>$signed(exit_max2)) begin
+                            exit_max2<=exit_sample;
+                        end
+                        if(exit_idx==ic[8:0]-9'd1) exit_phase<=3'd2;
+                        else begin exit_idx<=exit_idx+9'd1; exit_phase<=3'd0; end
+                    end
+                    3'd2: begin
+                        if(!exit_cond) state<=NEXT;
+                        else begin
+                            exit_status<={1'b1,7'd0,exit_id_field,pc,exit_max1_idx};
+                            exit_margin<=exit_diff;
+                            if(exit_target_pc==op_count) begin
+                                if(src==dst) begin done<=1; state<=IDLE; end
+                                else begin exit_idx<=0; exit_phase<=3'd3; end
+                            end else begin
+                                pc<=exit_target_pc; fetch_word<=0; state<=FREQ;
+                            end
+                        end
+                    end
+                    3'd3: if(a_ready) exit_phase<=3'd4;
+                    3'd4: if(a_rsp_valid) begin exit_copy_word<=a_data; exit_phase<=3'd5; end
+                    3'd5: if(w_ready) begin
+                        if(exit_idx==ic[8:0]-9'd1) exit_phase<=3'd6;
+                        else begin exit_idx<=exit_idx+9'd1; exit_phase<=3'd3; end
+                    end
+                    3'd6: if(memory_idle) begin done<=1; state<=IDLE; end
+                    default: state<=IDLE;
+                endcase
                 NEXT: if(pc==op_count-1) begin
                     if(!checking) begin done<=1; state<=IDLE; end
                     else if(validation_drained) begin validation_done<=1; validation_ok<=1; state<=IDLE; end
@@ -1193,7 +1400,7 @@ endmodule
 // waits, so every read observes all earlier record updates. done is raised
 // only after the scan's own writes have been accepted.
 module npu_tensor_lookup #(parameter MAX_OPS=128) (
-    input wire clk,rst,seed,start,save,
+    input wire clk,rst,seed,start,save,no_write,
     input wire [7:0] pc,
     input wire input_i32,src_i32,dst_i32,add_op,
     input wire [15:0] input_first,input_end,src,src_end,src2,src2_end,dst,dst_end,
@@ -1210,7 +1417,7 @@ module npu_tensor_lookup #(parameter MAX_OPS=128) (
     wire record_valid=record[31],record_i32=record[30];
     wire [15:0] record_base={1'b0,record[14:0]};
     wire [15:0] record_end={1'b0,record[29:15]}+16'd1;
-    wire overlap=record_valid && dst<record_end && record_base<dst_end;
+    wire overlap=!no_write && record_valid && dst<record_end && record_base<dst_end;
     function automatic [31:0] pack(input i32,input [15:0] first,input [15:0] last_exclusive);
         reg [15:0] last;
         begin last=last_exclusive-16'd1; pack={1'b1,i32,last[14:0],first[14:0]}; end
@@ -1231,7 +1438,7 @@ module npu_tensor_lookup #(parameter MAX_OPS=128) (
             if(seed) begin
                 wr_valid<=1; wr_index<=0; wr_data<=pack(input_i32,input_first,input_end);
             end else if(save) begin
-                wr_valid<=1; wr_index<=pc+8'd1; wr_data<=pack(dst_i32,dst,dst_end);
+                wr_valid<=1; wr_index<=pc+8'd1; wr_data<=no_write ? 32'd0 : pack(dst_i32,dst,dst_end);
             end
             if(start) begin
                 state<=S_READ; index<=0;

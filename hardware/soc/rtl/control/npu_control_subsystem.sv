@@ -13,7 +13,7 @@ module npu_control_subsystem #(
  always @(posedge clk_i) rst<=!rst_ni || core_reset;
  wire [4:0] error; wire [7:0] error_op,op_count;wire input_i32;
  wire [15:0] model_bytes,input_base,input_bytes,output_base,output_bytes;
- wire [31:0] cycles,issues,model_reads,act_reads,act_writes;
+ wire [31:0] cycles,issues,model_reads,act_reads,act_writes,exit_status,exit_margin;
  wire [24*32-1:0] perf_counters;
  wire trace_clear,trace_active,trace_read,trace_valid;
  wire [127:0] trace_sample;wire [3:0] trace_events;
@@ -37,6 +37,7 @@ module npu_control_subsystem #(
   .core_ready_i(ready),.core_busy_i(busy),.validation_done_i(vdone),.validation_ok_i(vok),.done_i(done),
   .core_error_i(error),.core_error_op_i(error_op),.cycles_i(cycles),.issues_i(issues),
   .model_reads_i(model_reads),.act_reads_i(act_reads),.act_writes_i(act_writes),
+  .exit_status_i(exit_status),.exit_margin_i(exit_margin),
   .perf_counters_i(perf_counters),
   .trace_control_o(trace_control),.trace_offset_o(trace_offset),
   .trace_read_o(trace_read),.trace_addr_o(trace_addr),.trace_valid_i(trace_valid),.trace_data_i(trace_data),.trace_error_i(trace_error),
@@ -62,6 +63,7 @@ module npu_control_subsystem #(
   .output_base(output_base),.output_bytes(output_bytes),.op_count(op_count),.input_i32(input_i32),
   .validation_done(vdone),.validation_ok(vok),.done(done),.error(error),.error_op(error_op),
   .cycles(cycles),.issues(issues),.model_reads(model_reads),.act_reads(act_reads),.act_writes(act_writes),
+  .exit_status(exit_status),.exit_margin(exit_margin),
   .perf_counters(perf_counters),
   .trace_clear(trace_clear),.trace_active(trace_active),.trace_sample(trace_sample),
   .trace_events(trace_events),.trace_descriptor(trace_descriptor),

@@ -13,7 +13,7 @@ module tb_npu_tensor_lookup;
  wire rd_valid,wr_valid;wire [7:0] rd_index,wr_index;wire [31:0] wr_data;
  reg rd_ready=0,wr_ready=0,rd_rsp_valid=0;reg [31:0] rd_data=0;
  npu_tensor_lookup #(.MAX_OPS(MAX_OPS)) dut(
-  .clk(clk),.rst(rst),.seed(seed),.start(start),.save(save),.pc(pc),
+  .clk(clk),.rst(rst),.seed(seed),.start(start),.save(save),.no_write(1'b0),.pc(pc),
   .input_i32(input_i32),.src_i32(src_i32),.dst_i32(dst_i32),.add_op(add_op),
   .input_first(input_first),.input_end(input_end),.src(src),.src_end(src_end),
   .src2(src2),.src2_end(src2_end),.dst(dst),.dst_end(dst_end),

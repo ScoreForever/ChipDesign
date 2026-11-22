@@ -38,6 +38,7 @@ module npu_jtag_transport #(
     // that the CDC constraints name.
     reg [29:0] burst_word;
     reg burst_request, burst_error_pending;
+    reg [4:0] stream_cnt;
     reg [4:0] rsp_mailbox_error;
     (* ASYNC_REG = "TRUE" *) reg [1:0] req_sync, ack_sync;
     reg req_seen, waiting_reply;
@@ -82,7 +83,7 @@ module npu_jtag_transport #(
             tap <= TLR; ir <= 1; ir_shift <= 1; dr <= 0;
             req_payload <= 0; req_toggle <= 0; ack_sync <= 0;
             pending <= 0; have_reply <= 0; overrun <= 0; reply_data <= 0; reply_error <= 0;
-            burst_word <= 0; burst_request <= 0; burst_error_pending <= 0;
+            burst_word <= 0; burst_request <= 0; burst_error_pending <= 0; stream_cnt <= 0;
         end else begin
             tap <= tap_next;
             ack_sync <= {ack_sync[0],ack_toggle};
@@ -105,17 +106,52 @@ module npu_jtag_transport #(
                 SHIR: ir_shift <= {td_i,ir_shift[4:1]};
                 UIR: ir <= ir_shift;
                 CDR: begin
+                    stream_cnt <= 0;
                     if (ir == 1) dr <= {40'd0,IDCODE};
                     else if (ir == 'h12) dr <= {have_reply,pending,
                         (overrun || (burst_error_pending && reply_error != 0)),reply_error,
                         req_payload[63:32],reply_data};
                     else if (ir == 'h14) dr <= {40'd0,reply_data};
-                    else dr <= 0;
+                    else if (ir == 'h16) begin
+                        dr <= {40'd0,reply_data};
+                        if (pending) overrun <= 1;
+                        else begin
+                            req_payload <= {8'd1, burst_word, 2'b00, 32'd0};
+                            req_toggle <= !req_toggle; pending <= 1; have_reply <= 0;
+                            burst_word <= burst_word + 30'd1; burst_request <= 1;
+                        end
+                    end else dr <= 0;
                 end
                 SHDR: begin
                     if (ir == 'h12) dr <= {td_i,dr[71:1]};
                     else if (ir == 1 || ir == 'h13 || ir == 'h14) dr <= {40'd0,td_i,dr[31:1]};
-                    else dr <= {71'd0,td_i};
+                    else if (ir == 'h15) begin
+                        // Continuous zero-overhead streaming write: auto-dispatch every 32 TCKs.
+                        dr <= {40'd0,td_i,dr[31:1]};
+                        stream_cnt <= stream_cnt + 5'd1;
+                        if (stream_cnt == 5'd31) begin
+                            if (pending) overrun <= 1;
+                            else begin
+                                req_payload <= {8'd2, burst_word, 2'b00, td_i, dr[31:1]};
+                                req_toggle <= !req_toggle; pending <= 1; have_reply <= 0;
+                                burst_word <= burst_word + 30'd1; burst_request <= 1;
+                            end
+                        end
+                    end else if (ir == 'h16) begin
+                        // Continuous zero-overhead streaming read: reload & prefetch every 32 TCKs.
+                        stream_cnt <= stream_cnt + 5'd1;
+                        if (stream_cnt == 5'd31) begin
+                            if (!tms_i) begin
+                                if (pending) overrun <= 1;
+                                else begin
+                                    dr <= {40'd0,reply_data};
+                                    req_payload <= {8'd1, burst_word, 2'b00, 32'd0};
+                                    req_toggle <= !req_toggle; pending <= 1; have_reply <= 0;
+                                    burst_word <= burst_word + 30'd1; burst_request <= 1;
+                                end
+                            end else dr <= {40'd0,1'b0,dr[31:1]};
+                        end else dr <= {40'd0,1'b0,dr[31:1]};
+                    end else dr <= {71'd0,td_i};
                 end
                 UDR: if (ir == 'h12 && dr[71:64] != 0) begin
                     if (pending) overrun <= 1;
